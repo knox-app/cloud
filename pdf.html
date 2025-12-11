@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer</title>
+    
+    <!-- Google Fonts for the clean UI look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-text: #1F2937;
+            --secondary-text: #6B7280;
+            --accent-color: #2563EB;
+            --bg-color: #F3F4F6;
+            --header-height: 60px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Loading Overlay */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 15px;
+            color: var(--secondary-text);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Header UI (Clean App Bar) */
+        header {
+            height: var(--header-height);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            color: var(--primary-text);
+        }
+        .back-btn:hover { background-color: #f3f4f6; }
+
+        .doc-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .action-btn:hover { background: #1d4ed8; }
+        
+        /* Main PDF Container */
+        main {
+            flex: 1;
+            position: relative;
+            background: #525659; /* Standard PDF reader background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: var(--secondary-text);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* Toast Notification */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #374151;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 2000;
+        }
+
+        @media (min-width: 768px) {
+            .doc-title { max-width: 400px; }
+        }
+    </style>
+
+    <!-- Firebase SDK (Compat version for easier standalone HTML usage) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loading-msg">Loading Document...</div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast">Link copied to clipboard!</div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <div class="doc-title" id="doc-title">Document Viewer</div>
+        </div>
+        <div class="header-right">
+            <button class="action-btn" onclick="shareCurrentUrl()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4-4 4m4-4v13"/></svg>
+                Share
+            </button>
+        </div>
+    </header>
+
+    <!-- PDF Viewer -->
+    <main id="main-container">
+        <!-- iFrame will be injected here -->
+    </main>
+
+    <script>
+        // --- 1. Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDL7sPp-FkG59L-mRQ7BrCGgeKMhQC80iw",
+            authDomain: "xperts-metadata.firebaseapp.com",
+            projectId: "xperts-metadata",
+            storageBucket: "xperts-metadata.firebasestorage.app",
+            messagingSenderId: "514845910910",
+            appId: "1:514845910910:web:5a2402130a97b5d749b52f",
+            measurementId: "G-CQ5KWGJSZB"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const COLLECTION_NAME = "pdf_shares";
+
+        // --- 2. Helper Functions ---
+
+        // Generate 15 digit alphanumeric code
+        function generateCode(length = 15) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // Show Toast
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+        }
+
+        // Copy/Share Logic
+        function shareCurrentUrl() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                showToast("Secure Link Copied!");
+            }).catch(() => {
+                showToast("Failed to copy link");
+            });
+        }
+
+        // Display PDF
+        function renderPDF(url) {
+            const container = document.getElementById('main-container');
+            // Clean up old
+            container.innerHTML = ''; 
+            
+            // Check if it's a direct PDF or needs a viewer wrapper
+            // Note: Using Google Docs viewer is safer for avoiding CORS on generic URLs, 
+            // but native is requested. We stick to native iframe for "Super Fast" request.
+            
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.type = "application/pdf";
+            
+            // Fallback for browsers that don't support PDF in iframe
+            iframe.onload = () => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('loader').style.display = 'none', 300);
+            };
+            
+            container.appendChild(iframe);
+
+            // Force loader hide after 2 seconds if onload doesn't fire (common with PDFs)
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('loader').style.display = 'none', 300);
+            }, 1500);
+        }
+
+        // --- 3. Main Logic Flow ---
+
+        async function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const inputParam = urlParams.get('file');
+
+            if (!inputParam) {
+                document.getElementById('loading-msg').innerText = "No file specified.";
+                document.getElementById('main-container').innerHTML = `
+                    <div class="empty-state">
+                        <h3>No Document Selected</h3>
+                        <p>Please use ?file=url or ?file=code in the address bar.</p>
+                    </div>`;
+                document.getElementById('loader').style.display = 'none';
+                return;
+            }
+
+            // Check if input is a URL (contains http/https) or a Code
+            const isUrl = /^(http|https):\/\//.test(inputParam);
+
+            if (isUrl) {
+                // --- SCENARIO A: Input is a RAW URL ---
+                document.getElementById('loading-msg').innerText = "Securing link...";
+
+                try {
+                    // 1. Check if URL already exists in DB
+                    const snapshot = await db.collection(COLLECTION_NAME)
+                        .where('originalUrl', '==', inputParam)
+                        .limit(1)
+                        .get();
+
+                    if (!snapshot.empty) {
+                        // Exists: Get the code and redirect
+                        const data = snapshot.docs[0].data();
+                        const existingCode = data.code;
+                        
+                        // Replace URL without reloading page (Fast)
+                        const newUrl = `${window.location.pathname}?file=${existingCode}`;
+                        window.history.replaceState({ path: newUrl }, '', newUrl);
+                        
+                        // Show PDF
+                        renderPDF(inputParam);
+                    } else {
+                        // New: Generate Code -> Save -> Redirect
+                        const newCode = generateCode();
+                        
+                        await db.collection(COLLECTION_NAME).doc(newCode).set({
+                            code: newCode,
+                            originalUrl: inputParam,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+
+                        // Replace URL
+                        const newUrl = `${window.location.pathname}?file=${newCode}`;
+                        window.history.replaceState({ path: newUrl }, '', newUrl);
+
+                        // Show PDF
+                        renderPDF(inputParam);
+                    }
+                } catch (error) {
+                    console.error("Firebase Error:", error);
+                    showToast("Database error. Showing direct file.");
+                    renderPDF(inputParam); // Fallback
+                }
+
+            } else {
+                // --- SCENARIO B: Input is a CODE ---
+                document.getElementById('loading-msg').innerText = "Fetching document...";
+
+                try {
+                    const docRef = await db.collection(COLLECTION_NAME).doc(inputParam).get();
+
+                    if (docRef.exists) {
+                        const data = docRef.data();
+                        renderPDF(data.originalUrl);
+                    } else {
+                        document.getElementById('loader').style.display = 'none';
+                        document.getElementById('main-container').innerHTML = `
+                            <div class="empty-state">
+                                <h3>Invalid Code</h3>
+                                <p>This document link is invalid or has expired.</p>
+                            </div>`;
+                    }
+                } catch (error) {
+                    console.error("Fetch Error:", error);
+                    document.getElementById('loader').style.display = 'none';
+                    showToast("Error loading document.");
+                }
+            }
+        }
+
+        // Run on load
+        window.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
