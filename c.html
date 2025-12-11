@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fast PDF Viewer</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- PDF.js CSS (Required for Text Selection) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
+
+    <style>
+        :root {
+            --bg-color: #F0F2F5;
+            --header-height: 56px;
+            --primary: #4285F4;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Drive-Style Header --- */
+        header {
+            height: var(--header-height);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .header-left, .header-right { display: flex; align-items: center; gap: 10px; }
+
+        .title {
+            font-size: 18px;
+            color: #202124;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5f6368;
+            transition: background 0.2s;
+        }
+        .icon-btn:hover { background: #f1f3f4; }
+
+        /* --- Main Scroll Area --- */
+        #viewer-container {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 0;
+        }
+
+        /* --- Page Styling --- */
+        .pdf-page {
+            position: relative;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            margin-bottom: 16px;
+            /* Default size placeholder before render */
+            min-height: 400px; 
+            min-width: 300px;
+        }
+
+        /* Loading Spinner inside Page placeholder */
+        .pdf-page.loading::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #eee;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            transform: translate(-50%, -50%);
+        }
+
+        canvas { display: block; }
+
+        /* Text Layer for Selection/Search */
+        .textLayer {
+            opacity: 1;
+            mix-blend-mode: multiply;
+        }
+        
+        /* Highlight color */
+        ::selection { background: rgba(66, 133, 244, 0.3); }
+
+        /* --- Initial Loading Screen --- */
+        #app-loader {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #323232;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 200;
+        }
+    </style>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <!-- PDF.js Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <button class="icon-btn" onclick="history.back()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            </button>
+            <div class="title" id="doc-title">Document</div>
+        </div>
+        <div class="header-right">
+            <div style="font-size:14px; color:#5f6368; margin-right:10px;" id="page-indicator">Loading...</div>
+            <button class="icon-btn" onclick="shareUrl()" title="Share Link">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <div id="app-loader">Loading PDF...</div>
+
+    <div id="viewer-container">
+        <!-- Pages injected here -->
+    </div>
+
+    <div id="toast">Link copied!</div>
+
+    <script>
+        // --- CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDL7sPp-FkG59L-mRQ7BrCGgeKMhQC80iw",
+            authDomain: "xperts-metadata.firebaseapp.com",
+            projectId: "xperts-metadata",
+            storageBucket: "xperts-metadata.firebasestorage.app",
+            messagingSenderId: "514845910910",
+            appId: "1:514845910910:web:5a2402130a97b5d749b52f",
+            measurementId: "G-CQ5KWGJSZB"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const COLLECTION = "pdf_shares";
+
+        // --- STATE ---
+        let pdfDoc = null;
+        let scale = 1.5; // Quality factor (1.5 is good balance for speed/crispness)
+        let pageObserver;
+        const renderedPages = new Set();
+
+        // --- CORE LOGIC ---
+
+        async function init() {
+            const params = new URLSearchParams(window.location.search);
+            const file = params.get('file');
+
+            if(!file) return alert("No file specified");
+
+            // URL vs Code Logic
+            if(file.startsWith('http')) {
+                // Check DB for existing code to hide URL
+                try {
+                    const snap = await db.collection(COLLECTION).where('url', '==', file).limit(1).get();
+                    if(snap.empty) {
+                        const newCode = generateId();
+                        await db.collection(COLLECTION).doc(newCode).set({
+                            code: newCode, url: file, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        replaceUrl(newCode);
+                    } else {
+                        replaceUrl(snap.docs[0].data().code);
+                    }
+                    startPDF(file);
+                } catch(e) { startPDF(file); } // Fallback
+            } else {
+                // Fetch URL from Code
+                try {
+                    const doc = await db.collection(COLLECTION).doc(file).get();
+                    if(doc.exists) startPDF(doc.data().url);
+                    else alert("Link expired or invalid");
+                } catch(e) { alert("Error loading"); }
+            }
+        }
+
+        function replaceUrl(code) {
+            const newUrl = window.location.pathname + '?file=' + code;
+            window.history.replaceState({path:newUrl}, '', newUrl);
+        }
+
+        function generateId() {
+            return Math.random().toString(36).substr(2, 9) + Math.random().toString(36).substr(2, 6);
+        }
+
+        // --- PDF ENGINE (FAST MODE) ---
+
+        async function startPDF(url) {
+            try {
+                // Asynchronous download
+                const loadingTask = pdfjsLib.getDocument(url);
+                pdfDoc = await loadingTask.promise;
+                
+                document.getElementById('app-loader').style.display = 'none';
+                document.getElementById('page-indicator').textContent = `1 / ${pdfDoc.numPages}`;
+
+                // Setup Intersection Observer (The Secret to Speed)
+                const options = {
+                    root: document.getElementById('viewer-container'),
+                    rootMargin: '200px', // Render pages 200px before they come into view
+                    threshold: 0
+                };
+                
+                pageObserver = new IntersectionObserver(handleIntersection, options);
+
+                // Create Skeleton (Empty Placeholders)
+                await createSkeleton();
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('app-loader').textContent = "Error: " + err.message;
+            }
+        }
+
+        async function createSkeleton() {
+            const container = document.getElementById('viewer-container');
+            
+            // Fetch Page 1 dimensions to guess the size of other pages (Performance trick)
+            const page1 = await pdfDoc.getPage(1);
+            const viewport = page1.getViewport({ scale: scale });
+            
+            // Generate empty DIVs for all pages
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                const div = document.createElement('div');
+                div.className = 'pdf-page loading';
+                div.id = `page-${i}`;
+                div.dataset.pageNumber = i;
+                
+                // Set approximate dimensions so scrollbar works
+                div.style.width = `${viewport.width}px`;
+                div.style.height = `${viewport.height}px`;
+
+                container.appendChild(div);
+                pageObserver.observe(div); // Start watching this page
+            }
+        }
+
+        // Triggered when a page comes into view
+        function handleIntersection(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const pageDiv = entry.target;
+                    const pageNum = parseInt(pageDiv.dataset.pageNumber);
+
+                    // Update Page Counter UI
+                    document.getElementById('page-indicator').textContent = `${pageNum} / ${pdfDoc.numPages}`;
+
+                    // Render only if not already rendered
+                    if (!renderedPages.has(pageNum)) {
+                        renderPage(pageNum, pageDiv);
+                        renderedPages.add(pageNum);
+                        // Optional: Stop observing once rendered to save CPU, 
+                        // or keep observing to implement "virtual scrolling" (unloading pages) for massive docs.
+                        // For < 100 pages, keeping DOM is fine.
+                        pageObserver.unobserve(pageDiv); 
+                    }
+                }
+            });
+        }
+
+        async function renderPage(num, div) {
+            try {
+                const page = await pdfDoc.getPage(num);
+                const viewport = page.getViewport({ scale: scale });
+                
+                // Ensure div matches exact page size (in case page 2 is different size than page 1)
+                div.style.width = `${viewport.width}px`;
+                div.style.height = `${viewport.height}px`;
+
+                // Canvas Layer (The Image)
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                div.appendChild(canvas);
+
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+
+                await page.render(renderContext).promise;
+
+                // Remove loading spinner
+                div.classList.remove('loading');
+
+                // Text Layer (Searchability)
+                // We do this AFTER canvas render so visual is fast
+                const textContent = await page.getTextContent();
+                const textLayerDiv = document.createElement('div');
+                textLayerDiv.className = 'textLayer';
+                textLayerDiv.style.width = `${viewport.width}px`;
+                textLayerDiv.style.height = `${viewport.height}px`;
+                textLayerDiv.style.setProperty('--scale-factor', scale);
+                div.appendChild(textLayerDiv);
+
+                pdfjsLib.renderTextLayer({
+                    textContentSource: textContent,
+                    container: textLayerDiv,
+                    viewport: viewport,
+                    textDivs: []
+                });
+
+            } catch (err) {
+                console.error("Page render error", err);
+            }
+        }
+
+        // --- SHARE UTIL ---
+        function shareUrl() {
+            const t = document.getElementById('toast');
+            navigator.clipboard.writeText(window.location.href);
+            t.style.opacity = 1;
+            setTimeout(() => t.style.opacity = 0, 2000);
+        }
+
+        // Boot
+        window.onload = init;
+
+    </script>
+</body>
+</html>
