@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Advanced PDF Viewer</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- PDF.js Styles (Required for Text Layer/Selection to work) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
+
+    <style>
+        :root {
+            --bg-color: #E5E7EB; /* Light grey background */
+            --header-bg: #FFFFFF;
+            --primary: #2563EB;
+            --text-main: #1F2937;
+            --header-height: 60px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Custom Toolbar --- */
+        header {
+            height: var(--header-height);
+            background: var(--header-bg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 100;
+            border-bottom: 1px solid #d1d5db;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background: transparent;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #4B5563;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .btn:hover { background-color: #F3F4F6; color: var(--text-main); }
+        .btn svg { width: 20px; height: 20px; }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            gap: 6px;
+        }
+        .btn-primary:hover { background-color: #1d4ed8; color: white; }
+
+        .page-info {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-main);
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* --- PDF Container --- */
+        #viewer-container {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            scroll-behavior: smooth;
+        }
+
+        /* The wrapper for each page (Canvas + Text Layer) */
+        .pdf-page {
+            position: relative;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background-color: white;
+        }
+
+        /* Ensure Text Layer aligns perfectly over canvas for selection/search */
+        .textLayer {
+            opacity: 1; /* Make selection visible */
+            mix-blend-mode: multiply;
+        }
+        
+        /* Highlight search results styling (Browser default usually handles this, but this helps) */
+        ::selection {
+            background: rgba(37, 99, 235, 0.3);
+        }
+
+        /* --- Loader --- */
+        #loader {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            width: 100%;
+            height: calc(100vh - var(--header-height));
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e7eb;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- Toast --- */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1F2937;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 200;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .hide-mobile { display: none; }
+            header { padding: 0 10px; }
+            .page-info { font-size: 0.8rem; }
+        }
+    </style>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <!-- PDF.js Library (The Engine) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Set Worker Source
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+</head>
+<body>
+
+    <!-- Header Toolbar -->
+    <header>
+        <div class="toolbar-group">
+            <button class="btn" onclick="history.back()" title="Back">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            </button>
+            <div class="page-info" id="page-count">-- / --</div>
+        </div>
+
+        <div class="toolbar-group">
+            <button class="btn" onclick="changeZoom(0.2)" title="Zoom In">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            </button>
+            <button class="btn" onclick="changeZoom(-0.2)" title="Zoom Out">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg>
+            </button>
+            <button class="btn hide-mobile" onclick="triggerSearch()" title="Search (Ctrl+F)">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </button>
+        </div>
+
+        <div class="toolbar-group">
+            <button class="btn btn-primary" onclick="shareUrl()">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                <span class="hide-mobile">Share</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <p style="margin-top:15px; color:#666;">Loading Document...</p>
+    </div>
+
+    <!-- Viewer -->
+    <div id="viewer-container">
+        <!-- PDF Pages injected here -->
+    </div>
+
+    <!-- Toast -->
+    <div id="toast">Link Copied!</div>
+
+    <script>
+        // --- 1. CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDL7sPp-FkG59L-mRQ7BrCGgeKMhQC80iw",
+            authDomain: "xperts-metadata.firebaseapp.com",
+            projectId: "xperts-metadata",
+            storageBucket: "xperts-metadata.firebasestorage.app",
+            messagingSenderId: "514845910910",
+            appId: "1:514845910910:web:5a2402130a97b5d749b52f",
+            measurementId: "G-CQ5KWGJSZB"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const COLLECTION = "pdf_shares";
+
+        // State
+        let pdfDoc = null;
+        let currentZoom = 1.0; // 100%
+        let isRendering = false;
+
+        // --- 2. FIREBASE LOGIC ---
+        
+        function generateId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let res = '';
+            for(let i=0; i<15; i++) res += chars.charAt(Math.floor(Math.random()*chars.length));
+            return res;
+        }
+
+        async function init() {
+            const params = new URLSearchParams(window.location.search);
+            const input = params.get('file');
+
+            if (!input) {
+                document.getElementById('loader').innerHTML = '<p>No file specified.</p>';
+                return;
+            }
+
+            // Check if URL or Code
+            if (input.startsWith('http')) {
+                // It's a URL
+                try {
+                    // Check DB
+                    const snapshot = await db.collection(COLLECTION).where('url', '==', input).limit(1).get();
+                    let code;
+                    
+                    if (!snapshot.empty) {
+                        code = snapshot.docs[0].data().code;
+                    } else {
+                        code = generateId();
+                        await db.collection(COLLECTION).doc(code).set({
+                            code: code,
+                            url: input,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+
+                    // Update Browser URL
+                    const newUrl = `${window.location.pathname}?file=${code}`;
+                    window.history.replaceState({path: newUrl}, '', newUrl);
+
+                    // Load PDF
+                    loadPDF(input);
+
+                } catch (e) {
+                    console.error(e);
+                    // Fallback to direct load if DB fails
+                    loadPDF(input);
+                }
+            } else {
+                // It's a Code
+                try {
+                    const doc = await db.collection(COLLECTION).doc(input).get();
+                    if (doc.exists) {
+                        loadPDF(doc.data().url);
+                    } else {
+                        document.getElementById('loader').innerHTML = '<p>Invalid Link</p>';
+                    }
+                } catch(e) {
+                    document.getElementById('loader').innerHTML = '<p>Error fetching data</p>';
+                }
+            }
+        }
+
+        // --- 3. PDF RENDERING LOGIC (The custom part) ---
+
+        async function loadPDF(url) {
+            try {
+                const loadingTask = pdfjsLib.getDocument(url);
+                pdfDoc = await loadingTask.promise;
+                
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('page-count').innerText = `1 / ${pdfDoc.numPages}`;
+
+                // Calculate initial zoom to fit screen width
+                // Fetch page 1 to get dimensions
+                const page = await pdfDoc.getPage(1);
+                const viewport = page.getViewport({ scale: 1.0 });
+                const containerWidth = document.getElementById('viewer-container').clientWidth - 40; // padding
+                if (containerWidth < viewport.width) {
+                    currentZoom = containerWidth / viewport.width;
+                }
+
+                renderAllPages();
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loader').innerHTML = `<p>Error loading PDF. <br><small>Ensure the URL allows CORS.</small></p>`;
+            }
+        }
+
+        async function renderAllPages() {
+            const container = document.getElementById('viewer-container');
+            container.innerHTML = ''; // Clear existing
+
+            for (let num = 1; num <= pdfDoc.numPages; num++) {
+                // Create Page Wrapper
+                const div = document.createElement('div');
+                div.className = 'pdf-page';
+                div.id = `page-${num}`;
+                container.appendChild(div);
+
+                // Render specific page
+                renderPage(num, div);
+            }
+        }
+
+        async function renderPage(num, container) {
+            const page = await pdfDoc.getPage(num);
+            const viewport = page.getViewport({ scale: currentZoom });
+
+            // 1. Create Canvas
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            
+            // Set dimensions for wrapper
+            container.style.width = `${viewport.width}px`;
+            container.style.height = `${viewport.height}px`;
+
+            container.appendChild(canvas);
+
+            // Render PDF to Canvas
+            const renderContext = {
+                canvasContext: context,
+                viewport: viewport
+            };
+            await page.render(renderContext).promise;
+
+            // 2. Create Text Layer (For Search/Select)
+            const textLayerDiv = document.createElement('div');
+            textLayerDiv.className = 'textLayer';
+            textLayerDiv.style.setProperty('--scale-factor', currentZoom);
+            // Required by PDF.js text layer logic to position correctly
+            textLayerDiv.style.width = `${viewport.width}px`;
+            textLayerDiv.style.height = `${viewport.height}px`;
+            
+            container.appendChild(textLayerDiv);
+
+            // Fetch text content and render
+            const textContent = await page.getTextContent();
+            pdfjsLib.renderTextLayer({
+                textContentSource: textContent,
+                container: textLayerDiv,
+                viewport: viewport,
+                textDivs: []
+            });
+        }
+
+        // --- 4. CONTROLS ---
+
+        function changeZoom(delta) {
+            const newZoom = currentZoom + delta;
+            if (newZoom > 0.2 && newZoom < 3.0) {
+                currentZoom = newZoom;
+                // Re-render all pages (simple approach)
+                // In production, you might just CSS transform, but re-rendering keeps text sharp
+                renderAllPages();
+            }
+        }
+
+        function triggerSearch() {
+            // Trigger browser native find
+            // There is no JS API to open the "Find" bar, but we can alert the user
+            alert("Use your browser's Find feature (Ctrl+F or 3-dots Menu > Find in Page) to search text.");
+        }
+
+        function shareUrl() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                const t = document.getElementById('toast');
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 3000);
+            });
+        }
+
+        // Track scrolling to update page number
+        document.getElementById('viewer-container').addEventListener('scroll', () => {
+            const container = document.getElementById('viewer-container');
+            const pages = document.getElementsByClassName('pdf-page');
+            
+            for (let i = 0; i < pages.length; i++) {
+                const rect = pages[i].getBoundingClientRect();
+                // If page is roughly in middle of screen
+                if (rect.top >= 0 && rect.top < window.innerHeight / 2) {
+                    document.getElementById('page-count').innerText = `${i + 1} / ${pdfDoc.numPages}`;
+                    break;
+                }
+            }
+        });
+
+        // Initialize
+        window.onload = init;
+
+    </script>
+</body>
+</html>
