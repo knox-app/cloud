@@ -3,190 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fast Reader</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
+    <title>Secure PDF Viewer</title>
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PDF.js Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
 
     <style>
         :root {
-            --bg: #E3E5E8;
-            --header-h: 60px;
-            --accent: #2563EB;
+            --bg-color: #525659;
+            --toolbar-bg: #323639;
+            --text-color: #f1f1f1;
+            --shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
+            background-color: var(--bg-color);
+            font-family: 'Roboto', sans-serif;
+            color: var(--text-color);
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* Header */
-        header {
-            height: var(--header-h);
-            background: white;
+        /* Toolbar Styles */
+        #toolbar {
+            height: 56px;
+            background-color: var(--toolbar-bg);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 16px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-            z-index: 50;
+            padding: 0 20px;
+            box-shadow: var(--shadow);
+            z-index: 100;
         }
 
-        .title-box {
+        .toolbar-section {
             display: flex;
             align-items: center;
-            gap: 12px;
-            overflow: hidden;
-        }
-
-        .doc-name {
-            font-size: 16px;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 180px;
-            color: #1F2937;
+            gap: 15px;
         }
 
         .btn {
             background: transparent;
             border: none;
-            padding: 8px;
-            border-radius: 8px;
-            color: #4B5563;
+            color: #dcdcdc;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-        }
-        .btn:hover { background: #F3F4F6; }
-        
-        .share-btn {
-            background: var(--accent);
-            color: white;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .share-btn:hover { background: #1d4ed8; }
-
-        /* Viewer */
-        #container {
-            flex: 1;
-            overflow-y: auto;
-            position: relative;
-            padding: 15px; /* Spacing around pages */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
-        }
-
-        .page {
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            position: relative;
-            /* Critical for responsiveness */
-            width: 100%; 
-            max-width: 900px; /* Don't get too wide on desktop */
-        }
-
-        .page.loading {
-            background: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .page.loading::after {
-            content: "Loading...";
-            color: #9CA3AF;
-            font-size: 14px;
-        }
-
-        canvas {
-            display: block;
-            width: 100% !important; /* Force fit container */
-            height: auto !important; /* Maintain aspect ratio */
-        }
-
-        /* Text Layer for Selection */
-        .textLayer {
-            opacity: 1;
-            mix-blend-mode: multiply;
-        }
-        ::selection { background: rgba(37, 99, 235, 0.2); }
-
-        /* Loader Overlay */
-        #init-loader {
-            position: fixed;
-            inset: 0;
-            background: white;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.3s;
-        }
-        .spinner {
-            width: 30px; height: 30px;
-            border: 3px solid #eee;
-            border-top-color: var(--accent);
+            padding: 8px;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            transition: 0.2s;
+            font-size: 16px;
         }
-        @keyframes spin { to { transform: rotate(360deg); }}
 
-        /* Toast */
+        .btn:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .page-info {
+            background: #202124;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #page_num {
+            background: transparent;
+            border: none;
+            color: white;
+            width: 30px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        #page_num:focus { outline: none; border-bottom: 1px solid #8ab4f8; }
+
+        /* Viewer Container */
+        #viewer-container {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #canvas-wrapper {
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+
+        /* Loading Spinner */
+        #loader {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-left-color: #8ab4f8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .loading-text { margin-top: 15px; font-size: 14px; color: #aaa; }
+
+        /* Toast Notification */
         #toast {
-            position: fixed; bottom: 20px; left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: #1F2937; color: white;
-            padding: 10px 20px; border-radius: 20px;
-            font-size: 14px; opacity: 0; transition: all 0.3s;
-            pointer-events: none; z-index: 200;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #323232;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 300;
+        }
+
+        #toast.show { opacity: 1; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .hide-mobile { display: none; }
+            #toolbar { padding: 0 10px; }
         }
     </style>
-
-    <!-- Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 </head>
 <body>
 
-    <header>
-        <div class="title-box">
-            <button class="btn" onclick="history.back()">
-                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-            </button>
-            <span class="doc-name" id="doc-title">Document</span>
-        </div>
-        <div style="display:flex; gap:10px; align-items:center;">
-            <span id="page-num" style="font-size:12px; color:#6B7280;"></span>
-            <button class="btn share-btn" onclick="copyLink()">Share</button>
-        </div>
-    </header>
-
-    <div id="init-loader">
+    <!-- Loading Screen -->
+    <div id="loader">
         <div class="spinner"></div>
-        <div style="margin-top:10px; color:#6B7280; font-size:14px;">Preparing...</div>
+        <div class="loading-text" id="loading-msg">Initializing Secure Viewer...</div>
     </div>
 
-    <div id="container"></div>
-    <div id="toast">Link Copied</div>
+    <!-- Toolbar -->
+    <div id="toolbar">
+        <div class="toolbar-section">
+            <button class="btn" id="prev" title="Previous Page"><i class="fas fa-arrow-up"></i></button>
+            <div class="page-info">
+                <input type="number" id="page_num" value="1">
+                <span> / <span id="page_count">--</span></span>
+            </div>
+            <button class="btn" id="next" title="Next Page"><i class="fas fa-arrow-down"></i></button>
+        </div>
 
-    <script>
-        // --- Firebase ---
+        <div class="toolbar-section">
+            <button class="btn" id="zoom_out" title="Zoom Out"><i class="fas fa-minus"></i></button>
+            <button class="btn" id="zoom_in" title="Zoom In"><i class="fas fa-plus"></i></button>
+        </div>
+
+        <div class="toolbar-section">
+            <button class="btn" id="share_btn" title="Copy Secure Link"><i class="fas fa-link"></i></button>
+        </div>
+    </div>
+
+    <!-- PDF Canvas -->
+    <div id="viewer-container">
+        <div id="canvas-wrapper">
+            <canvas id="the-canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast">Link Copied!</div>
+
+    <!-- Application Logic -->
+    <script type="module">
+        // ---------------------------------------------------------
+        // 1. FIREBASE SETUP
+        // ---------------------------------------------------------
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyDL7sPp-FkG59L-mRQ7BrCGgeKMhQC80iw",
             authDomain: "xperts-metadata.firebaseapp.com",
@@ -196,179 +215,227 @@
             appId: "1:514845910910:web:5a2402130a97b5d749b52f",
             measurementId: "G-CQ5KWGJSZB"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const COLLECTION = "pdf_shares";
 
-        // --- Logic ---
-        let pdfDoc = null;
-        let observer = null;
-        let baseAspectRatio = 0; // width / height
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const COLLECTION_NAME = "pdf_shares";
 
+        // ---------------------------------------------------------
+        // 2. STATE & HELPER FUNCTIONS
+        // ---------------------------------------------------------
+        const state = {
+            pdfDoc: null,
+            pageNum: 1,
+            pageRendering: false,
+            pageNumPending: null,
+            scale: 1.2,
+            canvas: document.getElementById('the-canvas'),
+            ctx: document.getElementById('the-canvas').getContext('2d'),
+            loader: document.getElementById('loader'),
+            msg: document.getElementById('loading-msg')
+        };
+
+        // Generate 15 digit alphanumeric code
+        const generateCode = () => {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < 15; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        };
+
+        const showToast = (message) => {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        };
+
+        // ---------------------------------------------------------
+        // 3. MAIN LOGIC (URL Handling & Database)
+        // ---------------------------------------------------------
         async function init() {
             const params = new URLSearchParams(window.location.search);
-            const file = params.get('file');
-            
-            if(!file) return;
+            const fileUrl = params.get('file');
+            const code = params.get('code');
 
-            if(file.startsWith('http')) {
-                // Secure URL
-                try {
-                    const snap = await db.collection(COLLECTION).where('url', '==', file).limit(1).get();
-                    if(snap.empty) {
-                        const code = generateCode();
-                        await db.collection(COLLECTION).doc(code).set({
-                            code, url: file, created: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        replaceUrl(code);
-                    } else {
-                        replaceUrl(snap.docs[0].data().code);
-                    }
-                    loadPDF(file);
-                } catch(e) { loadPDF(file); }
+            if (code) {
+                // Scenario 1: User has a code
+                state.msg.innerText = "Retrieving Document...";
+                await loadPdfByCode(code);
+            } else if (fileUrl) {
+                // Scenario 2: User provided a raw URL (needs masking)
+                state.msg.innerText = "Securing Document...";
+                await handleRawUrl(fileUrl);
             } else {
-                // Load Code
-                try {
-                    const doc = await db.collection(COLLECTION).doc(file).get();
-                    if(doc.exists) loadPDF(doc.data().url);
-                    else alert('Invalid Link');
-                } catch(e) { alert('Error'); }
+                state.msg.innerText = "No file specified.";
+                state.loader.querySelector('.spinner').style.display = 'none';
             }
         }
 
-        async function loadPDF(url) {
+        async function handleRawUrl(url) {
             try {
-                // 1. Fetch PDF Metadata only (Fast)
-                const task = pdfjsLib.getDocument(url);
-                pdfDoc = await task.promise;
+                // 1. Check if URL already exists in DB
+                const q = query(collection(db, COLLECTION_NAME), where("originalUrl", "==", url));
+                const querySnapshot = await getDocs(q);
 
-                document.getElementById('init-loader').style.display = 'none';
-                document.getElementById('page-num').innerText = `1 / ${pdfDoc.numPages}`;
+                let secureCode;
 
-                // 2. Calculate Layout from Page 1
-                const page1 = await pdfDoc.getPage(1);
-                const vp = page1.getViewport({scale: 1});
-                baseAspectRatio = vp.width / vp.height; // e.g., 0.77 for Letter
+                if (!querySnapshot.empty) {
+                    // Exists: Use existing code
+                    secureCode = querySnapshot.docs[0].data().code;
+                    console.log("Found existing code:", secureCode);
+                } else {
+                    // New: Generate and Save
+                    secureCode = generateCode();
+                    await addDoc(collection(db, COLLECTION_NAME), {
+                        code: secureCode,
+                        originalUrl: url,
+                        createdAt: new Date()
+                    });
+                    console.log("Generated new code:", secureCode);
+                }
 
-                // 3. Create Skeleton
-                renderSkeleton();
+                // 2. Change URL in address bar without reload
+                const newUrl = `${window.location.pathname}?code=${secureCode}`;
+                window.history.replaceState({ path: newUrl }, '', newUrl);
 
-                // 4. Setup Observer for Lazy Loading
-                setupObserver();
+                // 3. Load PDF
+                loadPdf(url);
 
-            } catch(e) {
-                console.error(e);
-                document.getElementById('init-loader').innerHTML = "Failed to load PDF";
+            } catch (error) {
+                console.error("Database Error:", error);
+                state.msg.innerText = "Error securing link. Check console.";
             }
         }
 
-        function renderSkeleton() {
-            const container = document.getElementById('container');
-            const fragment = document.createDocumentFragment();
+        async function loadPdfByCode(code) {
+            try {
+                const q = query(collection(db, COLLECTION_NAME), where("code", "==", code));
+                const querySnapshot = await getDocs(q);
 
-            for(let i=1; i<=pdfDoc.numPages; i++) {
-                const div = document.createElement('div');
-                div.className = 'page loading';
-                div.dataset.pageNum = i;
-                div.id = `page-${i}`;
-                
-                // ASPECT RATIO TRICK:
-                // This ensures the empty div has the exact height of the final page
-                // relative to its width, preventing layout shift.
-                div.style.aspectRatio = `${baseAspectRatio}`; 
-                
-                fragment.appendChild(div);
+                if (!querySnapshot.empty) {
+                    const url = querySnapshot.docs[0].data().originalUrl;
+                    loadPdf(url);
+                } else {
+                    state.msg.innerText = "Invalid or Expired Code.";
+                    state.loader.querySelector('.spinner').style.display = 'none';
+                }
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                state.msg.innerText = "Error fetching document.";
             }
-            container.appendChild(fragment);
         }
 
-        function setupObserver() {
-            observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if(entry.isIntersecting) {
-                        const div = entry.target;
-                        renderPage(div);
-                        observer.unobserve(div); // Render once
-                        
-                        // Update UI counter
-                        document.getElementById('page-num').innerText = `${div.dataset.pageNum} / ${pdfDoc.numPages}`;
-                    }
-                });
-            }, { rootMargin: "50%" }); // Load 1/2 screen ahead
-
-            document.querySelectorAll('.page').forEach(el => observer.observe(el));
-        }
-
-        async function renderPage(div) {
-            const num = parseInt(div.dataset.pageNum);
-            const page = await pdfDoc.getPage(num);
-
-            // AUTO-FIT CALCULATION
-            // 1. Get container width (screen width - padding)
-            const containerWidth = div.clientWidth;
+        // ---------------------------------------------------------
+        // 4. PDF RENDERING (PDF.js)
+        // ---------------------------------------------------------
+        function loadPdf(url) {
+            state.msg.innerText = "Rendering PDF...";
             
-            // 2. Get unscaled viewport
-            const unscaledVp = page.getViewport({ scale: 1 });
-            
-            // 3. Calculate scale to fit width exactly
-            // (Use window.devicePixelRatio for sharpness on retina screens)
-            const fitScale = containerWidth / unscaledVp.width;
-            const outputScale = fitScale * (window.devicePixelRatio || 1);
+            pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+                state.pdfDoc = pdfDoc_;
+                document.getElementById('page_count').textContent = state.pdfDoc.numPages;
 
-            const viewport = page.getViewport({ scale: outputScale });
-
-            // Create Canvas
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            
-            // Force CSS to fit container (responsive)
-            canvas.style.width = "100%";
-            canvas.style.height = "100%";
-
-            div.innerHTML = ''; // Remove 'Loading...' text
-            div.appendChild(canvas);
-            div.classList.remove('loading');
-
-            await page.render({ canvasContext: ctx, viewport }).promise;
-
-            // Render Text Layer (Search) - Low Priority
-            const textContent = await page.getTextContent();
-            const textLayer = document.createElement('div');
-            textLayer.className = 'textLayer';
-            // Adjust text layer to match the visual scale
-            textLayer.style.width = '100%';
-            textLayer.style.height = '100%';
-            textLayer.style.setProperty('--scale-factor', fitScale); // Important for PDF.js CSS
-            
-            div.appendChild(textLayer);
-            
-            // We use the "fitScale" viewport here so text aligns with CSS width
-            const textViewport = page.getViewport({ scale: fitScale });
-            pdfjsLib.renderTextLayer({
-                textContentSource: textContent,
-                container: textLayer,
-                viewport: textViewport,
-                textDivs: []
+                // Initial render
+                renderPage(state.pageNum);
+                
+                // Hide loader
+                state.loader.style.display = 'none';
+            }).catch(function(error) {
+                console.error(error);
+                state.msg.innerText = "Failed to load PDF. Possible CORS issue.";
+                state.loader.querySelector('.spinner').style.borderLeftColor = 'red';
             });
         }
 
-        function generateCode() { return Math.random().toString(36).substr(2, 9); }
-        function replaceUrl(c) { window.history.replaceState({},'',`?file=${c}`); }
-        function copyLink() {
-            navigator.clipboard.writeText(window.location.href);
-            const t = document.getElementById('toast');
-            t.style.opacity = 1;
-            t.style.transform = "translateX(-50%) translateY(0)";
-            setTimeout(() => {
-                t.style.opacity = 0;
-                t.style.transform = "translateX(-50%) translateY(20px)";
-            }, 2000);
+        function renderPage(num) {
+            state.pageRendering = true;
+            
+            // Fetch page
+            state.pdfDoc.getPage(num).then(function(page) {
+                const viewport = page.getViewport({scale: state.scale});
+                state.canvas.height = viewport.height;
+                state.canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: state.ctx,
+                    viewport: viewport
+                };
+                
+                const renderTask = page.render(renderContext);
+
+                // Wait for render to finish
+                renderTask.promise.then(function() {
+                    state.pageRendering = false;
+                    if (state.pageNumPending !== null) {
+                        renderPage(state.pageNumPending);
+                        state.pageNumPending = null;
+                    }
+                });
+            });
+
+            // Update page counters
+            document.getElementById('page_num').value = num;
         }
 
+        function queueRenderPage(num) {
+            if (state.pageRendering) {
+                state.pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        function onPrevPage() {
+            if (state.pageNum <= 1) return;
+            state.pageNum--;
+            queueRenderPage(state.pageNum);
+        }
+
+        function onNextPage() {
+            if (state.pageNum >= state.pdfDoc.numPages) return;
+            state.pageNum++;
+            queueRenderPage(state.pageNum);
+        }
+
+        function onZoomIn() {
+            state.scale += 0.2;
+            queueRenderPage(state.pageNum);
+        }
+
+        function onZoomOut() {
+            if(state.scale <= 0.6) return;
+            state.scale -= 0.2;
+            queueRenderPage(state.pageNum);
+        }
+
+        // ---------------------------------------------------------
+        // 5. EVENT LISTENERS
+        // ---------------------------------------------------------
+        document.getElementById('prev').addEventListener('click', onPrevPage);
+        document.getElementById('next').addEventListener('click', onNextPage);
+        document.getElementById('zoom_in').addEventListener('click', onZoomIn);
+        document.getElementById('zoom_out').addEventListener('click', onZoomOut);
+        
+        document.getElementById('page_num').addEventListener('change', function(e) {
+            let num = parseInt(this.value);
+            if(num > 0 && num <= state.pdfDoc.numPages) {
+                state.pageNum = num;
+                queueRenderPage(num);
+            }
+        });
+
+        document.getElementById('share_btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                showToast("Secure Link Copied!");
+            });
+        });
+
+        // Start App
         window.onload = init;
+
     </script>
 </body>
 </html>
