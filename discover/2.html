@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +14,7 @@ header{
   font-size:16px;
   font-weight:600;
   border-bottom:1px solid #e5e7eb;
+  cursor:pointer;
 }
 
 img{
@@ -37,24 +38,24 @@ img{
 }
 </style>
 </head>
+
 <body>
 
 <header onclick="history.back()">← Back</header>
-
 <img id="img">
 <div class="content">
   <h1 id="title"></h1>
-  <p id="desc"></p>
+  <p id="body"></p>
 </div>
 
 <script>
-const article = JSON.parse(localStorage.getItem("article"));
+const articles = JSON.parse(localStorage.getItem("articles"));
+const index = new URLSearchParams(location.search).get("article");
+const a = articles[index];
 
-document.getElementById("img").src =
-  article.image_url || "https://via.placeholder.com/600x400";
-document.getElementById("title").innerText = article.title;
-document.getElementById("desc").innerText =
-  article.content || article.description || "No content available.";
+document.getElementById("img").src = a.image;
+document.getElementById("title").innerText = a.title;
+document.getElementById("body").innerText = a.content;
 </script>
 
 </body>
