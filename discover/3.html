@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discover</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f2f2f2;
+}
+.feed{
+  height:100vh;
+  overflow-y:auto;
+}
+.card{
+  margin:20px;
+  padding:20px;
+  background:white;
+  border-radius:16px;
+}
+</style>
+</head>
+
+<body>
+
+<h2 style="padding:16px">Discover News</h2>
+<div id="feed" class="feed"></div>
+
+<script>
+const API_KEY = "937697397c9c481e23e8f45d1e0fcdf3";
+const feed = document.getElementById("feed");
+
+const params = new URLSearchParams(window.location.search);
+const keyword = params.get("key") || "india";
+
+console.log("Keyword:", keyword);
+
+fetch(`https://gnews.io/api/v4/search?q=${keyword}&lang=en&max=5&apikey=${API_KEY}`)
+.then(r => r.json())
+.then(data => {
+  console.log("API DATA:", data);
+
+  if(!data.articles){
+    feed.innerHTML = "<p>No articles</p>";
+    return;
+  }
+
+  data.articles.forEach(a=>{
+    feed.innerHTML += `
+      <div class="card">
+        <h3>${a.title}</h3>
+        <p>${a.description || ""}</p>
+      </div>
+    `;
+  });
+})
+.catch(err=>{
+  console.error(err);
+  feed.innerHTML = "<p>ERROR loading news</p>";
+});
+</script>
+
+</body>
+</html>
