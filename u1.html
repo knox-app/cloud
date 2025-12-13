@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cloud - Drive</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #C8E6C9;
+            --dark: #2E7D32;
+            --text: #333;
+            --white: #ffffff;
+            --danger: #e57373;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--secondary);
+            margin: 0;
+            padding: 0;
+            color: var(--text);
+        }
+
+        header {
+            background-color: var(--dark);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: white;
+            object-fit: cover;
+        }
+
+        .main-content {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .upload-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 5px;
+        }
+
+        .btn:hover { background-color: var(--dark); }
+        .btn-logout { background-color: var(--danger); }
+
+        #file-input { display: none; }
+
+        /* Camera / Scan Styles */
+        #scan-interface {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: black;
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        video {
+            width: 100%;
+            max-width: 600px;
+            border: 2px solid var(--primary);
+        }
+
+        .scan-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .scan-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid white;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .scan-btn::after {
+            content: '';
+            position: absolute;
+            top: 5px; left: 5px; right: 5px; bottom: 5px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .scan-btn.auto::after { background: var(--primary); }
+
+        .overlay-text {
+            color: white;
+            position: absolute;
+            top: 20px;
+            font-size: 1.2rem;
+        }
+
+        /* Loading */
+        #loader { display: none; margin-top: 10px; font-weight: bold; color: var(--dark); }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="user-info">
+        <img id="header-avatar" class="avatar" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2NjYyIgZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00czLTEuNzktNC00LTQc000IDEuNzkgNCA0YzAgMi4yMS0xLjc5IDQtNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+" alt="User">
+        <span id="user-email">Loading...</span>
+    </div>
+    <button class="btn btn-logout" onclick="logout()">Logout</button>
+</header>
+
+<div class="main-content">
+    
+    <!-- Upload Section -->
+    <div class="upload-card">
+        <h2>Add to Drive</h2>
+        <p>Supported: PDF, Image, Doc</p>
+        <button class="btn" onclick="document.getElementById('file-input').click()">Select File</button>
+        <input type="file" id="file-input" onchange="handleFileSelect(this)">
+        <div id="loader">Processing...</div>
+    </div>
+
+    <div style="text-align: center; color: #666;">
+        <p><i>Tip: Add <b>?do=scan</b> to the URL to use the document scanner.</i></p>
+    </div>
+
+</div>
+
+<!-- Camera / Scanner Interface -->
+<div id="scan-interface">
+    <div class="overlay-text" id="scan-status">Select Mode</div>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    
+    <div class="scan-controls">
+        <div style="text-align: center; color: white;">
+            <button class="scan-btn" onclick="manualScan()"></button>
+            <div>Manual</div>
+        </div>
+        <div style="text-align: center; color: white;">
+            <button class="scan-btn auto" onclick="startAutoScan()"></button>
+            <div>Auto</div>
+        </div>
+        <div style="text-align: center;">
+            <button class="btn btn-logout" onclick="closeScanner()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Configuration ---
+    const SUPABASE_URL = 'https://bbuqlrtjkhsddxshwmxk.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidXFscnRqa2hzZGR4c2h3bXhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMTQ1ODMsImV4cCI6MjA3OTc5MDU4M30.e-bZCRs7aEauXy3arrqgVz0zV2N26jU25Jv0plXq23c';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentUser = null;
+
+    // --- Initialization ---
+    window.onload = async () => {
+        // Check Session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+            window.location.href = '1.html';
+            return;
+        }
+
+        currentUser = session.user;
+        document.getElementById('user-email').innerText = currentUser.email;
+
+        // Fetch extra profile data
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('avatar_url')
+            .eq('id', currentUser.id)
+            .single();
+        
+        if(profile && profile.avatar_url) {
+            document.getElementById('header-avatar').src = profile.avatar_url;
+        }
+
+        // Check for Scan Parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('do') === 'scan') {
+            initScanner();
+        }
+    };
+
+    async function logout() {
+        await supabase.auth.signOut();
+        window.location.href = '1.html';
+    }
+
+    // --- File Upload Logic ---
+    async function handleFileSelect(input) {
+        if(input.files.length === 0) return;
+        
+        const file = input.files[0];
+        const loader = document.getElementById('loader');
+        loader.style.display = 'block';
+
+        // 1. Check if file already exists in DB for this user
+        const { data: existingFiles, error: fetchError } = await supabase
+            .from('user_uploads')
+            .select('*')
+            .eq('user_email', currentUser.email)
+            .eq('file_name', file.name);
+
+        if(fetchError) {
+            console.error(fetchError);
+            alert("Error checking files.");
+            loader.style.display = 'none';
+            return;
+        }
+
+        // 2. Conflict Resolution
+        if (existingFiles && existingFiles.length > 0) {
+            const userChoice = confirm("There is already a file with this name in your drive.\nClick OK to ADD anyway (duplicates).\nClick Cancel to abort.");
+            if (!userChoice) {
+                input.value = ''; // clear
+                loader.style.display = 'none';
+                return;
+            }
+        }
+
+        // 3. Upload to Storage
+        // Add timestamp to path to ensure uniqueness in storage even if names are same
+        const filePath = `${currentUser.id}/${Date.now()}_${file.name}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('user_files')
+            .upload(filePath, file);
+
+        if (uploadError) {
+            alert("Upload failed: " + uploadError.message);
+            loader.style.display = 'none';
+            return;
+        }
+
+        // Get Public URL
+        const { data: publicUrlData } = supabase.storage
+            .from('user_files')
+            .getPublicUrl(filePath);
+
+        // 4. Save Metadata to DB (Firebase-style requirement)
+        const { error: dbError } = await supabase
+            .from('user_uploads')
+            .insert([{
+                user_email: currentUser.email,
+                file_name: file.name,
+                file_type: file.type, // pdf, image, doc
+                file_url: publicUrlData.publicUrl,
+                supabase_path: filePath
+            }]);
+
+        if (dbError) {
+            alert("File uploaded but metadata save failed.");
+        } else {
+            alert("File saved successfully!");
+        }
+
+        loader.style.display = 'none';
+        input.value = '';
+    }
+
+    // --- Scanner Logic ---
+    let stream = null;
+
+    async function initScanner() {
+        document.getElementById('scan-interface').style.display = 'flex';
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment' } 
+            });
+            document.getElementById('video').srcObject = stream;
+        } catch (err) {
+            alert("Camera access denied or unavailable.");
+            closeScanner();
+        }
+    }
+
+    function closeScanner() {
+        if(stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        document.getElementById('scan-interface').style.display = 'none';
+        // Remove ?do=scan from URL without refresh
+        const url = new URL(window.location);
+        url.searchParams.delete('do');
+        window.history.pushState({}, '', url);
+    }
+
+    function captureImage() {
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        return new Promise((resolve) => {
+            canvas.toBlob((blob) => {
+                // Create a file object from blob
+                const file = new File([blob], `scanned_doc_${Date.now()}.png`, { type: 'image/png' });
+                resolve(file);
+            }, 'image/png');
+        });
+    }
+
+    async function processScan(file) {
+        // Reuse the upload logic
+        // Create a fake input element structure to pass to handleFileSelect
+        const fakeInput = { files: [file], value: 'dummy' };
+        
+        // Temporarily override value setter to avoid error on clearing
+        // Hacky way to reuse handleFileSelect without rewriting
+        await handleFileSelect(fakeInput); 
+        closeScanner();
+    }
+
+    async function manualScan() {
+        const file = await captureImage();
+        const conf = confirm("Image captured. Save to drive?");
+        if(conf) {
+            await processScan(file);
+        }
+    }
+
+    function startAutoScan() {
+        const status = document.getElementById('scan-status');
+        status.innerText = "Auto Scanning... Hold Steady";
+        
+        // Simulating Auto Scan: Wait 2 seconds then capture
+        setTimeout(async () => {
+            status.innerText = "Capturing...";
+            const file = await captureImage();
+            status.innerText = "Select Mode";
+            await processScan(file);
+        }, 2000);
+    }
+
+</script>
+
+</body>
+</html>
