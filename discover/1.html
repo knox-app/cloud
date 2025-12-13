@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discover</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui}
+body{background:#f6f7f4;overflow:hidden}
+
+header{
+  padding:14px 16px;
+  font-size:18px;
+  font-weight:600;
+}
+
+.feed{
+  height:calc(100vh - 56px);
+  overflow-y:auto;
+  scroll-snap-type:y mandatory;
+}
+
+.story{
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  scroll-snap-align:start;
+}
+
+.card{
+  width:92%;
+  max-width:420px;
+  height:75vh;
+  border-radius:22px;
+  overflow:hidden;
+  position:relative;
+  color:#fff;
+  background:#6b7280;
+}
+
+.card img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.overlay{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(to top,rgba(0,0,0,.8),rgba(0,0,0,.15));
+}
+
+.content{
+  position:absolute;
+  bottom:0;
+  padding:18px;
+}
+
+.content h2{font-size:20px;margin-bottom:8px}
+.content p{font-size:14px;opacity:.9}
+.source{margin-top:12px;font-size:13px;opacity:.8}
+
+.loader{
+  text-align:center;
+  padding:40px;
+  color:#64748b;
+}
+</style>
+</head>
+<body>
+
+<header>Discover</header>
+
+<div id="loader" class="loader">Loading…</div>
+<div id="feed" class="feed"></div>
+
+<script>
+const API_KEY = "pub_3a1697b172fc4fdfb028bd198ae950d4";
+const feed = document.getElementById("feed");
+const loader = document.getElementById("loader");
+
+const params = new URLSearchParams(location.search);
+const keyword = params.get("key") || "india";
+
+(async () => {
+  const res = await fetch(
+    `https://newsdata.io/api/1/news?apikey=${API_KEY}&q=${keyword}&language=en`
+  );
+  const data = await res.json();
+  loader.style.display="none";
+
+  data.results.forEach((n, i) => {
+    const story = document.createElement("div");
+    story.className="story";
+
+    story.innerHTML = `
+      <div class="card" onclick="openArticle(${i})">
+        <img src="${n.image_url || 'https://via.placeholder.com/600x400'}">
+        <div class="overlay"></div>
+        <div class="content">
+          <h2>${n.title}</h2>
+          <p>${n.description || ""}</p>
+          <div class="source">${n.source_id || "News"}</div>
+        </div>
+      </div>
+    `;
+
+    feed.appendChild(story);
+  });
+
+  window.articles = data.results;
+})();
+
+function openArticle(i){
+  localStorage.setItem("article", JSON.stringify(window.articles[i]));
+  location.href = "2.html?article=" + i;
+}
+</script>
+</body>
+</html>
