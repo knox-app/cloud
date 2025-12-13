@@ -1,42 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Discover</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui}
-body{background:#f6f7f4;overflow:hidden}
-
-header{
-  padding:14px 16px;
-  font-size:18px;
-  font-weight:600;
-}
+body{background:#f6f7f8}
 
 .feed{
-  height:calc(100vh - 56px);
-  overflow-y:auto;
+  height:100vh;
+  overflow-y:scroll;
   scroll-snap-type:y mandatory;
 }
 
 .story{
-  height:100%;
+  height:100vh;
+  scroll-snap-align:start;
   display:flex;
   align-items:center;
   justify-content:center;
-  scroll-snap-align:start;
 }
 
 .card{
   width:92%;
-  max-width:420px;
-  height:75vh;
-  border-radius:22px;
+  height:85%;
+  border-radius:24px;
   overflow:hidden;
   position:relative;
-  color:#fff;
+  box-shadow:0 20px 60px rgba(0,0,0,.15);
 }
 
 .card img{
@@ -48,65 +41,72 @@ header{
 .overlay{
   position:absolute;
   inset:0;
-  background:linear-gradient(to top,rgba(0,0,0,.8),rgba(0,0,0,.15));
+  background:linear-gradient(to top,rgba(0,0,0,.75),transparent 55%);
 }
 
 .content{
   position:absolute;
   bottom:0;
-  padding:18px;
+  padding:24px;
+  color:#fff;
 }
 
-.content h2{font-size:20px;margin-bottom:8px}
-.content p{font-size:14px;opacity:.9}
-.source{margin-top:12px;font-size:13px;opacity:.8}
+.content h2{
+  font-size:24px;
+  line-height:1.3;
+}
 
-.loader{text-align:center;padding:40px;color:#64748b}
+.content p{
+  margin-top:8px;
+  opacity:.9;
+  font-size:15px;
+}
+
+.source{
+  margin-top:14px;
+  font-size:13px;
+  opacity:.7;
+}
 </style>
 </head>
 
 <body>
 
-<header>Discover</header>
-<div id="loader" class="loader">Loading…</div>
-<div id="feed" class="feed"></div>
+<div class="feed" id="feed"></div>
 
 <script>
 const API_KEY = "937697397c9c481e23e8f45d1e0fcdf3";
 const feed = document.getElementById("feed");
-const loader = document.getElementById("loader");
 
 const params = new URLSearchParams(location.search);
-const keyword = params.get("key") || "technology";
+const keyword = params.get("key") || "india";
 
-(async ()=>{
-  const res = await fetch(
-    `https://gnews.io/api/v4/search?q=${keyword}&lang=en&max=10&apikey=${API_KEY}`
-  );
-  const data = await res.json();
-  loader.style.display="none";
+let articles = [];
 
-  localStorage.setItem("articles", JSON.stringify(data.articles));
+fetch(`https://gnews.io/api/v4/search?q=${keyword}&lang=en&max=10&apikey=${API_KEY}`)
+.then(r => r.json())
+.then(data => {
+  articles = data.articles;
+  localStorage.setItem("articles", JSON.stringify(articles));
 
-  data.articles.forEach((a,i)=>{
-    const s=document.createElement("div");
-    s.className="story";
-    s.innerHTML=`
-      <div class="card" onclick="openArticle(${i})">
-        <img src="${a.image}">
-        <div class="overlay"></div>
-        <div class="content">
-          <h2>${a.title}</h2>
-          <p>${a.description || ""}</p>
-          <div class="source">${a.source.name}</div>
+  articles.forEach((a,i)=>{
+    feed.innerHTML += `
+      <div class="story">
+        <div class="card" onclick="openArticle(${i})">
+          <img src="${a.image || 'https://via.placeholder.com/600x400'}">
+          <div class="overlay"></div>
+          <div class="content">
+            <h2>${a.title}</h2>
+            <p>${a.description || ""}</p>
+            <div class="source">${a.source.name}</div>
+          </div>
         </div>
       </div>`;
-    feed.appendChild(s);
   });
-})();
+});
 
 function openArticle(i){
-  location.href = "2.html?article=" + i;
+  location.href = `2.html?article=${i}`;
 }
 </script>
 
