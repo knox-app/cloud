@@ -3,310 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Cloud - Drive</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Drive & Scan</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Supabase SDK -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
     <style>
-        :root {
-            --primary: #4CAF50;
-            --secondary: #C8E6C9;
-            --dark: #2E7D32;
-            --text: #333;
-            --white: #ffffff;
-            --danger: #e57373;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: #eef2f6; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-info img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #007bff; }
+        .logout { color: red; cursor: pointer; text-decoration: underline; }
 
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--secondary);
-            margin: 0;
-            padding: 0;
-            color: var(--text);
-        }
-
-        header {
-            background-color: var(--dark);
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: white;
-            object-fit: cover;
-        }
-
-        .main-content {
-            padding: 2rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .upload-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .btn {
-            background-color: var(--primary);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            margin: 5px;
-        }
-
-        .btn:hover { background-color: var(--dark); }
-        .btn-logout { background-color: var(--danger); }
-
-        #file-input { display: none; }
-
-        /* Camera / Scan Styles */
-        #scan-interface {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: black;
-            z-index: 1000;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        video {
-            width: 100%;
-            max-width: 600px;
-            border: 2px solid var(--primary);
-        }
-
-        .scan-controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 20px;
-        }
-
-        .scan-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 3px solid white;
-            background: transparent;
-            cursor: pointer;
-            position: relative;
-        }
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; max-width: 600px; margin: 0 auto; }
         
-        .scan-btn::after {
-            content: '';
-            position: absolute;
-            top: 5px; left: 5px; right: 5px; bottom: 5px;
-            background: white;
-            border-radius: 50%;
-        }
+        .upload-area { border: 2px dashed #ccc; padding: 40px; border-radius: 10px; cursor: pointer; transition: 0.3s; position: relative; }
+        .upload-area:hover { border-color: #007bff; background: #f9fbff; }
+        
+        button.btn-primary { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        
+        /* Modal Styles */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 300px; text-align: center; }
+        .modal-btns { display: flex; justify-content: space-around; margin-top: 20px; }
+        .btn-cancel { background: #ccc; color: black; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        .btn-add { background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
 
-        .scan-btn.auto::after { background: var(--primary); }
-
-        .overlay-text {
-            color: white;
-            position: absolute;
-            top: 20px;
-            font-size: 1.2rem;
-        }
-
-        /* Loading */
-        #loader { display: none; margin-top: 10px; font-weight: bold; color: var(--dark); }
-
+        /* Scanner / Camera UI */
+        #scanner-ui { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; flex-direction: column; align-items: center; }
+        video { width: 100%; height: 80vh; object-fit: cover; }
+        .scan-controls { width: 100%; height: 20vh; background: #222; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .shutter { width: 60px; height: 60px; background: white; border-radius: 50%; border: 5px solid #ccc; cursor: pointer; }
+        .scan-mode { display: flex; gap: 20px; margin-bottom: 10px; }
+        .mode-btn { color: #888; font-weight: bold; cursor: pointer; }
+        .mode-btn.active { color: #007bff; }
+        .scan-overlay { position: absolute; top: 20%; left: 10%; width: 80%; height: 50%; border: 2px solid rgba(255,255,255,0.5); pointer-events: none; }
+        
+        #loading-bar { width: 0%; height: 4px; background: #007bff; position: fixed; top: 0; left: 0; transition: width 0.3s; }
+        .msg-log { margin-top: 10px; color: #555; font-size: 0.9em; }
     </style>
 </head>
 <body>
 
-<header>
+<div id="loading-bar"></div>
+
+<div class="header">
+    <h3>Xperts Drive</h3>
     <div class="user-info">
-        <img id="header-avatar" class="avatar" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2NjYyIgZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00czLTEuNzktNC00LTQc000IDEuNzkgNCA0YzAgMi4yMS0xLjc5IDQtNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+" alt="User">
-        <span id="user-email">Loading...</span>
+        <span id="uName">Loading...</span>
+        <img id="uPic" src="https://via.placeholder.com/40" alt="Profile">
+        <span class="logout" onclick="logout()">Logout</span>
     </div>
-    <button class="btn btn-logout" onclick="logout()">Logout</button>
-</header>
-
-<div class="main-content">
-    
-    <!-- Upload Section -->
-    <div class="upload-card">
-        <h2>Add to Drive</h2>
-        <p>Supported: PDF, Image, Doc</p>
-        <button class="btn" onclick="document.getElementById('file-input').click()">Select File</button>
-        <input type="file" id="file-input" onchange="handleFileSelect(this)">
-        <div id="loader">Processing...</div>
-    </div>
-
-    <div style="text-align: center; color: #666;">
-        <p><i>Tip: Add <b>?do=scan</b> to the URL to use the document scanner.</i></p>
-    </div>
-
 </div>
 
-<!-- Camera / Scanner Interface -->
-<div id="scan-interface">
-    <div class="overlay-text" id="scan-status">Select Mode</div>
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas" style="display:none;"></canvas>
+<!-- Standard Interface -->
+<div class="card" id="main-interface">
+    <h2>Upload Files</h2>
+    <p>Select a file to save to Supabase and track in Firebase.</p>
     
-    <div class="scan-controls">
-        <div style="text-align: center; color: white;">
-            <button class="scan-btn" onclick="manualScan()"></button>
-            <div>Manual</div>
-        </div>
-        <div style="text-align: center; color: white;">
-            <button class="scan-btn auto" onclick="startAutoScan()"></button>
-            <div>Auto</div>
-        </div>
-        <div style="text-align: center;">
-            <button class="btn btn-logout" onclick="closeScanner()">Close</button>
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <p>Click to Select File (PDF, Image, Doc)</p>
+        <input type="file" id="fileInput" style="display: none" onchange="processFileSelection(this.files[0])">
+    </div>
+
+    <div class="msg-log" id="statusMsg"></div>
+    <button class="btn-primary" onclick="window.location.href='2.html?do=scan'">Open Scanner</button>
+</div>
+
+<!-- Duplicate File Modal -->
+<div id="duplicateModal" class="modal">
+    <div class="modal-content">
+        <h3>File Exists!</h3>
+        <p>There is already a file with this name in your drive.</p>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="resolveConflict('cancel')">Cancel</button>
+            <button class="btn-add" onclick="resolveConflict('add')">Add (Copy)</button>
         </div>
     </div>
+</div>
+
+<!-- Scanner UI -->
+<div id="scanner-ui">
+    <div class="scan-overlay"></div>
+    <video id="videoFeed" autoplay playsinline></video>
+    <div class="scan-controls">
+        <div class="scan-mode">
+            <span class="mode-btn active" id="btnManual" onclick="setScanMode('manual')">Manual</span>
+            <span class="mode-btn" id="btnAuto" onclick="setScanMode('auto')">Auto Scan</span>
+        </div>
+        <div class="shutter" onclick="captureImage()"></div>
+        <p id="scan-status" style="margin-top:5px; font-size: 12px;">Tap shutter to scan</p>
+        <button onclick="closeScanner()" style="position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: white; font-size: 20px;">✕</button>
+    </div>
+    <canvas id="canvas" style="display:none;"></canvas>
 </div>
 
 <script>
-    // --- Configuration ---
-    const SUPABASE_URL = 'https://bbuqlrtjkhsddxshwmxk.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidXFscnRqa2hzZGR4c2h3bXhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMTQ1ODMsImV4cCI6MjA3OTc5MDU4M30.e-bZCRs7aEauXy3arrqgVz0zV2N26jU25Jv0plXq23c';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // --- 1. CONFIGURATIONS ---
 
-    let currentUser = null;
-
-    // --- Initialization ---
-    window.onload = async () => {
-        // Check Session
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-            window.location.href = '1.html';
-            return;
-        }
-
-        currentUser = session.user;
-        document.getElementById('user-email').innerText = currentUser.email;
-
-        // Fetch extra profile data
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('avatar_url')
-            .eq('id', currentUser.id)
-            .single();
-        
-        if(profile && profile.avatar_url) {
-            document.getElementById('header-avatar').src = profile.avatar_url;
-        }
-
-        // Check for Scan Parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('do') === 'scan') {
-            initScanner();
-        }
+    // CONFIG 1: Users Account Data (For Auth)
+    const firebaseConfigAuth = {
+        apiKey: "AIzaSyDL7sPp-FkG59L-mRQ7BrCGgeKMhQC80iw",
+        authDomain: "xperts-metadata.firebaseapp.com",
+        projectId: "xperts-metadata",
+        storageBucket: "xperts-metadata.firebasestorage.app",
+        messagingSenderId: "514845910910",
+        appId: "1:514845910910:web:5a2402130a97b5d749b52f",
+        measurementId: "G-CQ5KWGJSZB"
     };
 
-    async function logout() {
-        await supabase.auth.signOut();
-        window.location.href = '1.html';
-    }
+    // CONFIG 2: Cloud Metadata (For storing file info)
+    const firebaseConfigCloud = {
+        apiKey: "AIzaSyBnkCh8r_Ewx8lbr0RBB7i6M-xdABphd9w",
+        authDomain: "initialisation-cfb78.firebaseapp.com",
+        projectId: "initialisation-cfb78",
+        storageBucket: "initialisation-cfb78.firebasestorage.app",
+        messagingSenderId: "217554560023",
+        appId: "1:217554560023:web:5ca34ac80acd8aba872852",
+        measurementId: "G-S9T0PWGZQX"
+    };
 
-    // --- File Upload Logic ---
-    async function handleFileSelect(input) {
-        if(input.files.length === 0) return;
-        
-        const file = input.files[0];
-        const loader = document.getElementById('loader');
-        loader.style.display = 'block';
+    // SUPABASE CONFIG
+    const supabaseUrl = 'https://bbuqlrtjkhsddxshwmxk.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidXFscnRqa2hzZGR4c2h3bXhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMTQ1ODMsImV4cCI6MjA3OTc5MDU4M30.e-bZCRs7aEauXy3arrqgVz0zV2N26jU25Jv0plXq23c';
+    
+    // --- 2. INITIALIZATION ---
 
-        // 1. Check if file already exists in DB for this user
-        const { data: existingFiles, error: fetchError } = await supabase
-            .from('user_uploads')
-            .select('*')
-            .eq('user_email', currentUser.email)
-            .eq('file_name', file.name);
+    // Init App 1 (Default - Auth)
+    const appAuth = firebase.initializeApp(firebaseConfigAuth);
+    const auth = appAuth.auth();
 
-        if(fetchError) {
-            console.error(fetchError);
-            alert("Error checking files.");
-            loader.style.display = 'none';
-            return;
-        }
+    // Init App 2 (Named - Metadata)
+    const appCloud = firebase.initializeApp(firebaseConfigCloud, "cloudApp");
+    const dbCloud = appCloud.firestore();
 
-        // 2. Conflict Resolution
-        if (existingFiles && existingFiles.length > 0) {
-            const userChoice = confirm("There is already a file with this name in your drive.\nClick OK to ADD anyway (duplicates).\nClick Cancel to abort.");
-            if (!userChoice) {
-                input.value = ''; // clear
-                loader.style.display = 'none';
-                return;
+    // Init Supabase
+    const supabase = supa.createClient(supabaseUrl, supabaseKey);
+
+    let currentUser = null;
+    let pendingFile = null;
+
+    // --- 3. AUTH CHECK ---
+    auth.onAuthStateChanged(user => {
+        if (!user) {
+            window.location.href = "1.html";
+        } else {
+            currentUser = user;
+            document.getElementById('uName').innerText = user.displayName || user.email;
+            if(user.photoURL) document.getElementById('uPic').src = user.photoURL;
+            
+            // Check for Scanner Mode
+            const urlParams = new URLSearchParams(window.location.search);
+            if(urlParams.get('do') === 'scan') {
+                openScanner();
             }
         }
+    });
 
-        // 3. Upload to Storage
-        // Add timestamp to path to ensure uniqueness in storage even if names are same
-        const filePath = `${currentUser.id}/${Date.now()}_${file.name}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('user_files')
-            .upload(filePath, file);
-
-        if (uploadError) {
-            alert("Upload failed: " + uploadError.message);
-            loader.style.display = 'none';
-            return;
-        }
-
-        // Get Public URL
-        const { data: publicUrlData } = supabase.storage
-            .from('user_files')
-            .getPublicUrl(filePath);
-
-        // 4. Save Metadata to DB (Firebase-style requirement)
-        const { error: dbError } = await supabase
-            .from('user_uploads')
-            .insert([{
-                user_email: currentUser.email,
-                file_name: file.name,
-                file_type: file.type, // pdf, image, doc
-                file_url: publicUrlData.publicUrl,
-                supabase_path: filePath
-            }]);
-
-        if (dbError) {
-            alert("File uploaded but metadata save failed.");
-        } else {
-            alert("File saved successfully!");
-        }
-
-        loader.style.display = 'none';
-        input.value = '';
+    function logout() {
+        auth.signOut().then(() => window.location.href = "1.html");
     }
 
-    // --- Scanner Logic ---
-    let stream = null;
+    // --- 4. FILE UPLOAD LOGIC ---
 
-    async function initScanner() {
-        document.getElementById('scan-interface').style.display = 'flex';
+    async function processFileSelection(file) {
+        if (!file) return;
+        pendingFile = file;
+        
+        document.getElementById('statusMsg').innerText = "Checking existing files...";
+
+        // Check Metadata DB (Config 2) for duplication
+        // Query: user email + filename
         try {
-            stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'environment' } 
+            const snapshot = await dbCloud.collection('uploads')
+                .where('owner_email', '==', currentUser.email)
+                .where('file_name', '==', file.name)
+                .get();
+
+            if (!snapshot.empty) {
+                // File exists
+                document.getElementById('duplicateModal').style.display = 'flex';
+            } else {
+                // No conflict, proceed
+                uploadToSupabase(file, file.name);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error checking database: " + e.message);
+        }
+    }
+
+    function resolveConflict(action) {
+        document.getElementById('duplicateModal').style.display = 'none';
+        if (action === 'cancel') {
+            pendingFile = null;
+            document.getElementById('fileInput').value = ''; // reset
+            document.getElementById('statusMsg').innerText = "Upload cancelled.";
+        } else {
+            // Add: Append timestamp to make name unique
+            const newName = `copy_${Date.now()}_${pendingFile.name}`;
+            uploadToSupabase(pendingFile, newName);
+        }
+    }
+
+    async function uploadToSupabase(file, fileName) {
+        document.getElementById('statusMsg').innerText = `Uploading ${fileName} to Supabase...`;
+        document.getElementById('loading-bar').style.width = "30%";
+
+        try {
+            // 1. Upload to Supabase Storage (Bucket: 'drive-files')
+            // Note: You must create this bucket in Supabase dashboard and make it public
+            const { data, error } = await supabase.storage
+                .from('drive-files')
+                .upload(`${currentUser.uid}/${fileName}`, file, {
+                    upsert: true
+                });
+
+            if (error) throw error;
+
+            document.getElementById('loading-bar').style.width = "70%";
+            document.getElementById('statusMsg').innerText = "Saving metadata to Firebase...";
+
+            // 2. Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('drive-files')
+                .getPublicUrl(`${currentUser.uid}/${fileName}`);
+
+            // 3. Save Metadata to Firebase (Config 2)
+            await dbCloud.collection('uploads').add({
+                owner_email: currentUser.email,
+                file_name: fileName, // The name stored (might have copy_ prefix)
+                original_name: file.name,
+                upload_date: new Date().toISOString(),
+                supabase_url: publicUrl,
+                file_type: file.type
             });
-            document.getElementById('video').srcObject = stream;
+
+            document.getElementById('loading-bar').style.width = "100%";
+            document.getElementById('statusMsg').innerText = "Success! File uploaded and metadata saved.";
+            setTimeout(() => { document.getElementById('loading-bar').style.width = "0%"; }, 1000);
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('statusMsg').innerText = "Error: " + err.message;
+            document.getElementById('loading-bar').style.width = "0%";
+        }
+    }
+
+    // --- 5. SCANNER / CAMERA LOGIC ---
+    let videoStream = null;
+    let scanMode = 'manual';
+    let autoScanInterval = null;
+
+    async function openScanner() {
+        document.getElementById('main-interface').style.display = 'none';
+        document.getElementById('scanner-ui').style.display = 'flex';
+        
+        const video = document.getElementById('videoFeed');
+        try {
+            videoStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment' } // Rear camera on phones
+            });
+            video.srcObject = videoStream;
         } catch (err) {
             alert("Camera access denied or unavailable.");
             closeScanner();
@@ -314,66 +277,66 @@
     }
 
     function closeScanner() {
-        if(stream) {
-            stream.getTracks().forEach(track => track.stop());
+        if(videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
         }
-        document.getElementById('scan-interface').style.display = 'none';
-        // Remove ?do=scan from URL without refresh
-        const url = new URL(window.location);
-        url.searchParams.delete('do');
-        window.history.pushState({}, '', url);
+        clearInterval(autoScanInterval);
+        
+        // Remove ?do=scan from URL without reload
+        const newUrl = window.location.href.split('?')[0];
+        window.history.pushState({}, document.title, newUrl);
+
+        document.getElementById('scanner-ui').style.display = 'none';
+        document.getElementById('main-interface').style.display = 'block';
     }
 
-    function captureImage() {
-        const video = document.getElementById('video');
+    function setScanMode(mode) {
+        scanMode = mode;
+        document.getElementById('btnManual').classList.toggle('active', mode === 'manual');
+        document.getElementById('btnAuto').classList.toggle('active', mode === 'auto');
+        
+        const status = document.getElementById('scan-status');
+
+        if (mode === 'auto') {
+            status.innerText = "Scanning automatically...";
+            // Simulate Auto Scan: Take a picture every 3 seconds
+            autoScanInterval = setInterval(() => {
+                status.innerText = "Auto Capturing...";
+                captureImage(true); // true = auto flag
+                setTimeout(() => status.innerText = "Scanning...", 1000);
+            }, 3000);
+        } else {
+            status.innerText = "Tap shutter to scan";
+            clearInterval(autoScanInterval);
+        }
+    }
+
+    function captureImage(isAuto = false) {
+        const video = document.getElementById('videoFeed');
         const canvas = document.getElementById('canvas');
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        const context = canvas.getContext('2d');
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
-        return new Promise((resolve) => {
-            canvas.toBlob((blob) => {
-                // Create a file object from blob
-                const file = new File([blob], `scanned_doc_${Date.now()}.png`, { type: 'image/png' });
-                resolve(file);
-            }, 'image/png');
-        });
-    }
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    async function processScan(file) {
-        // Reuse the upload logic
-        // Create a fake input element structure to pass to handleFileSelect
-        const fakeInput = { files: [file], value: 'dummy' };
-        
-        // Temporarily override value setter to avoid error on clearing
-        // Hacky way to reuse handleFileSelect without rewriting
-        await handleFileSelect(fakeInput); 
-        closeScanner();
-    }
-
-    async function manualScan() {
-        const file = await captureImage();
-        const conf = confirm("Image captured. Save to drive?");
-        if(conf) {
-            await processScan(file);
+        // Flash effect
+        if(!isAuto) {
+            video.style.opacity = 0;
+            setTimeout(() => video.style.opacity = 1, 100);
         }
-    }
 
-    function startAutoScan() {
-        const status = document.getElementById('scan-status');
-        status.innerText = "Auto Scanning... Hold Steady";
-        
-        // Simulating Auto Scan: Wait 2 seconds then capture
-        setTimeout(async () => {
-            status.innerText = "Capturing...";
-            const file = await captureImage();
-            status.innerText = "Select Mode";
-            await processScan(file);
-        }, 2000);
+        // Convert to file
+        canvas.toBlob(blob => {
+            const fileName = `scan_${Date.now()}.jpg`;
+            const file = new File([blob], fileName, { type: "image/jpeg" });
+            
+            // Stop camera and proceed to upload logic
+            closeScanner();
+            processFileSelection(file);
+        }, 'image/jpeg', 0.8);
     }
 
 </script>
-
 </body>
 </html>
