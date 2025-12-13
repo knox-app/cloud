@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,7 +37,6 @@ header{
   overflow:hidden;
   position:relative;
   color:#fff;
-  background:#6b7280;
 }
 
 .card img{
@@ -62,61 +61,54 @@ header{
 .content p{font-size:14px;opacity:.9}
 .source{margin-top:12px;font-size:13px;opacity:.8}
 
-.loader{
-  text-align:center;
-  padding:40px;
-  color:#64748b;
-}
+.loader{text-align:center;padding:40px;color:#64748b}
 </style>
 </head>
+
 <body>
 
 <header>Discover</header>
-
 <div id="loader" class="loader">Loading…</div>
 <div id="feed" class="feed"></div>
 
 <script>
-const API_KEY = "pub_3a1697b172fc4fdfb028bd198ae950d4";
+const API_KEY = "937697397c9c481e23e8f45d1e0fcdf3";
 const feed = document.getElementById("feed");
 const loader = document.getElementById("loader");
 
 const params = new URLSearchParams(location.search);
-const keyword = params.get("key") || "india";
+const keyword = params.get("key") || "technology";
 
-(async () => {
+(async ()=>{
   const res = await fetch(
-    `https://newsdata.io/api/1/news?apikey=${API_KEY}&q=${keyword}&language=en`
+    `https://gnews.io/api/v4/search?q=${keyword}&lang=en&max=10&apikey=${API_KEY}`
   );
   const data = await res.json();
   loader.style.display="none";
 
-  data.results.forEach((n, i) => {
-    const story = document.createElement("div");
-    story.className="story";
+  localStorage.setItem("articles", JSON.stringify(data.articles));
 
-    story.innerHTML = `
+  data.articles.forEach((a,i)=>{
+    const s=document.createElement("div");
+    s.className="story";
+    s.innerHTML=`
       <div class="card" onclick="openArticle(${i})">
-        <img src="${n.image_url || 'https://via.placeholder.com/600x400'}">
+        <img src="${a.image}">
         <div class="overlay"></div>
         <div class="content">
-          <h2>${n.title}</h2>
-          <p>${n.description || ""}</p>
-          <div class="source">${n.source_id || "News"}</div>
+          <h2>${a.title}</h2>
+          <p>${a.description || ""}</p>
+          <div class="source">${a.source.name}</div>
         </div>
-      </div>
-    `;
-
-    feed.appendChild(story);
+      </div>`;
+    feed.appendChild(s);
   });
-
-  window.articles = data.results;
 })();
 
 function openArticle(i){
-  localStorage.setItem("article", JSON.stringify(window.articles[i]));
   location.href = "2.html?article=" + i;
 }
 </script>
+
 </body>
 </html>
