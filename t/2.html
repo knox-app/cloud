@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Step 2</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
+        .login-card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        .login-card h2 { margin-bottom: 20px; color: #333; }
+        .user-chip { background: #e9ecef; padding: 8px 15px; border-radius: 20px; display: inline-block; margin-bottom: 15px; font-size: 14px; color: #555; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background 0.3s; }
+        button:hover { background-color: #218838; }
+        .error-msg { color: red; font-size: 14px; margin-top: 10px; display: none;}
+    </style>
+</head>
+<body>
+
+<div class="login-card" id="mainCard" style="display:none;">
+    <h2>Welcome Back</h2>
+    <div class="user-chip" id="displayEmail">Loading user...</div>
+    <input type="password" id="passwordInput" placeholder="Enter Password" required>
+    <button onclick="verifyPassword()">Login</button>
+    <p class="error-msg" id="errorMsg">Incorrect Password</p>
+</div>
+
+<div id="loadingMessage">Validating Session...</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<script>
+    // 1. Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDL7sPp-FkG59L-mRQ7BrCGgeKMhQC80iw",
+        authDomain: "xperts-metadata.firebaseapp.com",
+        projectId: "xperts-metadata",
+        storageBucket: "xperts-metadata.firebasestorage.app",
+        messagingSenderId: "514845910910",
+        appId: "1:514845910910:web:5a2402130a97b5d749b52f",
+        measurementId: "G-CQ5KWGJSZB"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let realPassword = ""; // To store DB password temporarily
+
+    // 2. On Page Load: Check URL Params
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const encyKey = urlParams.get('ency');
+
+        if (!encyKey) {
+            alert("No encryption key found. Redirecting to login.");
+            window.location.href = "login.html";
+            return;
+        }
+
+        // Fetch user details based on ency_key
+        db.collection("users").where("ency_key", "==", encyKey).get()
+        .then((querySnapshot) => {
+            if (!querySnapshot.empty) {
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    // Set UI
+                    document.getElementById('displayEmail').innerText = data.email;
+                    document.getElementById('loadingMessage').style.display = 'none';
+                    document.getElementById('mainCard').style.display = 'block';
+                    
+                    // Store real password for comparison
+                    realPassword = data.password;
+                });
+            } else {
+                alert("Invalid Session Key");
+                window.location.href = "login.html";
+            }
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        });
+    };
+
+    // 3. Verify Password Logic
+    function verifyPassword() {
+        const inputPass = document.getElementById('passwordInput').value;
+        const errorMsg = document.getElementById('errorMsg');
+
+        // Simple string comparison (Note: In production, use hashing!)
+        if (inputPass === realPassword) {
+            errorMsg.style.display = "none";
+            alert("Login Successful!");
+            // Redirect to dashboard or home page
+            // window.location.href = "dashboard.html"; 
+        } else {
+            errorMsg.style.display = "block";
+        }
+    }
+</script>
+
+</body>
+</html>
