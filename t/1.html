@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Step 1</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
+        .login-card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        .login-card h2 { margin-bottom: 20px; color: #333; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background 0.3s; }
+        button:hover { background-color: #0056b3; }
+        .loader { display: none; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 2s linear infinite; margin: 10px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <h2>Sign In</h2>
+    <p>Enter your email to continue</p>
+    <input type="email" id="emailInput" placeholder="Email address" required>
+    <div class="loader" id="loader"></div>
+    <button onclick="checkEmail()">Next</button>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<script>
+    // 1. Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDL7sPp-FkG59L-mRQ7BrCGgeKMhQC80iw",
+        authDomain: "xperts-metadata.firebaseapp.com",
+        projectId: "xperts-metadata",
+        storageBucket: "xperts-metadata.firebasestorage.app",
+        messagingSenderId: "514845910910",
+        appId: "1:514845910910:web:5a2402130a97b5d749b52f",
+        measurementId: "G-CQ5KWGJSZB"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // 2. Function to Check Email
+    function checkEmail() {
+        const email = document.getElementById('emailInput').value.trim();
+        const loader = document.getElementById('loader');
+        
+        if (!email) {
+            alert("Please enter an email address.");
+            return;
+        }
+
+        loader.style.display = "block";
+
+        // Query Firestore for the user with this email
+        db.collection("users").where("email", "==", email).get()
+        .then((querySnapshot) => {
+            loader.style.display = "none";
+
+            if (!querySnapshot.empty) {
+                // Email Found
+                let encyKey = "";
+                querySnapshot.forEach((doc) => {
+                    encyKey = doc.data().ency_key;
+                });
+
+                // Redirect logic
+                // NOTE: Changed abc.xyz to password.html for testing purposes. 
+                // To use strictly abc.xyz, change the line below to:
+                // window.location.href = `http://abc.xyz/?ency=${encyKey}`;
+                window.location.href = `password.html?ency=${encyKey}`;
+            } else {
+                // Email Not Found / Forgot Email logic
+                window.location.href = "http://abc.xyz/forgot-email";
+            }
+        })
+        .catch((error) => {
+            loader.style.display = "none";
+            console.error("Error getting documents: ", error);
+            alert("An error occurred. Check console for details.");
+        });
+    }
+</script>
+
+</body>
+</html>
