@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compose Email</title>
+    <!-- Supabase JS -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- EmailJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #fff; margin: 0; padding: 0; overflow-y: hidden; }
+        
+        /* Header */
+        .header { background: #f5f5f5; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #ddd; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-info img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #ccc; }
+        .user-info span { font-weight: bold; color: #555; }
+
+        /* Compose Area */
+        .compose-container { max-width: 800px; margin: 0 auto; padding: 20px; height: 90vh; display: flex; flex-direction: column; }
+        .input-group { border-bottom: 1px solid #eee; display: flex; align-items: center; padding: 5px 0; position: relative; }
+        .input-group label { width: 60px; color: #777; font-size: 0.9rem; }
+        .input-group input { flex: 1; border: none; outline: none; padding: 10px; font-size: 1rem; }
+        
+        /* CC BCC Toggle */
+        .cc-bcc-btn { font-size: 0.8rem; color: #555; cursor: pointer; margin-right: 10px; }
+        .cc-bcc-btn:hover { background: #eee; padding: 2px 5px; border-radius: 3px; }
+        .hidden { display: none !important; }
+
+        /* Body */
+        textarea { width: 100%; flex: 1; border: none; resize: none; outline: none; padding: 15px 0; font-family: inherit; font-size: 1rem; }
+
+        /* Toolbar */
+        .toolbar { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #eee; }
+        .btn-primary { background: #0b57d0; color: white; padding: 10px 25px; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        .btn-primary:hover { background: #0946a8; }
+        
+        .actions { display: flex; gap: 15px; align-items: center; }
+        .icon-btn { cursor: pointer; font-size: 1.2rem; color: #555; position: relative; }
+        
+        /* Dropdowns */
+        .dropdown-menu { position: absolute; bottom: 30px; left: 0; background: white; border: 1px solid #ccc; box-shadow: 0 2px 10px rgba(0,0,0,0.2); border-radius: 5px; display: none; width: 200px; z-index: 100; }
+        .dropdown-menu.show { display: block; }
+        .dropdown-item { padding: 10px; cursor: pointer; font-size: 0.9rem; }
+        .dropdown-item:hover { background: #f0f0f0; }
+
+        /* Attachment */
+        #file-input { display: none; }
+        #file-label { cursor: pointer; }
+        #file-status { font-size: 0.8rem; color: green; margin-left: 5px; }
+
+        /* Suggestions */
+        .suggestions { position: absolute; top: 100%; left: 60px; background: white; border: 1px solid #ddd; width: 300px; z-index: 50; display: none; }
+        .suggestions div { padding: 8px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .suggestions div:hover { background: #f5f5f5; }
+
+        /* Loader */
+        .loader { border: 2px solid #f3f3f3; border-top: 2px solid #3498db; border-radius: 50%; width: 12px; height: 12px; animation: spin 1s linear infinite; display: inline-block; margin-left: 5px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="user-info">
+        <img id="user-pfp" src="" alt="Profile">
+        <span id="user-email">Loading...</span>
+    </div>
+    <button onclick="logout()" style="border:none; background:none; color:red; cursor:pointer;">Logout</button>
+</div>
+
+<!-- Compose Form -->
+<div class="compose-container">
+    <div class="input-group">
+        <label>To</label>
+        <input type="email" id="to-email" placeholder="Recipient" autocomplete="off">
+        <div class="suggestions" id="email-suggestions"></div>
+        <span class="cc-bcc-btn" onclick="toggleCcBcc()">Cc/Bcc</span>
+    </div>
+    
+    <div class="input-group hidden" id="cc-group">
+        <label>Cc</label>
+        <input type="email" id="cc-email">
+    </div>
+    
+    <div class="input-group hidden" id="bcc-group">
+        <label>Bcc</label>
+        <input type="email" id="bcc-email">
+    </div>
+
+    <div class="input-group">
+        <label>Subject</label>
+        <input type="text" id="subject" placeholder="Subject">
+    </div>
+
+    <textarea id="body" placeholder="Compose your email..."></textarea>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div style="display:flex; gap: 10px; align-items:center;">
+            <button class="btn-primary" onclick="sendEmail()">Send</button>
+            
+            <!-- More Options (3 lines/dots) -->
+            <div class="icon-btn" onclick="toggleMenu('more-options')">⋮
+                <div id="more-options" class="dropdown-menu">
+                    <div class="dropdown-item" onclick="openSchedule()">Schedule Send ▶</div>
+                    <div class="dropdown-item" onclick="openConfidential()">Confidential Mode 🔒</div>
+                    <div class="dropdown-item">Plain text mode</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <!-- Attachment -->
+            <label id="file-label" for="file-input" title="Attach files">📎</label>
+            <input type="file" id="file-input" onchange="handleFileUpload()">
+            <span id="file-status"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Logic Modals (Simplified as alerts/prompts for immediate implementation) -->
+
+<script type="module">
+    // --- 1. CONFIGURATIONS ---
+    
+    // Firebase App 2 (Firestore / Storage logic)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    const firebaseConfigDb = {
+        apiKey: "AIzaSyBnkCh8r_Ewx8lbr0RBB7i6M-xdABphd9w",
+        authDomain: "initialisation-cfb78.firebaseapp.com",
+        projectId: "initialisation-cfb78",
+        storageBucket: "initialisation-cfb78.firebasestorage.app",
+        messagingSenderId: "217554560023",
+        appId: "1:217554560023:web:5ca34ac80acd8aba872852",
+        measurementId: "G-S9T0PWGZQX"
+    };
+
+    const appDb = initializeApp(firebaseConfigDb, "dbApp");
+    const db = getFirestore(appDb);
+
+    // Supabase
+    const SUPABASE_URL = "https://bbuqlrtjkhsddxshwmxk.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidXFscnRqa2hzZGR4c2h3bXhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMTQ1ODMsImV4cCI6MjA3OTc5MDU4M30.e-bZCRs7aEauXy3arrqgVz0zV2N26jU25Jv0plXq23c";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // EmailJS
+    emailjs.init("Yr9MutUoHOEONnFgn");
+
+    // --- 2. GLOBAL VARIABLES ---
+    let attachmentUrl = null;
+    let scheduleTime = null;
+    let confidentialExpiry = null;
+    let user = JSON.parse(localStorage.getItem('currentUser'));
+
+    // --- 3. INITIALIZATION ---
+    if (!user) {
+        alert("Please login first.");
+        window.location.href = "1.html";
+    }
+
+    document.getElementById('user-email').innerText = user.email;
+    document.getElementById('user-pfp').src = user.photoURL;
+
+    // --- 4. UI FUNCTIONS ---
+    window.logout = () => {
+        localStorage.removeItem('currentUser');
+        window.location.href = "1.html";
+    }
+
+    window.toggleCcBcc = () => {
+        document.getElementById('cc-group').classList.toggle('hidden');
+        document.getElementById('bcc-group').classList.toggle('hidden');
+    }
+
+    window.toggleMenu = (id) => {
+        document.getElementById(id).classList.toggle('show');
+    }
+
+    window.openSchedule = () => {
+        const choice = prompt("Schedule Send:\n1. Tomorrow Morning (8am)\n2. Tomorrow Evening (6pm)\n3. Pick Date/Time (YYYY-MM-DD HH:MM)");
+        if (choice === '1') scheduleTime = "Tomorrow Morning";
+        else if (choice === '2') scheduleTime = "Tomorrow Evening";
+        else if (choice === '3') scheduleTime = prompt("Enter Date (YYYY-MM-DD HH:MM)");
+        
+        if(scheduleTime) alert(`Scheduled for: ${scheduleTime}`);
+        document.getElementById('more-options').classList.remove('show');
+    }
+
+    window.openConfidential = () => {
+        const choice = prompt("Confidential Mode Expiry:\n1. 1 Hour\n2. 1 Day\n3. 1 Week\n4. 1 Year");
+        if(choice) {
+            const map = {'1': '1 Hour', '2': '1 Day', '3': '1 Week', '4': '1 Year'};
+            confidentialExpiry = map[choice];
+            alert(`Confidential mode set: Expires in ${confidentialExpiry}`);
+        }
+        document.getElementById('more-options').classList.remove('show');
+    }
+
+    // --- 5. ATTACHMENT LOGIC (SUPABASE) ---
+    window.handleFileUpload = async () => {
+        const fileInput = document.getElementById('file-input');
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const status = document.getElementById('file-status');
+        status.innerHTML = "Uploading... <div class='loader'></div>";
+
+        try {
+            const fileName = `${Date.now()}_${file.name}`;
+            // Assuming bucket name is 'attachments' - user didn't specify, standard practice
+            const { data, error } = await supabase.storage
+                .from('attachments') 
+                .upload(fileName, file);
+
+            if (error) throw error;
+
+            // Get Public URL
+            const { data: publicData } = supabase.storage
+                .from('attachments')
+                .getPublicUrl(fileName);
+
+            attachmentUrl = publicData.publicUrl;
+            status.innerText = "Attached: " + file.name;
+            status.style.color = "blue";
+        } catch (err) {
+            console.error(err);
+            status.innerText = "Upload failed. (Check bucket permissions)";
+            status.style.color = "red";
+        }
+    }
+
+    // --- 6. SEND EMAIL LOGIC ---
+    window.sendEmail = async () => {
+        const to = document.getElementById('to-email').value;
+        const cc = document.getElementById('cc-email').value;
+        const bcc = document.getElementById('bcc-email').value;
+        const subject = document.getElementById('subject').value;
+        const body = document.getElementById('body').value;
+
+        if (!to) return alert("Recipient email required");
+
+        const sendBtn = document.querySelector('.btn-primary');
+        sendBtn.innerText = "Sending...";
+        sendBtn.disabled = true;
+
+        try {
+            // 1. Check if recipient exists in Firestore (DB Config)
+            const usersRef = collection(db, "users"); // Assuming 'users' collection
+            const q = query(usersRef, where("email", "==", to));
+            const querySnapshot = await getDocs(q);
+
+            let isInternal = !querySnapshot.empty;
+            let status = "sent";
+
+            // Prepare Data Payload
+            const emailData = {
+                sender_email: user.email,
+                receiver_email: to,
+                cc: cc,
+                bcc: bcc,
+                subject: subject,
+                body: body,
+                attachment_url: attachmentUrl || "",
+                schedule_time: scheduleTime || "now",
+                confidential_expiry: confidentialExpiry || "none",
+                type: isInternal ? "internal" : "external",
+                ency_key: "sample_ency_key_" + Date.now(), // Placeholder for encryption key
+                timestamp: new Date()
+            };
+
+            if (isInternal) {
+                // STORE IN FIRESTORE
+                await addDoc(collection(db, "emails"), emailData);
+                alert("Email sent securely via Internal Network (Firestore).");
+            } else {
+                // SEND VIA EMAILJS
+                // Need to match EmailJS Template Params: to_email, from_name, message, subject, attachment_link
+                const templateParams = {
+                    to_email: to,
+                    from_name: user.displayName,
+                    subject: subject,
+                    message: body + (attachmentUrl ? `\n\nAttachment: ${attachmentUrl}` : ""),
+                    // Confidential note
+                    footer: confidentialExpiry ? `This email expires in ${confidentialExpiry}` : ""
+                };
+
+                await emailjs.send('service_5hs4mqf', 'template_rm8jf2c', templateParams);
+                
+                // Still log external emails to DB?
+                await addDoc(collection(db, "emails"), { ...emailData, status: "sent_via_emailjs" });
+                
+                alert("Email sent via EmailJS.");
+            }
+
+            // Suggestions Logic (Mockup for Gmail-like behavior)
+            saveSuggestion(to);
+            window.location.reload(); // Reset form
+
+        } catch (error) {
+            console.error("Error sending email:", error);
+            alert("Failed to send: " + error.message);
+            sendBtn.innerText = "Send";
+            sendBtn.disabled = false;
+        }
+    }
+
+    // --- 7. SUGGESTIONS LOGIC ---
+    function saveSuggestion(email) {
+        let history = JSON.parse(localStorage.getItem('emailHistory')) || [];
+        if(!history.includes(email)) {
+            history.push(email);
+            localStorage.setItem('emailHistory', JSON.stringify(history));
+        }
+    }
+
+    const toInput = document.getElementById('to-email');
+    const suggestBox = document.getElementById('email-suggestions');
+
+    toInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        const history = JSON.parse(localStorage.getItem('emailHistory')) || [];
+        
+        if (val.length > 0) {
+            const matches = history.filter(email => email.includes(val));
+            if (matches.length > 0) {
+                suggestBox.innerHTML = matches.map(m => `<div onclick="selectEmail('${m}')">${m}</div>`).join('');
+                suggestBox.style.display = 'block';
+            } else {
+                suggestBox.style.display = 'none';
+            }
+        } else {
+            suggestBox.style.display = 'none';
+        }
+    });
+
+    window.selectEmail = (email) => {
+        toInput.value = email;
+        suggestBox.style.display = 'none';
+    }
+
+    // Close menus on outside click
+    window.onclick = function(event) {
+        if (!event.target.matches('.icon-btn') && !event.target.matches('.icon-btn *')) {
+            var dropdowns = document.getElementsByClassName("dropdown-menu");
+            for (var i = 0; i < dropdowns.length; i++) {
+                if (dropdowns[i].classList.contains('show')) {
+                    dropdowns[i].classList.remove('show');
+                }
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
