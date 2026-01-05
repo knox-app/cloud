@@ -3,86 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit User Details</title>
+    <title>Find & Edit Record</title>
     <style>
-        :root { --primary: #4f46e5; --bg: #f3f4f6; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
-        h2 { margin-top: 0; color: #1f2937; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
-        .section-title { font-size: 0.9rem; font-weight: bold; color: #6b7280; text-transform: uppercase; margin: 20px 0 10px 0; }
-        .field-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #374151; }
-        input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
-        input:focus { outline: 2px solid var(--primary); border-color: transparent; }
-        button { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 20px; transition: opacity 0.2s; }
-        button:hover { opacity: 0.9; }
-        #status { margin-top: 15px; text-align: center; font-size: 0.9rem; }
-        .loading { color: #6b7280; }
-        .success { color: #059669; }
-        .error { color: #dc2626; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 480px; }
+        h2 { color: #333; margin-top: 0; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; font-size: 13px; color: #666; margin-bottom: 5px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
+        input:focus { border-color: #4a90e2; outline: none; box-shadow: 0 0 5px rgba(74,144,226,0.3); }
+        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        button:hover { background: #218838; }
+        .loader { text-align: center; color: #4a90e2; font-weight: bold; padding: 20px; }
+        .error { color: #d9534f; background: #fdf7f7; padding: 10px; border-radius: 4px; text-align: center; margin-bottom: 10px; border: 1px solid #d9534f; }
+        .section-tag { font-size: 11px; background: #eee; padding: 2px 8px; border-radius: 10px; color: #777; margin-bottom: 10px; display: inline-block; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Edit Profile</h2>
-    <div id="status" class="loading">Loading user data...</div>
+    <h2>Edit Details</h2>
+    <div id="status"></div>
     
-    <form id="editForm" style="display: none;">
-        <!-- General Fields -->
-        <div class="field-group">
+    <div id="loader" class="loader">Searching database...</div>
+
+    <form id="editForm" style="display:none">
+        <span class="section-tag">PERSONAL INFO</span>
+        <div class="input-group">
             <label>Street Address</label>
             <input type="text" id="street">
         </div>
-        <div class="field-group">
-            <label>Generated Aadhaar</label>
-            <input type="text" id="generatedAadhaar">
+        <div class="input-group">
+            <label>Aadhaar Number (generatedAadhaar)</label>
+            <input type="text" id="aadhaarNum">
         </div>
 
-        <!-- Contact Map -->
-        <div class="section-title">Contact Information</div>
-        <div class="field-group">
-            <label>Phone</label>
-            <input type="text" id="contact_phone">
+        <span class="section-tag">CONTACT</span>
+        <div class="input-group">
+            <label>Phone Number</label>
+            <input type="text" id="phone">
         </div>
-        <div class="field-group">
+        <div class="input-group">
             <label>Real Email</label>
-            <input type="email" id="contact_realEmail">
-        </div>
-        <div class="field-group">
-            <label>Fake Email</label>
-            <input type="email" id="contact_fakeEmail">
+            <input type="email" id="realEmail">
         </div>
 
-        <!-- Documents Map -->
-        <div class="section-title">Documents</div>
-        <div class="field-group">
+        <span class="section-tag">DOCUMENTS</span>
+        <div class="input-group">
             <label>PAN Card</label>
-            <input type="text" id="docs_pan">
+            <input type="text" id="pan">
         </div>
-        <div class="field-group">
-            <label>DL Number</label>
-            <input type="text" id="docs_dl">
-        </div>
-        <div class="field-group">
-            <label>EPIC (Voter ID)</label>
-            <input type="text" id="docs_epic">
-        </div>
-        <div class="field-group">
+        <div class="input-group">
             <label>Passport</label>
-            <input type="text" id="docs_passport">
+            <input type="text" id="passport">
         </div>
 
-        <button type="submit" id="saveBtn">Save Changes</button>
+        <button type="submit" id="saveBtn">UPDATE RECORD</button>
     </form>
 </div>
 
 <script type="module">
-    // Import the functions you need from the SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // Your web app's Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
         authDomain: "question-metabase.firebaseapp.com",
@@ -92,94 +75,91 @@
         appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Get URL Parameters
+    // Get the Aadhaar or Phone from URL
     const urlParams = new URLSearchParams(window.location.search);
-    const docId = urlParams.get('id');
-    const editMode = urlParams.get('edit'); // 'all' logic can be added here if needed
+    const searchValue = urlParams.get('id'); 
 
-    const statusMsg = document.getElementById('status');
-    const editForm = document.getElementById('editForm');
+    let internalDocId = null; // We will store the actual Firebase ID here once found
 
-    if (!docId) {
-        statusMsg.innerHTML = '<span class="error">Error: No ID provided in URL (?id=...)</span>';
+    if (!searchValue) {
+        showError("No ID provided. Add ?id=YOUR_AADHAAR to the URL.");
     } else {
-        loadData();
+        findUser();
     }
 
-    async function loadData() {
+    async function findUser() {
         try {
-            const docRef = doc(db, "MyAadhaar", docId);
-            const docSnap = await getDoc(docRef);
+            const colRef = collection(db, "MyAadhaar");
+            
+            // Step 1: Try searching by Aadhaar Number
+            let q = query(colRef, where("generatedAadhaar", "==", searchValue));
+            let querySnapshot = await getDocs(q);
 
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                
-                // Map Firestore fields to Input fields
-                document.getElementById('street').value = data.street || '';
-                document.getElementById('generatedAadhaar').value = data.generatedAadhaar || '';
-                
-                // Nested Map: contact
-                if(data.contact) {
-                    document.getElementById('contact_phone').value = data.contact.phone || '';
-                    document.getElementById('contact_realEmail').value = data.contact.realEmail || '';
-                    document.getElementById('contact_fakeEmail').value = data.contact.fakeEmail || '';
-                }
-
-                // Nested Map: documents
-                if(data.documents) {
-                    document.getElementById('docs_pan').value = data.documents.pan || '';
-                    document.getElementById('docs_dl').value = data.documents.dl || '';
-                    document.getElementById('docs_epic').value = data.documents.epic || '';
-                    document.getElementById('docs_passport').value = data.documents.passport || '';
-                }
-
-                statusMsg.style.display = 'none';
-                editForm.style.display = 'block';
-            } else {
-                statusMsg.innerHTML = '<span class="error">Document not found!</span>';
+            // Step 2: If not found, try searching by Phone Number
+            if (querySnapshot.empty) {
+                q = query(colRef, where("contact.phone", "==", searchValue));
+                querySnapshot = await getDocs(q);
             }
-        } catch (error) {
-            console.error(error);
-            statusMsg.innerHTML = '<span class="error">Error loading data. Check console.</span>';
+
+            if (!querySnapshot.empty) {
+                // User Found!
+                const userDoc = querySnapshot.docs[0];
+                internalDocId = userDoc.id; // Get the actual ID for updates
+                const data = userDoc.data();
+
+                // Fill the form
+                document.getElementById('street').value = data.street || "";
+                document.getElementById('aadhaarNum').value = data.generatedAadhaar || "";
+                document.getElementById('phone').value = data.contact?.phone || "";
+                document.getElementById('realEmail').value = data.contact?.realEmail || "";
+                document.getElementById('pan').value = data.documents?.pan || "";
+                document.getElementById('passport').value = data.documents?.passport || "";
+
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('editForm').style.display = 'block';
+            } else {
+                showError("User not found with Aadhaar/Phone: " + searchValue);
+            }
+        } catch (err) {
+            console.error(err);
+            showError("Database Error: " + err.message);
         }
     }
 
-    // Handle Update
-    editForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const saveBtn = document.getElementById('saveBtn');
-        saveBtn.innerText = "Saving...";
-        saveBtn.disabled = true;
+    function showError(msg) {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('status').innerHTML = `<div class="error">${msg}</div>`;
+    }
 
-        const docRef = doc(db, "MyAadhaar", docId);
+    // Handle the Update
+    document.getElementById('editForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('saveBtn');
+        btn.innerText = "Saving...";
+        btn.disabled = true;
 
         try {
-            // Update using the specific Map structure seen in your screenshot
+            const docRef = doc(db, "MyAadhaar", internalDocId);
             await updateDoc(docRef, {
                 street: document.getElementById('street').value,
-                generatedAadhaar: document.getElementById('generatedAadhaar').value,
-                "contact.phone": document.getElementById('contact_phone').value,
-                "contact.realEmail": document.getElementById('contact_realEmail').value,
-                "contact.fakeEmail": document.getElementById('contact_fakeEmail').value,
-                "documents.pan": document.getElementById('docs_pan').value,
-                "documents.dl": document.getElementById('docs_dl').value,
-                "documents.epic": document.getElementById('docs_epic').value,
-                "documents.passport": document.getElementById('docs_passport').value
+                generatedAadhaar: document.getElementById('aadhaarNum').value,
+                "contact.phone": document.getElementById('phone').value,
+                "contact.realEmail": document.getElementById('realEmail').value,
+                "documents.pan": document.getElementById('pan').value,
+                "documents.passport": document.getElementById('passport').value
             });
-
-            alert("Data updated successfully!");
-        } catch (error) {
-            console.error(error);
-            alert("Error updating document: " + error.message);
+            alert("Record Updated Successfully!");
+            location.reload(); // Refresh to show latest data
+        } catch (err) {
+            alert("Update failed: " + err.message);
         } finally {
-            saveBtn.innerText = "Save Changes";
-            saveBtn.disabled = false;
+            btn.innerText = "UPDATE RECORD";
+            btn.disabled = false;
         }
-    });
+    };
 </script>
 
 </body>
