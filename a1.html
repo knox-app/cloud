@@ -3,62 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Find & Edit Record</title>
+    <title>Dynamic Editor</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 480px; }
-        h2 { color: #333; margin-top: 0; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-weight: 600; font-size: 13px; color: #666; margin-bottom: 5px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
-        input:focus { border-color: #4a90e2; outline: none; box-shadow: 0 0 5px rgba(74,144,226,0.3); }
-        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        button:hover { background: #218838; }
-        .loader { text-align: center; color: #4a90e2; font-weight: bold; padding: 20px; }
-        .error { color: #d9534f; background: #fdf7f7; padding: 10px; border-radius: 4px; text-align: center; margin-bottom: 10px; border: 1px solid #d9534f; }
-        .section-tag { font-size: 11px; background: #eee; padding: 2px 8px; border-radius: 10px; color: #777; margin-bottom: 10px; display: inline-block; }
+        :root { --primary: #6366f1; --bg: #f8fafc; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); padding: 20px; display: flex; justify-content: center; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { margin-top: 0; color: #1e293b; font-size: 1.5rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px; }
+        .field-box { margin-bottom: 15px; }
+        label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 5px; }
+        input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; transition: all 0.2s; }
+        input:focus { outline: none; border-color: var(--primary); ring: 2px solid #e0e7ff; }
+        button { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        button:hover { opacity: 0.9; }
+        #loader { text-align: center; color: #64748b; padding: 40px; }
+        .error-msg { color: #ef4444; background: #fef2f2; padding: 15px; border-radius: 8px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Edit Details</h2>
-    <div id="status"></div>
-    
-    <div id="loader" class="loader">Searching database...</div>
+    <h2 id="formTitle">Edit Details</h2>
+    <div id="statusContainer">
+        <div id="loader">Fetching record...</div>
+    </div>
 
-    <form id="editForm" style="display:none">
-        <span class="section-tag">PERSONAL INFO</span>
-        <div class="input-group">
-            <label>Street Address</label>
-            <input type="text" id="street">
-        </div>
-        <div class="input-group">
-            <label>Aadhaar Number (generatedAadhaar)</label>
-            <input type="text" id="aadhaarNum">
-        </div>
-
-        <span class="section-tag">CONTACT</span>
-        <div class="input-group">
-            <label>Phone Number</label>
-            <input type="text" id="phone">
-        </div>
-        <div class="input-group">
-            <label>Real Email</label>
-            <input type="email" id="realEmail">
-        </div>
-
-        <span class="section-tag">DOCUMENTS</span>
-        <div class="input-group">
-            <label>PAN Card</label>
-            <input type="text" id="pan">
-        </div>
-        <div class="input-group">
-            <label>Passport</label>
-            <input type="text" id="passport">
-        </div>
-
-        <button type="submit" id="saveBtn">UPDATE RECORD</button>
+    <form id="dynamicForm" style="display:none">
+        <div id="inputsContainer"></div>
+        <button type="submit" id="saveBtn">Save Changes</button>
     </form>
 </div>
 
@@ -75,91 +46,111 @@
         appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
     };
 
+    // 1. Configuration Map (Links URL params to Database Paths)
+    const FIELD_MAP = {
+        "area": { path: "address.area", label: "Area/Street" },
+        "city": { path: "address.city", label: "City" },
+        "house": { path: "address.house", label: "House No/Name" },
+        "pincode": { path: "address.pincode", label: "Pincode" },
+        "phone": { path: "contact.phone", label: "Phone Number" },
+        "name": { path: "personal.name", label: "Full Name" },
+        "dob": { path: "personal.dob", label: "Date of Birth" },
+        "pan": { path: "documents.pan", label: "PAN Card" },
+        "aadhaar": { path: "generatedAadhaar", label: "Aadhaar Number" }
+    };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Get the Aadhaar or Phone from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const searchValue = urlParams.get('id'); 
+    const params = new URLSearchParams(window.location.search);
+    const idValue = params.get('id');
+    const editRequested = params.get('edit') || "all";
+    
+    let internalDocId = null;
 
-    let internalDocId = null; // We will store the actual Firebase ID here once found
-
-    if (!searchValue) {
-        showError("No ID provided. Add ?id=YOUR_AADHAAR to the URL.");
+    if (!idValue) {
+        showError("Missing 'id' parameter in URL.");
     } else {
-        findUser();
+        init();
     }
 
-    async function findUser() {
+    async function init() {
         try {
+            // Find the document by Aadhaar or Phone
             const colRef = collection(db, "MyAadhaar");
-            
-            // Step 1: Try searching by Aadhaar Number
-            let q = query(colRef, where("generatedAadhaar", "==", searchValue));
-            let querySnapshot = await getDocs(q);
+            let q = query(colRef, where("generatedAadhaar", "==", idValue));
+            let snap = await getDocs(q);
 
-            // Step 2: If not found, try searching by Phone Number
-            if (querySnapshot.empty) {
-                q = query(colRef, where("contact.phone", "==", searchValue));
-                querySnapshot = await getDocs(q);
+            if (snap.empty) {
+                q = query(colRef, where("contact.phone", "==", idValue));
+                snap = await getDocs(q);
             }
 
-            if (!querySnapshot.empty) {
-                // User Found!
-                const userDoc = querySnapshot.docs[0];
-                internalDocId = userDoc.id; // Get the actual ID for updates
-                const data = userDoc.data();
-
-                // Fill the form
-                document.getElementById('street').value = data.street || "";
-                document.getElementById('aadhaarNum').value = data.generatedAadhaar || "";
-                document.getElementById('phone').value = data.contact?.phone || "";
-                document.getElementById('realEmail').value = data.contact?.realEmail || "";
-                document.getElementById('pan').value = data.documents?.pan || "";
-                document.getElementById('passport').value = data.documents?.passport || "";
-
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('editForm').style.display = 'block';
+            if (!snap.empty) {
+                const userDoc = snap.docs[0];
+                internalDocId = userDoc.id;
+                renderForm(userDoc.data());
             } else {
-                showError("User not found with Aadhaar/Phone: " + searchValue);
+                showError("Record not found.");
             }
-        } catch (err) {
-            console.error(err);
-            showError("Database Error: " + err.message);
+        } catch (e) {
+            showError("Database Error: " + e.message);
         }
     }
 
-    function showError(msg) {
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('status').innerHTML = `<div class="error">${msg}</div>`;
+    function renderForm(data) {
+        const container = document.getElementById('inputsContainer');
+        const editList = editRequested.split(',');
+
+        // Determine which fields to show
+        Object.keys(FIELD_MAP).forEach(key => {
+            if (editRequested === 'all' || editList.includes(key)) {
+                const config = FIELD_MAP[key];
+                
+                // Extract value from nested object (e.g., data.address.city)
+                const val = config.path.split('.').reduce((o, i) => o ? o[i] : '', data);
+
+                const div = document.createElement('div');
+                div.className = 'field-box';
+                div.innerHTML = `
+                    <label>${config.label}</label>
+                    <input type="text" data-path="${config.path}" value="${val || ''}">
+                `;
+                container.appendChild(div);
+            }
+        });
+
+        document.getElementById('statusContainer').style.display = 'none';
+        document.getElementById('dynamicForm').style.display = 'block';
     }
 
-    // Handle the Update
-    document.getElementById('editForm').onsubmit = async (e) => {
+    document.getElementById('dynamicForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById('saveBtn');
-        btn.innerText = "Saving...";
+        btn.innerText = "Updating...";
         btn.disabled = true;
 
+        const updates = {};
+        const allInputs = document.querySelectorAll('#inputsContainer input');
+        
+        allInputs.forEach(input => {
+            updates[input.dataset.path] = input.value;
+        });
+
         try {
-            const docRef = doc(db, "MyAadhaar", internalDocId);
-            await updateDoc(docRef, {
-                street: document.getElementById('street').value,
-                generatedAadhaar: document.getElementById('aadhaarNum').value,
-                "contact.phone": document.getElementById('phone').value,
-                "contact.realEmail": document.getElementById('realEmail').value,
-                "documents.pan": document.getElementById('pan').value,
-                "documents.passport": document.getElementById('passport').value
-            });
-            alert("Record Updated Successfully!");
-            location.reload(); // Refresh to show latest data
+            await updateDoc(doc(db, "MyAadhaar", internalDocId), updates);
+            alert("Updated successfully!");
+            location.reload();
         } catch (err) {
-            alert("Update failed: " + err.message);
-        } finally {
-            btn.innerText = "UPDATE RECORD";
+            alert("Error: " + err.message);
             btn.disabled = false;
+            btn.innerText = "Save Changes";
         }
     };
+
+    function showError(msg) {
+        document.getElementById('statusContainer').innerHTML = `<div class="error-msg">${msg}</div>`;
+    }
 </script>
 
 </body>
