@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virasat Login</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #1e293b; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #64748b; }
+        input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: 0.3s; }
+        button:hover { background: #1d4ed8; }
+        #otp-section { display: none; margin-top: 1rem; }
+        .msg { font-size: 0.85rem; margin-top: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Virasat Login</h2>
+    
+    <div id="login-section">
+        <div class="form-group">
+            <label>Aadhaar / Email / Phone</label>
+            <input type="text" id="identifier" placeholder="Enter details">
+        </div>
+        <button id="send-otp-btn">Send OTP</button>
+    </div>
+
+    <div id="otp-section">
+        <div class="form-group">
+            <label>Enter OTP sent to your Registered Email</label>
+            <input type="text" id="otp-input" placeholder="6-digit OTP">
+        </div>
+        <button id="verify-otp-btn">Verify & Login</button>
+    </div>
+    
+    <div id="status-msg" class="msg"></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs, or } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+        authDomain: "question-metabase.firebaseapp.com",
+        projectId: "question-metabase",
+        storageBucket: "question-metabase.firebasestorage.app",
+        messagingSenderId: "770698198753",
+        appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    emailjs.init("Yr9MutUoHOEONnFgn");
+
+    let generatedOtp = null;
+    let currentUserData = null;
+
+    const statusMsg = document.getElementById('status-msg');
+
+    document.getElementById('send-otp-btn').onclick = async () => {
+        const idValue = document.getElementById('identifier').value.trim();
+        if (!idValue) return alert("Please enter identification");
+
+        statusMsg.innerText = "Searching records...";
+        
+        try {
+            // Searching MyAadhaar collection for matches in aadhaarNumber, 2email, or mobile
+            const q = query(collection(db, "MyAadhaar"), or(
+                where("aadhaarNumber", "==", idValue),
+                where("contact.2email", "==", idValue),
+                where("contact.mobile", "==", idValue)
+            ));
+
+            const querySnapshot = await getDocs(q);
+            
+            if (querySnapshot.empty) {
+                statusMsg.innerText = "User not found.";
+                return;
+            }
+
+            currentUserData = querySnapshot.docs[0].data();
+            const docId = querySnapshot.docs[0].id;
+            const targetEmail = currentUserData.contact.realEmail;
+
+            // Generate 6-digit OTP
+            generatedOtp = Math.floor(100000 + Math.random() * 900000);
+
+            // Send via EmailJS
+            emailjs.send("service_qiyll9e", "template_vssk4uu", {
+                to_email: targetEmail,
+                otp: generatedOtp,
+                user_name: currentUserData.personalDetails.fullName
+            }).then(() => {
+                statusMsg.innerText = "OTP sent to your realEmail.";
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('otp-section').style.display = 'block';
+                // Store docId in session for next page
+                sessionStorage.setItem('aadhaarDocId', docId);
+                sessionStorage.setItem('aadhaarNum', currentUserData.aadhaarNumber);
+            });
+
+        } catch (err) {
+            console.error(err);
+            statusMsg.innerText = "Error searching database.";
+        }
+    };
+
+    document.getElementById('verify-otp-btn').onclick = () => {
+        const enteredOtp = document.getElementById('otp-input').value;
+        if (enteredOtp == generatedOtp) {
+            statusMsg.style.color = "green";
+            statusMsg.innerText = "Login Successful! Redirecting...";
+            setTimeout(() => window.location.href = 'admin.html', 1500);
+        } else {
+            statusMsg.style.color = "red";
+            statusMsg.innerText = "Invalid OTP.";
+        }
+    };
+</script>
+</body>
+</html>

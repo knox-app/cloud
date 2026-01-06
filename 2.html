@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virasat Admin - Bank Accounts</title>
+    <style>
+        body { font-family: sans-serif; background: #f1f5f9; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        h2, h3 { color: #334155; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+        .form-group { margin-bottom: 10px; }
+        label { font-size: 0.8rem; font-weight: bold; display: block; margin-bottom: 4px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
+        .btn-add { background: #059669; color: white; padding: 12px; border: none; width: 100%; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .bank-item { border-left: 5px solid #2563eb; background: #f8fafc; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+        .bank-logo { width: 40px; height: 40px; margin-right: 15px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 10px; text-align: center; overflow: hidden;}
+        .bank-info { flex-grow: 1; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Bank Account Management</h2>
+    <p>Linked Aadhaar: <span id="aadhaar-display">...</span></p>
+
+    <div class="card">
+        <h3>Link New Bank Account</h3>
+        <div class="grid">
+            <div class="form-group">
+                <label>Bank Name</label>
+                <select id="bankName">
+                    <option value="">Select Bank</option>
+                    <option value="SBI">State Bank of India</option>
+                    <option value="BOB">Bank of Baroda</option>
+                    <option value="BOI">Bank of India</option>
+                    <option value="Indian Bank">Indian Bank</option>
+                    <option value="Union Bank">Union Bank</option>
+                    <option value="PNB">Punjab National Bank</option>
+                    <option value="HDFC">HDFC BANK</option>
+                    <option value="ICICI">ICICI BANK</option>
+                    <option value="Axis">Axis Bank</option>
+                    <!-- Add other banks here -->
+                </select>
+            </div>
+            <div class="form-group"><label>Account Number</label><input type="text" id="accNum"></div>
+            <div class="form-group"><label>IFSC Code</label><input type="text" id="ifsc"></div>
+            <div class="form-group"><label>Branch Name</label><input type="text" id="branch"></div>
+            <div class="form-group"><label>State</label><input type="text" id="state"></div>
+            <div class="form-group"><label>District</label><input type="text" id="district"></div>
+            <div class="form-group"><label>City</label><input type="text" id="city"></div>
+            <div class="form-group"><label>Pin Code</label><input type="text" id="pincode"></div>
+            <div class="form-group">
+                <label>Account Type</label>
+                <select id="accType"><option value="Savings">Savings</option><option value="Current">Current</option></select>
+            </div>
+        </div>
+        <button class="btn-add" id="save-bank-btn">Connect Bank Account</button>
+    </div>
+
+    <h3>Your Linked Accounts</h3>
+    <div id="bank-list"></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+        authDomain: "question-metabase.firebaseapp.com",
+        projectId: "question-metabase",
+        storageBucket: "question-metabase.firebasestorage.app",
+        messagingSenderId: "770698198753",
+        appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const aadhaarNum = sessionStorage.getItem('aadhaarNum');
+    if(!aadhaarNum) window.location.href = 'index.html';
+
+    document.getElementById('aadhaar-display').innerText = aadhaarNum;
+
+    // Real-time listener for user's bank accounts
+    const q = query(collection(db, "VIRASATBN"), where("linkedAadhaar", "==", aadhaarNum));
+    onSnapshot(q, (snapshot) => {
+        const listDiv = document.getElementById('bank-list');
+        listDiv.innerHTML = "";
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const bankItem = document.createElement('div');
+            bankItem.className = 'bank-item';
+            // Simple logic for logo placeholder
+            const logoText = data.bankName.substring(0,3);
+            bankItem.innerHTML = `
+                <div class="bank-logo">${logoText}</div>
+                <div class="bank-info">
+                    <strong>${data.bankName}</strong><br>
+                    <small>A/C: ${data.accountNumber} | IFSC: ${data.ifsc}</small>
+                </div>
+            `;
+            listDiv.appendChild(bankItem);
+        });
+    });
+
+    document.getElementById('save-bank-btn').onclick = async () => {
+        const bankData = {
+            bankName: document.getElementById('bankName').value,
+            accountNumber: document.getElementById('accNum').value,
+            ifsc: document.getElementById('ifsc').value,
+            branch: document.getElementById('branch').value,
+            state: document.getElementById('state').value,
+            district: document.getElementById('district').value,
+            city: document.getElementById('city').value,
+            pincode: document.getElementById('pincode').value,
+            accountType: document.getElementById('accType').value,
+            linkedAadhaar: aadhaarNum,
+            timestamp: new Date()
+        };
+
+        if(!bankData.bankName || !bankData.accountNumber) return alert("Please fill details");
+
+        try {
+            await addDoc(collection(db, "VIRASATBN"), bankData);
+            alert("Bank account linked successfully!");
+        } catch (e) {
+            console.error(e);
+            alert("Error saving data.");
+        }
+    };
+</script>
+</body>
+</html>
