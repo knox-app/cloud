@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Channel Registration - Anthropic Digital Ecosystem</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #10a37f;
+            --primary-dark: #0e8468;
+            --accent: #d1fae5;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            --bg-page: #f9fafb;
+            --white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+
+        body { background-color: var(--bg-page); color: var(--text-main); overflow-x: hidden; }
+
+        .app-wrapper { display: flex; min-height: 100vh; width: 100%; }
+
+        /* Left Branding Section */
+        .hero-section {
+            flex: 1;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: white;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .hero-content h1 {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #10a37f, #d1fae5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Right Form Section */
+        .form-section {
+            flex: 1.2;
+            background: var(--white);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 60px 20px;
+        }
+
+        .form-container { width: 100%; max-width: 650px; }
+
+        .form-header { margin-bottom: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; }
+
+        .input-group { margin-bottom: 18px; }
+        .input-group label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .input-group input, 
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.1);
+        }
+
+        /* Styling for auto-filled/partner fields */
+        .partner-locked {
+            background-color: #f3f4f6;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+
+        .btn-submit:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+        .grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        #statusMsg {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: none;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .msg-error { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .msg-success { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+
+        .connection-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 900px) {
+            .app-wrapper { flex-direction: column; }
+            .hero-section { height: auto; padding: 60px 20px; position: relative; }
+            .grid-row { grid-template-columns: 1fr; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-wrapper">
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>Channel Registration</h1>
+            <p>Onboard your media assets to the Anthropic Digital Ecosystem. Ensure all technical metadata is accurate for TRAI compliance.</p>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <div class="form-container">
+            
+            <div id="statusMsg"></div>
+
+            <form id="regForm">
+                <div class="form-header">
+                    <div id="authBadge" class="connection-status" style="background: #e5e7eb; color: #4b5563;">Checking Partner Session...</div>
+                    <h2 style="font-size: 1.6rem;">Broadcaster Details</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">Register a new channel under your organization.</p>
+                </div>
+                
+                <div class="input-group">
+                    <label>Channel Name</label>
+                    <input type="text" id="chName" placeholder="Enter official channel name" required>
+                </div>
+
+                <div class="grid-row">
+                    <div class="input-group">
+                        <label>Logo URL (Web Path)</label>
+                        <input type="url" id="chLogoUrl" placeholder="https://example.com/logo.png" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Logo JPG (Filename)</label>
+                        <input type="text" id="chLogoJpg" placeholder="logo_v1.jpg" required>
+                    </div>
+                </div>
+
+                <div class="grid-row">
+                    <div class="input-group">
+                        <label>Category</label>
+                        <select id="chCategory" required>
+                            <option value="">Select Category</option>
+                            <option>Sports</option>
+                            <option>Entertainment</option>
+                            <option>News</option>
+                            <option>Infotainment</option>
+                            <option>Kids</option>
+                            <option>Movies</option>
+                            <option>Music</option>
+                            <option>Spiritual</option>
+                            <option>Knowledge</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Audio Language</label>
+                        <select id="chAudio" required>
+                            <option value="">Select Language</option>
+                            <option>Assamese</option>
+                            <option>Bhojpuri</option>
+                            <option>English</option>
+                            <option>Gujrati</option>
+                            <option>Haryanvi</option>
+                            <option>Hindi</option>
+                            <option>Kannada</option>
+                            <option>Malayalam</option>
+                            <option>Marathi</option>
+                            <option>Odia</option>
+                            <option>Punjabi</option>
+                            <option>Tamil</option>
+                            <option>Telugu</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Broadcast Definition</label>
+                    <select id="chDef" required>
+                        <option value="SD">Standard Definition (SD)</option>
+                        <option value="HD">High Definition (HD)</option>
+                        <option value="4K">Ultra HD (4K)</option>
+                    </select>
+                </div>
+
+                <div class="grid-row">
+                    <div class="input-group">
+                        <label>Parent Organization</label>
+                        <input type="text" id="chParentOrg" class="partner-locked" placeholder="Login to auto-fill" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Anthropic Media Partner Key</label>
+                        <input type="text" id="chPartnerKey" class="partner-locked" placeholder="Login to auto-fill" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Register Channel to TRAIPCL</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+        authDomain: "question-metabase.firebaseapp.com",
+        databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "question-metabase",
+        storageBucket: "question-metabase.firebasestorage.app",
+        messagingSenderId: "770698198753",
+        appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+        measurementId: "G-6ZP1FPMKSJ"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // --- AUTO-LOGIN LOGIC ---
+    // This looks for data saved by your login page in localStorage
+    window.onload = function() {
+        const savedOrg = localStorage.getItem('partner_org_name');
+        const savedKey = localStorage.getItem('partner_key');
+        const badge = document.getElementById('authBadge');
+
+        if (savedOrg && savedKey) {
+            document.getElementById('chParentOrg').value = savedOrg;
+            document.getElementById('chPartnerKey').value = savedKey;
+            
+            badge.textContent = "✓ Partner Session Active";
+            badge.style.background = "#dcfce7";
+            badge.style.color = "#15803d";
+        } else {
+            badge.textContent = "⚠ No Active Session Found";
+            badge.style.background = "#fee2e2";
+            badge.style.color = "#b91c1c";
+        }
+    };
+
+    function showMsg(text, type) {
+        const el = document.getElementById('statusMsg');
+        el.textContent = text;
+        el.className = type === 'error' ? 'msg-error' : 'msg-success';
+        el.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- SUBMIT TO TRAIPCL ---
+    document.getElementById('regForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const data = {
+            channelName: document.getElementById('chName').value,
+            logoUrl: document.getElementById('chLogoUrl').value,
+            logoJpg: document.getElementById('chLogoJpg').value,
+            category: document.getElementById('chCategory').value,
+            audio: document.getElementById('chAudio').value,
+            definition: document.getElementById('chDef').value,
+            parentOrganization: document.getElementById('chParentOrg').value,
+            partnerKey: document.getElementById('chPartnerKey').value,
+            timestamp: new Date().toISOString()
+        };
+
+        try {
+            // Save to TRAIPCL collection
+            await db.collection("TRAIPCL").add(data);
+            
+            showMsg("Success! Channel " + data.channelName + " has been registered in TRAIPCL.", "success");
+            
+            // Clear only channel specific fields, keep partner details
+            document.getElementById('chName').value = "";
+            document.getElementById('chLogoUrl').value = "";
+            document.getElementById('chLogoJpg').value = "";
+            document.getElementById('chCategory').selectedIndex = 0;
+            document.getElementById('chAudio').selectedIndex = 0;
+            
+        } catch (error) {
+            console.error(error);
+            showMsg("Database Error: " + error.message, "error");
+        }
+    });
+</script>
+
+</body>
+</html>

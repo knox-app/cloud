@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anthropic Digital Ecosystem</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #10a37f; /* Anthropic/Modern Green Theme */
+            --primary-dark: #0e8468;
+            --accent: #d1fae5;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            --bg-page: #f9fafb;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* Full Page Layout */
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* Left Branding Section */
+        .hero-section {
+            flex: 1.2;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: white;
+            text-align: center;
+        }
+
+        .hero-content h1 {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            font-weight: 800;
+            background: linear-gradient(to right, #10a37f, #d1fae5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-content p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            line-height: 1.6;
+            max-width: 500px;
+        }
+
+        /* Right Form Section */
+        .form-section {
+            flex: 1;
+            background: var(--white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .toggle-nav {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .nav-item {
+            padding: 12px 5px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        /* Form Styling */
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .input-group input, 
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Responsive Grids */
+        .grid-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        #statusMsg {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .msg-error { background: #fee2e2; color: #b91c1c; }
+        .msg-success { background: #dcfce7; color: #15803d; }
+
+        .hidden { display: none; }
+
+        /* Media Queries */
+        @media (max-width: 900px) {
+            .app-wrapper { flex-direction: column; }
+            .hero-section { padding: 60px 20px; }
+            .hero-content h1 { font-size: 2rem; }
+            .grid-row { grid-template-columns: 1fr; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-wrapper">
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>Anthropic Digital Ecosystem</h1>
+            <p>Secure partner portal for organizational registration and management. Access your partner dashboard using your unique credentials.</p>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <div class="form-container">
+            
+            <div class="toggle-nav">
+                <div class="nav-item active" id="tabLogin" onclick="switchTab('login')">Login</div>
+                <div class="nav-item" id="tabReg" onclick="switchTab('reg')">Registration</div>
+            </div>
+
+            <div id="statusMsg"></div>
+
+            <!-- LOGIN FORM -->
+            <form id="loginForm">
+                <div style="margin-bottom: 25px;">
+                    <h2 style="font-size: 1.5rem;">Partner Login</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">Access your account via Key, Email, or TRAI No.</p>
+                </div>
+                <div class="input-group">
+                    <label>Partner Key / TRAI No / Email / Mobile</label>
+                    <input type="text" id="loginId" placeholder="Enter credential" required>
+                </div>
+                <div class="input-group">
+                    <label>8-Digit Password</label>
+                    <input type="password" id="loginPass" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn-submit">Sign In</button>
+            </form>
+
+            <!-- REGISTRATION FORM -->
+            <form id="regForm" class="hidden">
+                <div style="margin-bottom: 20px;">
+                    <h2 style="font-size: 1.5rem;">New Organization</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">Enter organization details to create an account.</p>
+                </div>
+                
+                <div class="input-group">
+                    <label>Name of Organization</label>
+                    <input type="text" id="regOrg" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Anthropic Media Partner Key</label>
+                    <input type="text" id="regPartnerKey" placeholder="Unique Partner Key" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Logo URL</label>
+                    <input type="url" id="regLogo" placeholder="https://example.com/logo.png">
+                </div>
+
+                <div class="input-group">
+                    <label>Corporate Office Address</label>
+                    <textarea id="regAddress" rows="2" required></textarea>
+                </div>
+
+                <div class="grid-row">
+                    <div class="input-group">
+                        <label>Registered Mobile</label>
+                        <input type="tel" id="regMobile" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Registered Email</label>
+                        <input type="email" id="regEmail" required>
+                    </div>
+                </div>
+
+                <div class="grid-row">
+                    <div class="input-group">
+                        <label>TRAI Registration No.</label>
+                        <input type="text" id="regTrai" required>
+                    </div>
+                    <div class="input-group">
+                        <label>8-Digit Password</label>
+                        <input type="password" id="regPass" maxlength="8" pattern="\d{8}" placeholder="8 digits" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Register Now</button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+        authDomain: "question-metabase.firebaseapp.com",
+        databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "question-metabase",
+        storageBucket: "question-metabase.firebasestorage.app",
+        messagingSenderId: "770698198753",
+        appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+        measurementId: "G-6ZP1FPMKSJ"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const COL = "TRAIDT"; 
+
+    // --- TAB SWITCHER ---
+    function switchTab(type) {
+        document.getElementById('loginForm').classList.toggle('hidden', type !== 'login');
+        document.getElementById('regForm').classList.toggle('hidden', type !== 'reg');
+        document.getElementById('tabLogin').classList.toggle('active', type === 'login');
+        document.getElementById('tabReg').classList.toggle('active', type === 'reg');
+        hideMsg();
+    }
+
+    function showMsg(text, type) {
+        const el = document.getElementById('statusMsg');
+        el.textContent = text;
+        el.className = type === 'error' ? 'msg-error' : 'msg-success';
+        el.style.display = 'block';
+    }
+
+    function hideMsg() { document.getElementById('statusMsg').style.display = 'none'; }
+
+    // --- REGISTRATION ---
+    document.getElementById('regForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideMsg();
+
+        const data = {
+            orgName: document.getElementById('regOrg').value,
+            partnerKey: document.getElementById('regPartnerKey').value,
+            logoUrl: document.getElementById('regLogo').value,
+            address: document.getElementById('regAddress').value,
+            mobile: document.getElementById('regMobile').value,
+            email: document.getElementById('regEmail').value.toLowerCase(),
+            traiNumber: document.getElementById('regTrai').value,
+            password: document.getElementById('regPass').value
+        };
+
+        if(data.password.length !== 8) {
+            showMsg("Password must be exactly 8 digits.", "error");
+            return;
+        }
+
+        try {
+            // Check uniqueness of Partner Key and TRAI Number
+            const keyCheck = await db.collection(COL).where("partnerKey", "==", data.partnerKey).get();
+            const traiCheck = await db.collection(COL).where("traiNumber", "==", data.traiNumber).get();
+
+            if(!keyCheck.empty || !traiCheck.empty) {
+                showMsg("Partner Key or TRAI Number already registered.", "error");
+                return;
+            }
+
+            await db.collection(COL).add(data);
+            showMsg("Registration Successful! Redirecting to login...", "success");
+            setTimeout(() => switchTab('login'), 2000);
+        } catch (err) {
+            showMsg("Error: " + err.message, "error");
+        }
+    });
+
+    // --- LOGIN ---
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideMsg();
+
+        const input = document.getElementById('loginId').value.trim();
+        const pass = document.getElementById('loginPass').value;
+
+        try {
+            let user = null;
+            
+            // Search across 4 possible identifiers
+            const queries = [
+                db.collection(COL).where("partnerKey", "==", input).get(),
+                db.collection(COL).where("traiNumber", "==", input).get(),
+                db.collection(COL).where("email", "==", input.toLowerCase()).get(),
+                db.collection(COL).where("mobile", "==", input).get()
+            ];
+
+            const results = await Promise.all(queries);
+            for(let snap of results) {
+                if(!snap.empty) {
+                    user = snap.docs[0].data();
+                    break;
+                }
+            }
+
+            if(user) {
+                if(user.password === pass) {
+                    showMsg("Access Granted. Welcome, " + user.orgName, "success");
+                    // Dashboard redirection logic here
+                } else {
+                    showMsg("Incorrect password.", "error");
+                }
+            } else {
+                showMsg("Partner profile not found.", "error");
+            }
+        } catch (err) {
+            showMsg("Login Error: " + err.message, "error");
+        }
+    });
+</script>
+
+</body>
+</html>
