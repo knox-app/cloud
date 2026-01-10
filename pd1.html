@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hotstar Pro Player</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { 
+            --primary: #0078ff; 
+            --bg: #030b17; 
+            --surface: #0b1522;
+            --text: #ffffff;
+            --text-dim: #a0a0a0;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); font-family: 'Segoe UI', Roboto, sans-serif; overflow: hidden; color: var(--text); }
+
+        /* App Layout */
+        .app-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+
+        /* Player Section */
+        .player-wrapper { position: relative; width: 100%; background: #000; overflow: hidden; aspect-ratio: 16/9; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Landscape Auto-Full */
+        @media (orientation: landscape) {
+            .player-wrapper { height: 100vh; aspect-ratio: unset; }
+            .info-section { display: none; }
+        }
+
+        video { width: 100%; height: 100%; object-fit: contain; will-change: transform; transition: transform 0.3s ease; }
+        video.zoomed { object-fit: cover; }
+
+        /* Info Section (Portrait Only) */
+        .info-section { padding: 20px; flex-grow: 1; background: var(--bg); }
+        .info-section h1 { margin: 0; font-size: 20px; font-weight: 600; }
+        .info-section p { color: var(--text-dim); margin: 8px 0 0; font-size: 14px; text-transform: capitalize; }
+
+        /* Overlays & Controls */
+        .controls { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(to bottom, rgba(3,11,23,0.8) 0%, transparent 25%, transparent 75%, rgba(3,11,23,0.9) 100%); transition: opacity 0.3s; }
+        .controls.hidden { opacity: 0; pointer-events: none; }
+        .controls.locked { opacity: 0; pointer-events: none; }
+
+        .top-bar { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .live-tag { background: var(--primary); padding: 3px 10px; border-radius: 3px; font-size: 10px; font-weight: 900; box-shadow: 0 0 10px rgba(0,120,255,0.4); }
+        
+        .mid { display: flex; justify-content: center; align-items: center; gap: 50px; }
+        .mid i { font-size: 40px; color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .play-btn { font-size: 70px !important; color: var(--primary) !important; }
+
+        .bottom { padding: 0 20px 30px; }
+        .seek-bar { width: 100%; accent-color: var(--primary); margin-bottom: 12px; }
+        .meta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; }
+
+        /* Side Indicators */
+        .side-bar { position: absolute; top: 50%; transform: translateY(-50%); width: 42px; height: 160px; background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border-radius: 20px; display: flex; flex-direction: column-reverse; align-items: center; padding: 12px 0; opacity: 0; transition: opacity 0.2s; z-index: 10; border: 1px solid rgba(255,255,255,0.05); }
+        .bar-fill { width: 5px; background: var(--primary); border-radius: 3px; transition: height 0.1s linear; box-shadow: 0 0 8px var(--primary); }
+        .side-bar i { margin-top: 10px; font-size: 16px; }
+
+        /* Hotstar Settings Layout */
+        .settings-view { position: absolute; inset: 0; background: rgba(3,11,23,0.98); z-index: 300; display: none; flex-direction: column; padding: 20px 8%; animation: slideUp 0.2s ease; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .tabs { display: flex; gap: 35px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px; }
+        .tab { cursor: pointer; font-weight: 700; color: var(--text-dim); font-size: 17px; padding-bottom: 8px; border-bottom: 3px solid transparent; }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        
+        .option { padding: 15px 0; display: flex; align-items: center; gap: 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .option i { color: var(--primary); font-size: 14px; visibility: hidden; }
+        .option.selected i { visibility: visible; }
+        .option-text b { font-size: 16px; display: block; margin-bottom: 3px; }
+        .option-text span { font-size: 12px; color: var(--text-dim); }
+
+        /* Lock, Loader & Toast */
+        #lockBtn { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 22px; z-index: 150; cursor: pointer; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 50%; }
+        #loader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; border: 4px solid rgba(0,120,255,0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; z-index: 100; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #toast { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); background: var(--primary); padding: 8px 25px; border-radius: 30px; font-size: 13px; font-weight: bold; opacity: 0; transition: 0.3s; z-index: 500; }
+        #brOverlay { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 5; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="player-wrapper" id="playerWrap">
+        <div id="brOverlay"></div>
+        <div id="loader"></div>
+        <div id="toast"></div>
+
+        <div id="lInd" class="side-bar" style="left: 20px;"><i class="fas fa-sun"></i><div class="bar-fill" id="brFill"></div></div>
+        <div id="rInd" class="side-bar" style="right: 20px;"><i class="fas fa-volume-up"></i><div class="bar-fill" id="volFill"></div></div>
+
+        <video id="v" playsinline crossorigin="anonymous"></video>
+
+        <i class="fas fa-unlock" id="lockBtn" onclick="toggleLock(event)" style="display: none;"></i>
+
+        <!-- Hotstar Tabs -->
+        <div class="settings-view" id="settings">
+            <div class="tabs">
+                <div class="tab active" id="tabQ" onclick="switchTab('quality')">Quality</div>
+                <div class="tab" id="tabA" onclick="switchTab('audio')">Audio Language</div>
+                <div style="flex-grow: 1; text-align: right;"><i class="fas fa-times" style="font-size: 22px; cursor:pointer;" onclick="closeSet()"></i></div>
+            </div>
+            <div id="optList"></div>
+        </div>
+
+        <!-- UI -->
+        <div class="controls" id="ui">
+            <div class="top-bar">
+                <div class="live-tag">LIVE</div>
+                <div style="display: flex; gap: 20px; font-size: 20px;">
+                    <i class="fas fa-lock" onclick="toggleLock(event)"></i>
+                    <i class="fas fa-cog" onclick="openSet(event)"></i>
+                    <i class="fas fa-expand" onclick="toggleFS()"></i>
+                </div>
+            </div>
+
+            <div class="mid">
+                <i class="fas fa-undo" onclick="v.currentTime -= 10"></i>
+                <i class="fas fa-play play-btn" id="pI" onclick="playPause()"></i>
+                <i class="fas fa-redo" onclick="v.currentTime += 10"></i>
+            </div>
+
+            <div class="bottom">
+                <input type="range" class="seek-bar" id="seek" value="0">
+                <div class="meta">
+                    <div><span id="curT">00:00</span> <button style="background:var(--primary);border:none;color:#fff;padding:4px 10px;border-radius:3px;font-weight:700;display:none;margin-left:10px;" id="liveB" onclick="v.currentTime = v.duration">GO LIVE</button></div>
+                    <i class="fas fa-volume-up" id="vI" onclick="v.muted = !v.muted"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portrait Info -->
+    <div class="info-section">
+        <h1 id="uiName">Live Stream</h1>
+        <p id="uiLang">Hindi</p>
+    </div>
+</div>
+
+<script>
+    const v = document.getElementById('v'), hls = new Hls({ lowLatencyMode: true });
+    let isLocked = false, tab = 'quality', br = 1, timer, lastTap = 0;
+
+    // 1. Get Params
+    const q = new URLSearchParams(window.location.search);
+    const src = q.get('src') || "https://d2jso9g61rg1h8.cloudfront.net/index_3.m3u8";
+    const name = q.get('name') || "Live TV Stream";
+    const lang = q.get('lang') || "hindi";
+
+    document.getElementById('uiName').innerText = name;
+    document.getElementById('uiLang').innerText = lang;
+
+    if (Hls.isSupported()) {
+        hls.loadSource(src); hls.attachMedia(v);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => { v.play(); selectLang(lang); });
+        hls.on(Hls.Events.FRAG_BUFFERING, () => document.getElementById('loader').style.display='block');
+        hls.on(Hls.Events.FRAG_BUFFERED, () => document.getElementById('loader').style.display='none');
+    }
+
+    // 2. Settings
+    function openSet(e) { e.stopPropagation(); document.getElementById('settings').style.display='flex'; render(); }
+    function closeSet() { document.getElementById('settings').style.display='none'; }
+    function switchTab(t) { 
+        tab = t; 
+        document.getElementById('tabQ').classList.toggle('active', t==='quality');
+        document.getElementById('tabA').classList.toggle('active', t==='audio');
+        render(); 
+    }
+    function render() {
+        const list = document.getElementById('optList'); list.innerHTML = '';
+        if (tab === 'quality') {
+            list.innerHTML += item("Auto", "Best experience", hls.currentLevel === -1, () => { hls.currentLevel = -1; closeSet(); });
+            hls.levels.forEach((l, i) => {
+                let lbl = l.height >= 720 ? "HD" : "Standard";
+                list.innerHTML += item(lbl, `${l.height}p`, hls.currentLevel === i, () => { hls.currentLevel = i; closeSet(); });
+            });
+        } else {
+            hls.audioTracks.forEach((t, i) => {
+                list.innerHTML += item(t.name, t.lang, hls.audioTrack === i, () => { hls.audioTrack = i; closeSet(); });
+            });
+        }
+    }
+    function item(t, s, sel, fn) {
+        const d = document.createElement('div'); d.className = `option ${sel?'selected':''}`; d.onclick = fn;
+        d.innerHTML = `<i class="fas fa-check"></i><div class="option-text"><b>${t}</b><span>${s}</span></div>`;
+        return d.outerHTML;
+    }
+    function selectLang(target) {
+        const i = hls.audioTracks.findIndex(t => t.lang.includes(target) || t.name.toLowerCase().includes(target.toLowerCase()));
+        if (i !== -1) hls.audioTrack = i;
+    }
+
+    // 3. Gestures
+    const player = document.getElementById('playerWrap');
+    player.addEventListener('touchstart', e => {
+        if (isLocked) return; this.sy = e.touches[0].pageY; this.sx = e.touches[0].pageX;
+        let now = Date.now(); if (now - lastTap < 300) { if (this.sx < window.innerWidth/2) v.currentTime-=10; else v.currentTime+=10; }
+        lastTap = now;
+    }, {passive:true});
+
+    player.addEventListener('touchmove', e => {
+        if (isLocked || e.touches.length !== 1) return;
+        const dy = (this.sy - e.touches[0].pageY)/200;
+        const side = this.sx < window.innerWidth/2 ? 'left' : 'right';
+        if (side === 'left') { br = Math.min(Math.max(br + dy, 0), 1); document.getElementById('brOverlay').style.opacity = 1 - br; updateI('left', br); }
+        else { v.volume = Math.min(Math.max(v.volume + dy, 0), 1); updateI('right', v.volume); }
+        this.sy = e.touches[0].pageY;
+    }, {passive:true});
+
+    function updateI(s, val) {
+        const id = s==='left'?'lInd':'rInd', f = s==='left'?'brFill':'volFill';
+        document.getElementById(id).style.opacity = 1; document.getElementById(f).style.height = (val*100)+'%';
+        clearTimeout(this.ti); this.ti = setTimeout(() => document.querySelectorAll('.side-bar').forEach(b => b.style.opacity = 0), 1000);
+    }
+
+    // 4. UI Logic
+    function playPause() { v.paused ? v.play() : v.pause(); document.getElementById('pI').className = v.paused ? 'fas fa-play play-btn' : 'fas fa-pause play-btn'; }
+    function toggleLock(e) { e.stopPropagation(); isLocked = !isLocked; document.getElementById('ui').classList.toggle('locked', isLocked); document.getElementById('lockBtn').style.display = isLocked ? 'block' : 'none'; showToast(isLocked ? "Locked" : "Unlocked"); }
+    function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.opacity = 1; setTimeout(() => t.style.opacity = 0, 2000); }
+    
+    v.ontimeupdate = () => {
+        const s = document.getElementById('seek'); s.max = v.duration; s.value = v.currentTime;
+        document.getElementById('curT').innerText = fmt(v.currentTime);
+        document.getElementById('liveB').style.display = (v.duration - v.currentTime > 5) ? 'inline-block' : 'none';
+        document.getElementById('vI').className = v.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+    };
+    function fmt(s) { let m = Math.floor(s/60), sec = Math.floor(s%60); return (m<10?'0'+m:m)+":"+(sec<10?'0'+sec:sec); }
+    document.getElementById('seek').oninput = e => v.currentTime = e.target.value;
+
+    player.onclick = () => { if (isLocked) return; document.getElementById('ui').classList.remove('hidden'); clearTimeout(timer); timer = setTimeout(() => { if (!v.paused) document.getElementById('ui').classList.add('hidden'); }, 4000); };
+    function toggleFS() { document.fullscreenElement ? document.exitFullscreen() : player.requestFullscreen(); }
+</script>
+</body>
+  </html>
