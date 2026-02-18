@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Trigger Process</title>
+    <title>Trigger Engine</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
 <body>
-    <h2 id="status">Processing Trigger...</h2>
+    <h2 id="status">Processing Encrypted Trigger...</h2>
 
     <script>
         firebase.initializeApp({
@@ -15,42 +16,57 @@
             projectId: "question-metabase"
         });
         const db = firebase.firestore();
+        emailjs.init("Yr9MutUoHOEONnFgn");
 
-        async function runTrigger() {
+        async function processTrigger() {
             const params = new URLSearchParams(window.location.search);
-            const receiver = params.get('r');
-            const secret = params.get('s');
-            const message = params.get('m');
+            
+            try {
+                // Decrypting parameters R, S, M immediately
+                const receiver = atob(params.get('r'));
+                const secret = atob(params.get('s'));
+                const message = atob(params.get('m'));
 
-            if(!receiver || !secret || !message) {
-                document.getElementById('status').innerText = "Missing Parameters (r, s, or m)";
-                return;
+                // 1. Verify API Key
+                const keyDoc = await db.collection("api_keys").doc(secret).get();
+                if(!keyDoc.exists) {
+                    document.getElementById('status').innerText = "Error: Invalid Secret Key";
+                    return;
+                }
+                const company = keyDoc.data().companyName;
+
+                // 2. Check if Receiver is in our database
+                const userDoc = await db.collection("users").doc(receiver).get();
+
+                if(userDoc.exists) {
+                    // Store in Firestore
+                    await db.collection("emails").add({
+                        sender: company + " (API)",
+                        receiver: receiver,
+                        subject: "API Notification",
+                        message: message,
+                        status: 'inbox',
+                        timestamp: Date.now()
+                    });
+                    document.getElementById('status').innerText = "Success: Delivered to Internal Inbox";
+                } else {
+                    // Send via EmailJS
+                    await emailjs.send("service_qiyll9e", "template_vssk4uu", {
+                        to_email: receiver,
+                        from_name: company,
+                        subject: "External Notification",
+                        message: message
+                    });
+                    document.getElementById('status').innerText = "Success: User not in DB. Delivered via EmailJS";
+                }
+
+            } catch (e) {
+                document.getElementById('status').innerText = "Error: Invalid Encrypted Data or Parameters";
+                console.error(e);
             }
-
-            // Verify Key
-            const keyDoc = await db.collection("api_keys").doc(secret).get();
-            if(!keyDoc.exists) {
-                document.getElementById('status').innerText = "Invalid Secret Key";
-                return;
-            }
-
-            const companyData = keyDoc.data();
-
-            // Send Email
-            await db.collection("emails").add({
-                sender: companyData.companyName + " (API)",
-                senderEmail: companyData.owner,
-                receiver: receiver,
-                subject: "System Notification",
-                message: message,
-                status: 'inbox',
-                timestamp: Date.now()
-            });
-
-            document.getElementById('status').innerText = "Email Triggered Successfully for " + receiver;
         }
 
-        window.onload = runTrigger;
+        window.onload = processTrigger;
     </script>
 </body>
 </html>
