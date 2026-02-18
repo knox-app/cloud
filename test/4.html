@@ -2,119 +2,93 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>BigTech - Advanced Control Panel</title>
+    <title>Developer Console - API Access</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <style>
-        :root { --primary: #2563eb; --dark: #1e293b; --bg: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+        :root { --primary: #2563eb; --dark: #0f172a; --bg: #f1f5f9; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #334155; }
         
-        /* Sidebar */
+        /* Setup Screen Style */
+        #setup-screen { display: none; justify-content: center; align-items: center; height: 100vh; }
+        .setup-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 400px; text-align: center; }
+        
+        /* Dashboard Screen Style */
+        #admin-screen { display: none; height: 100vh; flex-direction: row; }
         .sidebar { width: 260px; background: var(--dark); color: white; display: flex; flex-direction: column; }
-        .sidebar h2 { padding: 20px; font-size: 1.5rem; border-bottom: 1px solid #334155; margin: 0; }
-        .nav-btn { padding: 15px 20px; cursor: pointer; border: none; background: none; color: #cbd5e1; text-align: left; font-size: 1rem; transition: 0.3s; }
-        .nav-btn:hover, .nav-btn.active { background: var(--primary); color: white; }
-        .logout { margin-top: auto; background: #ef4444 !important; color: white !important; }
-
-        /* Main Content */
-        .content { flex: 1; padding: 30px; overflow-y: auto; }
-        .view { display: none; }
-        .view.active { display: block; }
-
-        /* UI Cards */
+        .sidebar h2 { padding: 20px; font-size: 1.2rem; border-bottom: 1px solid #1e293b; margin:0; }
+        .nav-btn { padding: 15px 20px; cursor: pointer; border: none; background: none; color: #94a3b8; text-align: left; width: 100%; font-size: 14px; }
+        .nav-btn.active { background: var(--primary); color: white; }
+        
+        .main { flex: 1; padding: 30px; overflow-y: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h3 { margin-top: 0; color: var(--dark); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
-
-        /* Forms & Tables */
-        input, select, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; }
-        textarea { height: 120px; font-family: monospace; background: #fdfdfd; }
-        button.save { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
+        button.action { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: 600; }
+        
+        table { width: 100%; border-collapse: collapse; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid #f1f5f9; }
-        th { background: #f8fafc; color: #64748b; font-size: 0.85rem; }
-        .avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
-        .btn-sm { padding: 5px 10px; font-size: 0.8rem; cursor: pointer; margin-right: 5px; border-radius: 4px; border: 1px solid #ccc; }
-        
-        /* Modal for Editing */
-        #editModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 500px; max-height: 80vh; overflow-y: auto; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <h2>BigTech Admin</h2>
-        <button class="nav-btn active" onclick="showView('dashboard')">Dashboard</button>
-        <button class="nav-btn" onclick="showView('templates')">Templates</button>
-        <button class="nav-btn" onclick="showView('users')">Manage Users</button>
-        <button class="nav-btn" onclick="location.href='2.html'">Mailbox</button>
-        <button class="nav-btn logout" onclick="localStorage.clear(); location.href='1.html'">Logout</button>
-    </div>
-
-    <div class="content">
-        <!-- View 1: Dashboard -->
-        <div id="dashboard" class="view active">
-            <h3>Overview</h3>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-                <div class="card">
-                    <small>Total Users</small>
-                    <h2 id="count-users">0</h2>
-                </div>
-                <div class="card">
-                    <small>Active Templates</small>
-                    <h2 id="count-templates">0</h2>
-                </div>
-                <div class="card">
-                    <small>API Key</small>
-                    <p id="display-key" style="font-size: 0.8rem; color: blue; cursor: pointer;" onclick="copyKey()">Loading...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- View 2: Templates -->
-        <div id="templates" class="view">
-            <div class="card">
-                <h3>Create New Template</h3>
-                <input type="text" id="t_name" placeholder="Template Name">
-                <input type="text" id="t_sub" placeholder="Subject Line">
-                <textarea id="t_html" placeholder="HTML Body (use {{code}})"></textarea>
-                <button class="save" onclick="saveTemplate()">Publish Template</button>
-            </div>
-            <div class="card">
-                <h3>Your Templates</h3>
-                <div id="template-list"></div>
-            </div>
-        </div>
-
-        <!-- View 3: Users -->
-        <div id="users" class="view">
-            <div class="card">
-                <h3>System Users</h3>
-                <table id="user-table">
-                    <thead>
-                        <tr>
-                            <th>Avatar</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Mobile</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
+    <!-- SCREEN 1: Setup for New API Users -->
+    <div id="setup-screen">
+        <div class="setup-card">
+            <img src="https://cdn-icons-png.flaticon.com/512/2103/2103633.png" width="80" style="margin-bottom:20px">
+            <h2>Activate API Access</h2>
+            <p style="color:#64748b; font-size:14px">Create your developer key to start sending automated emails.</p>
+            <input type="text" id="api_company" placeholder="Company / App Name">
+            <input type="text" id="api_type" placeholder="Content Type (e.g. Fintech, Social)">
+            <input type="text" id="api_pic" placeholder="Profile Picture URL">
+            <button class="action" onclick="createNewApiKey()">Generate My API Key</button>
         </div>
     </div>
 
-    <!-- Edit Modal -->
-    <div id="editModal">
-        <div class="modal-content">
-            <h3 id="modalTitle">Edit Item</h3>
-            <div id="modalFields"></div>
-            <div style="margin-top:20px; display:flex; gap:10px;">
-                <button class="save" id="modalSaveBtn">Save Changes</button>
-                <button onclick="closeModal()" style="padding:10px;">Cancel</button>
+    <!-- SCREEN 2: Dashboard for Existing API Users -->
+    <div id="admin-screen">
+        <div class="sidebar">
+            <h2>Console</h2>
+            <button class="nav-btn active" onclick="switchTab('dash')">Dashboard</button>
+            <button class="nav-btn" onclick="switchTab('temps')">Templates</button>
+            <button class="nav-btn" onclick="switchTab('users')">Manage Users</button>
+            <button class="nav-btn" onclick="location.href='2.html'">Mailbox</button>
+            <button class="nav-btn" style="margin-top:auto; background:#be123c; color:white;" onclick="localStorage.clear(); location.href='1.html'">Logout</button>
+        </div>
+        
+        <div class="main">
+            <!-- Tab: Dashboard -->
+            <div id="tab-dash" class="tab-content">
+                <div class="card">
+                    <h3>Your Developer Profile</h3>
+                    <p><strong>Company:</strong> <span id="view-comp"></span></p>
+                    <p><strong>Your Key:</strong> <code id="view-key" style="background:#eee; padding:5px; color:red"></code></p>
+                    <p style="font-size:12px; color:grey">Share this key only with your system backend.</p>
+                </div>
+            </div>
+
+            <!-- Tab: Templates -->
+            <div id="tab-temps" class="tab-content hidden">
+                <div class="card">
+                    <h3>New Template</h3>
+                    <input type="text" id="t_name" placeholder="Name">
+                    <input type="text" id="t_sub" placeholder="Email Subject">
+                    <textarea id="t_html" placeholder="HTML Body (use {{code}})"></textarea>
+                    <button class="action" onclick="saveTemplate()">Save Template</button>
+                </div>
+                <div class="card" id="template-list"></div>
+            </div>
+
+            <!-- Tab: Manage Users -->
+            <div id="tab-users" class="tab-content hidden">
+                <div class="card">
+                    <h3>Registered System Users</h3>
+                    <table>
+                        <thead><tr><th>Name</th><th>Email</th><th>Action</th></tr></thead>
+                        <tbody id="user-rows"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -125,133 +99,104 @@
         const currentUser = JSON.parse(localStorage.getItem("user"));
         if(!currentUser) window.location.href = "1.html";
 
-        let currentKey = "";
+        let userApiKey = null;
 
-        // Navigation
-        function showView(viewId) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        async function checkApiStatus() {
+            // Check if user already has an API key
+            const snap = await db.collection("api_keys").where("owner", "==", currentUser.email).get();
+            
+            if(snap.empty) {
+                document.getElementById('setup-screen').style.display = 'flex';
+                document.getElementById('admin-screen').style.display = 'none';
+            } else {
+                userApiKey = snap.docs[0].id;
+                const data = snap.docs[0].data();
+                document.getElementById('setup-screen').style.display = 'none';
+                document.getElementById('admin-screen').style.display = 'flex';
+                document.getElementById('view-comp').innerText = data.companyName;
+                document.getElementById('view-key').innerText = userApiKey;
+                loadDashboardData();
+            }
+        }
+
+        async function createNewApiKey() {
+            const name = document.getElementById('api_company').value;
+            const type = document.getElementById('api_type').value;
+            const pic = document.getElementById('api_pic').value;
+
+            if(!name || !type) return alert("Fill Name and Type");
+
+            // Generate a random Secret Key
+            const newKey = "SK-" + Math.random().toString(36).substr(2, 10).toUpperCase();
+
+            await db.collection("api_keys").doc(newKey).set({
+                companyName: name,
+                type: type,
+                profilePic: pic,
+                owner: currentUser.email,
+                id: newKey
+            });
+
+            alert("API Key Generated Successfully!");
+            checkApiStatus(); // Refresh to show dashboard
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.getElementById('tab-'+tab).classList.remove('hidden');
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
             event.target.classList.add('active');
         }
 
-        async function init() {
-            // Get API Key
-            const keySnap = await db.collection("api_keys").where("owner", "==", currentUser.email).get();
-            if(!keySnap.empty) {
-                currentKey = keySnap.docs[0].id;
-                document.getElementById('display-key').innerText = currentKey;
-            }
-            loadData();
-        }
-
-        async function loadData() {
+        async function loadDashboardData() {
             // Load Templates
             const tSnap = await db.collection("templates").where("ownerEmail", "==", currentUser.email).get();
-            document.getElementById('count-templates').innerText = tSnap.size;
-            const tList = document.getElementById('template-list');
-            tList.innerHTML = "";
+            const tDiv = document.getElementById('template-list');
+            tDiv.innerHTML = "<h3>My Templates</h3>";
             tSnap.forEach(doc => {
                 const d = doc.data();
-                tList.innerHTML += `
-                    <div class="template-item" style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
-                        <span><b>${d.name}</b> (${d.id})</span>
-                        <div>
-                            <button class="btn-sm" onclick="editTemplate('${doc.id}')">Edit</button>
-                            <button class="btn-sm" onclick="deleteTemplate('${doc.id}')" style="color:red">Delete</button>
-                        </div>
-                    </div>`;
+                tDiv.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee;">
+                    <b>${d.name}</b> <br> <small>ID: ${d.id}</small>
+                </div>`;
             });
 
             // Load Users
             const uSnap = await db.collection("users").get();
-            document.getElementById('count-users').innerText = uSnap.size;
-            const uTable = document.querySelector('#user-table tbody');
-            uTable.innerHTML = "";
+            const uBody = document.getElementById('user-rows');
+            uBody.innerHTML = "";
             uSnap.forEach(doc => {
                 const u = doc.data();
-                uTable.innerHTML += `
-                    <tr>
-                        <td><img src="${u.pic}" class="avatar"></td>
-                        <td>${u.firstName} ${u.lastName}</td>
-                        <td>${u.email}</td>
-                        <td>${u.mobile}</td>
-                        <td><button class="btn-sm" onclick="editUser('${doc.id}')">Edit</button></td>
-                    </tr>`;
+                uBody.innerHTML += `<tr>
+                    <td>${u.firstName} ${u.lastName}</td>
+                    <td>${u.email}</td>
+                    <td><button onclick="editUser('${u.email}')">Edit</button></td>
+                </tr>`;
             });
         }
 
-        // --- Template Actions ---
         async function saveTemplate() {
-            const tid = "TID-" + Math.random().toString(36).substr(2, 6).toUpperCase();
-            await db.collection("templates").doc(tid).set({
-                id: tid, name: document.getElementById('t_name').value,
+            const id = "TID-" + Math.random().toString(36).substr(2, 5).toUpperCase();
+            await db.collection("templates").doc(id).set({
+                id: id,
+                name: document.getElementById('t_name').value,
                 subject: document.getElementById('t_sub').value,
                 html: document.getElementById('t_html').value,
-                ownerEmail: currentUser.email, apiKey: currentKey
+                ownerEmail: currentUser.email,
+                apiKey: userApiKey
             });
-            alert("Created!");
-            loadData();
+            alert("Template Saved!");
+            loadDashboardData();
         }
 
-        async function editTemplate(id) {
-            const doc = await db.collection("templates").doc(id).get();
-            const d = doc.data();
-            showModal("Edit Template", `
-                <input type="text" id="edit_t_name" value="${d.name}" placeholder="Name">
-                <input type="text" id="edit_t_sub" value="${d.subject}" placeholder="Subject">
-                <textarea id="edit_t_html">${d.html}</textarea>
-            `, async () => {
-                await db.collection("templates").doc(id).update({
-                    name: document.getElementById('edit_t_name').value,
-                    subject: document.getElementById('edit_t_sub').value,
-                    html: document.getElementById('edit_t_html').value
-                });
-                closeModal();
-                loadData();
-            });
-        }
-
-        async function deleteTemplate(id) {
-            if(confirm("Delete this template?")) {
-                await db.collection("templates").doc(id).delete();
-                loadData();
+        function editUser(email) {
+            const newName = prompt("Enter New First Name:");
+            if(newName) {
+                db.collection("users").doc(email).update({ firstName: newName })
+                .then(() => loadDashboardData());
             }
         }
 
-        // --- User Actions ---
-        async function editUser(id) {
-            const doc = await db.collection("users").doc(id).get();
-            const u = doc.data();
-            showModal("Edit User Profile", `
-                <label>First Name</label><input type="text" id="edit_u_fn" value="${u.firstName}">
-                <label>Last Name</label><input type="text" id="edit_u_ln" value="${u.lastName}">
-                <label>Mobile</label><input type="text" id="edit_u_mob" value="${u.mobile}">
-                <label>Pic URL</label><input type="text" id="edit_u_pic" value="${u.pic}">
-            `, async () => {
-                await db.collection("users").doc(id).update({
-                    firstName: document.getElementById('edit_u_fn').value,
-                    lastName: document.getElementById('edit_u_ln').value,
-                    mobile: document.getElementById('edit_u_mob').value,
-                    pic: document.getElementById('edit_u_pic').value
-                });
-                closeModal();
-                loadData();
-            });
-        }
-
-        // --- Modal Helpers ---
-        function showModal(title, html, saveFn) {
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalFields').innerHTML = html;
-            document.getElementById('editModal').style.display = 'flex';
-            document.getElementById('modalSaveBtn').onclick = saveFn;
-        }
-
-        function closeModal() { document.getElementById('editModal').style.display = 'none'; }
-        function copyKey() { navigator.clipboard.writeText(currentKey); alert("Key Copied!"); }
-
-        init();
+        checkApiStatus();
     </script>
 </body>
-                    </html>
+    </html>
