@@ -2,98 +2,175 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin Console</title>
+<title>Cloud Admin Console</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body{background:#020617;color:#e5e7eb;font-family:Arial}
-.box{max-width:720px;margin:30px auto;background:#020617;border:1px solid #1e293b;padding:20px;border-radius:12px}
-input,textarea,select,button{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:none}
-button{background:#2563eb;color:#fff;cursor:pointer}
-pre{background:#020617;border:1px solid #1e293b;padding:10px;border-radius:6px}
+body{
+  background:#020617;
+  color:#e5e7eb;
+  font-family:Arial, sans-serif;
+}
+.box{
+  max-width:760px;
+  margin:30px auto;
+  background:#020617;
+  border:1px solid #1e293b;
+  padding:20px;
+  border-radius:12px;
+}
+h2{margin-bottom:10px}
+input,textarea,select,button{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border-radius:6px;
+  border:none;
+  outline:none;
+}
+button{
+  background:#2563eb;
+  color:#fff;
+  cursor:pointer;
+}
+button:hover{background:#1d4ed8}
+small{color:#94a3b8}
+pre{
+  background:#020617;
+  border:1px solid #1e293b;
+  padding:10px;
+  border-radius:6px;
+  overflow:auto;
+  max-height:300px;
+}
 </style>
 </head>
 <body>
 
-<div class="box">
-<h2>Project Status</h2>
-<select id="status">
-  <option value="active">Active</option>
-  <option value="paused">Paused</option>
-</select>
-<button onclick="saveProject()">Save</button>
-</div>
+<!-- ================= PROJECT STATUS ================= -->
 
 <div class="box">
-<h2>Allowed URLs</h2>
-<textarea id="urls" rows="5"
-placeholder="https://knox-app.github.io/cloud/test/egj"></textarea>
-<button onclick="saveUrls()">Save URLs</button>
+  <h2>🔐 Project Control</h2>
+  <select id="projectStatus">
+    <option value="active">Active</option>
+    <option value="paused">Paused</option>
+  </select>
+  <button onclick="saveProject()">Save Project Status</button>
 </div>
 
+<!-- ================= ALLOWED URLS ================= -->
+
 <div class="box">
-<h2>Logs</h2>
-<button onclick="loadLogs()">Refresh</button>
-<pre id="logs">No logs</pre>
+  <h2>🌐 Allowed Domains / Exact URLs</h2>
+  <textarea id="allowedUrls" rows="6"
+placeholder="https://knox-app.github.io/cloud/test/egj
+https://knox-app.github.io/cloud/test"></textarea>
+  <small>
+    • One URL per line  
+    • Sub-paths allowed  
+    • Used by <b>55.html</b> for origin validation
+  </small>
+  <button onclick="saveUrls()">Save Allowed URLs</button>
+</div>
+
+<!-- ================= VIEW LOGS ================= -->
+
+<div class="box">
+  <h2>📜 Recent Logs (from 55.html)</h2>
+  <button onclick="loadLogs()">Refresh Logs</button>
+  <pre id="logs">No logs loaded</pre>
 </div>
 
 <script type="module">
+/* ================= FIREBASE ================= */
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
   getFirestore, doc, setDoc, getDoc,
   collection, query, orderBy, limit, getDocs
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-const firebaseConfig={
-  apiKey:"AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
-  authDomain:"question-metabase.firebaseapp.com",
-  databaseURL:"https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:"question-metabase",
-  storageBucket:"question-metabase.firebasestorage.app",
-  messagingSenderId:"770698198753",
-  appId:"1:770698198753:web:59ae49d78b6013bab5c"
+const firebaseConfig = {
+  apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+  authDomain: "question-metabase.firebaseapp.com",
+  databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "question-metabase",
+  storageBucket: "question-metabase.firebasestorage.app",
+  messagingSenderId: "770698198753",
+  appId: "1:770698198753:web:59ae49d78b6013bab5c"
 };
 
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ================= PROJECT STATUS ================= */
 
 async function saveProject(){
+  const status = document.getElementById("projectStatus").value;
   await setDoc(doc(db,"config","project"),{
-    status:document.getElementById("status").value,
-    updatedAt:Date.now()
+    status,
+    updatedAt: Date.now()
   });
-  alert("Saved");
+  alert("Project status saved");
 }
+
+async function loadProject(){
+  const snap = await getDoc(doc(db,"config","project"));
+  if(snap.exists()){
+    document.getElementById("projectStatus").value = snap.data().status;
+  }
+}
+
+/* ================= ALLOWED URLS ================= */
 
 async function saveUrls(){
-  const urls=document.getElementById("urls").value
-    .split("\n").map(v=>v.trim()).filter(Boolean);
+  const urls = document.getElementById("allowedUrls")
+    .value.split("\n")
+    .map(v=>v.trim())
+    .filter(Boolean);
+
   await setDoc(doc(db,"config","allowed_urls"),{
-    urls,updatedAt:Date.now()
+    urls,
+    updatedAt: Date.now()
   });
-  alert("Saved");
+  alert("Allowed URLs saved");
 }
+
+async function loadUrls(){
+  const snap = await getDoc(doc(db,"config","allowed_urls"));
+  if(snap.exists()){
+    document.getElementById("allowedUrls").value =
+      snap.data().urls.join("\n");
+  }
+}
+
+/* ================= LOGS ================= */
 
 async function loadLogs(){
-  const qy=query(collection(db,"logs"),orderBy("time","desc"),limit(20));
-  const snap=await getDocs(qy);
-  let out="";
+  const qy = query(
+    collection(db,"logs"),
+    orderBy("time","desc"),
+    limit(30)
+  );
+  const snap = await getDocs(qy);
+
+  let out = "";
   snap.forEach(d=>{
     const x=d.data();
-    out+=`[${new Date(x.time).toLocaleString()}]
-${x.status} | ${x.reason}
-${x.referrer}
-----------------\n`;
+    out += `[${new Date(x.time).toLocaleString()}]
+STATUS : ${x.status}
+REASON : ${x.reason}
+TEMPLATE : ${x.templateId}
+REFERRER : ${x.referrer}
+-------------------------------------\n`;
   });
-  document.getElementById("logs").textContent=out||"No logs";
+
+  document.getElementById("logs").textContent = out || "No logs";
 }
 
-(async()=>{
-  const p=await getDoc(doc(db,"config","project"));
-  if(p.exists()) document.getElementById("status").value=p.data().status;
+/* ================= INIT ================= */
 
-  const u=await getDoc(doc(db,"config","allowed_urls"));
-  if(u.exists()) document.getElementById("urls").value=u.data().urls.join("\n");
-})();
+loadProject();
+loadUrls();
 </script>
 
 </body>
