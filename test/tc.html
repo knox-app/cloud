@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Console</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{background:#020617;color:#e5e7eb;font-family:Arial}
+.box{max-width:720px;margin:30px auto;background:#020617;border:1px solid #1e293b;padding:20px;border-radius:12px}
+input,textarea,select,button{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:none}
+button{background:#2563eb;color:#fff;cursor:pointer}
+pre{background:#020617;border:1px solid #1e293b;padding:10px;border-radius:6px}
+</style>
+</head>
+<body>
+
+<div class="box">
+<h2>Project Status</h2>
+<select id="status">
+  <option value="active">Active</option>
+  <option value="paused">Paused</option>
+</select>
+<button onclick="saveProject()">Save</button>
+</div>
+
+<div class="box">
+<h2>Allowed URLs</h2>
+<textarea id="urls" rows="5"
+placeholder="https://knox-app.github.io/cloud/test/egj"></textarea>
+<button onclick="saveUrls()">Save URLs</button>
+</div>
+
+<div class="box">
+<h2>Logs</h2>
+<button onclick="loadLogs()">Refresh</button>
+<pre id="logs">No logs</pre>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import {
+  getFirestore, doc, setDoc, getDoc,
+  collection, query, orderBy, limit, getDocs
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+  authDomain:"question-metabase.firebaseapp.com",
+  databaseURL:"https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"question-metabase",
+  storageBucket:"question-metabase.firebasestorage.app",
+  messagingSenderId:"770698198753",
+  appId:"1:770698198753:web:59ae49d78b6013bab5c"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+
+async function saveProject(){
+  await setDoc(doc(db,"config","project"),{
+    status:document.getElementById("status").value,
+    updatedAt:Date.now()
+  });
+  alert("Saved");
+}
+
+async function saveUrls(){
+  const urls=document.getElementById("urls").value
+    .split("\n").map(v=>v.trim()).filter(Boolean);
+  await setDoc(doc(db,"config","allowed_urls"),{
+    urls,updatedAt:Date.now()
+  });
+  alert("Saved");
+}
+
+async function loadLogs(){
+  const qy=query(collection(db,"logs"),orderBy("time","desc"),limit(20));
+  const snap=await getDocs(qy);
+  let out="";
+  snap.forEach(d=>{
+    const x=d.data();
+    out+=`[${new Date(x.time).toLocaleString()}]
+${x.status} | ${x.reason}
+${x.referrer}
+----------------\n`;
+  });
+  document.getElementById("logs").textContent=out||"No logs";
+}
+
+(async()=>{
+  const p=await getDoc(doc(db,"config","project"));
+  if(p.exists()) document.getElementById("status").value=p.data().status;
+
+  const u=await getDoc(doc(db,"config","allowed_urls"));
+  if(u.exists()) document.getElementById("urls").value=u.data().urls.join("\n");
+})();
+</script>
+
+</body>
+  </html>
+  
