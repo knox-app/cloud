@@ -2,24 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Big Tech Console</title>
+    <title>Processing Trigger...</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <style>
-        body { font-family: sans-serif; padding: 40px; }
-        .box { border: 1px solid #ddd; padding: 20px; max-width: 500px; }
-        input { width: 100%; padding: 8px; margin: 10px 0; }
-        .key { background: #eee; padding: 10px; word-break: break-all; margin-top: 10px; display: none; }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
 <body>
-    <h2>Developer Console</h2>
-    <div class="box">
-        <input type="text" id="appName" placeholder="Company Name">
-        <input type="text" id="appType" placeholder="Type of Content">
-        <input type="text" id="appPic" placeholder="Profile Picture URL">
-        <button onclick="generateKey()">Create API Key</button>
-        <div id="keyBox" class="key"></div>
+    <div id="box" style="text-align: center; margin-top: 50px; font-family: sans-serif;">
+        <h2 id="msg">Processing...</h2>
     </div>
 
     <script>
@@ -28,22 +18,64 @@
             projectId: "question-metabase"
         });
         const db = firebase.firestore();
-        const user = JSON.parse(localStorage.getItem("user"));
-        if(!user) window.location.href = "1.html";
+        emailjs.init("Yr9MutUoHOEONnFgn");
 
-        async function generateKey() {
-            const key = "SK-" + Math.random().toString(36).substr(2, 16).toUpperCase();
-            await db.collection("api_keys").doc(key).set({
-                key: key,
-                companyName: document.getElementById('appName').value,
-                owner: user.email,
-                type: document.getElementById('appType').value,
-                pic: document.getElementById('appPic').value
-            });
-            const kb = document.getElementById('keyBox');
-            kb.style.display = 'block';
-            kb.innerText = "Your Secret Key: " + key;
+        async function execute() {
+            const params = new URLSearchParams(window.location.search);
+            const r = params.get('r'); // Receiver
+            const s = params.get('s'); // Secret Key
+            const m = params.get('m'); // The "code" or raw data
+            const t = params.get('t'); // Template ID
+
+            // 1. Immediate Encryption for processing
+            const encR = btoa(r); const encS = btoa(s); const encM = btoa(m);
+            // Clean URL bar
+            window.history.replaceState({}, '', '5.html?auth=verified');
+
+            try {
+                // 2. Verify Key and Get Template
+                const keyDoc = await db.collection("api_keys").doc(s).get();
+                if(!keyDoc.exists) throw new Error("Invalid API Key");
+                
+                const tempDoc = await db.collection("templates").doc(t).get();
+                if(!tempDoc.exists) throw new Error("Template not found");
+
+                const company = keyDoc.data().companyName;
+                const templateHtml = tempDoc.data().html;
+
+                // 3. APPLY TEMPLATE DESIGN (Replace {{code}} with message data)
+                const finalHTML = templateHtml.replace(/{{code}}/g, m);
+
+                // 4. Check if user exists in database
+                const userCheck = await db.collection("users").doc(r).get();
+
+                if(userCheck.exists) {
+                    // Internal Delivery
+                    await db.collection("emails").add({
+                        sender: company,
+                        receiver: r,
+                        subject: tempDoc.data().name,
+                        message: finalHTML, // The fully designed HTML
+                        status: 'inbox',
+                        timestamp: Date.now()
+                    });
+                    document.getElementById('msg').innerText = "Sent to Internal Inbox!";
+                } else {
+                    // External Delivery via EmailJS
+                    await emailjs.send("service_qiyll9e", "template_vssk4uu", {
+                        to_email: r,
+                        from_name: company,
+                        subject: tempDoc.data().name,
+                        message: finalHTML // The fully designed HTML
+                    });
+                    document.getElementById('msg').innerText = "User not in DB. Sent via EmailJS!";
+                }
+            } catch (e) {
+                document.getElementById('msg').innerText = "Error: " + e.message;
+                document.getElementById('msg').style.color = "red";
+            }
         }
+        window.onload = execute;
     </script>
 </body>
 </html>
