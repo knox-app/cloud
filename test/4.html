@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Big Tech Console</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 40px; }
+        .box { border: 1px solid #ddd; padding: 20px; max-width: 500px; }
+        input { width: 100%; padding: 8px; margin: 10px 0; }
+        .key { background: #eee; padding: 10px; word-break: break-all; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+    <h2>Developer Console</h2>
+    <div class="box">
+        <input type="text" id="appName" placeholder="Company Name">
+        <input type="text" id="appType" placeholder="Type of Content">
+        <input type="text" id="appPic" placeholder="Profile Picture URL">
+        <button onclick="generateKey()">Create API Key</button>
+        <div id="keyBox" class="key"></div>
+    </div>
+
+    <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            projectId: "question-metabase"
+        });
+        const db = firebase.firestore();
+        const user = JSON.parse(localStorage.getItem("user"));
+        if(!user) window.location.href = "1.html";
+
+        async function generateKey() {
+            const key = "SK-" + Math.random().toString(36).substr(2, 16).toUpperCase();
+            await db.collection("api_keys").doc(key).set({
+                key: key,
+                companyName: document.getElementById('appName').value,
+                owner: user.email,
+                type: document.getElementById('appType').value,
+                pic: document.getElementById('appPic').value
+            });
+            const kb = document.getElementById('keyBox');
+            kb.style.display = 'block';
+            kb.innerText = "Your Secret Key: " + key;
+        }
+    </script>
+</body>
+</html>
