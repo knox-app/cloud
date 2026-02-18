@@ -2,116 +2,81 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Processing Trigger...</title>
+    <title>Cloud Trigger Engine</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
-<body style="font-family: sans-serif; text-align: center; padding-top: 50px; background: #f0f2f5;">
-    
-    <div style="background: white; display: inline-block; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 500px;">
-        <h2 id="status">Verifying Request...</h2>
-        <p id="details" style="color: #666;"></p>
-        <div id="error-box" style="margin-top:20px; color: red; font-size: 13px; text-align: left; background: #fff1f0; padding: 10px; border-radius: 5px; display: none; border: 1px solid #ffa39e;"></div>
-    </div>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+    <h2 id="status">Routing Request...</h2>
 
     <script>
-        // 1. Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
-            projectId: "question-metabase",
-        };
-        firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp({ apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", projectId: "question-metabase" });
         const db = firebase.firestore();
-
-        // 2. EmailJS Init (Corrected Key)
         emailjs.init("Yr9MutUoHOEONnFgn");
 
-        async function startProcess() {
-            const status = document.getElementById('status');
-            const details = document.getElementById('details');
-            const errBox = document.getElementById('error-box');
-
+        async function run() {
             const params = new URLSearchParams(window.location.search);
-            const r = params.get('r'); // vinayaknigam196@gmail.com
-            const s = params.get('s'); // SK-80AT4XJ33K2
-            const t = params.get('t'); // T-S7LSZ
-            const m = params.get('m'); // 123
+            const r = params.get('r'); // recipient
+            const s = params.get('s'); // secret api key
+            const t = params.get('t'); // template id
+            const m = params.get('m'); // dynamic code
 
-            if (!r || !s || !t) {
-                status.innerText = "Invalid URL";
-                details.innerText = "Parameters r, s, and t are required.";
-                return;
-            }
+            // IMMEDIATELY HIDE/ENCRYPT URL
+            const hidden = btoa(`r=${r}&s=${s}`);
+            window.history.replaceState({}, '', '5.html?session=' + hidden.substring(0,10));
 
             try {
-                // Step A: Fetch Key & Template from Firestore
-                console.log("Fetching data for:", s, t);
-                const [keyDoc, tempDoc] = await Promise.all([
-                    db.collection("api_keys").doc(s).get(),
-                    db.collection("templates").doc(t).get()
-                ]);
+                // 1. Verify API Project
+                const apiSnap = await db.collection("api_keys").doc(s).get();
+                if(!apiSnap.exists) throw new Error("Invalid Project Secret Key");
+                const project = apiSnap.data();
 
-                if (!keyDoc.exists) throw new Error("API Key (s) not found in Database.");
-                if (!tempDoc.exists) throw new Error("Template (t) not found in Database.");
+                // 2. Fetch Template
+                const tempSnap = await db.collection("templates").doc(t).get();
+                if(!tempSnap.exists) throw new Error("Template not found");
+                const template = tempSnap.data();
 
-                const company = keyDoc.data().companyName;
-                const template = tempDoc.data();
-                const finalHtml = template.html.replace(/{{code}}/g, m || "");
+                // 3. Process Content
+                const finalBody = template.html.replace(/{{code}}/g, m);
 
-                // Step B: Wipe URL for security
-                const session = btoa(`r=${r}&t=${t}`);
-                window.history.replaceState({}, '', '5.html?session=' + session.substring(0,10));
-
-                // Step C: Check if user exists in your Firestore Users
+                // 4. Delivery Logic
                 const userDoc = await db.collection("users").doc(r).get();
+                let method = "Internal";
 
-                if (userDoc.exists) {
-                    // Send to Internal Inbox
+                if(userDoc.exists) {
                     await db.collection("emails").add({
-                        sender: company,
-                        receiver: r,
-                        subject: template.subject || "New Message",
-                        message: finalHtml,
-                        status: 'inbox',
-                        timestamp: Date.now()
+                        sender: project.companyName, receiver: r,
+                        subject: template.subject, message: finalBody,
+                        status: 'inbox', timestamp: Date.now()
                     });
-                    status.innerText = "Success!";
-                    details.innerText = "Message delivered to Internal Inbox.";
-                    status.style.color = "green";
                 } else {
-                    // Step D: Send via EmailJS (The External Fallback)
-                    status.innerText = "Sending External...";
-                    
-                    const emailParams = {
-                        to_email: r,
-                        from_name: company,
-                        subject: template.subject || "Notification",
-                        message: finalHtml
-                    };
-
-                    emailjs.send("service_qiyll9e", "template_vssk4uu", emailParams)
-                        .then(() => {
-                            status.innerText = "Sent Successfully!";
-                            details.innerText = "User not in DB. Email delivered via EmailJS.";
-                            status.style.color = "green";
-                        })
-                        .catch((err) => {
-                            status.innerText = "EmailJS Error (400)";
-                            status.style.color = "red";
-                            errBox.style.display = "block";
-                            errBox.innerHTML = `<strong>Reason:</strong> ${err.text || JSON.stringify(err)}<br><br>Check your EmailJS Dashboard Settings.`;
-                        });
+                    method = "EmailJS";
+                    await emailjs.send("service_qiyll9e", "template_vssk4uu", {
+                        to_email: r, from_name: project.companyName,
+                        subject: template.subject, message: finalBody
+                    });
                 }
 
-            } catch (e) {
-                status.innerText = "System Error";
-                details.innerText = e.message;
-                status.style.color = "red";
+                // 5. CREATE LOG (Crucial for Netflix Dashboard)
+                await db.collection("logs").add({
+                    projectName: project.companyName,
+                    apiKey: s,
+                    adminEmail: project.owner,
+                    receiver: r,
+                    method: method,
+                    timestamp: Date.now()
+                });
+
+                document.getElementById('status').innerText = "Request Processed via " + method;
+                document.getElementById('status').style.color = "green";
+
+            } catch (err) {
+                document.getElementById('status').innerText = err.message;
+                document.getElementById('status').style.color = "red";
             }
         }
-
-        window.onload = startProcess;
+        window.onload = run;
     </script>
 </body>
 </html>
