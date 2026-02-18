@@ -1,0 +1,137 @@
+Got it 👍
+Tum **proper “AI-style documentation”** chahte ho — bilkul waise hi jaise **Claude / OpenAI** ke docs hote hain — taaki tum ye **kisi AI, developer, ya tool** ko seedha de sako.
+
+Neeche **ready-to-use DOCUMENTATION** hai.
+Isko tum **README, Notion, prompt, ya API docs** me paste kar sakte ho.
+
+---
+
+# Email Trigger API (Frontend-Only)
+
+## Overview
+
+This endpoint triggers an email delivery workflow using a **page-load execution model**.
+It is designed for **frontend-only applications** where no custom backend server is available.
+
+The email is sent **only when the page is loaded**, not via fetch or AJAX.
+
+---
+
+## Endpoint
+
+```
+GET https://knox-app.github.io/cloud/test/55.html
+```
+
+---
+
+## Query Parameters
+
+| Parameter | Type   | Required | Description                |
+| --------- | ------ | -------- | -------------------------- |
+| r         | string | ✅        | Recipient email address    |
+| s         | string | ✅        | Project secret key         |
+| t         | string | ✅        | Email template ID          |
+| m         | string | ✅        | Dynamic message / OTP code |
+
+---
+
+## Example Request
+
+```
+https://knox-app.github.io/cloud/test/55.html
+?r=vinayaknigam196@gmail.com
+&s=SK-80AT4XJ33K2
+&t=T-RNHTY
+&m=M001
+```
+
+---
+
+## Execution Model (Important)
+
+This endpoint **must be loaded as a page**, not called via fetch.
+
+### ❌ Not Supported
+
+```js
+fetch(url)
+axios.get(url)
+```
+
+### ✅ Supported
+
+```js
+// Hidden iframe (recommended)
+const iframe = document.createElement("iframe");
+iframe.style.display = "none";
+iframe.src = url;
+document.body.appendChild(iframe);
+```
+
+OR
+
+```js
+window.open(url);
+```
+
+Reason:
+The internal logic executes on **page load** (`window.onload` / script execution), not on HTTP request alone.
+
+---
+
+## Internal Flow (Abstract)
+
+1. Reads query parameters
+2. Validates project key using Firestore
+3. Loads email template
+4. Injects dynamic code (OTP)
+5. Sends email using EmailJS or internal inbox
+6. Writes delivery logs
+7. Masks URL after execution
+
+---
+
+## Typical Use Case
+
+* Email OTP login
+* Passwordless authentication
+* Email notifications
+* Frontend-only verification flows
+* WebView-based apps
+
+---
+
+## Security Notes
+
+* Intended for **testing / controlled environments**
+* OTP verification is client-managed unless paired with backend
+* For production, move verification logic server-side
+
+---
+
+## One-Line Description (for AI tools)
+
+> A frontend-triggered email delivery endpoint that sends OTP emails via page-load execution using Firebase and EmailJS.
+
+---
+
+## Compatibility
+
+* Browser ✅
+* Hidden iframe ✅
+* Android WebView ✅
+* iOS WebView ✅
+* Server-side HTTP ❌
+
+---
+
+If you want, I can also give you:
+
+* **Prompt version** (for Claude / ChatGPT)
+* **OpenAPI-style spec**
+* **README.md**
+* **Pitch-style explanation**
+* **Security-hardening checklist**
+
+Bas bol bhai — **kis format me chahiye?** 😎
