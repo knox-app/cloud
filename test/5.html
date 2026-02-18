@@ -2,71 +2,106 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trigger Engine</title>
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <!-- EmailJS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0f2f5; }
+        .loader-card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }
+        .status-msg { margin-top: 15px; font-weight: bold; color: #333; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
-    <h2 id="status">Processing Encrypted Trigger...</h2>
+
+    <div class="loader-card">
+        <div id="spinner" class="spinner"></div>
+        <div id="status" class="status-msg">Processing Encrypted Request...</div>
+    </div>
 
     <script>
-        firebase.initializeApp({
+        // 1. Firebase Configuration
+        const firebaseConfig = {
             apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
-            projectId: "question-metabase"
-        });
+            authDomain: "question-metabase.firebaseapp.com",
+            databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "question-metabase",
+            storageBucket: "question-metabase.firebasestorage.app",
+            messagingSenderId: "770698198753",
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+            measurementId: "G-6ZP1FPMKSJ"
+        };
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        // 2. EmailJS Initialization
         emailjs.init("Yr9MutUoHOEONnFgn");
 
-        async function processTrigger() {
+        async function handleTrigger() {
+            const statusEl = document.getElementById('status');
+            const spinnerEl = document.getElementById('spinner');
+            
             const params = new URLSearchParams(window.location.search);
             
             try {
-                // Decrypting parameters R, S, M immediately
-                const receiver = atob(params.get('r'));
-                const secret = atob(params.get('s'));
-                const message = atob(params.get('m'));
+                // Decrypt Parameters (Assuming they were encrypted using btoa)
+                const receiverID = atob(params.get('r'));
+                const secretKey = atob(params.get('s'));
+                const messageContent = atob(params.get('m'));
 
-                // 1. Verify API Key
-                const keyDoc = await db.collection("api_keys").doc(secret).get();
-                if(!keyDoc.exists) {
-                    document.getElementById('status').innerText = "Error: Invalid Secret Key";
-                    return;
+                // Step A: Verify Company Secret Key
+                const apiDoc = await db.collection("api_keys").doc(secretKey).get();
+                
+                if (!apiDoc.exists) {
+                    throw new Error("Invalid Company Secret Key");
                 }
-                const company = keyDoc.data().companyName;
+                const companyData = apiDoc.data();
 
-                // 2. Check if Receiver is in our database
-                const userDoc = await db.collection("users").doc(receiver).get();
-
-                if(userDoc.exists) {
-                    // Store in Firestore
+                // Step B: Check if Receiver exists in our Firestore
+                // (Looking for a user document where the ID or email field matches)
+                const userSnapshot = await db.collection("users").where("email", "==", receiverID).get();
+                
+                if (!userSnapshot.empty) {
+                    // USER EXISTS: Save to Firestore Emails collection for 2.html to see
                     await db.collection("emails").add({
-                        sender: company + " (API)",
-                        receiver: receiver,
-                        subject: "API Notification",
-                        message: message,
+                        sender: companyData.companyName || "Big Tech API",
+                        receiver: receiverID,
+                        subject: "New API Notification",
+                        message: messageContent,
                         status: 'inbox',
                         timestamp: Date.now()
                     });
-                    document.getElementById('status').innerText = "Success: Delivered to Internal Inbox";
+                    statusEl.innerText = "Success: Email delivered to Internal Inbox.";
                 } else {
-                    // Send via EmailJS
+                    // USER NOT FOUND: Use EmailJS service
                     await emailjs.send("service_qiyll9e", "template_vssk4uu", {
-                        to_email: receiver,
-                        from_name: company,
-                        subject: "External Notification",
-                        message: message
+                        to_email: receiverID,
+                        from_name: companyData.companyName || "Service Partner",
+                        message: messageContent,
+                        subject: "External System Notification"
                     });
-                    document.getElementById('status').innerText = "Success: User not in DB. Delivered via EmailJS";
+                    statusEl.innerText = "Success: User not in DB. Sent via EmailJS Service.";
                 }
 
-            } catch (e) {
-                document.getElementById('status').innerText = "Error: Invalid Encrypted Data or Parameters";
-                console.error(e);
+                spinnerEl.style.display = 'none';
+                statusEl.style.color = "green";
+
+            } catch (error) {
+                console.error(error);
+                statusEl.innerText = "Error: " + error.message;
+                statusEl.style.color = "red";
+                spinnerEl.style.display = 'none';
             }
         }
 
-        window.onload = processTrigger;
+        // Run on page load
+        window.onload = handleTrigger;
     </script>
 </body>
 </html>
