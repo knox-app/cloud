@@ -2,77 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Cloud Console - Security & Logs</title>
+    <title>Cloud Console - Security & Projects</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <style>
-        :root { --primary: #4f46e5; --dark: #0f172a; --bg: #f8fafc; }
+        :root { --primary: #6366f1; --dark: #0f172a; --bg: #f8fafc; }
         body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; height: 100vh; }
         .sidebar { width: 260px; background: var(--dark); color: #94a3b8; display: flex; flex-direction: column; }
         .sidebar h2 { color: white; padding: 20px; border-bottom: 1px solid #1e293b; margin: 0; }
-        .nav-item { padding: 15px 20px; cursor: pointer; transition: 0.2s; }
-        .nav-item:hover, .nav-item.active { background: #1e293b; color: white; border-left: 4px solid var(--primary); }
+        .nav-item { padding: 15px 20px; cursor: pointer; border-left: 4px solid transparent; }
+        .nav-item.active { background: #1e293b; color: white; border-left-color: var(--primary); }
         .main { flex: 1; padding: 30px; overflow-y: auto; }
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 25px; }
-        table { width: 100%; border-collapse: collapse; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 8px; }
+        .btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
-        code { background: #f1f5f9; padding: 4px 8px; border-radius: 4px; color: #e11d48; font-size: 12px; }
-        .btn { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; }
+        code { background: #f1f5f9; padding: 3px 6px; border-radius: 4px; color: #ef4444; font-size: 12px; }
         .hidden { display: none; }
-        textarea { width: 100%; height: 100px; font-family: monospace; font-size: 12px; background: #272822; color: #fff; padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
     <div class="sidebar">
         <h2>BigTech Cloud</h2>
-        <div class="nav-item active" onclick="tab('projects')">Projects & Keys</div>
-        <div class="nav-item" onclick="tab('templates')">Design Templates</div>
-        <div class="nav-item" onclick="tab('logs')">Security Logs</div>
-        <div class="nav-item" onclick="tab('users')">Manage Users</div>
+        <div class="nav-item active" onclick="tab('projects')">API Projects</div>
+        <div class="nav-item" onclick="tab('templates')">Templates</div>
+        <div class="nav-item" onclick="tab('logs')">System Logs</div>
+        <div class="nav-item" onclick="location.href='2.html'">Mailbox</div>
     </div>
 
     <div class="main">
+        <!-- Projects View -->
         <div id="projects" class="tab">
             <div class="card">
-                <h3>Create New App Project</h3>
-                <input type="text" id="p_name" placeholder="Project Name (Netflix, Amazon etc)" style="width:70%; padding:10px;">
-                <button class="btn" onclick="createProject()">Create Project</button>
+                <h3>New Project Integration</h3>
+                <p style="font-size:13px; color:grey;">Authorized Domain: The URL where your "Send" button exists (e.g. yoursite.com)</p>
+                <input type="text" id="p_name" placeholder="Project Name (e.g. Netflix OTP)">
+                <input type="text" id="p_domain" placeholder="Authorized Domain (e.g. knox-app.github.io)">
+                <button class="btn" onclick="createProject()">Create Project & Key</button>
             </div>
             <div class="card">
-                <h3>API Keys & Embed Snippets</h3>
+                <h3>Active API Project Keys</h3>
                 <table id="projectTable">
-                    <thead><tr><th>Project</th><th>API Key</th><th>Embed Code</th></tr></thead>
+                    <thead><tr><th>Project</th><th>Allowed Domain</th><th>Secret Key</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
         </div>
 
+        <!-- Templates View -->
         <div id="templates" class="tab hidden">
             <div class="card">
-                <h3>Template Builder</h3>
-                <select id="t_proj" style="width:100%; padding:10px; margin-bottom:10px;"></select>
-                <input type="text" id="t_sub" placeholder="Email Subject" style="width:100%; padding:10px; margin-bottom:10px;">
-                <textarea id="t_html" placeholder="HTML Body (Use {{code}} for OTPs)"></textarea>
+                <h3>Template Designer</h3>
+                <select id="t_proj"></select>
+                <input type="text" id="t_sub" placeholder="Email Subject Line">
+                <textarea id="t_html" style="width:100%; height:100px; padding:10px;" placeholder="HTML Body Content... use {{code}}"></textarea>
                 <button class="btn" style="margin-top:10px" onclick="saveTemplate()">Save Template</button>
             </div>
             <div class="card" id="tempList"></div>
         </div>
 
+        <!-- Logs View -->
         <div id="logs" class="tab hidden">
             <div class="card">
-                <h3>Delivery & Security Logs</h3>
+                <h3>Recent Sent Logs</h3>
                 <table id="logTable">
-                    <thead><tr><th>Time</th><th>Receiver</th><th>Method</th><th>Project</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="users" class="tab hidden">
-            <div class="card">
-                <h3>User Directory</h3>
-                <table id="userTable">
-                    <thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Action</th></tr></thead>
+                    <thead><tr><th>Time</th><th>Receiver</th><th>Method</th><th>Domain Status</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -87,13 +82,16 @@
         function tab(name) {
             document.querySelectorAll('.tab').forEach(t => t.classList.add('hidden'));
             document.getElementById(name).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            event.target.classList.add('active');
             loadData(name);
         }
 
         async function createProject() {
-            const key = "SK-" + Math.random().toString(36).substr(2, 10).toUpperCase();
+            const key = "SK-" + Math.random().toString(36).substr(2, 12).toUpperCase();
             await db.collection("api_keys").doc(key).set({
                 companyName: document.getElementById('p_name').value,
+                allowedDomain: document.getElementById('p_domain').value,
                 key: key, owner: user.email, timestamp: Date.now()
             });
             loadData('projects');
@@ -106,20 +104,16 @@
                 tbody.innerHTML = "";
                 snap.forEach(doc => {
                     const d = doc.data();
-                    tbody.innerHTML += `<tr>
-                        <td>${d.companyName}</td>
-                        <td><code>${d.key}</code></td>
-                        <td><button class="btn" style="font-size:10px" onclick="showEmbed('${d.key}')">Get Code</button></td>
-                    </tr>`;
+                    tbody.innerHTML += `<tr><td>${d.companyName}</td><td><code>${d.allowedDomain}</code></td><td><code>${d.key}</code></td></tr>`;
                 });
             }
             if(name === 'logs') {
-                const snap = await db.collection("logs").orderBy("timestamp", "desc").limit(20).get();
+                const snap = await db.collection("logs").orderBy("timestamp", "desc").limit(15).get();
                 const tbody = document.querySelector("#logTable tbody");
                 tbody.innerHTML = "";
                 snap.forEach(doc => {
                     const d = doc.data();
-                    tbody.innerHTML += `<tr><td>${new Date(d.timestamp).toLocaleTimeString()}</td><td>${d.receiver}</td><td>${d.method}</td><td>${d.projectName}</td></tr>`;
+                    tbody.innerHTML += `<tr><td>${new Date(d.timestamp).toLocaleTimeString()}</td><td>${d.receiver}</td><td>${d.method}</td><td>Verified</td></tr>`;
                 });
             }
             if(name === 'templates') {
@@ -130,16 +124,6 @@
             }
         }
 
-        function showEmbed(key) {
-            const code = `<script>
-function sendMail(email, templateID, code) {
-  const url = "5.html?r=" + email + "&s=${key}&t=" + templateID + "&m=" + code;
-  fetch(url, { mode: 'no-cors' }).then(() => console.log('Triggered'));
-}
-<\/script>`;
-            prompt("Copy this code to your website background button click:", code);
-        }
-
         async function saveTemplate() {
             const tid = "T-" + Math.random().toString(36).substr(2, 5).toUpperCase();
             await db.collection("templates").doc(tid).set({
@@ -148,7 +132,7 @@ function sendMail(email, templateID, code) {
                 apiKey: document.getElementById('t_proj').value,
                 ownerEmail: user.email
             });
-            alert("Template ID: " + tid);
+            alert("Saved! Template ID: " + tid);
         }
 
         loadData('projects');
