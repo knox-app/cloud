@@ -2,113 +2,70 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title> Console - Template Builder</title>
+    <title>Processing...</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; background: #f0f2f5; height: 100vh; }
-        .sidebar { width: 250px; background: #1a73e8; color: white; padding: 20px; }
-        .main { flex: 1; padding: 40px; overflow-y: auto; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        textarea { font-family: monospace; height: 150px; }
-        button { background: #1a73e8; color: white; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #1557b0; }
-        .temp-list-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; }
-        .badge { background: #e8f0fe; color: #1a73e8; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
-<body>
-    <div class="sidebar">
-        <h2>BigTech Console</h2>
-        <p id="compName">Loading...</p>
-        <hr>
-        <button onclick="location.href='2.html'" style="background:rgba(255,255,255,0.2)">Go to Mailbox</button>
-    </div>
-
-    <div class="main">
-        <div class="card">
-            <h3>Create New Template</h3>
-            <input type="text" id="t_name" placeholder="Template Name (e.g. OTP System)">
-            <select id="t_type">
-                <option value="otp">OTP / Security</option>
-                <option value="welcome">Welcome Email</option>
-                <option value="alert">Alert / Notification</option>
-                <option value="custom">Custom HTML</option>
-            </select>
-            <p style="font-size: 13px; color: #666;">Use <b>{{code}}</b> where you want the dynamic message to appear.</p>
-            <textarea id="t_html" placeholder="<html><body><h1>Your OTP is {{code}}</h1></body></html>"></textarea>
-            <button onclick="saveTemplate()">Save Template</button>
-        </div>
-
-        <div class="card">
-            <h3>Your Templates & API Keys</h3>
-            <div id="templateList">Loading templates...</div>
-        </div>
-    </div>
+<body style="font-family:sans-serif; text-align:center; padding-top:50px;">
+    <h2 id="status">Verifying Request...</h2>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
-            projectId: "question-metabase",
-            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
-        };
-        firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp({ apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", projectId: "question-metabase" });
         const db = firebase.firestore();
-        const user = JSON.parse(localStorage.getItem("user"));
-        if(!user) window.location.href = "1.html";
+        emailjs.init("Yr9MutUoHOONnFgn");
 
-        let myKey = "";
+        async function process() {
+            const params = new URLSearchParams(window.location.search);
+            const r = params.get('r'); // Receiver
+            const s = params.get('s'); // Secret Key
+            const m = params.get('m'); // Message/Code
+            const t = params.get('t'); // Template ID
 
-        async function init() {
-            // Get user's API key
-            const keySnap = await db.collection("api_keys").where("owner", "==", user.email).get();
-            if(!keySnap.empty) {
-                const kDoc = keySnap.docs[0];
-                myKey = kDoc.id;
-                document.getElementById('compName').innerText = kDoc.data().companyName;
+            // ENCRYPT & HIDE PARAMS IMMEDIATELY
+            const enc = btoa(`r=${r}&s=${s}&m=${m}`);
+            window.history.replaceState({}, '', '5.html?session=' + enc.substring(0,10));
+
+            try {
+                const keyDoc = await db.collection("api_keys").doc(s).get();
+                const tempDoc = await db.collection("templates").doc(t).get();
+
+                if(!keyDoc.exists || !tempDoc.exists) throw new Error("Invalid Auth or Template");
+
+                const company = keyDoc.data().companyName;
+                const templateData = tempDoc.data();
+                
+                // Process HTML: Replace {{code}} with parameter m
+                const finalHtml = templateData.html.replace(/{{code}}/g, m);
+
+                // Check for Internal User
+                const userDoc = await db.collection("users").doc(r).get();
+
+                if(userDoc.exists) {
+                    await db.collection("emails").add({
+                        sender: company,
+                        receiver: r,
+                        subject: templateData.subject, // CUSTOM SUBJECT
+                        message: finalHtml,
+                        status: 'inbox',
+                        timestamp: Date.now()
+                    });
+                    document.getElementById('status').innerText = "Delivered Internally.";
+                } else {
+                    // EXTERNAL: Send to EmailJS
+                    await emailjs.send("service_qiyll9e", "template_vssk4uu", {
+                        to_email: r,
+                        from_name: company,
+                        subject: templateData.subject, // DYNAMIC SUBJECT FOR EMAILJS
+                        message: finalHtml
+                    });
+                    document.getElementById('status').innerText = "User not in DB. Sent via EmailJS.";
+                }
+            } catch (err) {
+                document.getElementById('status').innerText = "Error: " + err.message;
             }
-            loadTemplates();
         }
-
-        async function saveTemplate() {
-            const tid = "TID-" + Math.random().toString(36).substr(2, 6).toUpperCase();
-            await db.collection("templates").doc(tid).set({
-                id: tid,
-                name: document.getElementById('t_name').value,
-                type: document.getElementById('t_type').value,
-                html: document.getElementById('t_html').value,
-                ownerKey: myKey,
-                ownerEmail: user.email
-            });
-            alert("Template Saved! ID: " + tid);
-            loadTemplates();
-        }
-
-        async function loadTemplates() {
-            const snap = await db.collection("templates").where("ownerEmail", "==", user.email).get();
-            const list = document.getElementById('templateList');
-            list.innerHTML = "";
-            snap.forEach(doc => {
-                const d = doc.data();
-                list.innerHTML += `
-                    <div class="temp-list-item">
-                        <div>
-                            <b>${d.name}</b> <span class="badge">${d.type}</span><br>
-                            <small style="color:blue">ID: ${d.id}</small> | 
-                            <small>Key: ${d.ownerKey}</small>
-                        </div>
-                        <button onclick="copyLink('${d.id}', '${d.ownerKey}')" style="padding:5px 10px; font-size:11px">Copy Trigger URL</button>
-                    </div>`;
-            });
-        }
-
-        function copyLink(tid, key) {
-            const url = `${window.location.origin}/5.html?r=RECEIVER_EMAIL&s=${key}&t=${tid}&m=123456`;
-            prompt("Use this URL pattern (m is the data for {{code}}):", url);
-        }
-
-        init();
+        window.onload = process;
     </script>
 </body>
 </html>
