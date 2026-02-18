@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Auth - MailSystem</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 350px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        .toggle { text-align: center; font-size: 0.8rem; margin-top: 10px; color: blue; cursor: pointer; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div id="loginForm">
+            <h2>Login</h2>
+            <input type="text" id="l_id" placeholder="Email or Mobile Number">
+            <input type="password" id="l_pass" placeholder="Password">
+            <button onclick="login()">Login</button>
+            <p class="toggle" onclick="toggleForm()">New here? Signup</p>
+        </div>
+        <div id="signupForm" class="hidden">
+            <h2>Signup</h2>
+            <input type="text" id="s_fname" placeholder="First Name">
+            <input type="text" id="s_lname" placeholder="Last Name">
+            <input type="text" id="s_mobile" placeholder="Mobile Number">
+            <input type="email" id="s_email" placeholder="Email ID">
+            <input type="text" id="s_pic" placeholder="Profile Picture URL">
+            <input type="password" id="s_pass" placeholder="Password">
+            <button onclick="signup()">Signup</button>
+            <p class="toggle" onclick="toggleForm()">Back to Login</p>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            authDomain: "question-metabase.firebaseapp.com",
+            databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "question-metabase",
+            storageBucket: "question-metabase.firebasestorage.app",
+            messagingSenderId: "770698198753",
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function toggleForm() {
+            document.getElementById('loginForm').classList.toggle('hidden');
+            document.getElementById('signupForm').classList.toggle('hidden');
+        }
+
+        async function signup() {
+            const user = {
+                firstName: document.getElementById('s_fname').value,
+                lastName: document.getElementById('s_lname').value,
+                mobile: document.getElementById('s_mobile').value,
+                email: document.getElementById('s_email').value,
+                pic: document.getElementById('s_pic').value,
+                pass: document.getElementById('s_pass').value
+            };
+            await db.collection("users").doc(user.email).set(user);
+            alert("Signup successful!");
+            toggleForm();
+        }
+
+        async function login() {
+            const id = document.getElementById('l_id').value;
+            const pass = document.getElementById('l_pass').value;
+            
+            const snapshot = await db.collection("users")
+                .where("pass", "==", pass).get();
+            
+            let found = false;
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if(data.email === id || data.mobile === id) {
+                    localStorage.setItem("user", JSON.stringify(data));
+                    found = true;
+                    window.location.href = "2.html";
+                }
+            });
+            if(!found) alert("Invalid Credentials");
+        }
+    </script>
+</body>
+</html>
