@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trigger</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{background:#020617;color:#38bdf8;font-family:monospace}
+#debug{display:none;padding:16px}
+</style>
+</head>
+<body>
+<div id="debug"></div>
+
+<script type="module">
+/* ================= CONFIG ================= */
+
+const MAX_SENDS = 5;
+const BLOCK_HOURS = 6;
+const OTP_EXP_MIN = 10;
+
+/* ================= HELPERS ================= */
+
+const q = n => new URLSearchParams(location.search).get(n);
+const now = () => Date.now();
+const hrs = h => h * 60 * 60 * 1000;
+const mins = m => m * 60 * 1000;
+
+function debug(msg){
+  if(q("mode")==="debug"){
+    const d=document.getElementById("debug");
+    d.style.display="block";
+    d.innerHTML+=msg+"<br>";
+  }
+}
+
+async function sha256(str){
+  const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+/* ================= PARAMS ================= */
+
+const email=q("r");
+const secret=q("s");
+const templateId=q("t");
+const otp=q("m");
+
+if(!email||!secret||!templateId||!otp){
+  debug("BLOCKED: MISSING_PARAMS");
+  return;
+}
+
+/* ================= FIREBASE ================= */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, increment
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+  authDomain: "question-metabase.firebaseapp.com",
+  databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "question-metabase",
+  storageBucket: "question-metabase.firebasestorage.app",
+  messagingSenderId: "770698198753",
+  appId: "1:770698198753:web:59ae49d78b6013bab5c"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+
+/* ================= PROJECT STATUS ================= */
+
+const projectSnap=await getDoc(doc(db,"config","project"));
+if(projectSnap.exists() && projectSnap.data().status==="paused"){
+  debug("BLOCKED: PROJECT_PAUSED");
+  return;
+}
+
+/* ================= ALLOWED URL ================= */
+
+const allowedSnap=await getDoc(doc(db,"config","allowed_urls"));
+const allowed=allowedSnap.exists()?allowedSnap.data().urls:[];
+const ref=document.referrer||"";
+
+if(!allowed.some(u=>ref.startsWith(u))){
+  debug("BLOCKED: INVALID_ORIGIN");
+  return;
+}
+
+/* ================= RATE LIMIT ================= */
+
+const emailHash=await sha256(email);
+const key=`${emailHash}_${templateId}`;
+const rlRef=doc(db,"rate_limits",key);
+const snap=await getDoc(rlRef);
+
+if(snap.exists()){
+  const d=snap.data();
+  if(d.blockedUntil && d.blockedUntil>now()){
+    await log("blocked","RATE_LIMIT");
+    return;
+  }
+  if(d.count>=MAX_SENDS){
+    await updateDoc(rlRef,{blockedUntil:now()+hrs(BLOCK_HOURS)});
+    await log("blocked","RATE_LIMIT");
+    return;
+  }
+}
+
+/* ================= EMAIL SEND ================= */
+
+import emailjs from "https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js";
+emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
+
+await emailjs.send("YOUR_SERVICE_ID",templateId,{
+  to_email:email,
+  code:otp
+});
+
+/* ================= UPDATE ================= */
+
+await setDoc(rlRef,{
+  emailHash,
+  templateId,
+  count:increment(1),
+  lastSent:now(),
+  otpExpiresAt:now()+mins(OTP_EXP_MIN)
+},{merge:true});
+
+await log("sent","OK");
+
+debug("DONE");
+
+/* ================= LOG ================= */
+
+async function log(status,reason){
+  await setDoc(doc(db,"logs",crypto.randomUUID()),{
+    emailHash,
+    templateId,
+    status,
+    reason,
+    time:now(),
+    referrer:ref
+  });
+}
+</script>
+</body>
+</html>
