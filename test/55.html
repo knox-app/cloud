@@ -1,82 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Cloud Trigger Engine</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-</head>
-<body style="font-family: sans-serif; text-align: center; padding: 50px;">
-    <h2 id="status">Routing Request...</h2>
+<meta charset="UTF-8">
+<title>Cloud Trigger Engine – Stable</title>
 
-    <script>
-        firebase.initializeApp({ apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", projectId: "question-metabase" });
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+
+<body style="font-family:sans-serif;text-align:center;padding:40px">
+<h3 id="status">Processing…</h3>
+
+<script>
+/* ===== SAFETY GUARD ===== */
+if (window.__TRIGGERED__) {
+    console.log("Already triggered, skipping");
+} else {
+    window.__TRIGGERED__ = true;
+    start();
+}
+
+/* ===== MAIN ENGINE ===== */
+async function start() {
+    try {
+        const params = new URLSearchParams(location.search);
+
+        const r = params.get("r");
+        const s = params.get("s");
+        const t = params.get("t");
+        const m = params.get("m");
+
+        if (!r || !s || !t || !m)
+            throw new Error("Missing parameters");
+
+        /* Init Firebase (safe repeat) */
+        if (!firebase.apps.length) {
+            firebase.initializeApp({
+                apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+                projectId: "question-metabase"
+            });
+        }
         const db = firebase.firestore();
+
+        /* Init EmailJS (safe) */
         emailjs.init("Yr9MutUoHOEONnFgn");
 
-        async function run() {
-            const params = new URLSearchParams(window.location.search);
-            const r = params.get('r'); // recipient
-            const s = params.get('s'); // secret api key
-            const t = params.get('t'); // template id
-            const m = params.get('m'); // dynamic code
+        /* Hide URL instantly */
+        const hidden = btoa(`r=${r}&s=${s}`);
+        history.replaceState({}, "", "5.html?session=" + hidden.slice(0,10));
 
-            // IMMEDIATELY HIDE/ENCRYPT URL
-            const hidden = btoa(`r=${r}&s=${s}`);
-            window.history.replaceState({}, '', '5.html?session=' + hidden.substring(0,10));
+        /* 1️⃣ Verify API Key */
+        const apiSnap = await db.collection("api_keys").doc(s).get();
+        if (!apiSnap.exists) throw new Error("Invalid API Key");
+        const project = apiSnap.data();
 
-            try {
-                // 1. Verify API Project
-                const apiSnap = await db.collection("api_keys").doc(s).get();
-                if(!apiSnap.exists) throw new Error("Invalid Project Secret Key");
-                const project = apiSnap.data();
+        /* 2️⃣ Fetch Template */
+        const tempSnap = await db.collection("templates").doc(t).get();
+        if (!tempSnap.exists) throw new Error("Template missing");
+        const template = tempSnap.data();
 
-                // 2. Fetch Template
-                const tempSnap = await db.collection("templates").doc(t).get();
-                if(!tempSnap.exists) throw new Error("Template not found");
-                const template = tempSnap.data();
+        /* 3️⃣ Process Body */
+        const body = template.html.replace(/{{code}}/g, m);
 
-                // 3. Process Content
-                const finalBody = template.html.replace(/{{code}}/g, m);
+        /* 4️⃣ Deliver */
+        let method = "Internal";
+        const userSnap = await db.collection("users").doc(r).get();
 
-                // 4. Delivery Logic
-                const userDoc = await db.collection("users").doc(r).get();
-                let method = "Internal";
-
-                if(userDoc.exists) {
-                    await db.collection("emails").add({
-                        sender: project.companyName, receiver: r,
-                        subject: template.subject, message: finalBody,
-                        status: 'inbox', timestamp: Date.now()
-                    });
-                } else {
-                    method = "EmailJS";
-                    await emailjs.send("service_qiyll9e", "template_vssk4uu", {
-                        to_email: r, from_name: project.companyName,
-                        subject: template.subject, message: finalBody
-                    });
-                }
-
-                // 5. CREATE LOG (Crucial for Netflix Dashboard)
-                await db.collection("logs").add({
-                    projectName: project.companyName,
-                    apiKey: s,
-                    adminEmail: project.owner,
-                    receiver: r,
-                    method: method,
-                    timestamp: Date.now()
-                });
-
-                document.getElementById('status').innerText = "Request Processed via " + method;
-                document.getElementById('status').style.color = "green";
-
-            } catch (err) {
-                document.getElementById('status').innerText = err.message;
-                document.getElementById('status').style.color = "red";
-            }
+        if (userSnap.exists) {
+            await db.collection("emails").add({
+                sender: project.companyName,
+                receiver: r,
+                subject: template.subject,
+                message: body,
+                status: "inbox",
+                timestamp: Date.now()
+            });
+        } else {
+            method = "EmailJS";
+            await emailjs.send("service_qiyll9e", "template_vssk4uu", {
+                to_email: r,
+                from_name: project.companyName,
+                subject: template.subject,
+                message: body
+            });
         }
-        window.onload = run;
-    </script>
+
+        /* 5️⃣ Log */
+        await db.collection("logs").add({
+            projectName: project.companyName,
+            apiKey: s,
+            receiver: r,
+            method,
+            timestamp: Date.now()
+        });
+
+        document.getElementById("status").innerText =
+            "Processed via " + method;
+        document.getElementById("status").style.color = "green";
+
+    } catch (err) {
+        document.getElementById("status").innerText = err.message;
+        document.getElementById("status").style.color = "red";
+    }
+}
+
+/* ===== EXTRA FAILSAFE ===== */
+document.addEventListener("DOMContentLoaded", () => {
+    if (!window.__TRIGGERED__) start();
+});
+</script>
 </body>
 </html>
