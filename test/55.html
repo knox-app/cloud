@@ -1,114 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Cloud Trigger Engine – Stable</title>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Trigger Engine - Secure</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
+<body style="font-family:sans-serif; text-align:center; padding:40px">
+    <h3 id="status">Verifying Security Policy...</h3>
 
-<body style="font-family:sans-serif;text-align:center;padding:40px">
-<h3 id="status">Processing…</h3>
+    <script>
+        if (window.__TRIGGERED__) { console.log("Halt"); } 
+        else { window.__TRIGGERED__ = true; start(); }
 
-<script>
-/* ===== SAFETY GUARD ===== */
-if (window.__TRIGGERED__) {
-    console.log("Already triggered, skipping");
-} else {
-    window.__TRIGGERED__ = true;
-    start();
-}
+        async function start() {
+            const status = document.getElementById("status");
+            try {
+                const p = new URLSearchParams(location.search);
+                const r = p.get("r"), s = p.get("s"), t = p.get("t"), m = p.get("m");
+                if (!r || !s || !t || !m) throw new Error("Param Error");
 
-/* ===== MAIN ENGINE ===== */
-async function start() {
-    try {
-        const params = new URLSearchParams(location.search);
+                firebase.initializeApp({ apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", projectId: "question-metabase" });
+                const db = firebase.firestore();
+                emailjs.init("Yr9MutUoHOEONnFgn");
 
-        const r = params.get("r");
-        const s = params.get("s");
-        const t = params.get("t");
-        const m = params.get("m");
+                // --- 🛡️ SECURITY BLOCK LOGIC ---
+                // Query logs for: Same Email (r) AND Same Template (t) in last 6 hours
+                const sixHoursAgo = Date.now() - (6 * 60 * 60 * 1000);
+                const spamCheck = await db.collection("logs")
+                    .where("receiver", "==", r)
+                    .where("templateId", "==", t)
+                    .where("timestamp", ">", sixHoursAgo)
+                    .get();
 
-        if (!r || !s || !t || !m)
-            throw new Error("Missing parameters");
+                if (spamCheck.size >= 5) {
+                    throw new Error("Security Block: Too many emails to " + r + ". Try again in 6 hours.");
+                }
+                // ------------------------------
 
-        /* Init Firebase (safe repeat) */
-        if (!firebase.apps.length) {
-            firebase.initializeApp({
-                apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
-                projectId: "question-metabase"
-            });
+                const apiSnap = await db.collection("api_keys").doc(s).get();
+                if (!apiSnap.exists) throw new Error("Invalid API Key");
+                const project = apiSnap.data();
+
+                const tempSnap = await db.collection("templates").doc(t).get();
+                if (!tempSnap.exists) throw new Error("Template Missing");
+                const template = tempSnap.data();
+
+                const body = template.html.replace(/{{code}}/g, m);
+
+                let method = "Internal";
+                const userSnap = await db.collection("users").doc(r).get();
+
+                if (userSnap.exists) {
+                    await db.collection("emails").add({
+                        sender: project.companyName, receiver: r,
+                        subject: template.subject, message: body,
+                        status: "inbox", timestamp: Date.now()
+                    });
+                } else {
+                    method = "EmailJS";
+                    await emailjs.send("service_qiyll9e", "template_vssk4uu", {
+                        to_email: r, from_name: project.companyName,
+                        subject: template.subject, message: body
+                    });
+                }
+
+                // Log the attempt (including templateId for the security check)
+                await db.collection("logs").add({
+                    projectName: project.companyName,
+                    apiKey: s,
+                    templateId: t, // Added for security filtering
+                    receiver: r,
+                    method,
+                    timestamp: Date.now()
+                });
+
+                status.innerText = "Processed via " + method;
+                status.style.color = "green";
+
+            } catch (err) {
+                status.innerText = err.message;
+                status.style.color = "red";
+            }
         }
-        const db = firebase.firestore();
-
-        /* Init EmailJS (safe) */
-        emailjs.init("Yr9MutUoHOEONnFgn");
-
-        /* Hide URL instantly */
-        const hidden = btoa(`r=${r}&s=${s}`);
-        history.replaceState({}, "", "5.html?session=" + hidden.slice(0,10));
-
-        /* 1️⃣ Verify API Key */
-        const apiSnap = await db.collection("api_keys").doc(s).get();
-        if (!apiSnap.exists) throw new Error("Invalid API Key");
-        const project = apiSnap.data();
-
-        /* 2️⃣ Fetch Template */
-        const tempSnap = await db.collection("templates").doc(t).get();
-        if (!tempSnap.exists) throw new Error("Template missing");
-        const template = tempSnap.data();
-
-        /* 3️⃣ Process Body */
-        const body = template.html.replace(/{{code}}/g, m);
-
-        /* 4️⃣ Deliver */
-        let method = "Internal";
-        const userSnap = await db.collection("users").doc(r).get();
-
-        if (userSnap.exists) {
-            await db.collection("emails").add({
-                sender: project.companyName,
-                receiver: r,
-                subject: template.subject,
-                message: body,
-                status: "inbox",
-                timestamp: Date.now()
-            });
-        } else {
-            method = "EmailJS";
-            await emailjs.send("service_qiyll9e", "template_vssk4uu", {
-                to_email: r,
-                from_name: project.companyName,
-                subject: template.subject,
-                message: body
-            });
-        }
-
-        /* 5️⃣ Log */
-        await db.collection("logs").add({
-            projectName: project.companyName,
-            apiKey: s,
-            receiver: r,
-            method,
-            timestamp: Date.now()
-        });
-
-        document.getElementById("status").innerText =
-            "Processed via " + method;
-        document.getElementById("status").style.color = "green";
-
-    } catch (err) {
-        document.getElementById("status").innerText = err.message;
-        document.getElementById("status").style.color = "red";
-    }
-}
-
-/* ===== EXTRA FAILSAFE ===== */
-document.addEventListener("DOMContentLoaded", () => {
-    if (!window.__TRIGGERED__) start();
-});
-</script>
+    </script>
 </body>
 </html>
