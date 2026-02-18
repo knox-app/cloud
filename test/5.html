@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trigger Process</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+</head>
+<body>
+    <h2 id="status">Processing Trigger...</h2>
+
+    <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            projectId: "question-metabase"
+        });
+        const db = firebase.firestore();
+
+        async function runTrigger() {
+            const params = new URLSearchParams(window.location.search);
+            const receiver = params.get('r');
+            const secret = params.get('s');
+            const message = params.get('m');
+
+            if(!receiver || !secret || !message) {
+                document.getElementById('status').innerText = "Missing Parameters (r, s, or m)";
+                return;
+            }
+
+            // Verify Key
+            const keyDoc = await db.collection("api_keys").doc(secret).get();
+            if(!keyDoc.exists) {
+                document.getElementById('status').innerText = "Invalid Secret Key";
+                return;
+            }
+
+            const companyData = keyDoc.data();
+
+            // Send Email
+            await db.collection("emails").add({
+                sender: companyData.companyName + " (API)",
+                senderEmail: companyData.owner,
+                receiver: receiver,
+                subject: "System Notification",
+                message: message,
+                status: 'inbox',
+                timestamp: Date.now()
+            });
+
+            document.getElementById('status').innerText = "Email Triggered Successfully for " + receiver;
+        }
+
+        window.onload = runTrigger;
+    </script>
+</body>
+</html>
