@@ -2,104 +2,256 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Console -  Builder</title>
+    <title>BigTech - Advanced Control Panel</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; display: flex; height: 100vh; }
-        .sidebar { width: 260px; background: #2c3e50; color: white; padding: 20px; box-sizing: border-box; }
-        .main { flex: 1; padding: 30px; overflow-y: auto; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        textarea { height: 150px; font-family: 'Courier New', monospace; background: #1e1e1e; color: #d4d4d4; }
-        button { background: #3498db; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 10px; }
-        button:hover { background: #2980b9; }
-        .template-item { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 8px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .badge { background: #e8f4fd; color: #3498db; padding: 4px 10px; border-radius: 20px; font-size: 11px; }
+        :root { --primary: #2563eb; --dark: #1e293b; --bg: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--dark); color: white; display: flex; flex-direction: column; }
+        .sidebar h2 { padding: 20px; font-size: 1.5rem; border-bottom: 1px solid #334155; margin: 0; }
+        .nav-btn { padding: 15px 20px; cursor: pointer; border: none; background: none; color: #cbd5e1; text-align: left; font-size: 1rem; transition: 0.3s; }
+        .nav-btn:hover, .nav-btn.active { background: var(--primary); color: white; }
+        .logout { margin-top: auto; background: #ef4444 !important; color: white !important; }
+
+        /* Main Content */
+        .content { flex: 1; padding: 30px; overflow-y: auto; }
+        .view { display: none; }
+        .view.active { display: block; }
+
+        /* UI Cards */
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h3 { margin-top: 0; color: var(--dark); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+
+        /* Forms & Tables */
+        input, select, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; }
+        textarea { height: 120px; font-family: monospace; background: #fdfdfd; }
+        button.save { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #f1f5f9; }
+        th { background: #f8fafc; color: #64748b; font-size: 0.85rem; }
+        .avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+        .btn-sm { padding: 5px 10px; font-size: 0.8rem; cursor: pointer; margin-right: 5px; border-radius: 4px; border: 1px solid #ccc; }
+        
+        /* Modal for Editing */
+        #editModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 500px; max-height: 80vh; overflow-y: auto; }
     </style>
 </head>
 <body>
+
     <div class="sidebar">
-        <h2>Console</h2>
-        <p id="compDisplay">Loading...</p>
-        <button onclick="location.href='2.html'" style="background:#445566; margin-top:20px;">Exit Console</button>
+        <h2>BigTech Admin</h2>
+        <button class="nav-btn active" onclick="showView('dashboard')">Dashboard</button>
+        <button class="nav-btn" onclick="showView('templates')">Templates</button>
+        <button class="nav-btn" onclick="showView('users')">Manage Users</button>
+        <button class="nav-btn" onclick="location.href='2.html'">Mailbox</button>
+        <button class="nav-btn logout" onclick="localStorage.clear(); location.href='1.html'">Logout</button>
     </div>
 
-    <div class="main">
-        <div class="card">
-            <h3>Create Template</h3>
-            <input type="text" id="t_name" placeholder="Internal Template Name (e.g. OTP V1)">
-            
-            <!-- NEW SUBJECT FIELD -->
-            <input type="text" id="t_subject" placeholder="Email Subject Line (What the customer sees)">
-            
-            <select id="t_type">
-                <option value="security">Security / OTP</option>
-                <option value="marketing">Marketing</option>
-                <option value="system">System Alert</option>
-            </select>
-            <textarea id="t_html" placeholder="HTML Body Content... Use {{code}} for dynamic values."></textarea>
-            <button onclick="saveTemplate()">Create Template</button>
+    <div class="content">
+        <!-- View 1: Dashboard -->
+        <div id="dashboard" class="view active">
+            <h3>Overview</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                <div class="card">
+                    <small>Total Users</small>
+                    <h2 id="count-users">0</h2>
+                </div>
+                <div class="card">
+                    <small>Active Templates</small>
+                    <h2 id="count-templates">0</h2>
+                </div>
+                <div class="card">
+                    <small>API Key</small>
+                    <p id="display-key" style="font-size: 0.8rem; color: blue; cursor: pointer;" onclick="copyKey()">Loading...</p>
+                </div>
+            </div>
         </div>
 
-        <div class="card">
-            <h3>Your Saved Templates</h3>
-            <div id="templateList"></div>
+        <!-- View 2: Templates -->
+        <div id="templates" class="view">
+            <div class="card">
+                <h3>Create New Template</h3>
+                <input type="text" id="t_name" placeholder="Template Name">
+                <input type="text" id="t_sub" placeholder="Subject Line">
+                <textarea id="t_html" placeholder="HTML Body (use {{code}})"></textarea>
+                <button class="save" onclick="saveTemplate()">Publish Template</button>
+            </div>
+            <div class="card">
+                <h3>Your Templates</h3>
+                <div id="template-list"></div>
+            </div>
+        </div>
+
+        <!-- View 3: Users -->
+        <div id="users" class="view">
+            <div class="card">
+                <h3>System Users</h3>
+                <table id="user-table">
+                    <thead>
+                        <tr>
+                            <th>Avatar</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Mobile</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Edit Item</h3>
+            <div id="modalFields"></div>
+            <div style="margin-top:20px; display:flex; gap:10px;">
+                <button class="save" id="modalSaveBtn">Save Changes</button>
+                <button onclick="closeModal()" style="padding:10px;">Cancel</button>
+            </div>
         </div>
     </div>
 
     <script>
         firebase.initializeApp({ apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", projectId: "question-metabase" });
         const db = firebase.firestore();
-        const user = JSON.parse(localStorage.getItem("user"));
+        const currentUser = JSON.parse(localStorage.getItem("user"));
+        if(!currentUser) window.location.href = "1.html";
+
+        let currentKey = "";
+
+        // Navigation
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            event.target.classList.add('active');
+        }
 
         async function init() {
-            const keySnap = await db.collection("api_keys").where("owner", "==", user.email).get();
+            // Get API Key
+            const keySnap = await db.collection("api_keys").where("owner", "==", currentUser.email).get();
             if(!keySnap.empty) {
-                window.myKey = keySnap.docs[0].id;
-                document.getElementById('compDisplay').innerText = keySnap.docs[0].data().companyName;
+                currentKey = keySnap.docs[0].id;
+                document.getElementById('display-key').innerText = currentKey;
             }
-            loadTemplates();
+            loadData();
         }
 
-        async function saveTemplate() {
-            const tid = "T-" + Math.random().toString(36).substr(2, 5).toUpperCase();
-            await db.collection("templates").doc(tid).set({
-                id: tid,
-                name: document.getElementById('t_name').value,
-                subject: document.getElementById('t_subject').value, // SAVING SUBJECT
-                type: document.getElementById('t_type').value,
-                html: document.getElementById('t_html').value,
-                ownerEmail: user.email,
-                apiKey: window.myKey
-            });
-            alert("Template Created!");
-            loadTemplates();
-        }
-
-        async function loadTemplates() {
-            const snap = await db.collection("templates").where("ownerEmail", "==", user.email).get();
-            const list = document.getElementById('templateList');
-            list.innerHTML = "";
-            snap.forEach(doc => {
+        async function loadData() {
+            // Load Templates
+            const tSnap = await db.collection("templates").where("ownerEmail", "==", currentUser.email).get();
+            document.getElementById('count-templates').innerText = tSnap.size;
+            const tList = document.getElementById('template-list');
+            tList.innerHTML = "";
+            tSnap.forEach(doc => {
                 const d = doc.data();
-                list.innerHTML += `
-                <div class="template-item">
-                    <div>
-                        <strong>${d.name}</strong> <span class="badge">${d.type}</span><br>
-                        <small>Subject: ${d.subject}</small>
-                    </div>
-                    <button style="width:auto; padding:5px 10px;" onclick="copyLink('${d.id}')">Get URL</button>
-                </div>`;
+                tList.innerHTML += `
+                    <div class="template-item" style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
+                        <span><b>${d.name}</b> (${d.id})</span>
+                        <div>
+                            <button class="btn-sm" onclick="editTemplate('${doc.id}')">Edit</button>
+                            <button class="btn-sm" onclick="deleteTemplate('${doc.id}')" style="color:red">Delete</button>
+                        </div>
+                    </div>`;
+            });
+
+            // Load Users
+            const uSnap = await db.collection("users").get();
+            document.getElementById('count-users').innerText = uSnap.size;
+            const uTable = document.querySelector('#user-table tbody');
+            uTable.innerHTML = "";
+            uSnap.forEach(doc => {
+                const u = doc.data();
+                uTable.innerHTML += `
+                    <tr>
+                        <td><img src="${u.pic}" class="avatar"></td>
+                        <td>${u.firstName} ${u.lastName}</td>
+                        <td>${u.email}</td>
+                        <td>${u.mobile}</td>
+                        <td><button class="btn-sm" onclick="editUser('${doc.id}')">Edit</button></td>
+                    </tr>`;
             });
         }
 
-        function copyLink(tid) {
-            const url = `${window.location.origin}/5.html?r=EMAIL&s=${window.myKey}&t=${tid}&m=123456`;
-            prompt("Copy this URL:", url);
+        // --- Template Actions ---
+        async function saveTemplate() {
+            const tid = "TID-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+            await db.collection("templates").doc(tid).set({
+                id: tid, name: document.getElementById('t_name').value,
+                subject: document.getElementById('t_sub').value,
+                html: document.getElementById('t_html').value,
+                ownerEmail: currentUser.email, apiKey: currentKey
+            });
+            alert("Created!");
+            loadData();
         }
+
+        async function editTemplate(id) {
+            const doc = await db.collection("templates").doc(id).get();
+            const d = doc.data();
+            showModal("Edit Template", `
+                <input type="text" id="edit_t_name" value="${d.name}" placeholder="Name">
+                <input type="text" id="edit_t_sub" value="${d.subject}" placeholder="Subject">
+                <textarea id="edit_t_html">${d.html}</textarea>
+            `, async () => {
+                await db.collection("templates").doc(id).update({
+                    name: document.getElementById('edit_t_name').value,
+                    subject: document.getElementById('edit_t_sub').value,
+                    html: document.getElementById('edit_t_html').value
+                });
+                closeModal();
+                loadData();
+            });
+        }
+
+        async function deleteTemplate(id) {
+            if(confirm("Delete this template?")) {
+                await db.collection("templates").doc(id).delete();
+                loadData();
+            }
+        }
+
+        // --- User Actions ---
+        async function editUser(id) {
+            const doc = await db.collection("users").doc(id).get();
+            const u = doc.data();
+            showModal("Edit User Profile", `
+                <label>First Name</label><input type="text" id="edit_u_fn" value="${u.firstName}">
+                <label>Last Name</label><input type="text" id="edit_u_ln" value="${u.lastName}">
+                <label>Mobile</label><input type="text" id="edit_u_mob" value="${u.mobile}">
+                <label>Pic URL</label><input type="text" id="edit_u_pic" value="${u.pic}">
+            `, async () => {
+                await db.collection("users").doc(id).update({
+                    firstName: document.getElementById('edit_u_fn').value,
+                    lastName: document.getElementById('edit_u_ln').value,
+                    mobile: document.getElementById('edit_u_mob').value,
+                    pic: document.getElementById('edit_u_pic').value
+                });
+                closeModal();
+                loadData();
+            });
+        }
+
+        // --- Modal Helpers ---
+        function showModal(title, html, saveFn) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalFields').innerHTML = html;
+            document.getElementById('editModal').style.display = 'flex';
+            document.getElementById('modalSaveBtn').onclick = saveFn;
+        }
+
+        function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+        function copyKey() { navigator.clipboard.writeText(currentKey); alert("Key Copied!"); }
 
         init();
     </script>
 </body>
-</html>
+                    </html>
