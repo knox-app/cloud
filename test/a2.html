@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Secure Login | KnoxCloud</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .auth-card { animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen p-6">
+    <div class="auth-card bg-white w-full max-w-md p-8 rounded-3xl shadow-2xl border border-slate-100">
+        <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-lg shadow-blue-200">K</div>
+            <h2 class="text-2xl font-bold text-slate-800">Welcome Back</h2>
+            <p id="appContext" class="text-slate-500 text-sm">Sign in to continue to your application</p>
+        </div>
+
+        <form onsubmit="handleAuth(event)" class="space-y-5">
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase ml-1">Email Address</label>
+                <input id="uEmail" type="email" placeholder="name@company.com" class="w-full mt-1 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" required>
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase ml-1">Password</label>
+                <input id="uPass" type="password" placeholder="••••••••" class="w-full mt-1 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" required>
+            </div>
+            <button class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all shadow-xl">
+                Continue
+            </button>
+        </form>
+        
+        <p class="text-center text-xs text-slate-400 mt-8">
+            Secured by <span class="font-bold text-slate-600">KnoxCloud Auth</span>
+        </p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, query, collection, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { /* ... SAME AS ABOVE ... */ };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const params = new URLSearchParams(window.location.search);
+        const apiKey = params.get('key');
+
+        window.handleAuth = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('uEmail').value;
+            const pass = document.getElementById('uPass').value;
+
+            // 1. Verify App
+            const q = query(collection(db, "apps"), where("apiKey", "==", apiKey));
+            const appSnap = await getDocs(q);
+            
+            if(appSnap.empty) { alert("Invalid API Configuration"); return; }
+
+            // 2. Simple User Auth (In production, use hashing)
+            const uQ = query(collection(db, "developers"), where("email", "==", email), where("password", "==", pass));
+            const uSnap = await getDocs(uQ);
+
+            if(!uSnap.empty) {
+                const token = "T-" + Math.random().toString(36).toUpperCase().substr(2, 7);
+                // REDIRECT TO TARGET URL
+                const redirect = `https://knox-app.github.io/cloud/test/55.html?r=${email}&s=${apiKey}&t=${token}&m=rifiejgje`;
+                window.location.href = redirect;
+            } else {
+                alert("Incorrect email or password");
+            }
+        };
+    </script>
+</body>
+</html>

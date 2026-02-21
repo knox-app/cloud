@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>KnoxCloud Docs | Integration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-white font-sans text-slate-800">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="w-64 h-screen sticky top-0 border-r border-slate-100 p-8 hidden md:block">
+            <div class="font-bold text-xl mb-10 italic">Knox<span class="text-blue-600">Cloud</span></div>
+            <nav class="space-y-4 text-sm font-medium">
+                <a href="#intro" class="block text-blue-600">Introduction</a>
+                <a href="#setup" class="block text-slate-500 hover:text-slate-800">Initial Setup</a>
+                <a href="#sdk" class="block text-slate-500 hover:text-slate-800">Using the SDK</a>
+                <a href="#response" class="block text-slate-500 hover:text-slate-800">Handling Response</a>
+            </nav>
+        </aside>
+
+        <!-- Content -->
+        <main class="flex-1 max-w-4xl p-8 md:p-16">
+            <h1 id="intro" class="text-4xl font-extrabold mb-4">Documentation</h1>
+            <p class="text-slate-500 text-lg mb-10">Integrate secure user authentication into your subdomain in under 5 minutes.</p>
+
+            <section id="setup" class="mb-12">
+                <h2 class="text-2xl font-bold mb-4">1. Initial Setup</h2>
+                <p class="mb-4">First, create an account in the Developer Dashboard and generate an API key. Ensure your domain is a subdomain (e.g., <code>auth.yoursite.com</code>).</p>
+            </section>
+
+            <section id="sdk" class="mb-12">
+                <h2 class="text-2xl font-bold mb-4">2. Integrate SDK</h2>
+                <p class="mb-4">Add the following script to your website's header:</p>
+                <div class="bg-slate-900 rounded-xl p-5 text-blue-300 font-mono text-sm overflow-x-auto shadow-lg">
+                    <span class="text-slate-500">// Initialize the SDK</span><br>
+                    KnoxAuth.init('<span class="text-yellow-400">YOUR_API_KEY</span>');<br><br>
+                    <span class="text-slate-500">// Trigger Login</span><br>
+                    <span class="text-pink-400">function</span> <span class="text-green-400">loginNow</span>() { <br>
+                    &nbsp;&nbsp;KnoxAuth.<span class="text-green-400">openLogin</span>();<br>
+                    }
+                </div>
+            </section>
+
+            <section id="response" class="mb-12">
+                <h2 class="text-2xl font-bold mb-4">3. Authentication Flow</h2>
+                <p class="mb-4">After the user logs in, they will be redirected to your verification endpoint with the following parameters:</p>
+                <ul class="list-disc ml-6 space-y-2 text-slate-600">
+                    <li><code class="text-pink-600">r</code>: The User's Email ID</li>
+                    <li><code class="text-pink-600">s</code>: Your API Secret Key</li>
+                    <li><code class="text-pink-600">t</code>: A unique session token</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
