@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cloud Console - Big Tech Admin</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        :root { --sidebar: #1e1e2d; --bg: #f4f5f7; --primary: #5867dd; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); display: flex; height: 100vh; }
+        
+        /* Sidebar Navigation */
+        .sidebar { width: 250px; background: var(--sidebar); color: #a2a3b7; display: flex; flex-direction: column; }
+        .sidebar h2 { color: white; padding: 20px; font-size: 1.2rem; border-bottom: 1px solid #2c2c3e; margin: 0; }
+        .nav-group { padding: 10px 0; flex: 1; }
+        .nav-item { padding: 12px 20px; cursor: pointer; display: flex; align-items: center; transition: 0.2s; }
+        .nav-item:hover, .nav-item.active { background: #1b1b28; color: white; border-left: 4px solid var(--primary); }
+
+        /* Main Area */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .header { background: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .content { padding: 30px; overflow-y: auto; flex: 1; }
+
+        /* Component UI */
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        input, select, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ebedf2; border-radius: 4px; }
+        button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ebedf2; font-size: 14px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; background: #e1e3ff; color: #5867dd; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>Cloud Console</h2>
+        <div class="nav-group">
+            <div class="nav-item active" onclick="showTab('projects')">API & Projects</div>
+            <div class="nav-item" onclick="showTab('templates')">Email Templates</div>
+            <div class="nav-item" onclick="showTab('logs')">Sent Logs (History)</div>
+            <div class="nav-item" onclick="showTab('users')">Manage Users</div>
+        </div>
+        <div class="nav-item" onclick="location.href='2.html'" style="background:#2c2c3e">Return to Mailbox</div>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h3 id="tab-title">Project Management</h3>
+            <span id="user-email" style="font-size: 13px; color: #666;"></span>
+        </div>
+
+        <div class="content">
+            <!-- TAB: PROJECTS -->
+            <div id="tab-projects" class="tab-view">
+                <div class="card">
+                    <h3>Create New API Project</h3>
+                    <div class="grid">
+                        <input type="text" id="p_name" placeholder="Project Name (e.g. Netflix OTP)">
+                        <input type="text" id="p_type" placeholder="Service Type (e.g. Authentication)">
+                    </div>
+                    <button onclick="createProject()">Create Project</button>
+                </div>
+                <div class="card">
+                    <h3>Your Active API Keys</h3>
+                    <table id="project-table">
+                        <thead><tr><th>Project Name</th><th>API Key (Secret)</th><th>Status</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB: TEMPLATES -->
+            <div id="tab-templates" class="tab-view hidden">
+                <div class="card">
+                    <h3>Design New Template</h3>
+                    <select id="t_project_select"><option>Select Project Link</option></select>
+                    <input type="text" id="t_subject" placeholder="Email Subject">
+                    <textarea id="t_html" placeholder="HTML Content... use {{code}} for dynamic variables"></textarea>
+                    <button onclick="saveTemplate()">Save Template</button>
+                </div>
+                <div class="card">
+                    <table id="template-table">
+                        <thead><tr><th>Template Name</th><th>Template ID</th><th>Linked Project Key</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB: LOGS -->
+            <div id="tab-logs" class="tab-view hidden">
+                <div class="card">
+                    <h3>Email Delivery History</h3>
+                    <table id="log-table">
+                        <thead><tr><th>Timestamp</th><th>Project</th><th>Receiver</th><th>Status</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB: USERS -->
+            <div id="tab-users" class="tab-view hidden">
+                <div class="card">
+                    <h3>Global User Directory</h3>
+                    <table id="user-table">
+                        <thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Action</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        firebase.initializeApp({ apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", projectId: "question-metabase" });
+        const db = firebase.firestore();
+        const user = JSON.parse(localStorage.getItem("user"));
+        if(!user) location.href = "1.html";
+        document.getElementById('user-email').innerText = user.email;
+
+        // --- TAB LOGIC ---
+        function showTab(id) {
+            document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
+            document.getElementById('tab-'+id).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById('tab-title').innerText = id.toUpperCase();
+            loadData(id);
+        }
+
+        async function createProject() {
+            const name = document.getElementById('p_name').value;
+            const key = "SK-" + Math.random().toString(36).substr(2, 12).toUpperCase();
+            await db.collection("api_keys").doc(key).set({
+                companyName: name, key: key, owner: user.email, type: document.getElementById('p_type').value
+            });
+            alert("New Project Created!");
+            loadData('projects');
+        }
+
+        async function loadData(tab) {
+            if(tab === 'projects') {
+                const snap = await db.collection("api_keys").where("owner", "==", user.email).get();
+                const tbody = document.querySelector("#project-table tbody");
+                const select = document.getElementById('t_project_select');
+                tbody.innerHTML = ""; select.innerHTML = "";
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    tbody.innerHTML += `<tr><td>${d.companyName}</td><td><code>${d.key}</code></td><td><span class="badge">Active</span></td></tr>`;
+                    select.innerHTML += `<option value="${d.key}">${d.companyName}</option>`;
+                });
+            }
+
+            if(tab === 'templates') {
+                const snap = await db.collection("templates").where("ownerEmail", "==", user.email).get();
+                const tbody = document.querySelector("#template-table tbody");
+                tbody.innerHTML = "";
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    tbody.innerHTML += `<tr><td>${d.subject}</td><td>${d.id}</td><td>${d.apiKey}</td></tr>`;
+                });
+            }
+
+            if(tab === 'logs') {
+                const snap = await db.collection("logs").where("adminEmail", "==", user.email).orderBy("timestamp", "desc").get();
+                const tbody = document.querySelector("#log-table tbody");
+                tbody.innerHTML = "";
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    tbody.innerHTML += `<tr><td>${new Date(d.timestamp).toLocaleString()}</td><td>${d.projectName}</td><td>${d.receiver}</td><td>${d.method}</td></tr>`;
+                });
+            }
+
+            if(tab === 'users') {
+                const snap = await db.collection("users").get();
+                const tbody = document.querySelector("#user-table tbody");
+                tbody.innerHTML = "";
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    tbody.innerHTML += `<tr><td>${d.firstName}</td><td>${d.email}</td><td>${d.mobile}</td><td><button onclick="editUser('${d.email}')">Edit</button></td></tr>`;
+                });
+            }
+        }
+
+        async function saveTemplate() {
+            const id = "T-" + Math.random().toString(36).substr(2, 5).toUpperCase();
+            await db.collection("templates").doc(id).set({
+                id: id, subject: document.getElementById('t_subject').value,
+                html: document.getElementById('t_html').value,
+                apiKey: document.getElementById('t_project_select').value,
+                ownerEmail: user.email
+            });
+            alert("Template Saved!");
+        }
+
+        async function editUser(email) {
+            const name = prompt("New Name:");
+            if(name) await db.collection("users").doc(email).update({ firstName: name });
+            loadData('users');
+        }
+
+        loadData('projects');
+    </script>
+</body>
+</html>
