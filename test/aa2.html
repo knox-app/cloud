@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Identity</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: #fff; width: 100%; max-width: 400px; padding: 40px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+        input { width: 100%; padding: 12px; margin-top: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #000; color: #fff; border: none; border-radius: 8px; margin-top: 20px; font-weight: bold; cursor: pointer; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2 id="appName">Knox Auth</h2>
+        <p id="appDomain" style="font-size:12px; color:#666;">... Loading ...</p>
+
+        <!-- View 1: Email -->
+        <div id="view1">
+            <input id="emailInput" type="email" placeholder="Email ID">
+            <button onclick="handleStep1()">Continue</button>
+        </div>
+
+        <!-- View 2: Password -->
+        <div id="viewPass" class="hidden">
+            <input id="passInput" type="password" placeholder="Password">
+            <button onclick="handleFinalLogin()">Sign In</button>
+        </div>
+
+        <!-- View 3: OTP -->
+        <div id="viewOTP" class="hidden">
+            <p style="font-size:11px; color:green; margin-top:10px;">Check your email for OTP</p>
+            <input id="otpInput" placeholder="Enter 6-Digit OTP">
+            <button onclick="handleVerifyOTP()">Verify & Login</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, query, collection, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            authDomain: "question-metabase.firebaseapp.com",
+            projectId: "question-metabase",
+            storageBucket: "question-metabase.firebasestorage.app",
+            messagingSenderId: "770698198753",
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const params = new URLSearchParams(window.location.search);
+        const apiKey = params.get('key');
+        let currentApp = null;
+        let generatedOtp = null;
+
+        async function init() {
+            const q = query(collection(db, "apps"), where("apiKey", "==", apiKey));
+            const snap = await getDocs(q);
+            if(snap.empty) { document.body.innerHTML = "Invalid API Key"; return; }
+            currentApp = snap.docs[0].data();
+            document.getElementById('appName').innerText = currentApp.name;
+            document.getElementById('appDomain').innerText = currentApp.domain;
+        }
+        init();
+
+        window.handleStep1 = async () => {
+            const email = document.getElementById('emailInput').value;
+            document.getElementById('view1').classList.add('hidden');
+
+            if(currentApp.method === "Email+Pass") {
+                document.getElementById('viewPass').classList.remove('hidden');
+            } else {
+                // OTP LOGIC
+                generatedOtp = Math.floor(1000 + Math.random() * 9000);
+                
+                // FORMAT FROM YOUR DOCS:
+                // https://knox-app.github.io/cloud/test/55.html?r=<email>&s=<sender>&t=<template>=<otp>
+                const otpUrl = `https://knox-app.github.io/cloud/test/55.html?r=${email}&s=${currentApp.sender}&t=${currentApp.template}=${generatedOtp}`;
+                
+                // Fetch to trigger the OTP sending
+                fetch(otpUrl, { mode: 'no-cors' }); 
+                
+                document.getElementById('viewOTP').classList.remove('hidden');
+            }
+        };
+
+        window.handleFinalLogin = () => {
+            // Password verification logic here (check vs user in Firestore)
+            completeAuth();
+        };
+
+        window.handleVerifyOTP = () => {
+            if(document.getElementById('otpInput').value == generatedOtp) {
+                completeAuth();
+            } else { alert("Wrong OTP"); }
+        };
+
+        function completeAuth() {
+            const email = document.getElementById('emailInput').value;
+            const token = "T-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+            
+            // Redirect using the FULL URL stored in the project
+            const redirect = `${currentApp.fullUrl}?r=${email}&s=${apiKey}&t=${token}&m=rifiejgje`;
+            window.location.href = redirect;
+        }
+    </script>
+</body>
+</html>
