@@ -5,89 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Login</title>
     <style>
-        :root { --primary: #000; --bg: #F5F5F5; --card-bg: #FFF; --border: #E5E5E5; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+        /* CSS Reset & Style - Same professional SaaS look */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f3f4f6; height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
         
-        body { background-color: var(--bg); color: #171717; height: 100vh; display: flex; align-items: center; justify-content: center; }
-
-        .auth-card {
-            background: var(--card-bg); width: 100%; max-width: 420px; padding: 48px;
-            border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            animation: fadeIn 0.4s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .hidden { display: none !important; }
-
-        .logo { width: 48px; height: 48px; background: var(--primary); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; margin: 0 auto 24px; }
-        h1 { font-size: 24px; text-align: center; margin-bottom: 8px; }
-        p.subtitle { text-align: center; color: #737373; font-size: 14px; margin-bottom: 32px; }
-
-        label { display: block; font-size: 12px; font-weight: 600; color: #737373; margin-bottom: 6px; text-transform: uppercase; }
-        input { width: 100%; padding: 14px; font-size: 16px; border: 1px solid var(--border); border-radius: 12px; outline: none; margin-bottom: 16px; }
-        input:focus { border-color: var(--primary); }
-
-        button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
-        button:hover { opacity: 0.9; }
-        .back-btn { background: transparent; color: #737373; font-size: 13px; margin-top: 20px; }
+        .card { background: white; width: 100%; max-width: 400px; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01); border: 1px solid #e5e5e5; }
         
-        .otp-display { text-align: center; font-size: 32px; letter-spacing: 10px; font-weight: bold; font-family: monospace; text-transform: uppercase; }
+        .logo { width: 50px; height: 50px; background: #000; color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; margin: 0 auto 20px auto; }
         
-        .secured-by { text-align: center; margin-top: 30px; font-size: 11px; color: #ccc; text-transform: uppercase; font-weight: 600; }
+        h1 { font-size: 22px; font-weight: 700; text-align: center; color: #111; margin-bottom: 5px; }
+        p.sub { text-align: center; color: #666; font-size: 14px; margin-bottom: 30px; }
         
-        /* Mobile */
-        @media (max-width: 480px) { .auth-card { height: 100vh; border-radius: 0; border: none; display: flex; flex-direction: column; justify-content: center; } }
+        label { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 6px; display: block; }
         
-        /* Demo Overlay */
-        #reg-overlay { position:absolute; inset:0; background:white; padding:40px; z-index:10; border-radius:24px; display:flex; flex-direction:column; justify-content:center; }
+        input { width: 100%; padding: 14px; font-size: 16px; border: 1px solid #e5e5e5; border-radius: 10px; outline: none; transition: 0.2s; margin-bottom: 15px; }
+        input:focus { border-color: #000; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+        
+        button { width: 100%; padding: 14px; background: #000; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
+        button:hover { opacity: 0.8; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .otp-input { text-align: center; letter-spacing: 8px; font-size: 24px; font-family: monospace; font-weight: 700; }
+        
+        .hidden { display: none; }
+        .back-link { display: block; text-align: center; margin-top: 15px; font-size: 12px; color: #666; cursor: pointer; }
+        .back-link:hover { text-decoration: underline; color: #000; }
     </style>
 </head>
 <body>
 
-    <div class="auth-card">
+    <div class="card">
         <div class="logo">K</div>
-        <h1 id="appTitle">Loading...</h1>
-        <p class="subtitle" id="appDomain">Please identify yourself</p>
+        <h1 id="appName">Loading...</h1>
+        <p class="sub" id="appDomain">Secure Identity Provider</p>
 
         <!-- STEP 1: EMAIL -->
-        <div id="step-email">
-            <form onsubmit="goToStep2(event)">
+        <div id="view-email">
+            <form onsubmit="handleEmailSubmit(event)">
                 <label>Email Address</label>
-                <input id="email" type="email" placeholder="name@company.com" required autofocus>
-                <button type="submit">Continue</button>
+                <input id="email" type="email" placeholder="name@work.com" required>
+                <button id="btn-next">Continue</button>
             </form>
-            <div style="text-align:center; margin-top:15px; font-size:13px; color:#777;">
-                New here? <span onclick="document.getElementById('reg-overlay').classList.remove('hidden')" style="color:black; font-weight:600; cursor:pointer;">Create Account</span>
+            <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;">
+                Secured by Knox Cloud
             </div>
         </div>
 
-        <!-- STEP 2: PASSWORD -->
-        <div id="step-password" class="hidden">
-            <label>Password</label>
-            <input id="password" type="password" placeholder="••••••••••" required>
-            <button onclick="handleLogin()">Sign In</button>
-            <button class="back-btn" onclick="goBack()">← Change Email</button>
+        <!-- STEP 2: PASSWORD (If applicable) -->
+        <div id="view-password" class="hidden">
+            <label>Enter Password</label>
+            <input id="password" type="password" placeholder="••••••••">
+            <button onclick="verifyPassword()">Sign In</button>
+            <span class="back-link" onclick="location.reload()">← Change Email</span>
         </div>
 
-        <!-- STEP 3: OTP -->
-        <div id="step-otp" class="hidden">
-            <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; color: #166534; font-size: 13px; margin-bottom: 20px; text-align: center;">
-                Code sent to your email.
+        <!-- STEP 3: OTP (If applicable) -->
+        <div id="view-otp" class="hidden">
+            <div style="background: #f0fdf4; color: #166534; padding: 10px; font-size: 12px; border-radius: 8px; text-align: center; margin-bottom: 15px;">
+                Code sent to <b id="displayEmail"></b>
             </div>
-            <input id="otp" class="otp-display" maxlength="6" placeholder="000000">
-            <button onclick="handleLogin()">Verify Code</button>
-            <button class="back-btn" onclick="goBack()">← Change Email</button>
-        </div>
-
-        <div class="secured-by">Secured by Knox Cloud</div>
-
-        <!-- REGISTER OVERLAY -->
-        <div id="reg-overlay" class="hidden">
-            <h2 style="text-align:center; margin-bottom:20px;">Create User</h2>
-            <input id="newEmail" placeholder="Email">
-            <input id="newPass" placeholder="Password (Optional for OTP)">
-            <button onclick="createUser()">Save User</button>
-            <button class="back-btn" onclick="document.getElementById('reg-overlay').classList.add('hidden')">Cancel</button>
+            
+            <label>Verification Code</label>
+            <input id="otp" class="otp-input" maxlength="6" placeholder="000000">
+            <button onclick="verifyOtp()">Verify & Login</button>
+            <span class="back-link" onclick="location.reload()">← Resend Code</span>
         </div>
     </div>
 
@@ -95,6 +76,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // CONFIG (Same as 1.html)
         const firebaseConfig = {
             apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
             authDomain: "question-metabase.firebaseapp.com",
@@ -107,114 +89,108 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- VARS ---
+        // STATE
+        let appData = null;
+        let generatedOtp = null;
         const params = new URLSearchParams(window.location.search);
         const apiKey = params.get('key');
-        let appData = null;
-        let generatedOtp = null; // Store OTP locally to verify
 
-        // 1. INIT
+        // INIT
         async function init() {
-            if(!apiKey) return document.body.innerHTML = "<h3 style='color:red; text-align:center'>Missing API Key</h3>";
+            if(!apiKey) return document.body.innerHTML = "<h1>Error: Missing API Key</h1>";
+            
             const q = query(collection(db, "apps"), where("apiKey", "==", apiKey));
             const snap = await getDocs(q);
-
-            if(snap.empty) return document.body.innerHTML = "<h3 style='color:red; text-align:center'>Invalid API Key</h3>";
-
+            
+            if(snap.empty) return document.body.innerHTML = "<h1>Error: Invalid API Key</h1>";
+            
             appData = snap.docs[0].data();
-            document.getElementById('appTitle').innerText = appData.name;
-            document.getElementById('appDomain').innerText = "Sign in to " + appData.domain;
+            document.getElementById('appName').innerText = appData.name;
+            document.getElementById('appDomain').innerText = appData.domain;
         }
         init();
 
-        // 2. NAV
-        window.goToStep2 = async (e) => {
+        // HANDLERS
+        window.handleEmailSubmit = async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
-            if(!email) return;
-            
-            // UI Transition
-            document.getElementById('step-email').classList.add('hidden');
-            const btn = document.querySelector('button[type="submit"]');
-            
-            if(appData.method === "Email+Pass") {
-                // Show Password Field
-                document.getElementById('step-password').classList.remove('hidden');
+            const btn = document.getElementById('btn-next');
+            btn.innerText = "Processing...";
+
+            document.getElementById('view-email').classList.add('hidden');
+
+            if (appData.method === "Email+Pass") {
+                // Show Password UI
+                document.getElementById('view-password').classList.remove('hidden');
                 document.getElementById('password').focus();
             } else {
-                // GENERATE & SEND OTP
-                btn.innerText = "Sending Code...";
-                
-                // 1. Generate 6 Digit Code
+                // OTP FLOW
                 generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
                 
-                // 2. Construct Email URL
-                // Format: .../55.html?r=EMAIL&s=APIKEY&t=TEMPLATE&m=OTP
-                const mailUrl = `https://knox-app.github.io/cloud/test/55.html?r=${email}&s=${apiKey}&t=${appData.templateId}&m=${generatedOtp}`;
+                // --- TRIGGER OTP URL ---
+                // Format: https://knox-app.github.io/cloud/test/55.html?r=<email>&s=<sender>&t=<template>=<otp>
+                const baseUrl = "https://knox-app.github.io/cloud/test/55.html";
+                const sender = appData.senderId || "DEFAULT";
+                const template = appData.templateId || "DEFAULT";
                 
-                // 3. Trigger Email (Background Fetch)
+                const sendUrl = `${baseUrl}?r=${email}&s=${sender}&t=${template}=${generatedOtp}`;
+                
+                console.log("Triggering OTP URL:", sendUrl);
+                
+                // Use fetch with no-cors to fire and forget (since we can't read response from another domain anyway)
                 try {
-                    await fetch(mailUrl, { mode: 'no-cors' }); // no-cors is fine, we just want to hit the URL
-                    console.log("Email Triggered for", email, "OTP:", generatedOtp);
-                } catch(err) {
-                    console.error("Failed to trigger email", err);
+                    await fetch(sendUrl, { mode: 'no-cors' });
+                } catch (err) {
+                    console.error("Failed to trigger OTP url", err);
                 }
 
-                // 4. Show OTP Field
-                document.getElementById('step-otp').classList.remove('hidden');
+                // Show OTP UI
+                document.getElementById('view-otp').classList.remove('hidden');
+                document.getElementById('displayEmail').innerText = email;
                 document.getElementById('otp').focus();
             }
         };
 
-        window.goBack = () => {
-            document.getElementById('step-email').classList.remove('hidden');
-            document.getElementById('step-password').classList.add('hidden');
-            document.getElementById('step-otp').classList.add('hidden');
-        };
-
-        // 3. VERIFY LOGIN
-        window.handleLogin = async () => {
+        window.verifyPassword = async () => {
             const email = document.getElementById('email').value;
-            let success = false;
-            let btn = document.querySelector('button:not(.back-btn)');
+            const pass = document.getElementById('password').value;
             
-            if(appData.method === "Email+Pass") {
-                btn.innerText = "Verifying...";
-                const pass = document.getElementById('password').value;
-                const q = query(collection(db, "users"), where("email", "==", email), where("password", "==", pass));
-                const snap = await getDocs(q);
-                if(!snap.empty) success = true;
-                else alert("Invalid password");
-            } else {
-                // OTP CHECK
-                btn.innerText = "Checking...";
-                const inputOtp = document.getElementById('otp').value;
-                if(inputOtp === generatedOtp) success = true;
-                else alert("Incorrect Code");
-            }
+            // In a real app, hash password. Here checking firestore 'users' collection for demo
+            const q = query(collection(db, "users"), where("email", "==", email), where("password", "==", pass));
+            const snap = await getDocs(q);
 
-            if(success) {
-                const token = "T-" + Math.random().toString(36).toUpperCase().substr(2, 8);
-                const sep = appData.redirect.includes('?') ? '&' : '?';
-                const finalUrl = `${appData.redirect}${sep}r=${email}&s=${apiKey}&t=${token}&m=success`;
-                
-                btn.innerText = "Success! Redirecting...";
-                setTimeout(() => window.location.href = finalUrl, 800);
+            if (!snap.empty) {
+                finishLogin(email);
             } else {
-                btn.innerText = "Sign In";
+                alert("Invalid Password");
             }
         };
 
-        // Demo User Creation
-        window.createUser = async () => {
-            const e = document.getElementById('newEmail').value;
-            const p = document.getElementById('newPass').value;
-            if(e) {
-                await addDoc(collection(db, "users"), { email: e, password: p || "nopass" });
-                alert("User created.");
-                document.getElementById('reg-overlay').classList.add('hidden');
+        window.verifyOtp = () => {
+            const inputOtp = document.getElementById('otp').value;
+            if (inputOtp === generatedOtp) {
+                const email = document.getElementById('email').value;
+                finishLogin(email);
+            } else {
+                alert("Incorrect OTP");
             }
         };
+
+        function finishLogin(email) {
+            const token = "T-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+            
+            // Construct Redirect URL
+            const sep = appData.redirect.includes('?') ? '&' : '?';
+            const finalUrl = `${appData.redirect}${sep}r=${email}&s=${apiKey}&t=${token}&m=success`;
+            
+            document.body.innerHTML = `
+                <div style="text-align:center">
+                    <h1 style="color:#166534">Success!</h1>
+                    <p>Redirecting to ${appData.name}...</p>
+                </div>
+            `;
+            setTimeout(() => window.location.href = finalUrl, 1000);
+        }
     </script>
 </body>
 </html>
