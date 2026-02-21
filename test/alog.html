@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Docs – Secure Access</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{
+  min-height:100vh;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:#fff;
+}
+.container{
+  width:100%;
+  max-width:900px;
+  background:#111;
+  border-radius:14px;
+  padding:30px;
+  box-shadow:0 25px 60px rgba(0,0,0,.6);
+}
+h1,h2{text-align:center;margin-bottom:12px}
+button{
+  padding:12px 20px;
+  border:none;
+  border-radius:6px;
+  background:#00c6ff;
+  color:#000;
+  font-weight:bold;
+  cursor:pointer;
+}
+button:hover{background:#00aee0}
+.hidden{display:none}
+.logout{background:#ff4d4d;margin-top:20px}
+.doc{margin-top:25px;line-height:1.7}
+.doc h2{color:#00c6ff;text-align:left;margin-top:20px}
+footer{text-align:center;margin-top:25px;opacity:.7}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div id="loginBox">
+    <h1>Secure AI Docs</h1>
+    <p style="text-align:center;margin-bottom:20px">
+      Login required to access content
+    </p>
+    <div style="text-align:center">
+      <button onclick="login()">Login with Knox</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="contentBox" class="hidden">
+    <h1>Artificial Intelligence</h1>
+    <h2>Past • Present • Future</h2>
+
+    <div class="doc">
+      <h2>AI – Past</h2>
+      <p>
+        AI started in the 1950s with rule-based systems and symbolic reasoning.
+        Early progress was slow due to limited computing power.
+      </p>
+
+      <h2>AI – Present</h2>
+      <p>
+        Modern AI uses machine learning and deep learning.
+        It powers assistants, chatbots, recommendations, and automation.
+      </p>
+
+      <h2>AI – Future</h2>
+      <p>
+        AI will become more collaborative, ethical, and capable of solving
+        complex global challenges in healthcare, education, and climate.
+      </p>
+    </div>
+
+    <button class="logout" onclick="logout()">Logout</button>
+
+    <footer>
+      Knox Cloud Auth • Secure Session
+    </footer>
+  </div>
+
+</div>
+
+<script>
+/* =========================
+   CONFIG
+========================= */
+const API_KEY = "SK-5CP2E51242I";  // your key
+const PROVIDER_URL = "https://knox-app.github.io/cloud/test/2.html";
+
+/* =========================
+   LOGIN REDIRECT
+========================= */
+function login(){
+  window.location.href = `${PROVIDER_URL}?key=${API_KEY}`;
+}
+
+/* =========================
+   HANDLE REDIRECT
+========================= */
+function handleAuthRedirect(){
+  const params = new URLSearchParams(window.location.search);
+
+  const email = params.get("r");
+  const key   = params.get("s");
+  const token = params.get("t");
+  const msg   = params.get("m");
+
+  if(msg === "success" && token && key === API_KEY){
+    const session = {
+      email,
+      token,
+      key,
+      time: Date.now()
+    };
+    localStorage.setItem("knox_session", JSON.stringify(session));
+
+    // clean URL (important for security)
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+}
+
+/* =========================
+   SESSION CHECK
+========================= */
+function checkSession(){
+  const session = JSON.parse(localStorage.getItem("knox_session"));
+  if(session && session.token && session.key === API_KEY){
+    showContent();
+  }
+}
+
+function showContent(){
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("contentBox").classList.remove("hidden");
+}
+
+/* =========================
+   LOGOUT
+========================= */
+function logout(){
+  localStorage.removeItem("knox_session");
+  location.reload();
+}
+
+/* =========================
+   INIT
+========================= */
+handleAuthRedirect();
+checkSession();
+</script>
+
+</body>
+</html>
