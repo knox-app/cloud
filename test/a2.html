@@ -3,89 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KnoxCloud | Developer Console</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Secure Login</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #fcfcfd; }
-        .sidebar-link:hover { background: rgba(99, 102, 241, 0.1); color: #4f46e5; }
-        .glass-card { background: white; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        /* --- PROFESSIONAL SAAS THEME --- */
+        :root {
+            --primary: #000000;
+            --primary-hover: #333333;
+            --bg: #F5F5F5;
+            --card-bg: #FFFFFF;
+            --border: #E5E5E5;
+            --text-main: #171717;
+            --text-sub: #737373;
+            --input-bg: #FFFFFF;
+            --focus-ring: rgba(0,0,0,0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* --- CARD DESIGN --- */
+        .auth-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 420px;
+            padding: 48px;
+            border-radius: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border);
+            position: relative;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        /* --- ANIMATIONS --- */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; opacity: 0; transform: translateY(10px); }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+
+        .hidden { display: none !important; }
+
+        /* --- TYPOGRAPHY --- */
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 24px;
+            margin: 0 auto 24px auto;
+        }
+
+        h1 { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 8px; letter-spacing: -0.5px; }
+        p.subtitle { text-align: center; color: var(--text-sub); font-size: 14px; margin-bottom: 32px; }
+
+        /* --- FORMS --- */
+        .input-group { margin-bottom: 16px; position: relative; }
+        
+        label { display: block; font-size: 12px; font-weight: 600; color: var(--text-sub); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            outline: none;
+            background: var(--input-bg);
+            transition: all 0.2s;
+            color: var(--text-main);
+        }
+
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--focus-ring); }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
+
+        button:hover { background: var(--primary-hover); }
+        button:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .back-btn {
+            background: transparent;
+            color: var(--text-sub);
+            font-size: 13px;
+            margin-top: 20px;
+            padding: 8px;
+        }
+        .back-btn:hover { background: transparent; color: var(--text-main); text-decoration: underline; }
+
+        /* --- OTP INPUT --- */
+        .otp-display {
+            text-align: center;
+            font-size: 32px;
+            letter-spacing: 10px;
+            font-family: monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* --- FOOTER --- */
+        .secured-by {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 11px;
+            color: #ccc;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        /* --- MOBILE --- */
+        @media (max-width: 480px) {
+            .auth-card {
+                height: 100vh;
+                border-radius: 0;
+                border: none;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+        }
+
+        /* --- REGISTER LINK (For Demo) --- */
+        .demo-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            color: var(--text-sub);
+        }
+        .demo-link span { color: var(--primary); font-weight: 600; cursor: pointer; }
     </style>
 </head>
-<body class="flex min-h-screen">
+<body>
 
-    <!-- Sidebar -->
-    <aside class="w-64 border-r border-slate-200 bg-white flex flex-col">
-        <div class="p-6 border-b border-slate-100 flex items-center space-x-2">
-            <div class="w-8 h-8 bg-indigo-600 rounded-lg shadow-indigo-200 shadow-lg flex items-center justify-center text-white font-bold italic">K</div>
-            <span class="text-xl font-bold tracking-tight text-slate-900">Knox<span class="text-indigo-600">Cloud</span></span>
-        </div>
-        <nav class="flex-1 p-4 space-y-2 mt-4">
-            <a href="#" class="sidebar-link flex items-center p-3 rounded-xl transition-all text-indigo-600 font-semibold bg-indigo-50">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                Dashboard
-            </a>
-            <a href="docs.html" class="sidebar-link flex items-center p-3 rounded-xl transition-all text-slate-500">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                API Docs
-            </a>
-        </nav>
-        <div class="p-4 border-t border-slate-100">
-            <button onclick="logout()" class="w-full text-left p-3 text-red-500 hover:bg-red-50 rounded-xl transition-all">Sign Out</button>
-        </div>
-    </aside>
+    <div class="auth-card fade-in">
+        <!-- HEADER -->
+        <div class="logo">K</div>
+        <h1 id="appTitle">Loading...</h1>
+        <p class="subtitle" id="appDomain">Please identify yourself</p>
 
-    <!-- Main Content -->
-    <main class="flex-1 p-8">
-        <header class="flex justify-between items-center mb-10">
-            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Project Overview</h1>
-            <button onclick="openModal()" class="bg-indigo-600 text-white px-5 py-2.5 rounded-full font-semibold hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all flex items-center">
-                <span class="mr-2 text-xl">+</span> Create New API
-            </button>
-        </header>
-
-        <div id="loading" class="text-center py-20 text-slate-400">Loading your infrastructure...</div>
-
-        <!-- API Key List -->
-        <div id="appList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Cards populated by JS -->
-        </div>
-    </main>
-
-    <!-- Modal for API Creation -->
-    <div id="apiModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div class="p-8">
-                <h3 class="text-2xl font-bold text-slate-900 mb-1">New API Endpoint</h3>
-                <p class="text-slate-500 text-sm mb-6">Configure how users will authenticate via Knox.</p>
-                <form onsubmit="createAPI(event)" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-xs font-bold uppercase text-slate-400 block mb-1">API Name</label>
-                            <input id="apiName" class="w-full border border-slate-200 p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" placeholder="StoreFront-Prod" required>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold uppercase text-slate-400 block mb-1">Domain (Sub only)</label>
-                            <input id="domain" class="w-full border border-slate-200 p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" placeholder="auth.mystore.com" required>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold uppercase text-slate-400 block mb-1">Success Redirect URL</label>
-                        <input id="redirectUrl" class="w-full border border-slate-200 p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" placeholder="https://app.mysite.com/dashboard" required>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold uppercase text-slate-400 block mb-1">Authentication Method</label>
-                        <select id="authMethod" class="w-full border border-slate-200 p-3 rounded-xl outline-none bg-white">
-                            <option value="Email+Pass">Email + Password</option>
-                            <option value="Email+OTP">Email + Magic OTP</option>
-                        </select>
-                    </div>
-                    <div class="flex space-x-3 pt-4">
-                        <button type="button" onclick="closeModal()" class="flex-1 py-3 text-slate-500 font-medium">Cancel</button>
-                        <button class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-100">Generate Key</button>
-                    </div>
-                </form>
+        <!-- STEP 1: EMAIL -->
+        <div id="step-email">
+            <form onsubmit="goToStep2(event)">
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input id="email" type="email" placeholder="name@company.com" required autofocus>
+                </div>
+                <button type="submit">Continue</button>
+            </form>
+            
+            <!-- Helper for new users -->
+            <div class="demo-link">
+                New here? <span onclick="toggleRegister()">Create Account</span>
             </div>
+        </div>
+
+        <!-- STEP 2: PASSWORD -->
+        <div id="step-password" class="hidden">
+            <div class="input-group">
+                <label>Password</label>
+                <input id="password" type="password" placeholder="••••••••••" required>
+            </div>
+            <button onclick="handleLogin()">Sign In</button>
+            <button class="back-btn" onclick="goBack()">← Change Email</button>
+        </div>
+
+        <!-- STEP 3: OTP (MAGIC LINK) -->
+        <div id="step-otp" class="hidden">
+            <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; color: #166534; font-size: 13px; margin-bottom: 20px; text-align: center;">
+                We sent a 6-digit code to your email.
+            </div>
+            <div class="input-group">
+                <input id="otp" class="otp-display" maxlength="6" placeholder="000000">
+            </div>
+            <button onclick="handleLogin()">Verify Code</button>
+            <p style="text-align: center; font-size: 11px; color: #999; margin-top: 10px;">(Use code <b>123456</b> for testing)</p>
+            <button class="back-btn" onclick="goBack()">← Change Email</button>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="secured-by">
+            Secured by Knox Cloud
+        </div>
+
+        <!-- REGISTER OVERLAY (Simple Prompt) -->
+        <div id="reg-overlay" class="hidden" style="position:absolute; inset:0; background:white; padding:40px; z-index:10; border-radius:24px;">
+            <h2 style="text-align:center; margin-bottom:20px;">Create User</h2>
+            <input id="newEmail" placeholder="Email" style="margin-bottom:10px;">
+            <input id="newPass" placeholder="Password" style="margin-bottom:20px;">
+            <button onclick="createUser()">Save User</button>
+            <button class="back-btn" onclick="toggleRegister()">Cancel</button>
         </div>
     </div>
 
@@ -93,6 +222,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // --- FIREBASE CONFIG (Same as yours) ---
         const firebaseConfig = {
             apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
             authDomain: "question-metabase.firebaseapp.com",
@@ -105,50 +235,111 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Simulated developer email for demo purposes (Login would set this)
-        if(!localStorage.getItem("dev_email")) localStorage.setItem("dev_email", "demo@knox.com");
-        const devEmail = localStorage.getItem("dev_email");
+        // --- LOGIC ---
+        const params = new URLSearchParams(window.location.search);
+        const apiKey = params.get('key');
+        let appData = null;
 
-        window.openModal = () => document.getElementById('apiModal').classList.remove('hidden');
-        window.closeModal = () => document.getElementById('apiModal').classList.add('hidden');
+        // 1. Load App Config
+        async function init() {
+            if(!apiKey) {
+                document.body.innerHTML = "<h3 style='color:red'>Error: Missing API Key</h3>";
+                return;
+            }
 
-        window.createAPI = async (e) => {
+            const q = query(collection(db, "apps"), where("apiKey", "==", apiKey));
+            const snap = await getDocs(q);
+
+            if(snap.empty) {
+                document.body.innerHTML = "<h3 style='color:red'>Error: Invalid API Key</h3>";
+                return;
+            }
+
+            appData = snap.docs[0].data();
+            document.getElementById('appTitle').innerText = appData.name;
+            document.getElementById('appDomain').innerText = "Sign in to " + appData.domain;
+            document.title = "Login | " + appData.name;
+        }
+        init();
+
+        // 2. Navigation Flow
+        window.goToStep2 = (e) => {
             e.preventDefault();
-            const key = "SK-" + Math.random().toString(36).toUpperCase().substr(2, 10);
-            await addDoc(collection(db, "apps"), {
-                owner: devEmail,
-                name: document.getElementById('apiName').value,
-                domain: document.getElementById('domain').value,
-                redirect: document.getElementById('redirectUrl').value,
-                method: document.getElementById('authMethod').value,
-                apiKey: key
-            });
-            location.reload();
+            const email = document.getElementById('email').value;
+            if(!email) return;
+
+            document.getElementById('step-email').classList.add('hidden');
+            
+            // Check App Config: Password vs OTP
+            if(appData.method === "Email+Pass") {
+                document.getElementById('step-password').classList.remove('hidden');
+                document.getElementById('password').focus();
+            } else {
+                document.getElementById('step-otp').classList.remove('hidden');
+                document.getElementById('otp').focus();
+            }
         };
 
-        async function loadApps() {
-            const q = query(collection(db, "apps"), where("owner", "==", devEmail));
-            const snap = await getDocs(q);
-            const list = document.getElementById('appList');
-            document.getElementById('loading').style.display = 'none';
-            
-            snap.forEach(doc => {
-                const data = doc.data();
-                list.innerHTML += `
-                    <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-all">
-                             <span class="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-1 rounded-md">${data.method}</span>
-                        </div>
-                        <h4 class="font-bold text-slate-800 text-lg mb-1">${data.name}</h4>
-                        <p class="text-xs text-slate-400 mb-4">${data.domain}</p>
-                        <div class="bg-slate-50 p-3 rounded-xl border border-dashed border-slate-200">
-                            <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">API Key</label>
-                            <code class="text-sm font-mono text-indigo-600">${data.apiKey}</code>
-                        </div>
-                    </div>`;
-            });
-        }
-        loadApps();
+        window.goBack = () => {
+            document.getElementById('step-email').classList.remove('hidden');
+            document.getElementById('step-password').classList.add('hidden');
+            document.getElementById('step-otp').classList.add('hidden');
+        };
+
+        // 3. Login Verification
+        window.handleLogin = async () => {
+            const email = document.getElementById('email').value;
+            let success = false;
+            let btn = document.querySelector('button:not(.back-btn)'); // Select active button
+            btn.innerText = "Verifying...";
+
+            if(appData.method === "Email+Pass") {
+                const pass = document.getElementById('password').value;
+                // Verify against Firestore 'users' collection
+                const q = query(collection(db, "users"), where("email", "==", email), where("password", "==", pass));
+                const snap = await getDocs(q);
+                if(!snap.empty) success = true;
+                else alert("Invalid email or password");
+            } else {
+                // Verify OTP (Mock: 123456)
+                const otp = document.getElementById('otp').value;
+                if(otp === "123456") success = true;
+                else alert("Invalid Code");
+            }
+
+            if(success) {
+                // Generate Token
+                const token = "T-" + Math.random().toString(36).toUpperCase().substr(2, 8);
+                
+                // Determine separator (? or &)
+                const hasQuery = appData.redirect.includes('?');
+                const sep = hasQuery ? '&' : '?';
+                
+                // Final URL
+                const finalUrl = `${appData.redirect}${sep}r=${email}&s=${apiKey}&t=${token}&m=success`;
+                
+                btn.innerText = "Success! Redirecting...";
+                setTimeout(() => window.location.href = finalUrl, 800);
+            } else {
+                btn.innerText = "Sign In";
+            }
+        };
+
+        // --- DEMO HELPERS ---
+        window.toggleRegister = () => {
+            const el = document.getElementById('reg-overlay');
+            el.classList.toggle('hidden');
+        };
+
+        window.createUser = async () => {
+            const e = document.getElementById('newEmail').value;
+            const p = document.getElementById('newPass').value;
+            if(e && p) {
+                await addDoc(collection(db, "users"), { email: e, password: p });
+                alert("User created! You can now log in.");
+                toggleRegister();
+            }
+        };
     </script>
 </body>
     </html>
