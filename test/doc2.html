@@ -1,0 +1,144 @@
+This is a comprehensive API Documentation for Knox Cloud Auth. You can copy-paste this entire document into any AI (like ChatGPT, Claude, or Gemini) or give it to a developer to integrate your authentication system into any website.
+
+🛡️ Knox Cloud Auth - Developer Documentation
+1. Introduction
+
+Knox Cloud Auth is a lightweight, redirect-based authentication provider. It allows developers to offload user identity management (Passwords and OTPs) to a secure centralized provider. It works similarly to OAuth2 but is optimized for ease of use with Firebase Firestore.
+
+2. Terminology
+
+API Key (s): A unique identifier for your project (e.g., SK-A1B2C3D4).
+
+Provider URL: The hosted location of your 2.html file.
+
+Redirect URL: The page on your website where users go after a successful login.
+
+Token (t): A one-time session string generated after successful authentication.
+
+3. Configuration Steps
+
+Before integration, ensure you have configured your project in the Knox Developer Console:
+
+Project Name: Your app name displayed to users.
+
+Domain: The subdomain where your app is hosted (e.g., dashboard.mysite.com).
+
+Auth Method: Choose between Email + Password or Email + OTP.
+
+OTP Settings: If using OTP, provide your Sender ID and Template ID.
+
+4. Frontend Integration (Triggering Login)
+
+To start the authentication flow, redirect your user to the Knox Provider URL with your API Key as a query parameter.
+
+Base URL: https://your-domain.com/2.html
+
+Implementation Example:
+code
+Html
+download
+content_copy
+expand_less
+<!-- Integration Button -->
+<button id="loginBtn">Login with Knox</button>
+
+<script>
+  const API_KEY = "SK-YOUR-API-KEY"; // Get this from 1.html console
+  const PROVIDER_URL = "https://your-domain.com/2.html";
+
+  document.getElementById('loginBtn').addEventListener('click', () => {
+    window.location.href = `${PROVIDER_URL}?key=${API_KEY}`;
+  });
+</script>
+5. Handling the Redirect (Receiving Data)
+
+After the user successfully authenticates on Knox, they are sent back to your Redirect URL. Knox appends sensitive information to the URL as query parameters.
+
+URL Structure on Redirect:
+
+https://your-site.com/dashboard?r=<email>&s=<api_key>&t=<token>&m=success
+
+Parameter	Description
+r	Receiver: The authenticated User's Email ID.
+s	Secret/Sender: Your unique API Key.
+t	Token: A unique session/transaction ID.
+m	Message: Status of the login (usually success).
+Implementation Example (Main Dashboard):
+
+Add this script to your dashboard page to "log the user in" by reading the URL.
+
+code
+JavaScript
+download
+content_copy
+expand_less
+// Function to capture user data from Knox Redirect
+function handleKnoxAuth() {
+    const params = new URLSearchParams(window.location.search);
+    
+    const userEmail = params.get('r');
+    const apiKey = params.get('s');
+    const sessionToken = params.get('t');
+    const status = params.get('m');
+
+    if (status === 'success' && userEmail) {
+        // 1. Save to local storage to maintain session
+        localStorage.setItem('user_session', JSON.stringify({
+            email: userEmail,
+            token: sessionToken,
+            loginTime: new Date().getTime()
+        }));
+
+        console.log(`User ${userEmail} logged in successfully.`);
+        
+        // 2. Clean the URL (remove params for security)
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // 3. Update UI
+        document.getElementById('welcome-msg').innerText = `Welcome, ${userEmail}`;
+    } else {
+        // Redirect back to login if no session exists
+        if (!localStorage.getItem('user_session')) {
+            window.location.href = 'index.html'; 
+        }
+    }
+}
+
+// Run on page load
+window.onload = handleKnoxAuth;
+6. OTP Technical Flow
+
+When Email + OTP is selected:
+
+Knox triggers a background request to the messaging service:
+https://knox-app.github.io/cloud/test/55.html?r={email}&s={senderId}&t={templateId}={otp}
+
+The user receives the code via the messaging service.
+
+The user enters the code on the Knox UI.
+
+Verification is performed, and the user is redirected to your site.
+
+7. AI System Prompt (Copy for AI Developers)
+
+If you are giving this task to another AI, copy the text below:
+
+"I am using Knox Cloud Auth as my identity provider. My authentication provider is located at 2.html and it uses a Firebase Firestore backend.
+
+The Task: Please write a JavaScript script for my 'Main Dashboard' page that:
+
+Checks the URL for query parameters r (email), s (API key), t (token), and m (status).
+
+If m=success, it should save the user's email and token into localStorage.
+
+It should then clean the URL so the parameters are no longer visible to the user.
+
+If a user tries to access the page without a valid session in localStorage or valid URL parameters, redirect them to the login trigger: 2.html?key=SK-XXXXX."
+
+8. Security Best Practices
+
+Subdomain Only: Ensure your project is hosted on a subdomain (e.g., auth.yourdomain.com). Knox validates the domain to prevent phishing.
+
+Token Validation: For high-security apps, your backend should verify the token t against the Firebase Firestore apps collection to ensure it hasn't been used before.
+
+HTTPS: Always host 2.html and your main website over SSL (HTTPS) to protect the API keys in transit.
