@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Precision Finder</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #000; 
+            color: white; 
+            margin: 0; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            overflow: hidden;
+        }
+
+        /* --- UI MODES --- */
+        #setup-screen { display: flex; flex-direction: column; width: 90%; max-width: 400px; margin-top: 50px; }
+        #finder-screen { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: center; }
+
+        /* --- INPUTS --- */
+        input { 
+            padding: 15px; background: #333; border: none; border-radius: 12px; 
+            color: white; font-size: 16px; margin-bottom: 15px; outline: none;
+        }
+        button { 
+            padding: 15px; border-radius: 12px; border: none; font-weight: bold; font-size: 16px; cursor: pointer; margin-bottom: 10px; transition: 0.2s; 
+        }
+        .btn-green { background-color: #32d74b; color: black; }
+        .btn-blue { background-color: #0a84ff; color: white; }
+        .btn-grey { background-color: #333; color: white; margin-top: 20px;}
+
+        /* --- THE COMPASS UI (APPLE STYLE) --- */
+        .compass-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s ease-out;
+        }
+
+        .direction-arrow {
+            width: 0; 
+            height: 0; 
+            border-left: 40px solid transparent;
+            border-right: 40px solid transparent;
+            border-bottom: 120px solid white;
+            border-radius: 10px;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+        }
+
+        /* The circle changes color based on distance */
+        .ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px dashed #555;
+            box-sizing: border-box;
+            animation: pulse 2s infinite;
+        }
+
+        .distance-text {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-top: 40px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .unit-text {
+            font-size: 1.5rem;
+            color: #aaa;
+            font-weight: normal;
+        }
+
+        .status-text {
+            margin-top: 20px;
+            color: #888;
+            font-size: 0.9rem;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        /* Proximity Colors */
+        .far .direction-arrow { border-bottom-color: #ffffff; }
+        .close .direction-arrow { border-bottom-color: #32d74b; } /* Green */
+        .close .distance-text { color: #32d74b; }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SCREEN 1: SETUP -->
+    <div id="setup-screen">
+        <h2 style="text-align: center;">Find Device</h2>
+        
+        <!-- Tab 1: Share -->
+        <div style="background: #222; padding: 20px; border-radius: 20px; margin-bottom: 20px;">
+            <h3>📤 Share My Location</h3>
+            <p style="color:#aaa; font-size:0.9em;">Enter an ID (e.g., 'iphone12') and leave this page open.</p>
+            <input type="text" id="myId" placeholder="Unique Device ID">
+            <button class="btn-green" style="width:100%" id="startShareBtn">Start Sharing</button>
+            <div id="shareLog" style="color: #aaa; margin-top:10px; font-size: 0.8em;"></div>
+        </div>
+
+        <!-- Tab 2: Find -->
+        <div style="background: #222; padding: 20px; border-radius: 20px;">
+            <h3>🔍 Find a Device</h3>
+            <p style="color:#aaa; font-size:0.9em;">Enter the ID you want to find.</p>
+            <input type="text" id="targetId" placeholder="Target Device ID">
+            <button class="btn-blue" style="width:100%" id="startTrackBtn">Find</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: COMPASS / FINDER -->
+    <div id="finder-screen" class="far">
+        <div class="compass-container" id="compassRing">
+            <div class="ring"></div>
+            <div class="direction-arrow" id="arrow"></div>
+        </div>
+
+        <div class="distance-text" id="distDisplay">--</div>
+        <div class="unit-text">meters away</div>
+        <div class="status-text" id="finderStatus">Waiting for GPS signal...</div>
+
+        <button class="btn-grey" onclick="location.reload()">Stop Finding</button>
+        <button class="btn-grey" id="iosPermission" style="display:none; background:#444;">Enable Compass (iOS)</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            authDomain: "question-metabase.firebaseapp.com",
+            databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "question-metabase",
+            storageBucket: "question-metabase.firebasestorage.app",
+            messagingSenderId: "770698198753",
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+            measurementId: "G-6ZP1FPMKSJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- GLOBAL VARIABLES ---
+        let myLat = null;
+        let myLng = null;
+        let targetLat = null;
+        let targetLng = null;
+        let deviceHeading = 0; // Where phone is pointing
+        let bearingToTarget = 0; // Where target is geographically
+
+        // --- SECTION 1: SHARING LOGIC ---
+        document.getElementById('startShareBtn').addEventListener('click', () => {
+            const id = document.getElementById('myId').value.trim();
+            if(!id) return alert("Enter an ID");
+
+            document.getElementById('shareLog').innerText = "Starting GPS...";
+
+            navigator.geolocation.watchPosition((pos) => {
+                setDoc(doc(db, "users", id), {
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                    timestamp: Date.now()
+                });
+                document.getElementById('shareLog').innerText = `Sending: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+            }, (err) => {
+                alert("GPS Error: " + err.message);
+            }, { enableHighAccuracy: true });
+        });
+
+        // --- SECTION 2: TRACKING LOGIC ---
+        document.getElementById('startTrackBtn').addEventListener('click', async () => {
+            const targetId = document.getElementById('targetId').value.trim();
+            if(!targetId) return alert("Enter Target ID");
+
+            // Switch Screens
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('finder-screen').style.display = 'flex';
+
+            // Check iOS Permission for Compass
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                const btn = document.getElementById('iosPermission');
+                btn.style.display = 'block';
+                btn.onclick = () => {
+                    DeviceOrientationEvent.requestPermission()
+                    .then(response => {
+                        if (response === 'granted') {
+                            btn.style.display = 'none';
+                            startCompass();
+                        } else {
+                            alert('Permission denied');
+                        }
+                    })
+                    .catch(console.error);
+                };
+            } else {
+                startCompass(); // Android / Desktop
+            }
+
+            // 1. Get MY Location continually
+            navigator.geolocation.watchPosition((pos) => {
+                myLat = pos.coords.latitude;
+                myLng = pos.coords.longitude;
+                updateUI();
+            }, (err) => console.error(err), { enableHighAccuracy: true });
+
+            // 2. Get TARGET Location via Firebase
+            onSnapshot(doc(db, "users", targetId), (doc) => {
+                if(doc.exists()) {
+                    const data = doc.data();
+                    targetLat = data.lat;
+                    targetLng = data.lng;
+                    updateUI();
+                } else {
+                    document.getElementById('finderStatus').innerText = "Target ID not found yet...";
+                }
+            });
+        });
+
+        function startCompass() {
+            window.addEventListener('deviceorientation', (event) => {
+                // alpha: rotation around z-axis (compass direction)
+                if(event.webkitCompassHeading) {
+                    // iOS
+                    deviceHeading = event.webkitCompassHeading;
+                } else {
+                    // Android (alpha is not exactly compass, but close enough for web webkit)
+                    // In real production, this needs complex math to compensate for absolute north
+                    // For this demo, we assume alpha is magnetic north
+                    deviceHeading = 360 - event.alpha; 
+                }
+                updateCompassRotation();
+            }, true);
+        }
+
+        // --- MATH & UI UPDATES ---
+
+        function updateUI() {
+            if(myLat && myLng && targetLat && targetLng) {
+                // 1. Calculate Distance
+                const dist = calculateDistance(myLat, myLng, targetLat, targetLng);
+                document.getElementById('distDisplay').innerText = dist < 1000 ? Math.round(dist) : (dist/1000).toFixed(1) + "k";
+                
+                // Color Logic (Turn Green if close)
+                const screen = document.getElementById('finder-screen');
+                if(dist < 5) {
+                    screen.classList.add('close');
+                    screen.classList.remove('far');
+                    document.getElementById('finderStatus').innerText = "You are here!";
+                } else {
+                    screen.classList.add('far');
+                    screen.classList.remove('close');
+                    document.getElementById('finderStatus').innerText = "Walk towards the arrow";
+                }
+
+                // 2. Calculate Bearing (The geographical angle)
+                bearingToTarget = calculateBearing(myLat, myLng, targetLat, targetLng);
+                updateCompassRotation();
+            }
+        }
+
+        function updateCompassRotation() {
+            if(bearingToTarget !== null) {
+                const arrow = document.getElementById('arrow');
+                // The arrow should point to: TargetBearing - MyDeviceHeading
+                const rotation = bearingToTarget - deviceHeading;
+                arrow.style.transform = `rotate(${rotation}deg)`;
+            }
+        }
+
+        // Haversine Formula for Distance (Meters)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Earth radius in meters
+            const φ1 = lat1 * Math.PI/180;
+            const φ2 = lat2 * Math.PI/180;
+            const Δφ = (lat2-lat1) * Math.PI/180;
+            const Δλ = (lon2-lon1) * Math.PI/180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
+        }
+
+        // Formula for Bearing (Angle 0-360)
+        function calculateBearing(startLat, startLng, destLat, destLng) {
+            const startLatRad = startLat * Math.PI / 180;
+            const startLngRad = startLng * Math.PI / 180;
+            const destLatRad = destLat * Math.PI / 180;
+            const destLngRad = destLng * Math.PI / 180;
+
+            const y = Math.sin(destLngRad - startLngRad) * Math.cos(destLatRad);
+            const x = Math.cos(startLatRad) * Math.sin(destLatRad) -
+                      Math.sin(startLatRad) * Math.cos(destLatRad) * Math.cos(destLngRad - startLngRad);
+            
+            let brng = Math.atan2(y, x);
+            brng = brng * 180 / Math.PI;
+            return (brng + 360) % 360;
+        }
+    </script>
+</body>
+</html>
