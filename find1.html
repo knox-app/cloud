@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Account Setup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --google-blue: #1a73e8;
+            --error-red: #d93025;
+            --border-grey: #dadce0;
+            --text-grey: #5f6368;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #202124;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            padding: 48px 40px 36px;
+            border: 1px solid var(--border-grey);
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+        .logo span:nth-child(1) { color: #4285F4; }
+        .logo span:nth-child(2) { color: #EA4335; }
+        .logo span:nth-child(3) { color: #FBBC05; }
+        .logo span:nth-child(4) { color: #4285F4; }
+        .logo span:nth-child(5) { color: #34A853; }
+        .logo span:nth-child(6) { color: #EA4335; }
+
+        h1 { font-size: 24px; font-weight: 400; margin-bottom: 8px; }
+        p.subtitle { font-size: 16px; margin-bottom: 24px; color: #202124; }
+
+        /* Email Tracker UI */
+        .user-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 12px;
+            border: 1px solid var(--border-grey);
+            border-radius: 20px;
+            margin-bottom: 24px;
+        }
+        .user-icon {
+            width: 20px; height: 20px;
+            background: #1a73e8; color: white;
+            border-radius: 50%; font-size: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin-right: 8px;
+        }
+        .user-email { font-size: 14px; color: #3c4043; font-weight: 500; }
+
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-row { display: flex; gap: 12px; margin-bottom: 20px; text-align: left; }
+        
+        label { display: block; font-size: 14px; margin-bottom: 8px; color: var(--text-grey); }
+        
+        input, select {
+            width: 100%;
+            padding: 13px 15px;
+            border: 1px solid var(--border-grey);
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        input:focus, select:focus { border: 2px solid var(--google-blue); padding: 12px 14px; }
+
+        .btn-container { display: flex; justify-content: flex-end; margin-top: 30px; }
+        
+        button {
+            background-color: var(--google-blue);
+            color: white; border: none;
+            padding: 10px 24px; border-radius: 4px;
+            font-weight: 500; cursor: pointer; font-size: 14px;
+        }
+
+        .error { color: var(--error-red); font-size: 12px; margin-top: 5px; text-align: left; display: none; }
+
+        #info-page, #success-page { display: none; }
+
+        @media (max-width: 480px) { .container { border: none; padding: 20px; } }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-card">
+    <div class="logo">
+        <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+    </div>
+
+    <!-- PAGE 1: LOGIN -->
+    <div id="login-page">
+        <h1>Create Account</h1>
+        <p class="subtitle">Enter your details to get started</p>
+        <form id="loginForm">
+            <div class="form-row">
+                <input type="text" id="fname" placeholder="First Name" required>
+                <input type="text" id="lname" placeholder="Last Name" required>
+            </div>
+            <div class="form-group">
+                <input type="email" id="email" placeholder="Email address" required>
+            </div>
+            <div class="btn-container">
+                <button type="submit" id="loginBtn">Next</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- PAGE 2: BASIC INFO (DOB/GENDER) -->
+    <div id="info-page">
+        <h1 id="welcome-name">Basic information</h1>
+        <div class="user-chip">
+            <div class="user-icon" id="user-initial">U</div>
+            <div class="user-email" id="display-email">user@example.com</div>
+        </div>
+        <p class="subtitle">Enter your birthday and gender</p>
+        
+        <form id="infoForm">
+            <div class="form-row">
+                <div style="flex: 2;">
+                    <label>Month</label>
+                    <select id="month" required>
+                        <option value="" disabled selected>Month</option>
+                        <option value="01">January</option><option value="02">February</option>
+                        <option value="03">March</option><option value="04">April</option>
+                        <option value="05">May</option><option value="06">June</option>
+                        <option value="07">July</option><option value="08">August</option>
+                        <option value="09">September</option><option value="10">October</option>
+                        <option value="11">November</option><option value="12">December</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label>Day</label>
+                    <input type="number" id="day" placeholder="Day" min="1" max="31" required>
+                </div>
+                <div style="flex: 1.5;">
+                    <label>Year</label>
+                    <input type="number" id="year" placeholder="Year" min="1900" max="2024" required>
+                </div>
+            </div>
+            <div id="dateError" class="error">Please enter a valid date</div>
+
+            <div class="form-group">
+                <label>Gender</label>
+                <select id="gender" required>
+                    <option value="" disabled selected>Gender</option>
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+            </div>
+
+            <div class="btn-container">
+                <button type="submit" id="infoBtn">Submit</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- SUCCESS MESSAGE -->
+    <div id="success-page">
+        <h1>All set!</h1>
+        <p>Your information has been stored in Firebase.</p>
+        <p id="final-id-display" style="font-size: 12px; color: grey;"></p>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDL7sPp-FkG59L-mRQ7BrCGgeKMhQC80iw",
+        authDomain: "xperts-metadata.firebaseapp.com",
+        projectId: "xperts-metadata",
+        storageBucket: "xperts-metadata.firebasestorage.app",
+        messagingSenderId: "514845910910",
+        appId: "1:514845910910:web:5a2402130a97b5d749b52f",
+        measurementId: "G-CQ5KWGJSZB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let currentUserId = "";
+
+    // Generate 25-digit Alpha-Numeric ID
+    function generateId(length = 25) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+
+    /** 
+     * LOGIN LOGIC 
+     */
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fname = document.getElementById('fname').value;
+        const lname = document.getElementById('lname').value;
+        const email = document.getElementById('email').value;
+        const btn = document.getElementById('loginBtn');
+
+        btn.disabled = true;
+        btn.innerText = "Creating...";
+
+        currentUserId = generateId(25);
+
+        try {
+            // Store Name and Email first
+            await setDoc(doc(db, "users", currentUserId), {
+                FirstName: fname,
+                LastName: lname,
+                Email: email,
+                id: currentUserId
+            });
+
+            // Update URL and UI
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?id=' + currentUserId;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+
+            // Transition to Info Page
+            document.getElementById('display-email').innerText = email;
+            document.getElementById('user-initial').innerText = fname.charAt(0).toUpperCase();
+            document.getElementById('welcome-name').innerText = `Hi ${fname}!`;
+            
+            document.getElementById('login-page').style.display = "none";
+            document.getElementById('info-page').style.display = "block";
+
+        } catch (err) {
+            alert("Firebase Error: " + err.message);
+            btn.disabled = false;
+            btn.innerText = "Next";
+        }
+    });
+
+    /** 
+     * INFORMATION LOGIC 
+     */
+    function isValidDate(d, m, y) {
+        m = parseInt(m) - 1;
+        const dt = new Date(y, m, d);
+        return dt.getFullYear() == y && dt.getMonth() == m && dt.getDate() == d;
+    }
+
+    function calculateAge(birthDate) {
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+        return age;
+    }
+
+    document.getElementById('infoForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const day = document.getElementById('day').value;
+        const month = document.getElementById('month').value;
+        const year = document.getElementById('year').value;
+        const gender = document.getElementById('gender').value;
+        const btn = document.getElementById('infoBtn');
+
+        if (!isValidDate(day, month, year)) {
+            document.getElementById('dateError').style.display = 'block';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Processing...";
+
+        const dobObj = new Date(year, parseInt(month) - 1, day);
+        const age = calculateAge(dobObj);
+        const familyStatus = age >= 13 ? "off" : "commit";
+        const dobString = `${day.padStart(2, '0')}/${month}/${year}`;
+
+        try {
+            const userRef = doc(db, "users", currentUserId);
+            await updateDoc(userRef, {
+                Gender: gender,
+                DOB: dobString,
+                family: familyStatus
+            });
+
+            document.getElementById('info-page').style.display = "none";
+            document.getElementById('success-page').style.display = "block";
+            document.getElementById('final-id-display').innerText = "Stored under ID: " + currentUserId;
+
+        } catch (err) {
+            alert("Update Error: " + err.message);
+            btn.disabled = false;
+            btn.innerText = "Submit";
+        }
+    });
+
+    // Auto-load if ID is already in URL (Email Tracker functionality)
+    window.addEventListener('load', async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const idFromUrl = urlParams.get('id');
+        if (idFromUrl) {
+            const docSnap = await getDoc(doc(db, "users", idFromUrl));
+            if (docSnap.exists()) {
+                currentUserId = idFromUrl;
+                const data = docSnap.data();
+                document.getElementById('display-email').innerText = data.Email;
+                document.getElementById('user-initial').innerText = (data.FirstName || "U").charAt(0).toUpperCase();
+                document.getElementById('welcome-name').innerText = `Hi ${data.FirstName || 'there'}!`;
+                document.getElementById('login-page').style.display = "none";
+                document.getElementById('info-page').style.display = "block";
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
