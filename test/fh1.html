@@ -3,193 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Account</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <title>Live Device Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --google-blue: #1a73e8;
-            --error-red: #d93025;
-            --border-grey: #dadce0;
-            --text-grey: #5f6368;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            color: #202124;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 450px;
-            padding: 48px 40px 36px;
-            border: 1px solid var(--border-grey);
-            border-radius: 8px;
-            text-align: center;
-            min-height: 400px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .logo { font-size: 24px; font-weight: 500; margin-bottom: 12px; }
-        .logo span:nth-child(1) { color: #4285F4; }
-        .logo span:nth-child(2) { color: #EA4335; }
-        .logo span:nth-child(3) { color: #FBBC05; }
-        .logo span:nth-child(4) { color: #4285F4; }
-        .logo span:nth-child(5) { color: #34A853; }
-        .logo span:nth-child(6) { color: #EA4335; }
-
-        h1 { font-size: 24px; font-weight: 400; margin-bottom: 8px; margin-top: 0; }
-        p.subtitle { font-size: 16px; margin-bottom: 24px; color: #202124; }
-
-        /* User Chip (Tracker) */
-        .user-chip {
-            display: inline-flex;
-            align-items: center;
-            padding: 5px 12px;
-            border: 1px solid var(--border-grey);
-            border-radius: 20px;
-            margin: 0 auto 24px;
-            max-width: fit-content;
-        }
-        .user-icon {
-            width: 20px; height: 20px;
-            background: #1a73e8; color: white;
-            border-radius: 50%; font-size: 12px;
-            display: flex; align-items: center; justify-content: center;
-            margin-right: 8px;
-        }
-        .user-email { font-size: 14px; color: #3c4043; font-weight: 500; }
-
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-row { display: flex; gap: 12px; margin-bottom: 20px; text-align: left; }
+        :root { --blue: #1a73e8; --gray: #dadce0; --green: #34a853; }
+        body { font-family: 'Roboto', sans-serif; background: #f8f9fa; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--gray); max-width: 450px; width: 100%; text-align: center; }
         
-        input, select {
-            width: 100%;
-            padding: 13px 15px;
-            border: 1px solid var(--border-grey);
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
-            outline: none;
-        }
-        input:focus, select:focus { border: 2px solid var(--google-blue); }
+        .logo { font-size: 24px; font-weight: 500; margin-bottom: 20px; }
+        .logo span:nth-child(1) { color: #4285F4; } .logo span:nth-child(2) { color: #EA4335; }
+        .logo span:nth-child(3) { color: #FBBC05; } .logo span:nth-child(4) { color: #4285F4; }
+        .logo span:nth-child(5) { color: #34A853; } .logo span:nth-child(6) { color: #EA4335; }
 
-        .btn-container { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 20px; }
+        .key-display { background: #e8f0fe; color: var(--blue); padding: 15px; border-radius: 8px; font-family: monospace; font-size: 14px; margin: 15px 0; border: 1px dashed var(--blue); word-break: break-all; }
         
-        .link-btn { color: var(--google-blue); font-weight: 500; cursor: pointer; text-decoration: none; font-size: 14px; background: none; border: none; padding: 0; }
+        .status-dot { height: 10px; width: 10px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .online { background-color: var(--green); box-shadow: 0 0 8px var(--green); }
+
+        input { width: 100%; padding: 12px; border: 1px solid var(--gray); border-radius: 6px; margin-top: 20px; box-sizing: border-box; font-size: 14px; outline: none; }
+        input:focus { border-color: var(--blue); }
+
+        button { width: 100%; background: var(--blue); color: white; border: none; padding: 12px; border-radius: 6px; margin-top: 10px; cursor: pointer; font-weight: 500; }
         
-        .next-btn {
-            background-color: var(--google-blue);
-            color: white; border: none;
-            padding: 10px 24px; border-radius: 4px;
-            font-weight: 500; cursor: pointer; font-size: 14px;
-        }
-
-        .error { color: var(--error-red); font-size: 12px; margin-top: 5px; text-align: left; display: none; }
-
-        /* Page Management */
-        .page { display: none; flex-direction: column; height: 100%; flex-grow: 1; }
-        .page.active { display: flex; }
-
-        @media (max-width: 480px) { .container { border: none; padding: 20px; } }
+        #map-link { display: none; margin-top: 20px; padding: 15px; background: #f1f3f4; border-radius: 8px; text-decoration: none; color: var(--blue); font-weight: 500; }
+        #map-link:hover { background: #e8eaed; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="logo">
-        <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+<div class="card">
+    <div class="logo"><span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span></div>
+    
+    <!-- YOUR KEY SECTION -->
+    <h2 style="font-size: 18px; margin: 0;">Your Device Key</h2>
+    <div class="key-display" id="my-key">Generating...</div>
+    <div style="font-size: 12px; color: #5f6368;">
+        <span id="status-dot" class="status-dot"></span>
+        <span id="status-text">GPS: Off</span>
     </div>
 
-    <!-- PAGE: LOGIN -->
-    <div id="login-page" class="page active">
-        <h1>Sign in</h1>
-        <p class="subtitle">Use your Google Account</p>
-        <form id="loginForm">
-            <div class="form-group">
-                <input type="email" id="loginEmail" placeholder="Email" required>
-                <div id="loginError" class="error">Account not found</div>
-            </div>
-            <div class="btn-container">
-                <button type="button" class="link-btn" onclick="showPage('signup-page')">Create account</button>
-                <button type="submit" class="next-btn" id="loginSubmit">Next</button>
-            </div>
-        </form>
-    </div>
+    <hr style="margin: 25px 0; border: 0; border-top: 1px solid var(--gray);">
 
-    <!-- PAGE: SIGNUP -->
-    <div id="signup-page" class="page">
-        <h1>Create account</h1>
-        <p class="subtitle">Enter your name and email</p>
-        <form id="signupForm">
-            <div class="form-row">
-                <input type="text" id="fname" placeholder="First Name" required>
-                <input type="text" id="lname" placeholder="Last Name" required>
-            </div>
-            <div class="form-group">
-                <input type="email" id="signupEmail" placeholder="Email" required>
-            </div>
-            <div class="btn-container">
-                <button type="button" class="link-btn" onclick="showPage('login-page')">Sign in instead</button>
-                <button type="submit" class="next-btn" id="signupSubmit">Next</button>
-            </div>
-        </form>
-    </div>
+    <!-- TRACKER SECTION -->
+    <h2 style="font-size: 18px; margin: 0;">Track Someone Else</h2>
+    <input type="text" id="target-key" placeholder="Paste 25-digit key here">
+    <button onclick="startTracking()">Track Live Location</button>
 
-    <!-- PAGE: BASIC INFO -->
-    <div id="info-page" class="page">
-        <h1>Basic information</h1>
-        <div class="user-chip">
-            <div class="user-icon" id="user-initial">U</div>
-            <div class="user-email" id="tracker-email">...</div>
-        </div>
-        <p class="subtitle">Enter your birthday and gender</p>
-        <form id="infoForm">
-            <div class="form-row">
-                <select id="month" required>
-                    <option value="" disabled selected>Month</option>
-                    <option value="01">January</option><option value="02">February</option>
-                    <option value="03">March</option><option value="04">April</option>
-                    <option value="05">May</option><option value="06">June</option>
-                    <option value="07">July</option><option value="08">August</option>
-                    <option value="09">September</option><option value="10">October</option>
-                    <option value="11">November</option><option value="12">December</option>
-                </select>
-                <input type="number" id="day" placeholder="Day" required>
-                <input type="number" id="year" placeholder="Year" required>
-            </div>
-            <div id="dateError" class="error">Please enter a valid date</div>
-            <div class="form-group">
-                <select id="gender" required>
-                    <option value="" disabled selected>Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Prefer not to say">Prefer not to say</option>
-                </select>
-            </div>
-            <div class="btn-container" style="justify-content: flex-end;">
-                <button type="submit" class="next-btn" id="infoSubmit">Next</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- PAGE: FINAL -->
-    <div id="final-page" class="page">
-        <h1>Success!</h1>
-        <p class="subtitle">Your account data is updated in Firestore.</p>
-        <div id="debug-id" style="font-size: 10px; color: #ccc; margin-top: 20px;"></div>
-    </div>
+    <a id="map-link" target="_blank">
+        📍 View Live on Google Maps
+        <div id="last-seen" style="font-size: 10px; color: #5f6368; font-weight: normal; margin-top: 5px;"></div>
+    </a>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, updateDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDL7sPp-FkG59L-mRQ7BrCGgeKMhQC80iw",
@@ -204,108 +72,64 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let currentUserId = "";
-
-    // Helper: Navigation
-    window.showPage = (pageId) => {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
-    };
-
-    // Helper: Generate ID
-    const generateID = () => {
+    // 1. PERSISTENT KEY GENERATION
+    let myKey = localStorage.getItem('device_tracker_id');
+    if (!myKey) {
         const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        return Array.from({length: 25}, () => charset[Math.floor(Math.random() * charset.length)]).join('');
-    };
+        myKey = Array.from({length: 25}, () => charset[Math.floor(Math.random() * charset.length)]).join('');
+        localStorage.setItem('device_tracker_id', myKey);
+    }
+    document.getElementById('my-key').innerText = myKey;
 
-    // 1. LOGIN LOGIC
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const btn = document.getElementById('loginSubmit');
-        btn.innerText = "Checking...";
+    // 2. SEND LIVE LOCATION (SENDER)
+    if ("geolocation" in navigator) {
+        navigator.geolocation.watchPosition(async (position) => {
+            const { latitude, longitude } = position.coords;
+            
+            // Update UI
+            document.getElementById('status-dot').className = "status-dot online";
+            document.getElementById('status-text').innerText = "GPS: Streaming Live";
 
-        const q = query(collection(db, "users"), where("Email", "==", email));
-        const querySnapshot = await getDocs(q);
+            // Save to Firebase
+            try {
+                await setDoc(doc(db, "live_trackers", myKey), {
+                    lat: latitude,
+                    lng: longitude,
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+            } catch (e) { console.error(e); }
 
-        if (!querySnapshot.empty) {
-            const userDoc = querySnapshot.docs[0];
-            currentUserId = userDoc.id;
-            setupInfoPage(userDoc.data());
-        } else {
-            document.getElementById('loginError').style.display = 'block';
-            btn.innerText = "Next";
-        }
-    });
-
-    // 2. SIGNUP LOGIC
-    document.getElementById('signupForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const fname = document.getElementById('fname').value;
-        const lname = document.getElementById('lname').value;
-        const email = document.getElementById('signupEmail').value;
-        
-        currentUserId = generateID();
-        const userData = { FirstName: fname, LastName: lname, Email: email, id: currentUserId };
-
-        await setDoc(doc(db, "users", currentUserId), userData);
-        setupInfoPage(userData);
-    });
-
-    // Setup Info Page (Email Tracker UI)
-    function setupInfoPage(data) {
-        document.getElementById('tracker-email').innerText = data.Email;
-        document.getElementById('user-initial').innerText = (data.FirstName || 'G').charAt(0).toUpperCase();
-        // Update URL
-        const newUrl = window.location.pathname + '?id=' + currentUserId;
-        window.history.pushState({}, '', newUrl);
-        showPage('info-page');
+        }, (err) => {
+            document.getElementById('status-text').innerText = "GPS: Permission Denied";
+        }, { enableHighAccuracy: true });
     }
 
-    // 3. BASIC INFO LOGIC (Validation & Age)
-    document.getElementById('infoForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const d = parseInt(document.getElementById('day').value);
-        const m = parseInt(document.getElementById('month').value);
-        const y = parseInt(document.getElementById('year').value);
-        const gender = document.getElementById('gender').value;
-
-        // Leap year and real date check
-        const dateObj = new Date(y, m - 1, d);
-        if (dateObj.getFullYear() !== y || dateObj.getMonth() !== m - 1 || dateObj.getDate() !== d) {
-            document.getElementById('dateError').style.display = 'block';
+    // 3. TRACK ANOTHER DEVICE (RECEIVER)
+    window.startTracking = () => {
+        const targetId = document.getElementById('target-key').value.trim();
+        if (targetId.length < 20) {
+            alert("Please enter a valid 25-digit key");
             return;
         }
 
-        // Age Calculation
-        const today = new Date();
-        let age = today.getFullYear() - y;
-        if (today.getMonth() < m - 1 || (today.getMonth() === m - 1 && today.getDate() < d)) age--;
-
-        const familyFlag = age >= 13 ? "off" : "commit";
-        const dobStr = `${d.toString().padStart(2, '0')}/${m.toString().padStart(2, '0')}/${y}`;
-
-        await updateDoc(doc(db, "users", currentUserId), {
-            Gender: gender,
-            DOB: dobStr,
-            family: familyFlag
-        });
-
-        document.getElementById('debug-id').innerText = "Firebase ID: " + currentUserId;
-        showPage('final-page');
-    });
-
-    // Auto-load if ID in URL
-    window.onload = async () => {
-        const id = new URLSearchParams(window.location.search).get('id');
-        if (id) {
-            const snap = await getDoc(doc(db, "users", id));
-            if (snap.exists()) {
-                currentUserId = id;
-                setupInfoPage(snap.data());
+        const mapLink = document.getElementById('map-link');
+        
+        // Listen to live updates from Firebase
+        onSnapshot(doc(db, "live_trackers", targetId), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.lat && data.lng) {
+                    const url = `https://www.google.com/maps?q=${data.lat},${data.lng}`;
+                    mapLink.href = url;
+                    mapLink.style.display = "block";
+                    document.getElementById('last-seen').innerText = "Last updated: " + new Date().toLocaleTimeString();
+                }
+            } else {
+                alert("Device not found or not sharing location.");
             }
-        }
+        });
     };
 </script>
+
 </body>
 </html>
