@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Free AI Background Remover</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<style>
+* { box-sizing: border-box; font-family: Arial, sans-serif; }
+
+body {
+  margin: 0;
+  background: linear-gradient(135deg,#141e30,#243b55);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.container {
+  background: #0b0b0b;
+  padding: 20px;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+label {
+  display: block;
+  margin: 20px 0;
+  padding: 12px;
+  background: #00c6ff;
+  color: #000;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+input { display: none; }
+
+button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #00ff88;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+img {
+  max-width: 100%;
+  margin-top: 15px;
+  border-radius: 10px;
+  background: #fff;
+}
+
+#loader { display:none; margin-top:10px; }
+</style>
+</head>
+
+<body>
+<div class="container">
+  <h2>AI Background Remover</h2>
+  <p>Free • Open Source • Client Side</p>
+
+  <label for="imageInput">Upload Image</label>
+  <input id="imageInput" type="file" accept="image/*">
+
+  <button id="removeBtn" disabled>Remove Background</button>
+
+  <div id="loader">⏳ Processing...</div>
+  <div id="output"></div>
+</div>
+
+<script type="module">
+import { removeBackground } from
+"https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser/index.js";
+
+const input = document.getElementById("imageInput");
+const btn = document.getElementById("removeBtn");
+const out = document.getElementById("output");
+const loader = document.getElementById("loader");
+
+let file = null;
+
+input.addEventListener("change", () => {
+  file = input.files[0];
+  if (!file) return;
+
+  btn.disabled = false;
+  out.innerHTML = `<img src="${URL.createObjectURL(file)}">`;
+});
+
+btn.addEventListener("click", async () => {
+  if (!file) return;
+
+  btn.disabled = true;
+  loader.style.display = "block";
+
+  try {
+    const result = await removeBackground(file, {
+      output: { format: "image/png" }
+    });
+
+    const url = URL.createObjectURL(result);
+
+    out.innerHTML = `
+      <img src="${url}">
+      <a href="${url}" download="bg-removed.png">
+        <button style="margin-top:10px">Download PNG</button>
+      </a>
+    `;
+  } catch (e) {
+    alert("Background removal failed");
+    console.error(e);
+  }
+
+  loader.style.display = "none";
+  btn.disabled = false;
+});
+</script>
+</body>
+</html>
