@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Management</title>
+    <style>
+        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f1f5f9; --white: #ffffff; --green: #10b981; }
+        body { font-family: 'Segoe UI', Inter, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #334155; }
+        
+        /* Modal & Helpers */
+        .hidden { display: none !important; }
+        #loginModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); }
+        .modal-content { background: white; padding: 40px; border-radius: 12px; width: 300px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        button { background: var(--accent); color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+        
+        /* Layouts */
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .user-badge { background: #e2e8f0; padding: 6px 15px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; }
+        
+        /* Dashboard View (Grid) */
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .folder-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s; position: relative; }
+        .folder-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+        .folder-img { height: 150px; width: 100%; object-fit: cover; }
+        .folder-info { padding: 15px; }
+        .folder-info h3 { margin: 0; font-size: 1.1rem; }
+        .count-badge { position: absolute; top: 10px; right: 10px; background: var(--accent); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+
+        /* Playlist Detail View */
+        .playlist-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .back-btn { width: auto; background: transparent; color: var(--primary); border: 1px solid #ccc; padding: 8px 15px; }
+        .back-btn:hover { background: #e2e8f0; }
+        
+        .tasks-container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .task-column { background: white; padding: 20px; border-radius: 12px; min-height: 400px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .col-title { border-bottom: 2px solid var(--bg); padding-bottom: 10px; margin-top: 0; color: var(--primary); display: flex; justify-content: space-between; }
+        
+        /* Items */
+        .task-item { padding: 12px 0; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; animation: fadeIn 0.3s ease; }
+        .task-item:last-child { border-bottom: none; }
+        
+        /* Checkbox Style */
+        .checkbox-custom { width: 22px; height: 22px; margin-right: 12px; border: 2px solid #cbd5e1; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .checkbox-custom.checked { background-color: var(--green); border-color: var(--green); }
+        .checkbox-custom.checked::after { content: '✓'; color: white; font-size: 14px; }
+        
+        .item-details { display: flex; flex-direction: column; }
+        .item-name { font-weight: 500; font-size: 1rem; }
+        .item-meta { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+
+        /* Completed State specific */
+        .completed-item .item-name { text-decoration: line-through; color: #94a3b8; }
+
+        @media (max-width: 768px) { .tasks-container { grid-template-columns: 1fr; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <!-- 1. LOGIN MODAL -->
+    <div id="loginModal">
+        <div class="modal-content">
+            <h2>Staff Login</h2>
+            <p>Enter your name once.</p>
+            <input type="text" id="staffNameInput" placeholder="Your Name">
+            <button id="loginBtn">Start Shift</button>
+        </div>
+    </div>
+
+    <!-- 2. MAIN APP -->
+    <div id="mainApp" class="hidden">
+        
+        <div class="header-bar">
+            <h2 id="pageTitle">My Dashboard</h2>
+            <div class="user-badge">👤 <span id="displayUser"></span> <a href="#" id="logoutBtn" style="font-size:0.8em; margin-left:10px; text-decoration:none; color:red;">(Logout)</a></div>
+        </div>
+
+        <!-- VIEW A: Dashboard (Folder Grid) -->
+        <div id="dashboardView" class="grid-container">
+            <!-- Folders injected via JS -->
+        </div>
+
+        <!-- VIEW B: Playlist Details (Pending vs Completed) -->
+        <div id="playlistView" class="hidden">
+            <div class="playlist-header">
+                <button class="back-btn" id="backBtn">← Back</button>
+                <h1 id="currentPlaylistTitle" style="margin:0;">Playlist Name</h1>
+            </div>
+
+            <div class="tasks-container">
+                <!-- Left: Pending -->
+                <div class="task-column">
+                    <h3 class="col-title">Incomplete <span id="pendingCount" style="background:#e2e8f0; padding:2px 8px; border-radius:10px; font-size:0.8em;">0</span></h3>
+                    <div id="pendingList"></div>
+                </div>
+
+                <!-- Right: Completed -->
+                <div class="task-column" style="background: #f8fafc;">
+                    <h3 class="col-title" style="color:#64748b;">Completed History</h3>
+                    <div id="completedList"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", authDomain: "question-metabase.firebaseapp.com", databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "question-metabase", storageBucket: "question-metabase.firebasestorage.app", messagingSenderId: "770698198753", appId: "1:770698198753:web:59ae49d78b6013bab5c1a0", measurementId: "G-6ZP1FPMKSJ" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- STATE & DOM ---
+        let currentUser = localStorage.getItem('staffName');
+        let currentUnsubscribe = null; // To stop listening when switching views
+        let categoriesData = {}; // Cache category info
+
+        const loginModal = document.getElementById('loginModal');
+        const mainApp = document.getElementById('mainApp');
+        const dashboardView = document.getElementById('dashboardView');
+        const playlistView = document.getElementById('playlistView');
+        const pendingList = document.getElementById('pendingList');
+        const completedList = document.getElementById('completedList');
+
+        // --- 1. AUTH LOGIC ---
+        function checkAuth() {
+            if (currentUser) {
+                loginModal.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                document.getElementById('displayUser').textContent = currentUser;
+                loadDashboard();
+            } else {
+                loginModal.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            const name = document.getElementById('staffNameInput').value.trim();
+            if (name) {
+                currentUser = name;
+                localStorage.setItem('staffName', name);
+                checkAuth();
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('staffName');
+            location.reload();
+        });
+
+        // --- 2. DASHBOARD LOGIC (Folders) ---
+        function loadDashboard() {
+            dashboardView.classList.remove('hidden');
+            playlistView.classList.add('hidden');
+            if (currentUnsubscribe) currentUnsubscribe(); // Stop listening to specific items
+
+            // Listen to Categories
+            onSnapshot(collection(db, "categories"), (catSnap) => {
+                // Also Listen to ALL pending items to show counts (Optimized: usually you'd count server-side, but client-side fine for small scale)
+                onSnapshot(query(collection(db, "store_items"), where("status", "==", "pending")), (itemSnap) => {
+                    
+                    // 1. Count items per category
+                    const counts = {};
+                    itemSnap.forEach(doc => {
+                        const catId = doc.data().categoryId;
+                        counts[catId] = (counts[catId] || 0) + 1;
+                    });
+
+                    // 2. Render Categories
+                    dashboardView.innerHTML = "";
+                    catSnap.forEach(doc => {
+                        const cat = doc.data();
+                        categoriesData[doc.id] = cat; // Cache for later
+
+                        const count = counts[doc.id] || 0;
+                        const card = document.createElement('div');
+                        card.className = 'folder-card';
+                        card.innerHTML = `
+                            <img src="${cat.image}" class="folder-img" onerror="this.src='https://via.placeholder.com/300'">
+                            ${count > 0 ? `<div class="count-badge">${count} Pending</div>` : ''}
+                            <div class="folder-info">
+                                <h3>${cat.name}</h3>
+                            </div>
+                        `;
+                        // Click Event -> Open Playlist
+                        card.addEventListener('click', () => openPlaylist(doc.id, cat.name));
+                        dashboardView.appendChild(card);
+                    });
+                });
+            });
+        }
+
+        // --- 3. PLAYLIST DETAIL LOGIC ---
+        function openPlaylist(catId, catName) {
+            dashboardView.classList.add('hidden');
+            playlistView.classList.remove('hidden');
+            document.getElementById('currentPlaylistTitle').textContent = catName;
+
+            // Subscribe to items for THIS category
+            // We fetch both pending and completed (limit completed to recent 50)
+            const q = query(collection(db, "store_items"), where("categoryId", "==", catId), orderBy("createdAt", "desc"), limit(100));
+
+            currentUnsubscribe = onSnapshot(q, (snapshot) => {
+                pendingList.innerHTML = '';
+                completedList.innerHTML = '';
+                let pCount = 0;
+
+                snapshot.forEach(doc => {
+                    const item = doc.data();
+                    const el = createItemElement(doc.id, item);
+
+                    if (item.status === 'pending') {
+                        pendingList.appendChild(el);
+                        pCount++;
+                    } else {
+                        completedList.appendChild(el);
+                    }
+                });
+                document.getElementById('pendingCount').textContent = pCount;
+            });
+        }
+
+        // Create HTML for a single item row
+        function createItemElement(id, item) {
+            const div = document.createElement('div');
+            div.className = `task-item ${item.status === 'completed' ? 'completed-item' : ''}`;
+            
+            // Checkbox
+            const checkbox = document.createElement('div');
+            checkbox.className = `checkbox-custom ${item.status === 'completed' ? 'checked' : ''}`;
+            
+            // Text Details
+            const details = document.createElement('div');
+            details.className = 'item-details';
+            
+            let metaHtml = '';
+            if (item.status === 'completed') {
+                metaHtml = `<span class="item-meta">Completed by <b>${item.completedBy}</b></span>`;
+            } else {
+                metaHtml = `<span class="item-meta" style="color:#64748b">Added: ${new Date(item.createdAt?.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>`;
+            }
+
+            details.innerHTML = `
+                <span class="item-name">${item.name}</span>
+                ${metaHtml}
+            `;
+
+            // Click Handler for Toggle
+            checkbox.addEventListener('click', () => toggleItemStatus(id, item));
+
+            div.appendChild(checkbox);
+            div.appendChild(details);
+            return div;
+        }
+
+        // --- 4. ACTION LOGIC ---
+        async function toggleItemStatus(id, item) {
+            const isComplete = item.status === 'completed';
+            const newStatus = isComplete ? 'pending' : 'completed';
+            
+            try {
+                await updateDoc(doc(db, "store_items", id), {
+                    status: newStatus,
+                    completedBy: isComplete ? null : currentUser, // Remove name if undoing, add name if completing
+                    completedAt: isComplete ? null : serverTimestamp()
+                });
+            } catch (e) {
+                console.error("Error updating:", e);
+                alert("Connection failed");
+            }
+        }
+
+        // Back Button
+        document.getElementById('backBtn').addEventListener('click', loadDashboard);
+
+        // Init
+        checkAuth();
+
+    </script>
+</body>
+</html>
