@@ -2,16 +2,15 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>6 Digit Video Call</title>
+<title>Realtime Video Call</title>
 
 <style>
 
 body{
 background:#111;
 color:white;
-font-family:Arial;
 text-align:center;
-padding:20px;
+font-family:Arial;
 }
 
 video{
@@ -19,28 +18,25 @@ video{
 width:45%;
 height:300px;
 background:black;
-border-radius:10px;
 margin:10px;
+border-radius:10px;
+
+}
+
+button,input{
+
+padding:10px;
+margin:8px;
+border-radius:8px;
+border:none;
 
 }
 
 button{
 
-padding:12px;
-margin:6px;
-border-radius:8px;
-border:none;
 background:#00aaff;
 color:white;
 cursor:pointer;
-
-}
-
-input{
-
-padding:10px;
-border-radius:8px;
-border:none;
 
 }
 
@@ -50,7 +46,7 @@ border:none;
 
 <body>
 
-<h2>🔥 Video Call (6 Digit Code)</h2>
+<h2>🔥 Video Call Prototype</h2>
 
 <button id="camera">
 
@@ -66,15 +62,15 @@ Create Room
 
 </button>
 
-<input id="code" placeholder="Enter Code">
+<input id="code" placeholder="Enter 6 Digit Code">
 
 <button id="join">
 
-Join Room
+Join
 
 </button>
 
-<h3 id="showCode"></h3>
+<h3 id="show"></h3>
 
 <br>
 
@@ -89,6 +85,7 @@ Join Room
 Hangup
 
 </button>
+
 
 <script type="module">
 
@@ -119,13 +116,7 @@ apiKey:"AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
 
 authDomain:"question-metabase.firebaseapp.com",
 
-projectId:"question-metabase",
-
-storageBucket:"question-metabase.firebasestorage.app",
-
-messagingSenderId:"770698198753",
-
-appId:"1:770698198753:web:59ae49d78b6013bab5c1a0"
+projectId:"question-metabase"
 
 };
 
@@ -135,7 +126,7 @@ const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 
 
-// STUN
+// Better ICE
 
 const pc=new RTCPeerConnection({
 
@@ -143,7 +134,13 @@ iceServers:[
 
 {
 
-urls:["stun:stun.l.google.com:19302"]
+urls:"stun:stun.l.google.com:19302"
+
+},
+
+{
+
+urls:"stun:stun1.l.google.com:19302"
 
 }
 
@@ -175,7 +172,6 @@ audio:true
 
 });
 
-
 localStream.getTracks()
 
 .forEach(track=>{
@@ -191,7 +187,7 @@ document.getElementById("local")
 };
 
 
-// Remote Video Fix
+// Receive Stream
 
 pc.ontrack=(event)=>{
 
@@ -206,7 +202,7 @@ remoteStream.addTrack(track);
 };
 
 
-// 6 digit generator
+// 6 digit code
 
 function makeCode(){
 
@@ -221,12 +217,12 @@ return Math.floor(
 
 let roomRef;
 
-let callerCandidates;
+let caller;
 
-let calleeCandidates;
+let callee;
 
 
-// CREATE ROOM
+// CREATE
 
 document.getElementById("create")
 
@@ -234,32 +230,28 @@ document.getElementById("create")
 
 const code=makeCode();
 
-document.getElementById("showCode")
+document.getElementById("show")
 
-.innerText="Room Code : "+code;
+.innerText="CODE : "+code;
 
 roomRef=doc(db,"rooms",code);
 
-callerCandidates=
+caller=collection(roomRef,"caller");
 
-collection(roomRef,"caller");
-
-calleeCandidates=
-
-collection(roomRef,"callee");
+callee=collection(roomRef,"callee");
 
 
-// ICE
+// ICE caller
 
-pc.onicecandidate=event=>{
+pc.onicecandidate=e=>{
 
-if(event.candidate){
+if(e.candidate){
 
 addDoc(
 
-callerCandidates,
+caller,
 
-event.candidate.toJSON()
+e.candidate.toJSON()
 
 );
 
@@ -276,23 +268,16 @@ await pc.createOffer();
 
 await pc.setLocalDescription(offer);
 
-
 await setDoc(roomRef,{
 
-offer:{
-
-type:offer.type,
-
-sdp:offer.sdp
-
-}
+offer:offer
 
 });
 
 
-// Listen Answer
+// Listen answer realtime
 
-onSnapshot(roomRef,(snap)=>{
+onSnapshot(roomRef,snap=>{
 
 const data=snap.data();
 
@@ -317,13 +302,9 @@ data.answer
 });
 
 
-// Listen Callee ICE
+// listen callee ICE realtime
 
-onSnapshot(
-
-calleeCandidates,
-
-snap=>{
+onSnapshot(callee,snap=>{
 
 snap.docChanges()
 
@@ -350,12 +331,11 @@ change.doc.data()
 
 
 
-// JOIN ROOM
+// JOIN
 
 document.getElementById("join")
 
 .onclick=async()=>{
-
 
 const code=
 
@@ -365,26 +345,22 @@ document.getElementById("code")
 
 roomRef=doc(db,"rooms",code);
 
-callerCandidates=
+caller=collection(roomRef,"caller");
 
-collection(roomRef,"caller");
-
-calleeCandidates=
-
-collection(roomRef,"callee");
+callee=collection(roomRef,"callee");
 
 
-// ICE
+// ICE callee
 
-pc.onicecandidate=event=>{
+pc.onicecandidate=e=>{
 
-if(event.candidate){
+if(e.candidate){
 
 addDoc(
 
-calleeCandidates,
+callee,
 
-event.candidate.toJSON()
+e.candidate.toJSON()
 
 );
 
@@ -399,7 +375,7 @@ await getDoc(roomRef);
 
 if(!snap.exists()){
 
-alert("Room Not Found");
+alert("Room not found");
 
 return;
 
@@ -408,7 +384,7 @@ return;
 const data=snap.data();
 
 
-// Set Offer
+// set offer
 
 await pc.setRemoteDescription(
 
@@ -419,7 +395,7 @@ data.offer
 ));
 
 
-// Answer
+// create answer
 
 const answer=
 
@@ -428,32 +404,16 @@ await pc.createAnswer();
 await pc.setLocalDescription(answer);
 
 
-await setDoc(roomRef,
+await setDoc(roomRef,{
 
-{
+answer:answer
 
-answer:{
-
-type:answer.type,
-
-sdp:answer.sdp
-
-}
-
-},
-
-{merge:true}
-
-);
+},{merge:true});
 
 
-// Listen Caller ICE
+// listen caller ICE realtime
 
-onSnapshot(
-
-callerCandidates,
-
-snap=>{
+onSnapshot(caller,snap=>{
 
 snap.docChanges()
 
@@ -493,5 +453,4 @@ location.reload();
 </script>
 
 </body>
-
 </html>
