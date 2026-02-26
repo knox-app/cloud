@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Video Calling App</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#111;
+color:white;
+text-align:center;
+margin:0;
+padding:20px;
+}
+
+video{
+
+width:45%;
+height:300px;
+background:black;
+border-radius:10px;
+margin:10px;
+
+}
+
+button{
+
+padding:12px;
+margin:8px;
+border:none;
+border-radius:8px;
+background:#00aaff;
+color:white;
+cursor:pointer;
+
+}
+
+input{
+
+padding:10px;
+border-radius:8px;
+border:none;
+margin:10px;
+
+}
+
+</style>
+</head>
+
+<body>
+
+<h2>🔥 Video Call App</h2>
+
+<button id="startCamera">
+Start Camera
+</button>
+
+<br>
+
+<button id="createRoom">
+Create Room
+</button>
+
+<input id="roomInput" placeholder="Enter Room Code">
+
+<button id="joinRoom">
+Join Room
+</button>
+
+<br>
+
+<h3 id="roomCode"></h3>
+
+<div>
+
+<video id="localVideo" autoplay muted playsinline></video>
+
+<video id="remoteVideo" autoplay playsinline></video>
+
+</div>
+
+<button id="hangup">
+Hangup
+</button>
+
+<script type="module">
+
+// Firebase SDK
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+
+getFirestore,
+doc,
+setDoc,
+getDoc,
+collection,
+addDoc,
+onSnapshot
+
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+// Firebase Config
+
+const firebaseConfig = {
+
+apiKey:"AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+
+authDomain:"question-metabase.firebaseapp.com",
+
+databaseURL:"https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+
+projectId:"question-metabase",
+
+storageBucket:"question-metabase.firebasestorage.app",
+
+messagingSenderId:"770698198753",
+
+appId:"1:770698198753:web:59ae49d78b6013bab5c1a0",
+
+measurementId:"G-6ZP1FPMKSJ"
+
+};
+
+
+// Init Firebase
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+
+// WebRTC Servers
+
+const servers={
+
+iceServers:[
+
+{
+
+urls:["stun:stun.l.google.com:19302"]
+
+}
+
+]
+
+};
+
+
+let pc=new RTCPeerConnection(servers);
+
+let localStream=null;
+
+let remoteStream=new MediaStream();
+
+
+// Videos
+
+const localVideo=document.getElementById("localVideo");
+
+const remoteVideo=document.getElementById("remoteVideo");
+
+remoteVideo.srcObject=remoteStream;
+
+
+// Camera
+
+document.getElementById("startCamera")
+.onclick=async()=>{
+
+localStream=
+
+await navigator.mediaDevices.getUserMedia({
+
+video:true,
+
+audio:true
+
+});
+
+localStream.getTracks()
+.forEach(track=>pc.addTrack(track,localStream));
+
+localVideo.srcObject=localStream;
+
+};
+
+
+// Remote Track
+
+pc.ontrack=(event)=>{
+
+event.streams[0].getTracks()
+
+.forEach(track=>{
+
+remoteStream.addTrack(track);
+
+});
+
+};
+
+
+// ICE Candidate
+
+let roomRef;
+let callerCandidates;
+let calleeCandidates;
+
+
+pc.onicecandidate=async(event)=>{
+
+if(event.candidate){
+
+await addDoc(
+
+callerCandidates,
+
+event.candidate.toJSON()
+
+);
+
+}
+
+};
+
+
+// CREATE ROOM
+
+document.getElementById("createRoom")
+
+.onclick=async()=>{
+
+roomRef=doc(collection(db,"rooms"));
+
+callerCandidates=
+
+collection(roomRef,"callerCandidates");
+
+calleeCandidates=
+
+collection(roomRef,"calleeCandidates");
+
+const offer=
+
+await pc.createOffer();
+
+await pc.setLocalDescription(offer);
+
+
+await setDoc(roomRef,{
+
+offer:{
+
+type:offer.type,
+
+sdp:offer.sdp
+
+}
+
+});
+
+
+document.getElementById("roomCode")
+
+.innerText=
+
+"Room Code : "+roomRef.id;
+
+
+// Listen Answer
+
+onSnapshot(roomRef,(snap)=>{
+
+const data=snap.data();
+
+if(
+
+!pc.currentRemoteDescription
+
+&&data?.answer
+
+){
+
+pc.setRemoteDescription(
+
+new RTCSessionDescription(
+
+data.answer
+
+));
+
+}
+
+});
+
+
+// Listen Candidates
+
+onSnapshot(
+
+calleeCandidates,
+
+snapshot=>{
+
+snapshot.docChanges()
+
+.forEach(change=>{
+
+if(change.type==="added"){
+
+pc.addIceCandidate(
+
+new RTCIceCandidate(
+
+change.doc.data()
+
+));
+
+}
+
+});
+
+});
+
+};
+
+
+
+// JOIN ROOM
+
+document.getElementById("joinRoom")
+
+.onclick=async()=>{
+
+
+const roomId=
+
+document.getElementById("roomInput").value;
+
+roomRef=doc(db,"rooms",roomId);
+
+callerCandidates=
+
+collection(roomRef,"callerCandidates");
+
+calleeCandidates=
+
+collection(roomRef,"calleeCandidates");
+
+
+// ICE Join
+
+pc.onicecandidate=async(event)=>{
+
+if(event.candidate){
+
+await addDoc(
+
+calleeCandidates,
+
+event.candidate.toJSON()
+
+);
+
+}
+
+};
+
+
+const roomSnapshot=
+
+await getDoc(roomRef);
+
+const roomData=roomSnapshot.data();
+
+
+// Offer
+
+await pc.setRemoteDescription(
+
+new RTCSessionDescription(
+
+roomData.offer
+
+));
+
+
+// Answer
+
+const answer=
+
+await pc.createAnswer();
+
+await pc.setLocalDescription(answer);
+
+
+await setDoc(
+
+roomRef,
+
+{
+
+answer:{
+
+type:answer.type,
+
+sdp:answer.sdp
+
+}
+
+},
+
+{merge:true}
+
+);
+
+
+// Listen Caller ICE
+
+onSnapshot(
+
+callerCandidates,
+
+snapshot=>{
+
+snapshot.docChanges()
+
+.forEach(change=>{
+
+if(change.type==="added"){
+
+pc.addIceCandidate(
+
+new RTCIceCandidate(
+
+change.doc.data()
+
+));
+
+}
+
+});
+
+});
+
+};
+
+
+
+// Hangup
+
+document.getElementById("hangup")
+
+.onclick=()=>{
+
+pc.close();
+
+location.reload();
+
+};
+
+</script>
+
+</body>
+</html>
