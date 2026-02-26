@@ -2,16 +2,15 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Video Calling App</title>
+<title>6 Digit Video Call</title>
 
 <style>
 
 body{
-font-family:Arial;
 background:#111;
 color:white;
+font-family:Arial;
 text-align:center;
-margin:0;
 padding:20px;
 }
 
@@ -28,9 +27,9 @@ margin:10px;
 button{
 
 padding:12px;
-margin:8px;
-border:none;
+margin:6px;
 border-radius:8px;
+border:none;
 background:#00aaff;
 color:white;
 cursor:pointer;
@@ -42,54 +41,59 @@ input{
 padding:10px;
 border-radius:8px;
 border:none;
-margin:10px;
 
 }
 
 </style>
+
 </head>
 
 <body>
 
-<h2>🔥 Video Call App</h2>
+<h2>🔥 Video Call (6 Digit Code)</h2>
 
-<button id="startCamera">
+<button id="camera">
+
 Start Camera
+
 </button>
 
 <br>
 
-<button id="createRoom">
+<button id="create">
+
 Create Room
+
 </button>
 
-<input id="roomInput" placeholder="Enter Room Code">
+<input id="code" placeholder="Enter Code">
 
-<button id="joinRoom">
+<button id="join">
+
 Join Room
+
 </button>
+
+<h3 id="showCode"></h3>
 
 <br>
 
-<h3 id="roomCode"></h3>
+<video id="local" autoplay muted playsinline></video>
 
-<div>
+<video id="remote" autoplay playsinline></video>
 
-<video id="localVideo" autoplay muted playsinline></video>
-
-<video id="remoteVideo" autoplay playsinline></video>
-
-</div>
+<br>
 
 <button id="hangup">
+
 Hangup
+
 </button>
 
 <script type="module">
 
-// Firebase SDK
-
 import { initializeApp }
+
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
@@ -103,18 +107,17 @@ addDoc,
 onSnapshot
 
 }
+
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
-// Firebase Config
+// Firebase
 
-const firebaseConfig = {
+const firebaseConfig={
 
 apiKey:"AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
 
 authDomain:"question-metabase.firebaseapp.com",
-
-databaseURL:"https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
 
 projectId:"question-metabase",
 
@@ -122,23 +125,19 @@ storageBucket:"question-metabase.firebasestorage.app",
 
 messagingSenderId:"770698198753",
 
-appId:"1:770698198753:web:59ae49d78b6013bab5c1a0",
-
-measurementId:"G-6ZP1FPMKSJ"
+appId:"1:770698198753:web:59ae49d78b6013bab5c1a0"
 
 };
 
 
-// Init Firebase
+const app=initializeApp(firebaseConfig);
 
-const app = initializeApp(firebaseConfig);
-
-const db = getFirestore(app);
+const db=getFirestore(app);
 
 
-// WebRTC Servers
+// STUN
 
-const servers={
+const pc=new RTCPeerConnection({
 
 iceServers:[
 
@@ -150,28 +149,20 @@ urls:["stun:stun.l.google.com:19302"]
 
 ]
 
-};
+});
 
 
-let pc=new RTCPeerConnection(servers);
-
-let localStream=null;
+let localStream;
 
 let remoteStream=new MediaStream();
 
-
-// Videos
-
-const localVideo=document.getElementById("localVideo");
-
-const remoteVideo=document.getElementById("remoteVideo");
-
-remoteVideo.srcObject=remoteStream;
+document.getElementById("remote").srcObject=remoteStream;
 
 
 // Camera
 
-document.getElementById("startCamera")
+document.getElementById("camera")
+
 .onclick=async()=>{
 
 localStream=
@@ -184,15 +175,23 @@ audio:true
 
 });
 
-localStream.getTracks()
-.forEach(track=>pc.addTrack(track,localStream));
 
-localVideo.srcObject=localStream;
+localStream.getTracks()
+
+.forEach(track=>{
+
+pc.addTrack(track,localStream);
+
+});
+
+document.getElementById("local")
+
+.srcObject=localStream;
 
 };
 
 
-// Remote Track
+// Remote Video Fix
 
 pc.ontrack=(event)=>{
 
@@ -207,18 +206,56 @@ remoteStream.addTrack(track);
 };
 
 
-// ICE Candidate
+// 6 digit generator
+
+function makeCode(){
+
+return Math.floor(
+
+100000+Math.random()*900000
+
+).toString();
+
+}
+
 
 let roomRef;
+
 let callerCandidates;
+
 let calleeCandidates;
 
 
-pc.onicecandidate=async(event)=>{
+// CREATE ROOM
+
+document.getElementById("create")
+
+.onclick=async()=>{
+
+const code=makeCode();
+
+document.getElementById("showCode")
+
+.innerText="Room Code : "+code;
+
+roomRef=doc(db,"rooms",code);
+
+callerCandidates=
+
+collection(roomRef,"caller");
+
+calleeCandidates=
+
+collection(roomRef,"callee");
+
+
+// ICE
+
+pc.onicecandidate=event=>{
 
 if(event.candidate){
 
-await addDoc(
+addDoc(
 
 callerCandidates,
 
@@ -231,21 +268,7 @@ event.candidate.toJSON()
 };
 
 
-// CREATE ROOM
-
-document.getElementById("createRoom")
-
-.onclick=async()=>{
-
-roomRef=doc(collection(db,"rooms"));
-
-callerCandidates=
-
-collection(roomRef,"callerCandidates");
-
-calleeCandidates=
-
-collection(roomRef,"calleeCandidates");
+// Offer
 
 const offer=
 
@@ -267,13 +290,6 @@ sdp:offer.sdp
 });
 
 
-document.getElementById("roomCode")
-
-.innerText=
-
-"Room Code : "+roomRef.id;
-
-
 // Listen Answer
 
 onSnapshot(roomRef,(snap)=>{
@@ -282,9 +298,9 @@ const data=snap.data();
 
 if(
 
-!pc.currentRemoteDescription
+data?.answer
 
-&&data?.answer
+&&!pc.currentRemoteDescription
 
 ){
 
@@ -301,15 +317,15 @@ data.answer
 });
 
 
-// Listen Candidates
+// Listen Callee ICE
 
 onSnapshot(
 
 calleeCandidates,
 
-snapshot=>{
+snap=>{
 
-snapshot.docChanges()
+snap.docChanges()
 
 .forEach(change=>{
 
@@ -333,35 +349,38 @@ change.doc.data()
 
 
 
+
 // JOIN ROOM
 
-document.getElementById("joinRoom")
+document.getElementById("join")
 
 .onclick=async()=>{
 
 
-const roomId=
+const code=
 
-document.getElementById("roomInput").value;
+document.getElementById("code")
 
-roomRef=doc(db,"rooms",roomId);
+.value.trim();
+
+roomRef=doc(db,"rooms",code);
 
 callerCandidates=
 
-collection(roomRef,"callerCandidates");
+collection(roomRef,"caller");
 
 calleeCandidates=
 
-collection(roomRef,"calleeCandidates");
+collection(roomRef,"callee");
 
 
-// ICE Join
+// ICE
 
-pc.onicecandidate=async(event)=>{
+pc.onicecandidate=event=>{
 
 if(event.candidate){
 
-await addDoc(
+addDoc(
 
 calleeCandidates,
 
@@ -374,20 +393,28 @@ event.candidate.toJSON()
 };
 
 
-const roomSnapshot=
+const snap=
 
 await getDoc(roomRef);
 
-const roomData=roomSnapshot.data();
+if(!snap.exists()){
+
+alert("Room Not Found");
+
+return;
+
+}
+
+const data=snap.data();
 
 
-// Offer
+// Set Offer
 
 await pc.setRemoteDescription(
 
 new RTCSessionDescription(
 
-roomData.offer
+data.offer
 
 ));
 
@@ -401,9 +428,7 @@ await pc.createAnswer();
 await pc.setLocalDescription(answer);
 
 
-await setDoc(
-
-roomRef,
+await setDoc(roomRef,
 
 {
 
@@ -428,9 +453,9 @@ onSnapshot(
 
 callerCandidates,
 
-snapshot=>{
+snap=>{
 
-snapshot.docChanges()
+snap.docChanges()
 
 .forEach(change=>{
 
@@ -453,7 +478,6 @@ change.doc.data()
 };
 
 
-
 // Hangup
 
 document.getElementById("hangup")
@@ -469,4 +493,5 @@ location.reload();
 </script>
 
 </body>
+
 </html>
