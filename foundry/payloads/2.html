@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body { font-family: sans-serif; padding: 2rem; background-color: #f8f9fa; }
+        .nav { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        h1 { margin: 0; }
+        .btn { text-decoration: none; background-color: #28a745; color: white; padding: 10px 20px; border-radius: 5px; margin-left: 10px; cursor: pointer; border: none; font-size: 16px; }
+        .logout { background-color: #dc3545; }
+        .content { margin-top: 2rem; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="nav">
+        <h1 id="welcomeMsg">Welcome</h1>
+        <div>
+            <button class="btn logout" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Admin Controls</h2>
+        <p>Go to the error creation panel to manage error messages and playlists.</p>
+        <a href="3.html" class="btn">Go to Create/Edit Errors (3.html)</a>
+    </div>
+
+    <script>
+        // Check Login
+        const user = localStorage.getItem("currentUser");
+        if (!user) {
+            window.location.href = "1.html";
+        } else {
+            document.getElementById('welcomeMsg').innerText = `Welcome, ${user}`;
+        }
+
+        function logout() {
+            localStorage.removeItem("currentUser");
+            window.location.href = "1.html";
+        }
+    </script>
+</body>
+</html>
