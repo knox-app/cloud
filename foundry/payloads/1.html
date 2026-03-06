@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Signup</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; }
+        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 300px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; margin-top: 5px; }
+        button:hover { background-color: #0056b3; }
+        .toggle { text-align: center; margin-top: 15px; cursor: pointer; color: #007bff; font-size: 0.9em; }
+        .hidden { display: none; }
+        h2 { text-align: center; color: #333; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Login Form -->
+    <div id="loginForm">
+        <h2>Login</h2>
+        <input type="text" id="loginUser" placeholder="Username">
+        <input type="password" id="loginPass" placeholder="Password">
+        <button id="btnLogin">Login</button>
+        <div class="toggle" onclick="toggleForms()">Don't have an account? Signup</div>
+    </div>
+
+    <!-- Signup Form -->
+    <div id="signupForm" class="hidden">
+        <h2>Signup</h2>
+        <input type="text" id="signupUser" placeholder="Username">
+        <input type="password" id="signupPass" placeholder="Password">
+        <button id="btnSignup">Signup</button>
+        <div class="toggle" onclick="toggleForms()">Already have an account? Login</div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+        authDomain: "question-metabase.firebaseapp.com",
+        databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "question-metabase",
+        storageBucket: "question-metabase.firebasestorage.app",
+        messagingSenderId: "770698198753",
+        appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+        measurementId: "G-6ZP1FPMKSJ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.toggleForms = () => {
+        document.getElementById('loginForm').classList.toggle('hidden');
+        document.getElementById('signupForm').classList.toggle('hidden');
+    };
+
+    // Signup Logic
+    document.getElementById('btnSignup').addEventListener('click', async () => {
+        const user = document.getElementById('signupUser').value.trim();
+        const pass = document.getElementById('signupPass').value.trim();
+
+        if (!user || !pass) return alert("Please fill all fields");
+
+        try {
+            // Check if user exists
+            const q = query(collection(db, "users"), where("username", "==", user));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                alert("Username already taken!");
+                return;
+            }
+
+            // Create User
+            await addDoc(collection(db, "users"), {
+                username: user,
+                password: pass // Note: In production, never store passwords as plain text
+            });
+            alert("Signup successful! Please login.");
+            toggleForms();
+        } catch (e) {
+            console.error("Error", e);
+            alert("Error signing up");
+        }
+    });
+
+    // Login Logic
+    document.getElementById('btnLogin').addEventListener('click', async () => {
+        const user = document.getElementById('loginUser').value.trim();
+        const pass = document.getElementById('loginPass').value.trim();
+
+        try {
+            const q = query(collection(db, "users"), where("username", "==", user), where("password", "==", pass));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                // Login Success
+                localStorage.setItem("currentUser", user);
+                window.location.href = "2.html";
+            } else {
+                alert("Invalid username or password");
+            }
+        } catch (e) {
+            console.error("Error", e);
+            alert("Login error");
+        }
+    });
+</script>
+
+</body>
+</html>
