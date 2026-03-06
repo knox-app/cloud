@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Create Error</title>
+    <style>
+        body { font-family: sans-serif; padding: 2rem; background-color: #f0f2f5; max-width: 600px; margin: 0 auto; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; }
+        label { display: block; margin-top: 15px; font-weight: bold; font-size: 0.9em; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .code-display { background: #e9ecef; padding: 10px; font-family: monospace; letter-spacing: 2px; text-align: center; font-size: 1.2em; border: 1px dashed #666; margin-top: 5px; }
+        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        .back-link { display: block; margin-bottom: 20px; color: #666; text-decoration: none; }
+        .hidden { display: none; }
+        #newPlaylistWrapper { margin-top: 10px; padding: 10px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <a href="2.html" class="back-link">← Back to Dashboard</a>
+
+    <div class="card">
+        <h2>Create New Error</h2>
+
+        <label>Error Title / Name</label>
+        <input type="text" id="errorTitle" placeholder="e.g. Connection Timeout">
+
+        <label>Playlist (Type)</label>
+        <select id="playlistSelect">
+            <option value="" disabled selected>Select a Playlist...</option>
+            <option value="NEW_PLAYLIST_OPTION">+ Create New Playlist</option>
+        </select>
+
+        <div id="newPlaylistWrapper" class="hidden">
+            <label style="margin-top:0">New Playlist Name</label>
+            <input type="text" id="newPlaylistName" placeholder="e.g. Network Errors">
+        </div>
+
+        <label>Message</label>
+        <textarea id="errorMessage" rows="3" placeholder="Description of the error..."></textarea>
+
+        <label>Retry URL</label>
+        <input type="url" id="retryUrl" placeholder="https://example.com/retry">
+
+        <label>Generated Code (12-Digit Alpha-Numerical)</label>
+        <div class="code-display" id="generatedCode">LOADING...</div>
+
+        <button id="btnSave">Save Error</button>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+        authDomain: "question-metabase.firebaseapp.com",
+        databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "question-metabase",
+        storageBucket: "question-metabase.firebasestorage.app",
+        messagingSenderId: "770698198753",
+        appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+        measurementId: "G-6ZP1FPMKSJ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Auth Check
+    if (!localStorage.getItem("currentUser")) window.location.href = "1.html";
+
+    const playlistSelect = document.getElementById('playlistSelect');
+    const newPlaylistWrapper = document.getElementById('newPlaylistWrapper');
+    const codeDisplay = document.getElementById('generatedCode');
+
+    // 1. Generate 12 Digit Alpha-Numeric Code
+    function generateCode() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 12; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+
+    // Set initial code
+    let currentCode = generateCode();
+    codeDisplay.innerText = currentCode;
+
+    // 2. Load Existing Playlists
+    async function loadPlaylists() {
+        const querySnapshot = await getDocs(collection(db, "playlists"));
+        querySnapshot.forEach((doc) => {
+            const opt = document.createElement('option');
+            opt.value = doc.data().name;
+            opt.innerText = doc.data().name;
+            // Insert before the "Create New" option
+            playlistSelect.insertBefore(opt, playlistSelect.lastElementChild);
+        });
+    }
+    loadPlaylists();
+
+    // 3. Handle Playlist Selection Change
+    playlistSelect.addEventListener('change', () => {
+        if (playlistSelect.value === 'NEW_PLAYLIST_OPTION') {
+            newPlaylistWrapper.classList.remove('hidden');
+        } else {
+            newPlaylistWrapper.classList.add('hidden');
+        }
+    });
+
+    // 4. Save Data
+    document.getElementById('btnSave').addEventListener('click', async () => {
+        const title = document.getElementById('errorTitle').value;
+        let playlist = playlistSelect.value;
+        const newPlaylistName = document.getElementById('newPlaylistName').value;
+        const message = document.getElementById('errorMessage').value;
+        const retryUrl = document.getElementById('retryUrl').value;
+
+        if (!title || !message || !retryUrl || !playlist) {
+            alert("Please fill all fields.");
+            return;
+        }
+
+        const btn = document.getElementById('btnSave');
+        btn.disabled = true;
+        btn.innerText = "Saving...";
+
+        try {
+            // Logic: If creating a new playlist, save it to DB first
+            if (playlist === 'NEW_PLAYLIST_OPTION') {
+                if (!newPlaylistName.trim()) {
+                    alert("Please enter a name for the New Playlist");
+                    btn.disabled = false; btn.innerText = "Save Error";
+                    return;
+                }
+                
+                // Save new playlist to 'playlists' collection
+                await addDoc(collection(db, "playlists"), {
+                    name: newPlaylistName
+                });
+                playlist = newPlaylistName; // Update playlist variable to the new name
+            }
+
+            // Save the Error
+            await addDoc(collection(db, "errors"), {
+                title: title,
+                playlist: playlist,
+                message: message,
+                retryUrl: retryUrl,
+                uniqueCode: currentCode,
+                createdBy: localStorage.getItem("currentUser"),
+                createdAt: new Date()
+            });
+
+            alert("Error Created Successfully!\nCode: " + currentCode);
+            
+            // Reset Form and generate new code
+            window.location.reload();
+
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            alert("Failed to save. Check console for details.");
+            btn.disabled = false;
+            btn.innerText = "Save Error";
+        }
+    });
+</script>
+
+</body>
+</html>
