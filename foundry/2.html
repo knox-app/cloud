@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Ontology Admin Platform</title>
+    <style>
+        :root {
+            --text-color: #000000;
+            --sub-text: #6e6e80;
+            --border-color: #e5e5e5;
+            --btn-bg: #000000;
+            --btn-text: #ffffff;
+        }
+
+        * { box-sizing: border-box; outline: none; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #ffffff;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px; /* Wider for signup */
+        }
+
+        h1 { font-weight: 700; font-size: 32px; letter-spacing: -1px; margin-bottom: 10px; }
+        p.subtitle { color: var(--sub-text); margin-bottom: 30px; }
+
+        .grid-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .grid-form { grid-template-columns: 1fr; gap: 10px; }
+        }
+
+        .full-width { grid-column: 1 / -1; }
+
+        .form-group { margin-bottom: 15px; }
+        
+        label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333; }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: #fff;
+        }
+        
+        input:focus { border-color: #000; }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            color: var(--btn-text);
+            background-color: var(--btn-bg);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover { opacity: 0.9; }
+
+        .link { margin-top: 20px; text-align: center; font-size: 14px; }
+        .link a { color: #000; text-decoration: none; border-bottom: 1px solid #000; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Create your account</h1>
+        <p class="subtitle">Join the Ontology Admin Platform</p>
+
+        <form id="signupForm" class="grid-form">
+            <div class="form-group">
+                <label>First Name</label>
+                <input type="text" id="firstName" required>
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" id="lastName" required>
+            </div>
+            
+            <div class="form-group full-width">
+                <label>Company Name</label>
+                <input type="text" id="company">
+            </div>
+
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="tel" id="mobile" required>
+            </div>
+            <div class="form-group">
+                <label>Email ID</label>
+                <input type="email" id="email" required>
+            </div>
+
+            <div class="form-group full-width">
+                <label>Profile Picture URL</label>
+                <input type="url" id="pfpUrl" placeholder="https://example.com/image.jpg">
+            </div>
+
+            <div class="form-group full-width">
+                <label>Username</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group full-width">
+                <label>Password</label>
+                <input type="password" id="password" required>
+            </div>
+
+            <div class="full-width">
+                <button type="submit" id="submitBtn">Sign Up</button>
+            </div>
+        </form>
+
+        <div class="link full-width">
+            Already have an account? <a href="1.html">Log in</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            authDomain: "question-metabase.firebaseapp.com",
+            databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "question-metabase",
+            storageBucket: "question-metabase.firebasestorage.app",
+            messagingSenderId: "770698198753",
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+            measurementId: "G-6ZP1FPMKSJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = 'Creating Account...';
+            btn.disabled = true;
+
+            const userData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                mobile: document.getElementById('mobile').value,
+                email: document.getElementById('email').value,
+                company: document.getElementById('company').value,
+                pfpUrl: document.getElementById('pfpUrl').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                // Check uniqueness
+                const q = query(collection(db, "users"), where("username", "==", userData.username));
+                const snap = await getDocs(q);
+
+                if (!snap.empty) {
+                    alert('Username already exists. Please choose another.');
+                    btn.innerText = 'Sign Up';
+                    btn.disabled = false;
+                    return;
+                }
+
+                await addDoc(collection(db, "users"), userData);
+                alert('Account created successfully!');
+                window.location.href = '1.html';
+
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                alert("Error creating account: " + error.message);
+                btn.innerText = 'Sign Up';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

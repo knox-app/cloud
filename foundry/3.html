@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Ontology Admin Platform</title>
+    <style>
+        :root {
+            --bg-body: #f7f7f8;
+            --card-bg: #ffffff;
+            --text-main: #202123;
+            --text-sub: #6e6e80;
+            --border: #e5e5e5;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .profile-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+            padding: 40px;
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .avatar-container {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #ddd;
+            overflow: hidden;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .title-section h2 { margin: 0; font-size: 24px; }
+        .title-section span { color: var(--text-sub); font-size: 14px; }
+
+        .fields-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .field-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .field-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .field-value {
+            font-size: 16px;
+            padding: 10px 0;
+            border-bottom: 1px solid transparent;
+        }
+
+        /* Edit Mode Styling */
+        input.edit-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-top: -5px;
+        }
+
+        .action-bar {
+            margin-top: 40px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .btn-primary { background: #000; color: #fff; }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="profile-card">
+        <div class="header">
+            <div class="avatar-container">
+                <img id="displayPfp" src="" alt="Profile" onerror="this.src='https://via.placeholder.com/150'">
+            </div>
+            <div class="title-section">
+                <h2 id="displayName">Loading...</h2>
+                <span id="displayCompany">...</span>
+            </div>
+        </div>
+
+        <form id="profileForm" class="fields-grid">
+            <!-- Username (Read Only usually) -->
+            <div class="field-box">
+                <span class="field-label">Username</span>
+                <div class="field-value view-mode" id="v_username"></div>
+                <input type="text" class="edit-input hidden" id="i_username" disabled style="background:#f0f0f0; cursor:not-allowed">
+            </div>
+
+            <!-- First Name -->
+            <div class="field-box">
+                <span class="field-label">First Name</span>
+                <div class="field-value view-mode" id="v_firstName"></div>
+                <input type="text" class="edit-input hidden" id="i_firstName">
+            </div>
+
+            <!-- Last Name -->
+            <div class="field-box">
+                <span class="field-label">Last Name</span>
+                <div class="field-value view-mode" id="v_lastName"></div>
+                <input type="text" class="edit-input hidden" id="i_lastName">
+            </div>
+
+            <!-- Email -->
+            <div class="field-box">
+                <span class="field-label">Email</span>
+                <div class="field-value view-mode" id="v_email"></div>
+                <input type="email" class="edit-input hidden" id="i_email">
+            </div>
+
+            <!-- Mobile -->
+            <div class="field-box">
+                <span class="field-label">Mobile</span>
+                <div class="field-value view-mode" id="v_mobile"></div>
+                <input type="tel" class="edit-input hidden" id="i_mobile">
+            </div>
+
+            <!-- Company -->
+            <div class="field-box">
+                <span class="field-label">Company</span>
+                <div class="field-value view-mode" id="v_company"></div>
+                <input type="text" class="edit-input hidden" id="i_company">
+            </div>
+
+            <!-- Password -->
+            <div class="field-box">
+                <span class="field-label">Password</span>
+                <div class="field-value view-mode" id="v_password">••••••</div>
+                <input type="text" class="edit-input hidden" id="i_password">
+            </div>
+
+            <!-- PFP URL -->
+            <div class="field-box hidden" id="pfp_edit_container">
+                <span class="field-label">Profile Image URL</span>
+                <input type="text" class="edit-input" id="i_pfpUrl">
+            </div>
+        </form>
+
+        <div class="action-bar">
+            <button class="btn btn-secondary" id="logoutBtn">Log Out</button>
+            <button class="btn btn-secondary hidden" id="cancelBtn">Cancel</button>
+            <button class="btn btn-primary hidden" id="saveBtn">Save Changes</button>
+            <!-- Only shown if URL doesn't have ?cmd=edit, essentially redirecting to edit mode -->
+            <button class="btn btn-primary" id="editLinkBtn">Edit Profile</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            authDomain: "question-metabase.firebaseapp.com",
+            databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "question-metabase",
+            storageBucket: "question-metabase.firebasestorage.app",
+            messagingSenderId: "770698198753",
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+            measurementId: "G-6ZP1FPMKSJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Auth Guard
+        const uid = localStorage.getItem('ontology_uid');
+        const col = localStorage.getItem('ontology_col') || 'users';
+
+        if (!uid) {
+            window.location.href = '1.html';
+        }
+
+        // Logic variables
+        const urlParams = new URLSearchParams(window.location.search);
+        const isEditMode = urlParams.get('cmd') === 'edit';
+        
+        // DOM Elements
+        const fields = ['username', 'firstName', 'lastName', 'email', 'mobile', 'company', 'password', 'pfpUrl'];
+        const saveBtn = document.getElementById('saveBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const editLinkBtn = document.getElementById('editLinkBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        // Load Data
+        async function loadProfile() {
+            try {
+                const docRef = doc(db, col, uid);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    // Update Header
+                    document.getElementById('displayPfp').src = data.pfpUrl || 'https://via.placeholder.com/150';
+                    document.getElementById('displayName').innerText = `${data.firstName} ${data.lastName}`;
+                    document.getElementById('displayCompany').innerText = data.company || '';
+
+                    // Populate Fields
+                    fields.forEach(field => {
+                        // Update View Text
+                        const viewEl = document.getElementById(`v_${field}`);
+                        if(viewEl) viewEl.innerText = (field === 'password') ? '••••••' : (data[field] || '-');
+                        
+                        // Update Input Value
+                        const inputEl = document.getElementById(`i_${field}`);
+                        if(inputEl) inputEl.value = data[field] || '';
+                    });
+
+                } else {
+                    alert("User profile not found!");
+                    localStorage.clear();
+                    window.location.href = '1.html';
+                }
+            } catch (error) {
+                console.error("Error loading profile:", error);
+            }
+        }
+
+        // Setup UI State
+        function setupUI() {
+            if (isEditMode) {
+                document.querySelectorAll('.view-mode').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.edit-input').forEach(el => el.classList.remove('hidden'));
+                document.getElementById('pfp_edit_container').classList.remove('hidden');
+                
+                saveBtn.classList.remove('hidden');
+                cancelBtn.classList.remove('hidden');
+                editLinkBtn.classList.add('hidden');
+            } else {
+                // View Mode defaults are set in HTML
+                editLinkBtn.addEventListener('click', () => {
+                    window.location.search = '?cmd=edit';
+                });
+            }
+        }
+
+        // Event Listeners
+        cancelBtn.addEventListener('click', () => {
+            window.location.search = ''; // Remove cmd=edit
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = '1.html';
+        });
+
+        saveBtn.addEventListener('click', async () => {
+            saveBtn.innerText = 'Saving...';
+            saveBtn.disabled = true;
+
+            const updateData = {};
+            fields.forEach(field => {
+                const input = document.getElementById(`i_${field}`);
+                if (input && field !== 'username') { // Don't update username usually
+                    updateData[field] = input.value;
+                }
+            });
+
+            try {
+                const docRef = doc(db, col, uid);
+                await updateDoc(docRef, updateData);
+                alert('Profile updated!');
+                window.location.search = ''; // Go back to view mode
+            } catch (error) {
+                console.error("Error updating: ", error);
+                alert("Failed to update.");
+                saveBtn.innerText = 'Save Changes';
+                saveBtn.disabled = false;
+            }
+        });
+
+        // Initialize
+        loadProfile();
+        setupUI();
+
+    </script>
+</body>
+</html>
