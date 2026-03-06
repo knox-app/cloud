@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Ontology Admin Platform</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --sub-text: #6e6e80;
+            --border-color: #e5e5e5;
+            --accent-color: #10a37f; /* Open AI Greenish tint or just Black */
+            --input-bg: #ffffff;
+            --btn-bg: #000000;
+            --btn-text: #ffffff;
+        }
+
+        * { box-sizing: border-box; outline: none; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            background-color: #f9f9f9;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            background: var(--bg-color);
+            /* Minimalist flat design, no heavy shadows */
+            border: 1px solid transparent; 
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 480px) {
+            body { background-color: white; align-items: flex-start; }
+            .container { padding: 20px 0; max-width: 100%; }
+        }
+
+        h1 {
+            font-weight: 700;
+            font-size: 32px;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+            text-align: center;
+        }
+
+        p.subtitle {
+            color: var(--sub-text);
+            text-align: center;
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: border-color 0.2s;
+            background: var(--input-bg);
+        }
+
+        input:focus {
+            border-color: var(--text-color);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--btn-text);
+            background-color: var(--btn-bg);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .error-msg {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Ontology</h1>
+        <p class="subtitle">Admin Platform Login</p>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" required placeholder="Enter your username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required placeholder="Enter your password">
+            </div>
+
+            <button type="submit" id="loginBtn">Continue</button>
+            <div id="errorMsg" class="error-msg">Invalid credentials.</div>
+        </form>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            authDomain: "question-metabase.firebaseapp.com",
+            databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "question-metabase",
+            storageBucket: "question-metabase.firebasestorage.app",
+            messagingSenderId: "770698198753",
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+            measurementId: "G-6ZP1FPMKSJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const loginForm = document.getElementById('loginForm');
+        const errorMsg = document.getElementById('errorMsg');
+        const loginBtn = document.getElementById('loginBtn');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.style.display = 'none';
+            loginBtn.innerText = 'Verifying...';
+            loginBtn.disabled = true;
+
+            const userIn = document.getElementById('username').value.trim();
+            const passIn = document.getElementById('password').value;
+
+            try {
+                // Check 'users' collection first
+                let loggedIn = false;
+                let collectionName = 'users';
+                let docId = null;
+
+                const qUsers = query(collection(db, "users"), where("username", "==", userIn), where("password", "==", passIn));
+                const snapUsers = await getDocs(qUsers);
+
+                if (!snapUsers.empty) {
+                    loggedIn = true;
+                    docId = snapUsers.docs[0].id;
+                } else {
+                    // Check 'AAS' (Admin) collection if not found in users
+                    const qAdmin = query(collection(db, "AAS"), where("username", "==", userIn), where("password", "==", passIn));
+                    const snapAdmin = await getDocs(qAdmin);
+                    
+                    if (!snapAdmin.empty) {
+                        loggedIn = true;
+                        collectionName = 'AAS';
+                        docId = snapAdmin.docs[0].id;
+                    }
+                }
+
+                if (loggedIn) {
+                    // Store Session (Simulated Auth)
+                    localStorage.setItem('ontology_uid', docId);
+                    localStorage.setItem('ontology_col', collectionName);
+
+                    // Check URL Params for redirect
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirectUrl = urlParams.get('id');
+
+                    if (redirectUrl) {
+                        // Security check: ensure it's a valid URL or just redirect blindly as requested
+                        window.location.href = redirectUrl.startsWith('http') ? redirectUrl : 'https://' + redirectUrl;
+                    } else {
+                        window.location.href = '3.html'; // Default to profile
+                    }
+                } else {
+                    throw new Error("User not found");
+                }
+
+            } catch (error) {
+                console.error(error);
+                errorMsg.style.display = 'block';
+                loginBtn.innerText = 'Continue';
+                loginBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
