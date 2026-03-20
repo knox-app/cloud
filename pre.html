@@ -2,346 +2,149 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content Previewer</title>
-    <!-- Font Awesome for Icons -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Previewer</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
         :root {
-            --bg-color: #0f1014;
+            --bg: #0f1014;
             --text-main: #ffffff;
             --text-dim: #8f98b2;
-            --accent-blue: #1f80e0;
-            --btn-bg: #e1e6f0;
-            --card-bg: #1a1c21;
+            --accent: #1f80e0;
+            --btn-gray: #252833;
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            user-select: none;
+            margin: 0; background: var(--bg); color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent;
         }
 
-        .preview-container {
-            max-width: 500px; /* Mobile View style */
-            margin: 0 auto;
-            padding-bottom: 80px;
-            background: var(--bg-color);
-            min-height: 100vh;
+        /* 1. Hero / Trailer Section */
+        .hero { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; }
+        .hero img, .hero video { width: 100%; height: 100%; object-fit: cover; }
+        .hero-fade {
+            position: absolute; bottom: 0; width: 100%; height: 50%;
+            background: linear-gradient(to top, var(--bg), transparent);
+        }
+        .trailer-tag {
+            position: absolute; top: 12px; left: 12px; font-size: 10px;
+            background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px;
+            font-weight: bold; letter-spacing: 0.5px;
         }
 
-        /* 1. Hero Section */
-        .hero-section {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: #000;
-            overflow: hidden;
+        /* 2. Header Section */
+        .header { padding: 0 16px; text-align: center; margin-top: -30px; position: relative; z-index: 2; }
+        .logo { max-width: 180px; max-height: 70px; margin-bottom: 8px; }
+        .blue-tag { color: var(--accent); font-weight: bold; font-size: 14px; margin-bottom: 8px; }
+        .meta { color: var(--text-dim); font-size: 13px; margin-bottom: 20px; }
+
+        /* 3. Button Mindsets */
+        .btn-box { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+        .btn-main {
+            background: #e1e6f0; color: #000; border: none; padding: 14px;
+            border-radius: 8px; font-weight: 800; font-size: 15px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-sec {
+            background: rgba(255,255,255,0.1); color: #fff; border: none;
+            padding: 12px; border-radius: 8px; font-weight: 600;
         }
 
-        #mediaContainer {
-            width: 100%;
-            height: 100%;
-        }
-
-        #mediaContainer img, #mediaContainer video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: opacity 0.5s ease;
-        }
-
-        #trailerOverlay {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 4px 10px;
-            font-size: 11px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            z-index: 10;
-        }
-
-        .back-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(0,0,0,0.3);
-            border: none;
-            color: white;
-            font-size: 18px;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 10;
-        }
-
-        /* 2. Content Logo & Info */
-        .content-header {
-            padding: 20px 15px 10px;
-            text-align: center;
-        }
-
-        .content-logo {
-            max-width: 220px;
-            max-height: 90px;
-            object-fit: contain;
-            display: block;
-            margin: 0 auto 10px;
-        }
-
-        .blue-tag {
-            color: var(--accent-blue);
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .meta-info {
-            color: var(--text-dim);
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 15px;
-        }
-
-        /* 3. Dynamic Play Buttons */
-        .button-group {
-            padding: 0 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .main-btn {
-            background: var(--btn-bg);
-            color: #000;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-weight: 800;
-            font-size: 15px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .sec-btn {
-            background: rgba(255,255,255,0.08);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-
-        /* 4 & 5. Tags & Description */
-        .genre-tags {
-            padding: 15px;
-            color: var(--text-dim);
-            font-size: 13px;
-            font-weight: 700;
-            word-spacing: 5px;
-        }
-
-        .description {
-            padding: 0 15px;
-            font-size: 14px;
-            color: var(--text-dim);
-            line-height: 1.5;
-            margin-bottom: 20px;
-        }
+        /* 4 & 5. Tags & Desc */
+        .genres { padding: 16px; color: var(--text-dim); font-weight: bold; font-size: 13px; }
+        .desc { padding: 0 16px; color: var(--text-dim); font-size: 14px; line-height: 1.4; margin-bottom: 20px; }
 
         /* 6. Action Bar */
-        .action-bar {
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0 25px;
-            border-bottom: 1px solid #252833;
-        }
-
-        .action-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: var(--text-dim);
-            position: relative;
-            cursor: pointer;
-        }
-
+        .actions { display: flex; justify-content: space-around; padding: 10px 0; border-bottom: 1px solid #252833; }
+        .action-item { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
         .action-item i { font-size: 20px; color: #fff; }
 
-        /* Rate Menu */
-        .rate-menu {
-            display: none;
-            position: absolute;
-            bottom: 50px;
-            background: #252833;
-            border-radius: 8px;
-            width: 120px;
-            padding: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            z-index: 100;
+        /* 7. EPISODES (Matched to your screenshot layout) */
+        .section-title { padding: 20px 16px 12px; font-size: 18px; font-weight: 700; }
+        .ep-list.collapsed .ep-card:nth-child(n+5) { display: none; }
+        
+        .ep-card {
+            display: flex; gap: 12px; padding: 12px 16px; align-items: flex-start;
+            text-decoration: none; color: inherit;
         }
-        .action-item:hover .rate-menu { display: block; }
-        .rate-menu span { display: block; padding: 5px 0; font-size: 13px; color: white; }
-
-        /* Sections */
-        .section { padding: 20px 15px; }
-        .section h3 { font-size: 18px; margin-bottom: 15px; }
-
-        /* 7. Episode List */
-        .episodes-container.collapsed .episode-card:nth-child(n+5) {
-            display: none;
+        .ep-thumb-container {
+            position: relative; width: 150px; min-width: 150px; aspect-ratio: 16/9;
         }
-
-        .episode-card {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+        .ep-thumb { width: 100%; height: 100%; border-radius: 8px; object-fit: cover; }
+        .ep-play-btn {
+            position: absolute; bottom: 8px; left: 8px; font-size: 12px; color: #fff;
+            background: rgba(0,0,0,0.5); padding: 4px; border-radius: 50%;
         }
-
-        .ep-thumb-wrapper {
-            position: relative;
-            width: 140px;
-            min-width: 140px;
-            aspect-ratio: 16/9;
-        }
-
-        .ep-thumb {
-            width: 100%;
-            height: 100%;
-            border-radius: 6px;
-            object-fit: cover;
-        }
-
-        .ep-info h4 { margin: 0 0 5px 0; font-size: 15px; }
+        .ep-info { flex: 1; position: relative; }
+        .ep-info h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; padding-right: 25px; }
         .ep-info p { margin: 0; font-size: 12px; color: var(--text-dim); }
+        .ep-download { position: absolute; right: 0; top: 0; color: var(--text-dim); font-size: 18px; }
 
         .view-more-btn {
-            width: 100%;
-            background: #252833;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            margin-top: 10px;
+            width: calc(100% - 32px); margin: 10px 16px; background: var(--btn-gray);
+            color: #fff; border: none; padding: 10px; border-radius: 20px; font-weight: 600;
         }
 
-        /* 8. More Like This */
-        .grid-scroll {
-            display: flex;
-            overflow-x: auto;
-            gap: 12px;
-            padding-bottom: 10px;
-        }
-        .grid-scroll::-webkit-scrollbar { display: none; }
-
-        .rec-card {
-            min-width: 110px;
-            width: 110px;
-        }
-
-        .rec-card img {
-            width: 100%;
-            aspect-ratio: 2/3;
-            border-radius: 6px;
-            object-fit: cover;
-        }
-
-        /* 9. Trailers & More */
-        .trailers-grid {
-            display: flex;
-            overflow-x: auto;
-            gap: 15px;
-        }
-        .trailer-item { min-width: 200px; }
-        .trailer-item img { width: 100%; border-radius: 8px; aspect-ratio: 16/9; object-fit: cover; }
-        .trailer-item p { font-size: 13px; margin-top: 8px; }
-
+        /* 8 & 9. Grids */
+        .scroller { display: flex; overflow-x: auto; gap: 12px; padding: 0 16px 20px; scrollbar-width: none; }
+        .scroller::-webkit-scrollbar { display: none; }
+        .post-card { min-width: 110px; width: 110px; }
+        .post-card img { width: 100%; aspect-ratio: 2/3; border-radius: 8px; object-fit: cover; }
+        .trail-card { min-width: 200px; width: 200px; }
+        .trail-card img { width: 100%; aspect-ratio: 16/9; border-radius: 8px; }
+        
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="app" class="preview-container">
-        <!-- 1. Top Media Section -->
-        <div class="hero-section" id="heroSection">
-            <div id="mediaContainer">
-                <img id="mainPoster" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="">
-                <div id="trailerOverlay" class="hidden">Trailer Unavailable</div>
+    <div id="app">
+        <!-- 1. Trailer/Image -->
+        <div class="hero">
+            <div id="visual">
+                <img id="poster" src="" alt="">
             </div>
-            <button class="back-btn"><i class="fa-solid fa-xmark"></i></button>
+            <div class="hero-fade"></div>
+            <div id="trailerStatus" class="trailer-tag">Loading...</div>
         </div>
 
-        <!-- 2. Content Logo & Info -->
-        <div class="content-header">
-            <img id="contentLogo" src="" alt="" class="content-logo">
-            <p id="blueTag" class="blue-tag"></p>
-            <div class="meta-info">
-                <span id="year"></span> • <span id="ageRating"></span> • <span id="duration"></span> • <span id="languages"></span>
-            </div>
+        <!-- 2. Logo/Meta -->
+        <div class="header">
+            <img id="logo" src="" alt="" class="logo">
+            <div id="tag" class="blue-tag"></div>
+            <div id="meta" class="meta"></div>
         </div>
 
-        <!-- 3. Dynamic Play Buttons -->
-        <div class="button-group" id="primaryButtons">
-            <!-- Loading State -->
-            <button class="main-btn">Loading Content...</button>
-        </div>
+        <!-- 3. Buttons -->
+        <div class="btn-box" id="btnGroup"></div>
 
-        <!-- 4. Genres/Tags -->
-        <div class="genre-tags" id="genreContainer"></div>
+        <!-- 4 & 5. Tags/Desc -->
+        <div class="genres" id="genres"></div>
+        <p class="desc" id="description"></p>
 
-        <!-- 5. Description -->
-        <p class="description" id="description"></p>
-
-        <!-- 6. Action Buttons -->
-        <div class="action-bar">
+        <!-- 6. Actions -->
+        <div class="actions">
             <div class="action-item"><i class="fa-solid fa-plus"></i><span>Watchlist</span></div>
             <div class="action-item"><i class="fa-solid fa-share-nodes"></i><span>Share</span></div>
-            <div class="action-item"><i class="fa-solid fa-download"></i><span>Download</span></div>
-            <div class="action-item" id="rateBtn">
-                <i class="fa-solid fa-heart"></i><span>Rate</span>
-                <div class="rate-menu" id="rateMenu">
-                    <span>🚫 Not for me</span>
-                    <span>👍 Like</span>
-                    <span>❤️ Love</span>
-                </div>
-            </div>
+            <div class="action-item"><i class="fa-solid fa-heart"></i><span>Rate</span></div>
         </div>
 
-        <!-- 7. Episodes Section (Dynamic) -->
-        <div id="episodesSection" class="section hidden">
-            <h3 id="seasonTitle">Season 1</h3>
-            <div id="episodesList" class="episodes-container collapsed"></div>
-            <button id="viewMoreBtn" class="view-more-btn hidden">View More</button>
+        <!-- 7. Episodes (Matched to your Firestore map) -->
+        <div id="epSection" class="hidden">
+            <div class="section-title" id="sTitle">Season 1</div>
+            <div id="epList" class="ep-list collapsed"></div>
+            <button id="viewMore" class="view-more-btn hidden">View More</button>
         </div>
 
         <!-- 8. More Like This -->
-        <div class="section">
-            <h3>More Like This</h3>
-            <div class="grid-scroll" id="recommendations"></div>
-        </div>
+        <div class="section-title">More Like This</div>
+        <div class="scroller" id="recGrid"></div>
 
         <!-- 9. Trailers & More -->
-        <div class="section">
-            <h3>Trailers & More</h3>
-            <div class="trailers-grid" id="trailersContainer"></div>
-        </div>
+        <div class="section-title">Trailers & More</div>
+        <div class="scroller" id="trailerGrid"></div>
     </div>
 
-    <!-- Firebase Integration Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -357,165 +160,113 @@
             measurementId: "G-6ZP1FPMKSJ"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const db = getFirestore(initializeApp(firebaseConfig));
+        const subId = new URLSearchParams(window.location.search).get('subdomain') || window.location.search.split('=')[1];
 
-        // Get subdomain from URL preview?=subdomain or preview?subdomain=...
-        const urlParams = new URLSearchParams(window.location.search);
-        let subdomain = urlParams.get('subdomain') || window.location.search.replace('?', '').split('=')[1];
-
-        async function fetchContent() {
-            if (!subdomain) {
-                document.getElementById('primaryButtons').innerHTML = "No content specified.";
-                return;
-            }
-
-            try {
-                const q = query(collection(db, "media_content"), where("subdomain", "==", subdomain));
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    document.getElementById('primaryButtons').innerHTML = "Content not found.";
-                    return;
-                }
-
-                const data = querySnapshot.docs[0].data();
-                renderUI(data);
-            } catch (error) {
-                console.error("Error fetching firebase:", error);
-            }
+        async function load() {
+            if(!subId) return;
+            const q = query(collection(db, "media_content"), where("subdomain", "==", subId));
+            const snap = await getDocs(q);
+            if(snap.empty) return;
+            render(snap.docs[0].data());
         }
 
-        function renderUI(data) {
-            // 1. Trailer Logic (3-4 seconds delay)
-            const mainPoster = document.getElementById('mainPoster');
-            mainPoster.src = data.chooserImg || data.thumbnail;
-            
+        function render(data) {
+            // 1. Trailer Logic
+            document.getElementById('poster').src = data.chooserImg || data.thumbnail;
             setTimeout(() => {
-                const mediaContainer = document.getElementById('mediaContainer');
-                if (data.trailers && data.trailers.length > 0 && data.trailers[0].length > 5) {
-                    mediaContainer.innerHTML = `<video src="${data.trailers[0]}" autoplay muted playsinline controls></video>`;
+                const vis = document.getElementById('visual');
+                const tag = document.getElementById('trailerStatus');
+                if(data.trailers?.[0]) {
+                    tag.innerText = "Trailer Playing";
+                    vis.innerHTML = `<video src="${data.trailers[0]}" autoplay muted playsinline></video>`;
                 } else {
-                    document.getElementById('trailerOverlay').classList.remove('hidden');
-                    document.getElementById('trailerOverlay').innerText = "Trailer Unavailable";
+                    tag.innerText = "Trailer Unavailable";
                 }
             }, 3500);
 
-            // 2. Logo & Metadata
-            document.getElementById('contentLogo').src = data.logo;
-            document.getElementById('blueTag').innerText = data.blueTags?.[0] || "";
-            document.getElementById('year').innerText = data.year;
-            document.getElementById('ageRating').innerText = data.ageRating;
-            document.getElementById('duration').innerText = data.duration || (data.seasons ? `${data.seasons.length} Season` : "");
-            document.getElementById('languages').innerText = `${data.languages?.length || 0} Languages`;
-
-            // 3. Play Button Mindsets
-            renderPlayButtons(data);
-
-            // 4 & 5. Tags & Description
-            document.getElementById('genreContainer').innerText = data.genres?.join(' • ') || "";
+            // 2. Metadata
+            document.getElementById('logo').src = data.logo;
+            document.getElementById('tag').innerText = data.blueTags?.[0] || "";
+            document.getElementById('meta').innerText = `${data.year} • ${data.ageRating} • ${data.duration || (data.seasons?.length + ' Seasons')} • ${data.languages?.length} Languages`;
+            document.getElementById('genres').innerText = data.genres?.join(' | ');
             document.getElementById('description').innerText = data.description;
 
-            // 7. Episodes Logic (For Series)
-            if (data.type === "Series" && data.seasons) {
-                const epSection = document.getElementById('episodesSection');
-                const epList = document.getElementById('episodesList');
-                epSection.classList.remove('hidden');
+            // 3. Button Mindsets
+            const btnBox = document.getElementById('btnGroup');
+            const history = JSON.parse(localStorage.getItem('user_history') || '{}')[subId];
+
+            if(data.type === "Series") {
+                if(!history) {
+                    btnBox.innerHTML = `<button class="btn-main"><i class="fa-solid fa-play"></i> Watch Latest Episode</button>`;
+                } else {
+                    btnBox.innerHTML = `<button class="btn-main"><i class="fa-solid fa-play"></i> Resume S${history.s} E${history.e}</button>
+                                        <button class="btn-sec">Watch From Beginning</button>`;
+                }
+            } else {
+                btnBox.innerHTML = history ? `<button class="btn-main"><i class="fa-solid fa-play"></i> Resume Watching</button><button class="btn-sec">Watch From Beginning</button>` : `<button class="btn-main"><i class="fa-solid fa-play"></i> Watch Now</button>`;
+            }
+
+            // 7. Episodes (USING YOUR FIRESTORE FIELDS)
+            if(data.seasons && data.seasons[0]) {
+                const section = document.getElementById('epSection');
+                const list = document.getElementById('epList');
+                section.classList.remove('hidden');
                 
-                let episodes = data.seasons[0].episodes || [];
-                episodes.forEach((ep, i) => {
+                const episodes = data.seasons[0].episodes || [];
+                episodes.forEach((ep) => {
                     const card = document.createElement('div');
-                    card.className = 'episode-card';
+                    card.className = 'ep-card';
                     card.innerHTML = `
-                        <div class="ep-thumb-wrapper">
+                        <div class="ep-thumb-container">
                             <img src="${ep.thumbnail}" class="ep-thumb">
-                            <div style="position:absolute; bottom:5px; left:5px; background:rgba(0,0,0,0.7); font-size:10px; padding:2px 5px;">EP ${i+1}</div>
+                            <i class="fa-solid fa-play ep-play-btn"></i>
                         </div>
                         <div class="ep-info">
-                            <h4>${ep.title || 'Episode ' + (i+1)}</h4>
-                            <p>${data.year} • 35m</p>
+                            <h4>${ep.title}</h4>
+                            <p>S${data.seasons[0].seasonNumber} E${ep.episodeNo} • ${ep.releasedDate}</p>
+                            <i class="fa-solid fa-download ep-download"></i>
                         </div>
                     `;
-                    epList.appendChild(card);
+                    list.appendChild(card);
                 });
 
-                if (episodes.length > 4) {
-                    const vmBtn = document.getElementById('viewMoreBtn');
-                    vmBtn.classList.remove('hidden');
-                    vmBtn.onclick = () => {
-                        epList.classList.toggle('collapsed');
-                        vmBtn.innerText = epList.classList.contains('collapsed') ? "View More" : "View Less";
+                if(episodes.length > 4) {
+                    const vm = document.getElementById('viewMore');
+                    vm.classList.remove('hidden');
+                    vm.onclick = () => {
+                        list.classList.toggle('collapsed');
+                        vm.innerText = list.classList.contains('collapsed') ? "View More" : "View Less";
                     };
                 }
             }
 
-            // 8. More Like This (Based on Genres)
-            fetchRecommendations(data.genres, data.subdomain);
-
-            // 9. Trailers & More Section
+            // 8 & 9. Grids
+            fetchRecs(data.genres);
             if(data.trailers) {
-                const trailerCont = document.getElementById('trailersContainer');
+                const tg = document.getElementById('trailerGrid');
                 data.trailers.forEach((t, i) => {
-                    const div = document.createElement('div');
-                    div.className = 'trailer-item';
-                    div.innerHTML = `
-                        <img src="${data.thumbnail}">
-                        <p>${data.title} - Trailer ${i+1}</p>
-                    `;
-                    trailerCont.appendChild(div);
+                    tg.innerHTML += `<div class="trail-card"><img src="${data.thumbnail}"><p>Trailer ${i+1}</p></div>`;
                 });
             }
         }
 
-        function renderPlayButtons(data) {
-            const container = document.getElementById('primaryButtons');
-            // Mock local storage check for "Resume" logic
-            const history = JSON.parse(localStorage.getItem('user_history') || '{}');
-            const progress = history[data.subdomain];
-
-            let mainBtnHtml = "";
-            let subBtnHtml = "";
-
-            if (data.type === "Series") {
-                if (!progress) {
-                    mainBtnHtml = `<button class="main-btn"><i class="fa-solid fa-play"></i> Watch Latest Episode</button>`;
-                } else {
-                    mainBtnHtml = `<button class="main-btn"><i class="fa-solid fa-play"></i> Resume S${progress.s} E${progress.e}</button>`;
-                    subBtnHtml = `<button class="sec-btn">Watch From Beginning</button>`;
-                }
-            } else {
-                // Movie Logic
-                if (!progress) {
-                    mainBtnHtml = `<button class="main-btn"><i class="fa-solid fa-play"></i> Watch Now</button>`;
-                } else {
-                    mainBtnHtml = `<button class="main-btn"><i class="fa-solid fa-play"></i> Resume Watching</button>`;
-                    subBtnHtml = `<button class="sec-btn">Watch From Beginning</button>`;
-                }
-            }
-
-            container.innerHTML = mainBtnHtml + subBtnHtml;
-        }
-
-        async function fetchRecommendations(genres, currentSub) {
-            const recContainer = document.getElementById('recommendations');
-            if(!genres) return;
-            
+        async function fetchRecs(genres) {
             const q = query(collection(db, "media_content"), where("genres", "array-contains-any", genres));
             const snap = await getDocs(q);
-            
+            const grid = document.getElementById('recGrid');
             snap.forEach(doc => {
-                const item = doc.data();
-                if(item.subdomain !== currentSub) {
+                if(doc.data().subdomain !== subId) {
                     const div = document.createElement('div');
-                    div.className = 'rec-card';
-                    div.innerHTML = `<img src="${item.thumbnail}">`;
-                    div.onclick = () => window.location.search = `?subdomain=${item.subdomain}`;
-                    recContainer.appendChild(div);
+                    div.className = 'post-card';
+                    div.innerHTML = `<img src="${doc.data().thumbnail}">`;
+                    div.onclick = () => window.location.search = `?subdomain=${doc.data().subdomain}`;
+                    grid.appendChild(div);
                 }
             });
         }
 
-        fetchContent();
+        load();
     </script>
 </body>
-  </html>
+                </html>
