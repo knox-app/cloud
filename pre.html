@@ -16,91 +16,60 @@
 
         body {
             margin: 0; background: var(--bg); color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent;
+            font-family: 'Segoe UI', Roboto, sans-serif; overflow-x: hidden;
         }
 
-        /* 1. Hero / Trailer Section */
+        /* Hero */
         .hero { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; }
         .hero img, .hero video { width: 100%; height: 100%; object-fit: cover; }
         .hero-fade {
-            position: absolute; bottom: 0; width: 100%; height: 60%;
+            position: absolute; bottom: 0; width: 100%; height: 70%;
             background: linear-gradient(to top, var(--bg) 10%, transparent 100%);
         }
-        .trailer-tag {
-            position: absolute; top: 12px; left: 12px; font-size: 10px;
-            background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px;
-            font-weight: bold; letter-spacing: 0.5px; z-index: 5;
-        }
 
-        /* 2. Header Section */
-        .header { padding: 0 16px; text-align: center; margin-top: -40px; position: relative; z-index: 10; }
-        .logo { max-width: 200px; max-height: 80px; margin-bottom: 8px; object-fit: contain; }
-        .blue-tag { color: var(--accent); font-weight: bold; font-size: 14px; margin-bottom: 8px; text-transform: capitalize; }
-        .meta { color: var(--text-dim); font-size: 13px; margin-bottom: 20px; font-weight: 500; }
+        /* Info */
+        .header { padding: 0 16px; text-align: center; margin-top: -30px; position: relative; z-index: 10; }
+        .logo { max-width: 180px; max-height: 60px; margin-bottom: 5px; object-fit: contain; }
+        .blue-tag { color: var(--accent); font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+        .meta { color: var(--text-dim); font-size: 13px; margin-bottom: 20px; }
 
-        /* 3. Button Mindsets */
+        /* Buttons */
         .btn-box { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
         .btn-main {
             background: #e1e6f0; color: #000; border: none; padding: 14px;
             border-radius: 8px; font-weight: 800; font-size: 15px;
-            display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
-        }
-        .btn-sec {
-            background: rgba(255,255,255,0.1); color: #fff; border: none;
-            padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
 
-        /* 4 & 5. Tags & Desc */
-        .genres { padding: 20px 16px 8px; color: var(--text-dim); font-weight: bold; font-size: 13px; }
-        .desc { padding: 0 16px; color: var(--text-dim); font-size: 14px; line-height: 1.5; margin-bottom: 25px; }
-
-        /* 6. Action Bar */
-        .actions { display: flex; justify-content: space-around; padding: 10px 0 20px; border-bottom: 1px solid #252833; }
-        .action-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; color: var(--text-dim); cursor: pointer; }
+        /* Toolbar */
+        .actions { display: flex; justify-content: space-around; padding: 25px 0 15px; }
+        .action-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; color: var(--text-dim); }
         .action-item i { font-size: 22px; color: #fff; }
 
-        /* 7. EPISODES SECTION */
-        .section-title { padding: 25px 16px 15px; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
-        
-        /* Layout logic for Episodes */
+        /* EPISODES - Screenshot Match */
+        .section-title { padding: 20px 16px 10px; font-size: 18px; font-weight: 700; }
         .ep-list.collapsed .ep-card:nth-child(n+5) { display: none; }
-        
         .ep-card {
-            display: flex; gap: 15px; padding: 12px 16px; align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
+            display: flex; gap: 12px; padding: 12px 16px; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .ep-thumb-container {
-            position: relative; width: 140px; min-width: 140px; aspect-ratio: 16/9;
-        }
+        .ep-thumb-wrapper { position: relative; width: 140px; min-width: 140px; aspect-ratio: 16/9; }
         .ep-thumb { width: 100%; height: 100%; border-radius: 8px; object-fit: cover; }
-        .ep-play-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.2); border-radius: 8px;
-        }
-        .ep-play-overlay i { font-size: 20px; color: #fff; opacity: 0.9; }
-
         .ep-info { flex: 1; overflow: hidden; }
-        .ep-info h4 { margin: 0 0 4px; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
-        .ep-info p { margin: 0; font-size: 12px; color: var(--text-dim); }
+        .ep-info h4 { margin: 0; font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ep-info p { margin: 4px 0 0; font-size: 12px; color: var(--text-dim); }
+        .ep-download { color: var(--text-dim); font-size: 20px; }
 
-        .ep-download { color: var(--text-dim); font-size: 20px; padding-left: 10px; }
+        .view-more-container { padding: 10px; text-align: center; }
+        .view-more-btn { background: var(--btn-gray); color: #fff; border: none; padding: 8px 20px; border-radius: 20px; font-size: 12px; }
 
-        .view-more-container { padding: 15px 16px; text-align: center; }
-        .view-more-btn {
-            background: var(--btn-gray); color: #fff; border: none;
-            padding: 10px 25px; border-radius: 20px; font-weight: 600; font-size: 13px;
-        }
-
-        /* 8 & 9. Horizontal Scrollers */
-        .scroller { display: flex; overflow-x: auto; gap: 12px; padding: 0 16px 25px; scrollbar-width: none; }
+        /* Scrollers */
+        .scroller { display: flex; overflow-x: auto; gap: 12px; padding: 0 16px 20px; }
         .scroller::-webkit-scrollbar { display: none; }
-        .post-card { min-width: 110px; width: 110px; cursor: pointer; }
+        .post-card { min-width: 110px; width: 110px; }
         .post-card img { width: 100%; aspect-ratio: 2/3; border-radius: 8px; object-fit: cover; }
-        
         .trail-card { min-width: 180px; width: 180px; }
-        .trail-card img { width: 100%; aspect-ratio: 16/9; border-radius: 8px; margin-bottom: 8px; }
-        .trail-card p { margin: 0; font-size: 12px; color: #fff; }
+        .trail-card img { width: 100%; aspect-ratio: 16/9; border-radius: 8px; }
 
         .hidden { display: none !important; }
     </style>
@@ -108,30 +77,19 @@
 <body>
 
     <div id="app">
-        <!-- Top Visual Section -->
         <div class="hero">
-            <div id="visualContent">
-                <img id="mainPoster" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
-            </div>
+            <div id="visual"><img id="poster" src=""></div>
             <div class="hero-fade"></div>
-            <div id="trailerStatus" class="trailer-tag">TRAILER UNAVAILABLE</div>
         </div>
 
-        <!-- Content Info -->
         <div class="header">
-            <img id="contentLogo" src="" class="logo">
+            <img id="logo" src="" class="logo">
             <div id="blueTag" class="blue-tag"></div>
-            <div id="metaInfo" class="meta"></div>
+            <div id="meta" class="meta"></div>
         </div>
 
-        <!-- Dynamic Action Buttons -->
-        <div class="btn-box" id="dynamicBtns"></div>
+        <div class="btn-box" id="playBtns"></div>
 
-        <!-- Content Details -->
-        <div class="genres" id="genreList"></div>
-        <p class="desc" id="contentDesc"></p>
-
-        <!-- Tool Bar -->
         <div class="actions">
             <div class="action-item"><i class="fa-solid fa-plus"></i><span>Watchlist</span></div>
             <div class="action-item"><i class="fa-solid fa-share-nodes"></i><span>Share</span></div>
@@ -139,22 +97,20 @@
             <div class="action-item"><i class="fa-solid fa-heart"></i><span>Rate</span></div>
         </div>
 
-        <!-- Episode List Section -->
-        <div id="episodesSection" class="hidden">
-            <div class="section-title" id="seasonHeader">Season 1</div>
-            <div id="episodeListContainer" class="ep-list collapsed"></div>
+        <!-- Episodes Section -->
+        <div id="epSection" class="hidden">
+            <div class="section-title">Episodes</div>
+            <div id="epList" class="ep-list collapsed"></div>
             <div class="view-more-container">
-                <button id="viewMoreBtn" class="view-more-btn hidden">View More</button>
+                <button id="vmBtn" class="view-more-btn hidden">View More</button>
             </div>
         </div>
 
-        <!-- Recommendation Grid -->
         <div class="section-title">More Like This</div>
-        <div class="scroller" id="recommendationGrid"></div>
+        <div class="scroller" id="recGrid"></div>
 
-        <!-- Trailers Grid -->
         <div class="section-title">Trailers & More</div>
-        <div class="scroller" id="trailersGrid"></div>
+        <div class="scroller" id="trailGrid"></div>
     </div>
 
     <script type="module">
@@ -173,140 +129,95 @@
         };
 
         const db = getFirestore(initializeApp(firebaseConfig));
-        
-        // Get subdomain from preview?subdomain=eyes-on-wakanda
-        const params = new URLSearchParams(window.location.search);
-        let currentSubdomain = params.get('subdomain') || window.location.search.split('=')[1];
+        const subId = new URLSearchParams(window.location.search).get('subdomain') || window.location.search.split('=')[1];
 
-        async function initPreviewer() {
-            if (!currentSubdomain) return;
-
-            const q = query(collection(db, "media_content"), where("subdomain", "==", currentSubdomain));
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-                console.error("Content not found in database.");
-                return;
-            }
-
-            const contentData = querySnapshot.docs[0].data();
-            console.log("Firestore Data Loaded:", contentData); // For debugging
-            renderUI(contentData);
+        async function start() {
+            if(!subId) return console.error("No subdomain in URL");
+            
+            const q = query(collection(db, "media_content"), where("subdomain", "==", subId));
+            const snap = await getDocs(q);
+            
+            if(snap.empty) return console.error("Content not found");
+            
+            const data = snap.docs[0].data();
+            console.log("Full Data Object:", data);
+            renderUI(data);
         }
 
         function renderUI(data) {
-            // 1. Trailer/Poster Logic
-            const poster = document.getElementById('mainPoster');
-            poster.src = data.chooserImg || data.thumbnail;
+            // Hero
+            document.getElementById('poster').src = data.chooserImg || data.thumbnail;
             
-            setTimeout(() => {
-                const tag = document.getElementById('trailerStatus');
-                if (data.trailers && data.trailers[0]) {
-                    tag.innerText = "TRAILER";
-                    document.getElementById('visualContent').innerHTML = `<video src="${data.trailers[0]}" autoplay muted playsinline></video>`;
-                }
-            }, 3500);
-
-            // 2. Info Logic
-            document.getElementById('contentLogo').src = data.logo;
+            // Meta
+            document.getElementById('logo').src = data.logo;
             document.getElementById('blueTag').innerText = data.blueTags?.[0] || "";
-            document.getElementById('metaInfo').innerText = `${data.year} • ${data.ageRating} • ${data.duration || (data.seasons?.length + ' Season')} • ${data.languages?.length || 0} Languages`;
-            document.getElementById('genreList').innerText = data.genres?.join(' | ');
-            document.getElementById('contentDesc').innerText = data.description;
+            document.getElementById('meta').innerText = `${data.year} • ${data.ageRating} • ${data.seasons?.length || 0} Season • ${data.languages?.length || 0} Languages`;
 
-            // 3. Play Button Mindsets
-            const btnContainer = document.getElementById('dynamicBtns');
-            const history = JSON.parse(localStorage.getItem('watch_history') || '{}')[currentSubdomain];
+            // Play Buttons
+            document.getElementById('playBtns').innerHTML = `<button class="btn-main"><i class="fa-solid fa-play"></i> Watch Now</button>`;
 
-            if (data.type === "Series") {
-                if (!history) {
-                    btnContainer.innerHTML = `<button class="btn-main"><i class="fa-solid fa-play"></i> Watch Latest Episode</button>`;
-                } else {
-                    btnContainer.innerHTML = `
-                        <button class="btn-main"><i class="fa-solid fa-play"></i> Resume S${history.s} E${history.e}</button>
-                        <button class="btn-sec">Watch From Beginning</button>
-                    `;
+            // --- EPISODES LOGIC ---
+            if (data.seasons && Array.isArray(data.seasons) && data.seasons.length > 0) {
+                const epSection = document.getElementById('epSection');
+                const epList = document.getElementById('epList');
+                const episodes = data.seasons[0].episodes;
+
+                if (episodes && episodes.length > 0) {
+                    console.log("Found Episodes:", episodes.length);
+                    epSection.classList.remove('hidden');
+                    epList.innerHTML = ""; // Clear
+                    
+                    episodes.forEach((ep) => {
+                        const card = document.createElement('div');
+                        card.className = 'ep-card';
+                        card.innerHTML = `
+                            <div class="ep-thumb-wrapper">
+                                <img src="${ep.thumbnail}" class="ep-thumb">
+                            </div>
+                            <div class="ep-info">
+                                <h4>${ep.title}</h4>
+                                <p>S1 E${ep.episodeNo} • ${ep.releasedDate || ''}</p>
+                            </div>
+                            <i class="fa-solid fa-download ep-download"></i>
+                        `;
+                        epList.appendChild(card);
+                    });
+
+                    if (episodes.length > 4) {
+                        const vm = document.getElementById('vmBtn');
+                        vm.classList.remove('hidden');
+                        vm.onclick = () => {
+                            epList.classList.toggle('collapsed');
+                            vm.innerText = epList.classList.contains('collapsed') ? "View More" : "View Less";
+                        };
+                    }
                 }
-            } else {
-                btnContainer.innerHTML = history ? 
-                    `<button class="btn-main"><i class="fa-solid fa-play"></i> Resume Watching</button><button class="btn-sec">Watch From Beginning</button>` : 
-                    `<button class="btn-main"><i class="fa-solid fa-play"></i> Watch Now</button>`;
             }
 
-            // 7. EPISODE LIST LOGIC (Fixing visibility)
-            if (data.seasons && data.seasons[0] && data.seasons[0].episodes) {
-                const section = document.getElementById('episodesSection');
-                const list = document.getElementById('episodeListContainer');
-                const seasonData = data.seasons[0];
-                
-                section.classList.remove('hidden');
-                document.getElementById('seasonHeader').innerText = `Season ${seasonData.seasonNumber || 1}`;
-                
-                const episodes = seasonData.episodes;
-                list.innerHTML = ""; // Clear loader
-
-                episodes.forEach((ep) => {
-                    const card = document.createElement('div');
-                    card.className = 'ep-card';
-                    card.innerHTML = `
-                        <div class="ep-thumb-container">
-                            <img src="${ep.thumbnail}" class="ep-thumb">
-                            <div class="ep-play-overlay"><i class="fa-solid fa-play"></i></div>
-                        </div>
-                        <div class="ep-info">
-                            <h4>${ep.title}</h4>
-                            <p>S${seasonData.seasonNumber || 1} E${ep.episodeNo} • ${ep.releasedDate}</p>
-                        </div>
-                        <i class="fa-solid fa-download ep-download"></i>
-                    `;
-                    list.appendChild(card);
-                });
-
-                if (episodes.length > 4) {
-                    const vmBtn = document.getElementById('viewMoreBtn');
-                    vmBtn.classList.remove('hidden');
-                    vmBtn.onclick = () => {
-                        list.classList.toggle('collapsed');
-                        vmBtn.innerText = list.classList.contains('collapsed') ? "View More" : "View Less";
-                    };
-                }
-            } else {
-                console.log("No episode data found in seasons[0].episodes");
-            }
-
-            // 8. Recommendations
-            fetchSimilar(data.genres);
-
-            // 9. Trailers Scroller
-            if (data.trailers) {
-                const tg = document.getElementById('trailersGrid');
+            // --- TRAILERS LOGIC ---
+            if (data.trailers && data.trailers.length > 0) {
+                const tGrid = document.getElementById('trailGrid');
                 data.trailers.forEach((t, i) => {
-                    tg.innerHTML += `
-                        <div class="trail-card">
-                            <img src="${data.thumbnail}">
-                            <p>${data.title} - Trailer ${i+1}</p>
-                        </div>
-                    `;
+                    tGrid.innerHTML += `<div class="trail-card"><img src="${data.thumbnail}"><p>Trailer ${i+1}</p></div>`;
                 });
             }
+
+            // --- RECS LOGIC ---
+            if (data.genres) fetchRecs(data.genres);
         }
 
-        async function fetchSimilar(genres) {
+        async function fetchRecs(genres) {
             const q = query(collection(db, "media_content"), where("genres", "array-contains-any", genres));
             const snap = await getDocs(q);
-            const grid = document.getElementById('recommendationGrid');
+            const grid = document.getElementById('recGrid');
             snap.forEach(doc => {
-                if (doc.data().subdomain !== currentSubdomain) {
-                    const div = document.createElement('div');
-                    div.className = 'post-card';
-                    div.innerHTML = `<img src="${doc.data().thumbnail}">`;
-                    div.onclick = () => window.location.search = `?subdomain=${doc.data().subdomain}`;
-                    grid.appendChild(div);
+                if(doc.data().subdomain !== subId) {
+                    grid.innerHTML += `<div class="post-card" onclick="location.search='?subdomain=${doc.data().subdomain}'"><img src="${doc.data().thumbnail}"></div>`;
                 }
             });
         }
 
-        initPreviewer();
+        start();
     </script>
 </body>
-        </html>
+</html>
