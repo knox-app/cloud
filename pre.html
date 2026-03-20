@@ -23,126 +23,138 @@
         .hero { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; }
         .hero img, .hero video { width: 100%; height: 100%; object-fit: cover; }
         .hero-fade {
-            position: absolute; bottom: 0; width: 100%; height: 50%;
-            background: linear-gradient(to top, var(--bg), transparent);
+            position: absolute; bottom: 0; width: 100%; height: 60%;
+            background: linear-gradient(to top, var(--bg) 10%, transparent 100%);
         }
         .trailer-tag {
             position: absolute; top: 12px; left: 12px; font-size: 10px;
             background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px;
-            font-weight: bold; letter-spacing: 0.5px;
+            font-weight: bold; letter-spacing: 0.5px; z-index: 5;
         }
 
         /* 2. Header Section */
-        .header { padding: 0 16px; text-align: center; margin-top: -30px; position: relative; z-index: 2; }
-        .logo { max-width: 180px; max-height: 70px; margin-bottom: 8px; }
-        .blue-tag { color: var(--accent); font-weight: bold; font-size: 14px; margin-bottom: 8px; }
-        .meta { color: var(--text-dim); font-size: 13px; margin-bottom: 20px; }
+        .header { padding: 0 16px; text-align: center; margin-top: -40px; position: relative; z-index: 10; }
+        .logo { max-width: 200px; max-height: 80px; margin-bottom: 8px; object-fit: contain; }
+        .blue-tag { color: var(--accent); font-weight: bold; font-size: 14px; margin-bottom: 8px; text-transform: capitalize; }
+        .meta { color: var(--text-dim); font-size: 13px; margin-bottom: 20px; font-weight: 500; }
 
         /* 3. Button Mindsets */
         .btn-box { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
         .btn-main {
             background: #e1e6f0; color: #000; border: none; padding: 14px;
             border-radius: 8px; font-weight: 800; font-size: 15px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
         }
         .btn-sec {
             background: rgba(255,255,255,0.1); color: #fff; border: none;
-            padding: 12px; border-radius: 8px; font-weight: 600;
+            padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;
         }
 
         /* 4 & 5. Tags & Desc */
-        .genres { padding: 16px; color: var(--text-dim); font-weight: bold; font-size: 13px; }
-        .desc { padding: 0 16px; color: var(--text-dim); font-size: 14px; line-height: 1.4; margin-bottom: 20px; }
+        .genres { padding: 20px 16px 8px; color: var(--text-dim); font-weight: bold; font-size: 13px; }
+        .desc { padding: 0 16px; color: var(--text-dim); font-size: 14px; line-height: 1.5; margin-bottom: 25px; }
 
         /* 6. Action Bar */
-        .actions { display: flex; justify-content: space-around; padding: 10px 0; border-bottom: 1px solid #252833; }
-        .action-item { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
-        .action-item i { font-size: 20px; color: #fff; }
+        .actions { display: flex; justify-content: space-around; padding: 10px 0 20px; border-bottom: 1px solid #252833; }
+        .action-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; color: var(--text-dim); cursor: pointer; }
+        .action-item i { font-size: 22px; color: #fff; }
 
-        /* 7. EPISODES (Matched to your screenshot layout) */
-        .section-title { padding: 20px 16px 12px; font-size: 18px; font-weight: 700; }
+        /* 7. EPISODES SECTION */
+        .section-title { padding: 25px 16px 15px; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+        
+        /* Layout logic for Episodes */
         .ep-list.collapsed .ep-card:nth-child(n+5) { display: none; }
         
         .ep-card {
-            display: flex; gap: 12px; padding: 12px 16px; align-items: flex-start;
-            text-decoration: none; color: inherit;
+            display: flex; gap: 15px; padding: 12px 16px; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
         }
         .ep-thumb-container {
-            position: relative; width: 150px; min-width: 150px; aspect-ratio: 16/9;
+            position: relative; width: 140px; min-width: 140px; aspect-ratio: 16/9;
         }
         .ep-thumb { width: 100%; height: 100%; border-radius: 8px; object-fit: cover; }
-        .ep-play-btn {
-            position: absolute; bottom: 8px; left: 8px; font-size: 12px; color: #fff;
-            background: rgba(0,0,0,0.5); padding: 4px; border-radius: 50%;
+        .ep-play-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.2); border-radius: 8px;
         }
-        .ep-info { flex: 1; position: relative; }
-        .ep-info h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; padding-right: 25px; }
+        .ep-play-overlay i { font-size: 20px; color: #fff; opacity: 0.9; }
+
+        .ep-info { flex: 1; overflow: hidden; }
+        .ep-info h4 { margin: 0 0 4px; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
         .ep-info p { margin: 0; font-size: 12px; color: var(--text-dim); }
-        .ep-download { position: absolute; right: 0; top: 0; color: var(--text-dim); font-size: 18px; }
 
+        .ep-download { color: var(--text-dim); font-size: 20px; padding-left: 10px; }
+
+        .view-more-container { padding: 15px 16px; text-align: center; }
         .view-more-btn {
-            width: calc(100% - 32px); margin: 10px 16px; background: var(--btn-gray);
-            color: #fff; border: none; padding: 10px; border-radius: 20px; font-weight: 600;
+            background: var(--btn-gray); color: #fff; border: none;
+            padding: 10px 25px; border-radius: 20px; font-weight: 600; font-size: 13px;
         }
 
-        /* 8 & 9. Grids */
-        .scroller { display: flex; overflow-x: auto; gap: 12px; padding: 0 16px 20px; scrollbar-width: none; }
+        /* 8 & 9. Horizontal Scrollers */
+        .scroller { display: flex; overflow-x: auto; gap: 12px; padding: 0 16px 25px; scrollbar-width: none; }
         .scroller::-webkit-scrollbar { display: none; }
-        .post-card { min-width: 110px; width: 110px; }
+        .post-card { min-width: 110px; width: 110px; cursor: pointer; }
         .post-card img { width: 100%; aspect-ratio: 2/3; border-radius: 8px; object-fit: cover; }
-        .trail-card { min-width: 200px; width: 200px; }
-        .trail-card img { width: 100%; aspect-ratio: 16/9; border-radius: 8px; }
         
+        .trail-card { min-width: 180px; width: 180px; }
+        .trail-card img { width: 100%; aspect-ratio: 16/9; border-radius: 8px; margin-bottom: 8px; }
+        .trail-card p { margin: 0; font-size: 12px; color: #fff; }
+
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div id="app">
-        <!-- 1. Trailer/Image -->
+        <!-- Top Visual Section -->
         <div class="hero">
-            <div id="visual">
-                <img id="poster" src="" alt="">
+            <div id="visualContent">
+                <img id="mainPoster" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
             </div>
             <div class="hero-fade"></div>
-            <div id="trailerStatus" class="trailer-tag">Loading...</div>
+            <div id="trailerStatus" class="trailer-tag">TRAILER UNAVAILABLE</div>
         </div>
 
-        <!-- 2. Logo/Meta -->
+        <!-- Content Info -->
         <div class="header">
-            <img id="logo" src="" alt="" class="logo">
-            <div id="tag" class="blue-tag"></div>
-            <div id="meta" class="meta"></div>
+            <img id="contentLogo" src="" class="logo">
+            <div id="blueTag" class="blue-tag"></div>
+            <div id="metaInfo" class="meta"></div>
         </div>
 
-        <!-- 3. Buttons -->
-        <div class="btn-box" id="btnGroup"></div>
+        <!-- Dynamic Action Buttons -->
+        <div class="btn-box" id="dynamicBtns"></div>
 
-        <!-- 4 & 5. Tags/Desc -->
-        <div class="genres" id="genres"></div>
-        <p class="desc" id="description"></p>
+        <!-- Content Details -->
+        <div class="genres" id="genreList"></div>
+        <p class="desc" id="contentDesc"></p>
 
-        <!-- 6. Actions -->
+        <!-- Tool Bar -->
         <div class="actions">
             <div class="action-item"><i class="fa-solid fa-plus"></i><span>Watchlist</span></div>
             <div class="action-item"><i class="fa-solid fa-share-nodes"></i><span>Share</span></div>
+            <div class="action-item"><i class="fa-solid fa-download"></i><span>Download</span></div>
             <div class="action-item"><i class="fa-solid fa-heart"></i><span>Rate</span></div>
         </div>
 
-        <!-- 7. Episodes (Matched to your Firestore map) -->
-        <div id="epSection" class="hidden">
-            <div class="section-title" id="sTitle">Season 1</div>
-            <div id="epList" class="ep-list collapsed"></div>
-            <button id="viewMore" class="view-more-btn hidden">View More</button>
+        <!-- Episode List Section -->
+        <div id="episodesSection" class="hidden">
+            <div class="section-title" id="seasonHeader">Season 1</div>
+            <div id="episodeListContainer" class="ep-list collapsed"></div>
+            <div class="view-more-container">
+                <button id="viewMoreBtn" class="view-more-btn hidden">View More</button>
+            </div>
         </div>
 
-        <!-- 8. More Like This -->
+        <!-- Recommendation Grid -->
         <div class="section-title">More Like This</div>
-        <div class="scroller" id="recGrid"></div>
+        <div class="scroller" id="recommendationGrid"></div>
 
-        <!-- 9. Trailers & More -->
+        <!-- Trailers Grid -->
         <div class="section-title">Trailers & More</div>
-        <div class="scroller" id="trailerGrid"></div>
+        <div class="scroller" id="trailersGrid"></div>
     </div>
 
     <script type="module">
@@ -161,102 +173,130 @@
         };
 
         const db = getFirestore(initializeApp(firebaseConfig));
-        const subId = new URLSearchParams(window.location.search).get('subdomain') || window.location.search.split('=')[1];
+        
+        // Get subdomain from preview?subdomain=eyes-on-wakanda
+        const params = new URLSearchParams(window.location.search);
+        let currentSubdomain = params.get('subdomain') || window.location.search.split('=')[1];
 
-        async function load() {
-            if(!subId) return;
-            const q = query(collection(db, "media_content"), where("subdomain", "==", subId));
-            const snap = await getDocs(q);
-            if(snap.empty) return;
-            render(snap.docs[0].data());
+        async function initPreviewer() {
+            if (!currentSubdomain) return;
+
+            const q = query(collection(db, "media_content"), where("subdomain", "==", currentSubdomain));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                console.error("Content not found in database.");
+                return;
+            }
+
+            const contentData = querySnapshot.docs[0].data();
+            console.log("Firestore Data Loaded:", contentData); // For debugging
+            renderUI(contentData);
         }
 
-        function render(data) {
-            // 1. Trailer Logic
-            document.getElementById('poster').src = data.chooserImg || data.thumbnail;
+        function renderUI(data) {
+            // 1. Trailer/Poster Logic
+            const poster = document.getElementById('mainPoster');
+            poster.src = data.chooserImg || data.thumbnail;
+            
             setTimeout(() => {
-                const vis = document.getElementById('visual');
                 const tag = document.getElementById('trailerStatus');
-                if(data.trailers?.[0]) {
-                    tag.innerText = "Trailer Playing";
-                    vis.innerHTML = `<video src="${data.trailers[0]}" autoplay muted playsinline></video>`;
-                } else {
-                    tag.innerText = "Trailer Unavailable";
+                if (data.trailers && data.trailers[0]) {
+                    tag.innerText = "TRAILER";
+                    document.getElementById('visualContent').innerHTML = `<video src="${data.trailers[0]}" autoplay muted playsinline></video>`;
                 }
             }, 3500);
 
-            // 2. Metadata
-            document.getElementById('logo').src = data.logo;
-            document.getElementById('tag').innerText = data.blueTags?.[0] || "";
-            document.getElementById('meta').innerText = `${data.year} • ${data.ageRating} • ${data.duration || (data.seasons?.length + ' Seasons')} • ${data.languages?.length} Languages`;
-            document.getElementById('genres').innerText = data.genres?.join(' | ');
-            document.getElementById('description').innerText = data.description;
+            // 2. Info Logic
+            document.getElementById('contentLogo').src = data.logo;
+            document.getElementById('blueTag').innerText = data.blueTags?.[0] || "";
+            document.getElementById('metaInfo').innerText = `${data.year} • ${data.ageRating} • ${data.duration || (data.seasons?.length + ' Season')} • ${data.languages?.length || 0} Languages`;
+            document.getElementById('genreList').innerText = data.genres?.join(' | ');
+            document.getElementById('contentDesc').innerText = data.description;
 
-            // 3. Button Mindsets
-            const btnBox = document.getElementById('btnGroup');
-            const history = JSON.parse(localStorage.getItem('user_history') || '{}')[subId];
+            // 3. Play Button Mindsets
+            const btnContainer = document.getElementById('dynamicBtns');
+            const history = JSON.parse(localStorage.getItem('watch_history') || '{}')[currentSubdomain];
 
-            if(data.type === "Series") {
-                if(!history) {
-                    btnBox.innerHTML = `<button class="btn-main"><i class="fa-solid fa-play"></i> Watch Latest Episode</button>`;
+            if (data.type === "Series") {
+                if (!history) {
+                    btnContainer.innerHTML = `<button class="btn-main"><i class="fa-solid fa-play"></i> Watch Latest Episode</button>`;
                 } else {
-                    btnBox.innerHTML = `<button class="btn-main"><i class="fa-solid fa-play"></i> Resume S${history.s} E${history.e}</button>
-                                        <button class="btn-sec">Watch From Beginning</button>`;
+                    btnContainer.innerHTML = `
+                        <button class="btn-main"><i class="fa-solid fa-play"></i> Resume S${history.s} E${history.e}</button>
+                        <button class="btn-sec">Watch From Beginning</button>
+                    `;
                 }
             } else {
-                btnBox.innerHTML = history ? `<button class="btn-main"><i class="fa-solid fa-play"></i> Resume Watching</button><button class="btn-sec">Watch From Beginning</button>` : `<button class="btn-main"><i class="fa-solid fa-play"></i> Watch Now</button>`;
+                btnContainer.innerHTML = history ? 
+                    `<button class="btn-main"><i class="fa-solid fa-play"></i> Resume Watching</button><button class="btn-sec">Watch From Beginning</button>` : 
+                    `<button class="btn-main"><i class="fa-solid fa-play"></i> Watch Now</button>`;
             }
 
-            // 7. Episodes (USING YOUR FIRESTORE FIELDS)
-            if(data.seasons && data.seasons[0]) {
-                const section = document.getElementById('epSection');
-                const list = document.getElementById('epList');
-                section.classList.remove('hidden');
+            // 7. EPISODE LIST LOGIC (Fixing visibility)
+            if (data.seasons && data.seasons[0] && data.seasons[0].episodes) {
+                const section = document.getElementById('episodesSection');
+                const list = document.getElementById('episodeListContainer');
+                const seasonData = data.seasons[0];
                 
-                const episodes = data.seasons[0].episodes || [];
+                section.classList.remove('hidden');
+                document.getElementById('seasonHeader').innerText = `Season ${seasonData.seasonNumber || 1}`;
+                
+                const episodes = seasonData.episodes;
+                list.innerHTML = ""; // Clear loader
+
                 episodes.forEach((ep) => {
                     const card = document.createElement('div');
                     card.className = 'ep-card';
                     card.innerHTML = `
                         <div class="ep-thumb-container">
                             <img src="${ep.thumbnail}" class="ep-thumb">
-                            <i class="fa-solid fa-play ep-play-btn"></i>
+                            <div class="ep-play-overlay"><i class="fa-solid fa-play"></i></div>
                         </div>
                         <div class="ep-info">
                             <h4>${ep.title}</h4>
-                            <p>S${data.seasons[0].seasonNumber} E${ep.episodeNo} • ${ep.releasedDate}</p>
-                            <i class="fa-solid fa-download ep-download"></i>
+                            <p>S${seasonData.seasonNumber || 1} E${ep.episodeNo} • ${ep.releasedDate}</p>
                         </div>
+                        <i class="fa-solid fa-download ep-download"></i>
                     `;
                     list.appendChild(card);
                 });
 
-                if(episodes.length > 4) {
-                    const vm = document.getElementById('viewMore');
-                    vm.classList.remove('hidden');
-                    vm.onclick = () => {
+                if (episodes.length > 4) {
+                    const vmBtn = document.getElementById('viewMoreBtn');
+                    vmBtn.classList.remove('hidden');
+                    vmBtn.onclick = () => {
                         list.classList.toggle('collapsed');
-                        vm.innerText = list.classList.contains('collapsed') ? "View More" : "View Less";
+                        vmBtn.innerText = list.classList.contains('collapsed') ? "View More" : "View Less";
                     };
                 }
+            } else {
+                console.log("No episode data found in seasons[0].episodes");
             }
 
-            // 8 & 9. Grids
-            fetchRecs(data.genres);
-            if(data.trailers) {
-                const tg = document.getElementById('trailerGrid');
+            // 8. Recommendations
+            fetchSimilar(data.genres);
+
+            // 9. Trailers Scroller
+            if (data.trailers) {
+                const tg = document.getElementById('trailersGrid');
                 data.trailers.forEach((t, i) => {
-                    tg.innerHTML += `<div class="trail-card"><img src="${data.thumbnail}"><p>Trailer ${i+1}</p></div>`;
+                    tg.innerHTML += `
+                        <div class="trail-card">
+                            <img src="${data.thumbnail}">
+                            <p>${data.title} - Trailer ${i+1}</p>
+                        </div>
+                    `;
                 });
             }
         }
 
-        async function fetchRecs(genres) {
+        async function fetchSimilar(genres) {
             const q = query(collection(db, "media_content"), where("genres", "array-contains-any", genres));
             const snap = await getDocs(q);
-            const grid = document.getElementById('recGrid');
+            const grid = document.getElementById('recommendationGrid');
             snap.forEach(doc => {
-                if(doc.data().subdomain !== subId) {
+                if (doc.data().subdomain !== currentSubdomain) {
                     const div = document.createElement('div');
                     div.className = 'post-card';
                     div.innerHTML = `<img src="${doc.data().thumbnail}">`;
@@ -266,7 +306,7 @@
             });
         }
 
-        load();
+        initPreviewer();
     </script>
 </body>
-                </html>
+        </html>
