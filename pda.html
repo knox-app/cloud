@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hotstar Style Player</title>
+    <!-- HLS.js for .m3u8 support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.10/hls.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary-color: #0081ff;
+            --bg-color: #030b17;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: #000;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #player-container {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #player-container.fullscreen {
+            max-width: 100vw;
+            width: 100vw;
+            height: 100vh;
+            aspect-ratio: auto;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Default Pitch to fit toggleable */
+        }
+
+        video.cover { object-fit: cover; }
+
+        /* Brightness Overlay */
+        #brightness-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: black;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 5;
+        }
+
+        /* UI Layers */
+        .controls-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 50%, rgba(0,0,0,0.7) 100%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: opacity 0.3s;
+            padding: 15px;
+        }
+
+        .controls-overlay.hidden { opacity: 0; pointer-events: none; }
+
+        /* Gesture Zones */
+        .gesture-area {
+            position: absolute;
+            top: 15%; width: 40%; height: 70%;
+            z-index: 8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            pointer-events: all;
+        }
+        #left-gesture { left: 0; }
+        #right-gesture { right: 0; }
+
+        .indicator {
+            background: rgba(0,0,0,0.6);
+            padding: 10px 15px;
+            border-radius: 20px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        /* Bottom Bar */
+        .bottom-bar {
+            width: 100%;
+        }
+
+        .progress-container {
+            height: 5px;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+            margin-bottom: 15px;
+            position: relative;
+            border-radius: 5px;
+        }
+
+        .progress-filled {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            position: relative;
+            border-radius: 5px;
+        }
+
+        .progress-filled::after {
+            content: '';
+            position: absolute;
+            right: -5px; top: -4px;
+            width: 12px; height: 12px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .main-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .control-group { display: flex; align-items: center; gap: 20px; }
+        button {
+            background: none; border: none; color: white; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Ad Label */
+        #ad-label {
+            position: absolute;
+            bottom: 80px; left: 20px;
+            background: rgba(255, 217, 0, 0.9);
+            color: black;
+            padding: 4px 12px;
+            font-weight: bold;
+            font-size: 12px;
+            border-radius: 4px;
+            display: none;
+            z-index: 12;
+        }
+
+        /* Lock Screen */
+        #lock-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 20;
+            display: none;
+            align-items: flex-start;
+            padding: 20px;
+        }
+        #lock-screen.active { display: flex; }
+
+        .loading-spinner {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+
+        /* Animating the icon */
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+<div id="player-container">
+    <div id="brightness-overlay"></div>
+    
+    <video id="video-element" playsinline></video>
+
+    <!-- Ad UI -->
+    <div id="ad-label">ADVERTISEMENT</div>
+
+    <!-- Gesture Indicators -->
+    <div id="left-gesture" class="gesture-area">
+        <div class="indicator" id="bright-ind"><i data-lucide="sun"></i><span id="bright-val">100%</span></div>
+    </div>
+    <div id="right-gesture" class="gesture-area">
+        <div class="indicator" id="vol-ind"><i data-lucide="volume-2"></i><span id="vol-val">100%</span></div>
+    </div>
+
+    <!-- Controls Overlay -->
+    <div class="controls-overlay" id="controls">
+        <div class="top-bar">
+            <button id="lock-btn"><i data-lucide="unlock"></i></button>
+            <div id="video-title" style="font-size: 14px; opacity: 0.8;">Stream Player</div>
+            <button id="fit-btn"><i data-lucide="maximize"></i></button>
+        </div>
+
+        <div class="loading-spinner" id="spinner">
+            <i data-lucide="loader-2" class="spin" stroke="white" width="48" height="48"></i>
+        </div>
+
+        <div class="bottom-bar">
+            <div class="progress-container" id="progress-bar">
+                <div class="progress-filled" id="progress-fill"></div>
+            </div>
+            <div class="main-controls">
+                <div class="control-group">
+                    <button id="play-pause"><i data-lucide="play"></i></button>
+                    <span id="time-display" style="font-size: 12px;">00:00 / 00:00</span>
+                </div>
+                <div class="control-group">
+                    <button id="full-screen"><i data-lucide="expand"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lock Layer -->
+    <div id="lock-screen">
+        <button id="unlock-btn" style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 50%;"><i data-lucide="lock"></i></button>
+    </div>
+</div>
+
+<script>
+    // Initialize Icons
+    lucide.createIcons();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const streamUrl = urlParams.get('url');
+    const adUrl = urlParams.get('ad');
+
+    const video = document.getElementById('video-element');
+    const container = document.getElementById('player-container');
+    const controls = document.getElementById('controls');
+    const playPauseBtn = document.getElementById('play-pause');
+    const progressFill = document.getElementById('progress-fill');
+    const progressBar = document.getElementById('progress-bar');
+    const timeDisplay = document.getElementById('time-display');
+    const fullScreenBtn = document.getElementById('full-screen');
+    const lockBtn = document.getElementById('lock-btn');
+    const unlockBtn = document.getElementById('unlock-btn');
+    const lockScreen = document.getElementById('lock-screen');
+    const fitBtn = document.getElementById('fit-btn');
+    const adLabel = document.getElementById('ad-label');
+    const spinner = document.getElementById('spinner');
+    const brightnessOverlay = document.getElementById('brightness-overlay');
+
+    let hls = new Hls();
+    let isLocked = false;
+    let isAdPlaying = false;
+    let hideTimeout;
+
+    // --- INITIALIZATION ---
+    function initPlayer() {
+        if (adUrl) {
+            playAd(adUrl);
+        } else if (streamUrl) {
+            loadStream(streamUrl);
+        }
+    }
+
+    function playAd(url) {
+        isAdPlaying = true;
+        adLabel.style.display = 'block';
+        video.src = url;
+        video.play();
+        // Hide some controls during ad
+        progressBar.style.pointerEvents = 'none';
+    }
+
+    function loadStream(url) {
+        isAdPlaying = false;
+        adLabel.style.display = 'none';
+        progressBar.style.pointerEvents = 'all';
+
+        if (Hls.isSupported()) {
+            hls.loadSource(url);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = url;
+            video.play();
+        }
+    }
+
+    video.addEventListener('ended', () => {
+        if (isAdPlaying) {
+            loadStream(streamUrl);
+        }
+    });
+
+    // --- CONTROLS LOGIC ---
+    function togglePlay() {
+        if (video.paused) video.play();
+        else video.pause();
+    }
+
+    video.addEventListener('play', () => {
+        playPauseBtn.innerHTML = `<i data-lucide="pause"></i>`;
+        lucide.createIcons();
+    });
+
+    video.addEventListener('pause', () => {
+        playPauseBtn.innerHTML = `<i data-lucide="play"></i>`;
+        lucide.createIcons();
+    });
+
+    video.addEventListener('waiting', () => spinner.style.display = 'block');
+    video.addEventListener('playing', () => spinner.style.display = 'none');
+
+    // Progress Bar
+    video.addEventListener('timeupdate', () => {
+        const percent = (video.currentTime / video.duration) * 100;
+        progressFill.style.width = `${percent}%`;
+        timeDisplay.innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+    });
+
+    progressBar.addEventListener('click', (e) => {
+        const rect = progressBar.getBoundingClientRect();
+        const pos = (e.pageX - rect.left) / rect.width;
+        video.currentTime = pos * video.duration;
+    });
+
+    function formatTime(seconds) {
+        if (isNaN(seconds)) return "00:00";
+        let h = Math.floor(seconds / 3600);
+        let m = Math.floor((seconds % 3600) / 60);
+        let s = Math.floor(seconds % 60);
+        if (h > 0) return `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+        return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    // --- GESTURES (BRIGHTNESS & VOLUME) ---
+    let startY, startVal, activeSide;
+
+    container.addEventListener('touchstart', (e) => {
+        if (isLocked) return;
+        startY = e.touches[0].pageY;
+        const x = e.touches[0].pageX;
+        activeSide = x < window.innerWidth / 2 ? 'left' : 'right';
+        
+        if (activeSide === 'left') {
+            // Brightness (Simulated via overlay opacity)
+            startVal = parseFloat(getComputedStyle(brightnessOverlay).opacity);
+            document.getElementById('bright-ind').style.display = 'flex';
+        } else {
+            // Volume
+            startVal = video.volume;
+            document.getElementById('vol-ind').style.display = 'flex';
+        }
+    });
+
+    container.addEventListener('touchmove', (e) => {
+        if (isLocked) return;
+        e.preventDefault();
+        const deltaY = startY - e.touches[0].pageY;
+        const sensitivity = 200; // Pixels for full range
+
+        if (activeSide === 'left') {
+            let newVal = startVal - (deltaY / sensitivity);
+            newVal = Math.max(0, Math.min(0.8, newVal)); // Max 80% darkness
+            brightnessOverlay.style.opacity = newVal;
+            document.getElementById('bright-val').innerText = Math.round((1 - (newVal / 0.8)) * 100) + '%';
+        } else {
+            let newVal = startVal + (deltaY / sensitivity);
+            newVal = Math.max(0, Math.min(1, newVal));
+            video.volume = newVal;
+            document.getElementById('vol-val').innerText = Math.round(newVal * 100) + '%';
+        }
+    });
+
+    container.addEventListener('touchend', () => {
+        document.getElementById('bright-ind').style.display = 'none';
+        document.getElementById('vol-ind').style.display = 'none';
+    });
+
+    // --- FULLSCREEN & ORIENTATION ---
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            container.requestFullscreen().catch(err => {});
+            container.classList.add('fullscreen');
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(()=>{});
+            }
+        } else {
+            document.exitFullscreen();
+            container.classList.remove('fullscreen');
+        }
+    }
+
+    fullScreenBtn.addEventListener('click', toggleFullScreen);
+
+    // Auto fullscreen on landscape
+    window.addEventListener("orientationchange", () => {
+        if (window.orientation === 90 || window.orientation === -90) {
+            if (!document.fullscreenElement) toggleFullScreen();
+        }
+    });
+
+    // --- UI HELPERS ---
+    function showControls() {
+        controls.classList.remove('hidden');
+        clearTimeout(hideTimeout);
+        if (!video.paused) {
+            hideTimeout = setTimeout(() => {
+                if (!isLocked) controls.classList.add('hidden');
+            }, 3000);
+        }
+    }
+
+    container.addEventListener('mousemove', showControls);
+    container.addEventListener('touchstart', showControls);
+
+    playPauseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        togglePlay();
+    });
+
+    // Lock functionality
+    lockBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isLocked = true;
+        controls.classList.add('hidden');
+        lockScreen.classList.add('active');
+    });
+
+    unlockBtn.addEventListener('click', () => {
+        isLocked = false;
+        lockScreen.classList.remove('active');
+        showControls();
+    });
+
+    // Pitch to fit
+    fitBtn.addEventListener('click', () => {
+        video.classList.toggle('cover');
+        fitBtn.innerHTML = video.classList.contains('cover') ? 
+            `<i data-lucide="minimize"></i>` : `<i data-lucide="maximize"></i>`;
+        lucide.createIcons();
+    });
+
+    // Start
+    initPlayer();
+</script>
+
+</body>
+  </html>
