@@ -3,465 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hotstar Style Player</title>
-    <!-- HLS.js for .m3u8 support -->
+    <title>Hotstar Pro Player - Live Left-Right</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.10/hls.min.js"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --primary-color: #0081ff;
-            --bg-color: #030b17;
+            --primary: #0081ff;
+            --ui-white: #ffffff;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            background: #000;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #000; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 
         #player-container {
-            position: relative;
-            width: 100%;
-            max-width: 1000px;
-            aspect-ratio: 16 / 9;
-            background: #000;
-            overflow: hidden;
-            user-select: none;
+            position: relative; width: 100%; max-width: 1000px; aspect-ratio: 16/9;
+            background: #000; overflow: hidden; user-select: none;
         }
+        #player-container.fullscreen { width: 100vw; height: 100vh; max-width: none; }
 
-        #player-container.fullscreen {
-            max-width: 100vw;
-            width: 100vw;
-            height: 100vh;
-            aspect-ratio: auto;
-        }
+        video { width: 100%; height: 100%; object-fit: contain; transition: 0.3s; }
+        video.zoom { object-fit: cover; }
 
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain; /* Default Pitch to fit toggleable */
-        }
-
-        video.cover { object-fit: cover; }
-
-        /* Brightness Overlay */
         #brightness-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: black;
-            pointer-events: none;
-            opacity: 0;
-            z-index: 5;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; pointer-events: none; opacity: 0; z-index: 5;
         }
 
-        /* UI Layers */
-        .controls-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 50%, rgba(0,0,0,0.7) 100%);
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: opacity 0.3s;
-            padding: 15px;
+        .controls {
+            position: absolute; inset: 0; z-index: 10;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.8) 100%);
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 20px; transition: opacity 0.4s;
         }
-
-        .controls-overlay.hidden { opacity: 0; pointer-events: none; }
-
-        /* Gesture Zones */
-        .gesture-area {
-            position: absolute;
-            top: 15%; width: 40%; height: 70%;
-            z-index: 8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            pointer-events: all;
-        }
-        #left-gesture { left: 0; }
-        #right-gesture { right: 0; }
-
-        .indicator {
-            background: rgba(0,0,0,0.6);
-            padding: 10px 15px;
-            border-radius: 20px;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            font-size: 12px;
-        }
+        .controls.hidden { opacity: 0; pointer-events: none; }
 
         /* Top Bar */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
+        .top-bar { display: flex; justify-content: space-between; align-items: center; color: white; }
+        
+        /* Live System (White, Transparent Path, Left-Right-Left Animation) */
+        .live-tag {
+            display: flex; flex-direction: column; align-items: center; 
+            margin-left: 15px; min-width: 45px;
+        }
+        .live-text {
+            color: var(--ui-white); font-weight: bold; font-size: 10px; 
+            letter-spacing: 1.2px; text-transform: uppercase;
+        }
+        .live-line-container {
+            width: 100%; height: 2px; background: transparent; 
+            margin-top: 3px; overflow: hidden; position: relative;
+        }
+        .live-line {
+            position: absolute; width: 18px; height: 100%;
+            background: linear-gradient(90deg, transparent, var(--ui-white), transparent);
+            animation: live-bounce 1.8s ease-in-out infinite alternate;
+        }
+        @keyframes live-bounce {
+            0% { left: -10%; }
+            100% { left: 80%; }
         }
 
-        /* Bottom Bar */
-        .bottom-bar {
-            width: 100%;
+        /* Gestures */
+        .gesture-zone { position: absolute; top: 15%; height: 70%; width: 40%; z-index: 6; }
+        #left-zone { left: 0; } #right-zone { right: 0; }
+        .indicator {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            background: rgba(0,0,0,0.7); color: white; padding: 15px; border-radius: 15px;
+            display: none; flex-direction: column; align-items: center; gap: 5px;
         }
 
-        .progress-container {
-            height: 5px;
-            background: rgba(255,255,255,0.2);
-            cursor: pointer;
-            margin-bottom: 15px;
-            position: relative;
-            border-radius: 5px;
+        /* Progress Wrapper */
+        .progress-wrapper {
+            display: flex; align-items: center; width: 100%; margin-bottom: 10px;
+        }
+        .progress-area { flex: 1; height: 20px; display: flex; align-items: center; cursor: pointer; }
+        .progress-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.2); position: relative; border-radius: 2px; }
+        .progress-fill { height: 100%; background: var(--primary); width: 0%; position: relative; border-radius: 2px; }
+        .progress-fill::after {
+            content: ''; position: absolute; right: -6px; top: -4px;
+            width: 12px; height: 12px; background: white; border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
 
-        .progress-filled {
-            height: 100%;
-            background: var(--primary-color);
-            width: 0%;
-            position: relative;
-            border-radius: 5px;
+        /* Settings & Lock */
+        #settings-modal {
+            position: absolute; right: 20px; bottom: 80px; width: 200px;
+            background: rgba(15, 15, 15, 0.95); border-radius: 10px;
+            color: white; padding: 10px; display: none; z-index: 100;
         }
-
-        .progress-filled::after {
-            content: '';
-            position: absolute;
-            right: -5px; top: -4px;
-            width: 12px; height: 12px;
-            background: white;
-            border-radius: 50%;
-        }
-
-        .main-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-        }
-
-        .control-group { display: flex; align-items: center; gap: 20px; }
-        button {
-            background: none; border: none; color: white; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        /* Ad Label */
-        #ad-label {
-            position: absolute;
-            bottom: 80px; left: 20px;
-            background: rgba(255, 217, 0, 0.9);
-            color: black;
-            padding: 4px 12px;
-            font-weight: bold;
-            font-size: 12px;
-            border-radius: 4px;
-            display: none;
-            z-index: 12;
-        }
-
-        /* Lock Screen */
-        #lock-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 20;
-            display: none;
-            align-items: flex-start;
-            padding: 20px;
-        }
-        #lock-screen.active { display: flex; }
-
-        .loading-spinner {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            display: none;
-        }
-
-        /* Animating the icon */
+        .menu-item { padding: 10px; font-size: 14px; cursor: pointer; border-radius: 5px; }
+        .menu-item:hover { background: rgba(255,255,255,0.1); }
+        
+        #lock-overlay { position: absolute; inset: 0; z-index: 1000; display: none; padding: 20px; }
+        #lock-overlay.active { display: block; }
+        
+        button { background: none; border: none; color: white; cursor: pointer; }
         .spin { animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
+        #ad-box {
+            position: absolute; bottom: 100px; left: 20px; background: #ffcc00;
+            color: #000; padding: 5px 15px; font-weight: 900; border-radius: 4px; display: none;
+        }
     </style>
 </head>
 <body>
 
 <div id="player-container">
     <div id="brightness-overlay"></div>
-    
-    <video id="video-element" playsinline></video>
+    <video id="main-video" playsinline></video>
 
-    <!-- Ad UI -->
-    <div id="ad-label">ADVERTISEMENT</div>
+    <div id="ad-box">ADVERTISEMENT</div>
 
-    <!-- Gesture Indicators -->
-    <div id="left-gesture" class="gesture-area">
-        <div class="indicator" id="bright-ind"><i data-lucide="sun"></i><span id="bright-val">100%</span></div>
-    </div>
-    <div id="right-gesture" class="gesture-area">
-        <div class="indicator" id="vol-ind"><i data-lucide="volume-2"></i><span id="vol-val">100%</span></div>
-    </div>
+    <!-- Gestures -->
+    <div id="left-zone" class="gesture-zone"><div class="indicator" id="bright-ind"><i data-lucide="sun"></i><span id="bright-val">100%</span></div></div>
+    <div id="right-zone" class="gesture-zone"><div class="indicator" id="vol-ind"><i data-lucide="volume-2"></i><span id="vol-val">100%</span></div></div>
 
-    <!-- Controls Overlay -->
-    <div class="controls-overlay" id="controls">
+    <!-- Main Controls -->
+    <div class="controls" id="main-controls">
         <div class="top-bar">
-            <button id="lock-btn"><i data-lucide="unlock"></i></button>
-            <div id="video-title" style="font-size: 14px; opacity: 0.8;">Stream Player</div>
-            <button id="fit-btn"><i data-lucide="maximize"></i></button>
+            <button onclick="toggleLock()"><i data-lucide="unlock"></i></button>
+            <button onclick="toggleFit()"><i data-lucide="maximize"></i></button>
         </div>
 
-        <div class="loading-spinner" id="spinner">
-            <i data-lucide="loader-2" class="spin" stroke="white" width="48" height="48"></i>
+        <div id="spinner" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); display:none;">
+            <i data-lucide="loader-2" class="spin" width="50" height="50"></i>
         </div>
 
         <div class="bottom-bar">
-            <div class="progress-container" id="progress-bar">
-                <div class="progress-filled" id="progress-fill"></div>
-            </div>
-            <div class="main-controls">
-                <div class="control-group">
-                    <button id="play-pause"><i data-lucide="play"></i></button>
-                    <span id="time-display" style="font-size: 12px;">00:00 / 00:00</span>
+            <!-- Progress Section -->
+            <div class="progress-wrapper">
+                <div class="progress-area" id="progress-area">
+                    <div class="progress-bg">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
                 </div>
-                <div class="control-group">
-                    <button id="full-screen"><i data-lucide="expand"></i></button>
+                
+                <!-- New Live System (White & Bouncing Line) -->
+                <div class="live-tag">
+                    <div class="live-text">LIVE</div>
+                    <div class="live-line-container"><div class="live-line"></div></div>
+                </div>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <button id="play-btn"><i data-lucide="play"></i></button>
+                    <span id="time-txt" style="color:white; font-size:12px;">00:00 / 00:00</span>
+                </div>
+                <div style="display:flex; gap:15px;">
+                    <button onclick="toggleSettings()"><i data-lucide="settings"></i></button>
+                    <button onclick="toggleFS()"><i data-lucide="expand"></i></button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Lock Layer -->
-    <div id="lock-screen">
-        <button id="unlock-btn" style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 50%;"><i data-lucide="lock"></i></button>
+    <div id="settings-modal">
+        <div style="font-weight:bold; border-bottom:1px solid #444; padding-bottom:5px; margin-bottom:5px;">Quality</div>
+        <div id="quality-list"></div>
+    </div>
+
+    <div id="lock-overlay">
+        <button onclick="toggleLock()" style="background:rgba(0,0,0,0.5); padding:10px; border-radius:50%; border:1px solid white;">
+            <i data-lucide="lock"></i>
+        </button>
     </div>
 </div>
 
 <script>
-    // Initialize Icons
     lucide.createIcons();
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const streamUrl = urlParams.get('url');
-    const adUrl = urlParams.get('ad');
-
-    const video = document.getElementById('video-element');
+    const video = document.getElementById('main-video');
     const container = document.getElementById('player-container');
-    const controls = document.getElementById('controls');
-    const playPauseBtn = document.getElementById('play-pause');
+    const controls = document.getElementById('main-controls');
     const progressFill = document.getElementById('progress-fill');
-    const progressBar = document.getElementById('progress-bar');
-    const timeDisplay = document.getElementById('time-display');
-    const fullScreenBtn = document.getElementById('full-screen');
-    const lockBtn = document.getElementById('lock-btn');
-    const unlockBtn = document.getElementById('unlock-btn');
-    const lockScreen = document.getElementById('lock-screen');
-    const fitBtn = document.getElementById('fit-btn');
-    const adLabel = document.getElementById('ad-label');
-    const spinner = document.getElementById('spinner');
-    const brightnessOverlay = document.getElementById('brightness-overlay');
+    const progressArea = document.getElementById('progress-area');
+    const hls = new Hls();
 
-    let hls = new Hls();
     let isLocked = false;
-    let isAdPlaying = false;
-    let hideTimeout;
+    let isDragging = false;
+    let hideTimer;
 
-    // --- INITIALIZATION ---
-    function initPlayer() {
+    const params = new URLSearchParams(window.location.search);
+    const m3u8Url = params.get('url') || "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
+    const adUrl = params.get('ad');
+
+    function init() {
         if (adUrl) {
-            playAd(adUrl);
-        } else if (streamUrl) {
-            loadStream(streamUrl);
+            document.getElementById('ad-box').style.display = 'block';
+            video.src = adUrl;
+            video.play();
+            video.onended = () => {
+                document.getElementById('ad-box').style.display = 'none';
+                loadStream(m3u8Url);
+            };
+        } else {
+            loadStream(m3u8Url);
         }
-    }
-
-    function playAd(url) {
-        isAdPlaying = true;
-        adLabel.style.display = 'block';
-        video.src = url;
-        video.play();
-        // Hide some controls during ad
-        progressBar.style.pointerEvents = 'none';
     }
 
     function loadStream(url) {
-        isAdPlaying = false;
-        adLabel.style.display = 'none';
-        progressBar.style.pointerEvents = 'all';
-
         if (Hls.isSupported()) {
             hls.loadSource(url);
             hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = url;
-            video.play();
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                video.play();
+                setupSettings();
+            });
         }
     }
 
-    video.addEventListener('ended', () => {
-        if (isAdPlaying) {
-            loadStream(streamUrl);
+    // Draggable Progress
+    function handleScrub(e) {
+        if (isLocked) return;
+        const rect = progressArea.getBoundingClientRect();
+        const clientX = e.pageX || e.touches[0].pageX;
+        let percent = Math.min(Math.max(0, (clientX - rect.left) / rect.width), 1);
+        progressFill.style.width = (percent * 100) + '%';
+        if (!isDragging) video.currentTime = percent * video.duration;
+    }
+
+    progressArea.onmousedown = (e) => { isDragging = true; handleScrub(e); };
+    window.onmousemove = (e) => { if (isDragging) handleScrub(e); };
+    window.onmouseup = () => { if (isDragging) { video.currentTime = (parseFloat(progressFill.style.width)/100) * video.duration; isDragging = false; } };
+
+    progressArea.ontouchstart = (e) => { isDragging = true; handleScrub(e); };
+    progressArea.ontouchmove = (e) => { handleScrub(e); };
+    progressArea.ontouchend = () => { isDragging = false; };
+
+    video.ontimeupdate = () => {
+        if (!isDragging) {
+            const p = (video.currentTime / video.duration) * 100;
+            progressFill.style.width = p + '%';
+            document.getElementById('time-txt').innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
         }
-    });
+    };
 
-    // --- CONTROLS LOGIC ---
-    function togglePlay() {
-        if (video.paused) video.play();
-        else video.pause();
+    function formatTime(s) {
+        const m = Math.floor(s / 60);
+        const rs = Math.floor(s % 60);
+        return `${m}:${rs < 10 ? '0' : ''}${rs}`;
     }
 
-    video.addEventListener('play', () => {
-        playPauseBtn.innerHTML = `<i data-lucide="pause"></i>`;
-        lucide.createIcons();
-    });
-
-    video.addEventListener('pause', () => {
-        playPauseBtn.innerHTML = `<i data-lucide="play"></i>`;
-        lucide.createIcons();
-    });
-
-    video.addEventListener('waiting', () => spinner.style.display = 'block');
-    video.addEventListener('playing', () => spinner.style.display = 'none');
-
-    // Progress Bar
-    video.addEventListener('timeupdate', () => {
-        const percent = (video.currentTime / video.duration) * 100;
-        progressFill.style.width = `${percent}%`;
-        timeDisplay.innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
-    });
-
-    progressBar.addEventListener('click', (e) => {
-        const rect = progressBar.getBoundingClientRect();
-        const pos = (e.pageX - rect.left) / rect.width;
-        video.currentTime = pos * video.duration;
-    });
-
-    function formatTime(seconds) {
-        if (isNaN(seconds)) return "00:00";
-        let h = Math.floor(seconds / 3600);
-        let m = Math.floor((seconds % 3600) / 60);
-        let s = Math.floor(seconds % 60);
-        if (h > 0) return `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-        return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-    }
-
-    // --- GESTURES (BRIGHTNESS & VOLUME) ---
-    let startY, startVal, activeSide;
-
+    // Gestures
+    let startY, startVal, zone;
     container.addEventListener('touchstart', (e) => {
         if (isLocked) return;
         startY = e.touches[0].pageY;
-        const x = e.touches[0].pageX;
-        activeSide = x < window.innerWidth / 2 ? 'left' : 'right';
-        
-        if (activeSide === 'left') {
-            // Brightness (Simulated via overlay opacity)
-            startVal = parseFloat(getComputedStyle(brightnessOverlay).opacity);
-            document.getElementById('bright-ind').style.display = 'flex';
-        } else {
-            // Volume
-            startVal = video.volume;
-            document.getElementById('vol-ind').style.display = 'flex';
-        }
+        zone = e.touches[0].pageX < window.innerWidth / 2 ? 'left' : 'right';
+        startVal = zone === 'left' ? parseFloat(getComputedStyle(document.getElementById('brightness-overlay')).opacity) : video.volume;
     });
 
     container.addEventListener('touchmove', (e) => {
-        if (isLocked) return;
-        e.preventDefault();
-        const deltaY = startY - e.touches[0].pageY;
-        const sensitivity = 200; // Pixels for full range
-
-        if (activeSide === 'left') {
-            let newVal = startVal - (deltaY / sensitivity);
-            newVal = Math.max(0, Math.min(0.8, newVal)); // Max 80% darkness
-            brightnessOverlay.style.opacity = newVal;
-            document.getElementById('bright-val').innerText = Math.round((1 - (newVal / 0.8)) * 100) + '%';
+        if (isLocked || !startY) return;
+        const diff = (startY - e.touches[0].pageY) / 200;
+        if (zone === 'left') {
+            let b = Math.max(0, Math.min(0.8, startVal - diff));
+            document.getElementById('brightness-overlay').style.opacity = b;
+            showInd('bright', Math.round((1 - b/0.8)*100));
         } else {
-            let newVal = startVal + (deltaY / sensitivity);
-            newVal = Math.max(0, Math.min(1, newVal));
-            video.volume = newVal;
-            document.getElementById('vol-val').innerText = Math.round(newVal * 100) + '%';
+            let v = Math.max(0, Math.min(1, startVal + diff));
+            video.volume = v;
+            showInd('vol', Math.round(v*100));
         }
     });
 
     container.addEventListener('touchend', () => {
-        document.getElementById('bright-ind').style.display = 'none';
-        document.getElementById('vol-ind').style.display = 'none';
+        document.querySelectorAll('.indicator').forEach(i => i.style.display = 'none');
+        startY = null;
     });
 
-    // --- FULLSCREEN & ORIENTATION ---
-    function toggleFullScreen() {
+    function showInd(t, v) {
+        document.getElementById(t + '-ind').style.display = 'flex';
+        document.getElementById(t + '-val').innerText = v + '%';
+    }
+
+    function toggleLock() {
+        isLocked = !isLocked;
+        controls.classList.toggle('hidden', isLocked);
+        document.getElementById('lock-overlay').classList.toggle('active', isLocked);
+    }
+
+    function toggleSettings() {
+        const m = document.getElementById('settings-modal');
+        m.style.display = m.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function setupSettings() {
+        const list = document.getElementById('quality-list');
+        list.innerHTML = `<div class="menu-item" onclick="hls.currentLevel=-1;toggleSettings()">Auto</div>`;
+        hls.levels.forEach((l, i) => {
+            list.innerHTML += `<div class="menu-item" onclick="hls.currentLevel=${i};toggleSettings()">${l.height}p</div>`;
+        });
+    }
+
+    document.getElementById('play-btn').onclick = () => video.paused ? video.play() : video.pause();
+    video.onplay = () => { document.getElementById('play-btn').innerHTML = '<i data-lucide="pause"></i>'; lucide.createIcons(); };
+    video.onpause = () => { document.getElementById('play-btn').innerHTML = '<i data-lucide="play"></i>'; lucide.createIcons(); };
+
+    function toggleFS() {
         if (!document.fullscreenElement) {
-            container.requestFullscreen().catch(err => {});
-            container.classList.add('fullscreen');
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(()=>{});
-            }
+            container.requestFullscreen();
+            screen.orientation.lock('landscape').catch(()=>{});
         } else {
             document.exitFullscreen();
-            container.classList.remove('fullscreen');
         }
     }
+    
+    function toggleFit() { video.classList.toggle('zoom'); }
 
-    fullScreenBtn.addEventListener('click', toggleFullScreen);
-
-    // Auto fullscreen on landscape
-    window.addEventListener("orientationchange", () => {
-        if (window.orientation === 90 || window.orientation === -90) {
-            if (!document.fullscreenElement) toggleFullScreen();
-        }
-    });
-
-    // --- UI HELPERS ---
-    function showControls() {
-        controls.classList.remove('hidden');
-        clearTimeout(hideTimeout);
-        if (!video.paused) {
-            hideTimeout = setTimeout(() => {
-                if (!isLocked) controls.classList.add('hidden');
-            }, 3000);
+    // Auto hide controls
+    function resetHideTimer() {
+        clearTimeout(hideTimer);
+        if (!video.paused && !isLocked) {
+            hideTimer = setTimeout(() => controls.classList.add('hidden'), 3500);
         }
     }
+    container.onmousemove = () => { controls.classList.remove('hidden'); resetHideTimer(); };
+    container.onclick = () => { controls.classList.remove('hidden'); resetHideTimer(); };
 
-    container.addEventListener('mousemove', showControls);
-    container.addEventListener('touchstart', showControls);
-
-    playPauseBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        togglePlay();
-    });
-
-    // Lock functionality
-    lockBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        isLocked = true;
-        controls.classList.add('hidden');
-        lockScreen.classList.add('active');
-    });
-
-    unlockBtn.addEventListener('click', () => {
-        isLocked = false;
-        lockScreen.classList.remove('active');
-        showControls();
-    });
-
-    // Pitch to fit
-    fitBtn.addEventListener('click', () => {
-        video.classList.toggle('cover');
-        fitBtn.innerHTML = video.classList.contains('cover') ? 
-            `<i data-lucide="minimize"></i>` : `<i data-lucide="maximize"></i>`;
-        lucide.createIcons();
-    });
-
-    // Start
-    initPlayer();
+    init();
 </script>
-
 </body>
-  </html>
+</html>
