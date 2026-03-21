@@ -17,71 +17,74 @@
         body {
             margin: 0; background: var(--bg); color: var(--text-main);
             font-family: 'Segoe UI', Roboto, sans-serif; overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Hero */
+        /* Hero Image/Video */
         .hero { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; }
         .hero img, .hero video { width: 100%; height: 100%; object-fit: cover; }
         .hero-fade {
-            position: absolute; bottom: 0; width: 100%; height: 70%;
-            background: linear-gradient(to top, var(--bg) 10%, transparent 100%);
+            position: absolute; bottom: 0; width: 100%; height: 80%;
+            background: linear-gradient(to top, var(--bg) 15%, transparent 100%);
         }
 
-        /* Info */
-        .header { padding: 0 16px; text-align: center; margin-top: -30px; position: relative; z-index: 10; }
+        /* Header Info */
+        .header { padding: 0 16px; text-align: center; margin-top: -35px; position: relative; z-index: 10; }
         .logo { max-width: 180px; max-height: 60px; margin-bottom: 5px; object-fit: contain; }
         .blue-tag { color: var(--accent); font-weight: bold; font-size: 14px; margin-bottom: 5px; }
-        .meta { color: var(--text-dim); font-size: 13px; margin-bottom: 20px; }
+        .meta { color: var(--text-dim); font-size: 13px; margin-bottom: 20px; font-weight: 500; }
 
-        /* Buttons */
+        /* Primary Button Area */
         .btn-box { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
         .btn-main {
             background: #e1e6f0; color: #000; border: none; padding: 14px;
             border-radius: 8px; font-weight: 800; font-size: 15px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
         }
 
-        /* Toolbar */
-        .actions { display: flex; justify-content: space-around; padding: 25px 0 15px; }
-        .action-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; color: var(--text-dim); }
+        /* Toolbar / Actions */
+        .actions { display: flex; justify-content: space-around; padding: 25px 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .action-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; color: var(--text-dim); cursor: pointer; border:none; background:none; }
         .action-item i { font-size: 22px; color: #fff; }
 
-        /* EPISODES - Screenshot Match */
-        .section-title { padding: 20px 16px 10px; font-size: 18px; font-weight: 700; }
+        /* Sections */
+        .section-title { padding: 25px 16px 12px; font-size: 18px; font-weight: 700; color: #fff; }
+
+        /* Episode Cards */
         .ep-list.collapsed .ep-card:nth-child(n+5) { display: none; }
-        .ep-card {
-            display: flex; gap: 12px; padding: 12px 16px; align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
+        .ep-card { display: flex; gap: 12px; padding: 12px 16px; align-items: center; }
         .ep-thumb-wrapper { position: relative; width: 140px; min-width: 140px; aspect-ratio: 16/9; }
         .ep-thumb { width: 100%; height: 100%; border-radius: 8px; object-fit: cover; }
         .ep-info { flex: 1; overflow: hidden; }
         .ep-info h4 { margin: 0; font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .ep-info p { margin: 4px 0 0; font-size: 12px; color: var(--text-dim); }
-        .ep-download { color: var(--text-dim); font-size: 20px; }
 
-        .view-more-container { padding: 10px; text-align: center; }
-        .view-more-btn { background: var(--btn-gray); color: #fff; border: none; padding: 8px 20px; border-radius: 20px; font-size: 12px; }
-
-        /* Scrollers */
-        .scroller { display: flex; overflow-x: auto; gap: 12px; padding: 0 16px 20px; }
+        /* Scroller Grids */
+        .scroller { display: flex; overflow-x: auto; gap: 12px; padding: 0 16px 20px; scrollbar-width: none; }
         .scroller::-webkit-scrollbar { display: none; }
-        .post-card { min-width: 110px; width: 110px; }
-        .post-card img { width: 100%; aspect-ratio: 2/3; border-radius: 8px; object-fit: cover; }
-        .trail-card { min-width: 180px; width: 180px; }
-        .trail-card img { width: 100%; aspect-ratio: 16/9; border-radius: 8px; }
+        
+        /* Fixed Recommendation Images */
+        .post-card { min-width: 110px; width: 110px; flex-shrink: 0; }
+        .post-card img { width: 100%; aspect-ratio: 2/3; border-radius: 8px; object-fit: cover; background: #1a1c21; }
+        
+        .trail-card { min-width: 200px; width: 200px; flex-shrink: 0; }
+        .trail-card img { width: 100%; aspect-ratio: 16/9; border-radius: 8px; object-fit: cover; margin-bottom: 8px; }
 
         .hidden { display: none !important; }
+        .view-more-container { padding: 10px; text-align: center; }
+        .view-more-btn { background: var(--btn-gray); color: #fff; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="app">
+        <!-- Media Area -->
         <div class="hero">
             <div id="visual"><img id="poster" src=""></div>
             <div class="hero-fade"></div>
         </div>
 
+        <!-- Info Area -->
         <div class="header">
             <img id="logo" src="" class="logo">
             <div id="blueTag" class="blue-tag"></div>
@@ -90,14 +93,15 @@
 
         <div class="btn-box" id="playBtns"></div>
 
+        <!-- Toolbar with Fixed Share -->
         <div class="actions">
             <div class="action-item"><i class="fa-solid fa-plus"></i><span>Watchlist</span></div>
-            <div class="action-item"><i class="fa-solid fa-share-nodes"></i><span>Share</span></div>
+            <button class="action-item" id="shareBtn"><i class="fa-solid fa-share-nodes"></i><span>Share</span></button>
             <div class="action-item"><i class="fa-solid fa-download"></i><span>Download</span></div>
             <div class="action-item"><i class="fa-solid fa-heart"></i><span>Rate</span></div>
         </div>
 
-        <!-- Episodes Section -->
+        <!-- Episodes -->
         <div id="epSection" class="hidden">
             <div class="section-title">Episodes</div>
             <div id="epList" class="ep-list collapsed"></div>
@@ -106,16 +110,20 @@
             </div>
         </div>
 
+        <!-- Recommendations Grid -->
         <div class="section-title">More Like This</div>
-        <div class="scroller" id="recGrid"></div>
+        <div class="scroller" id="recGrid">
+            <!-- Images will appear here -->
+        </div>
 
+        <!-- Trailers Grid -->
         <div class="section-title">Trailers & More</div>
         <div class="scroller" id="trailGrid"></div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
@@ -131,20 +139,25 @@
         const db = getFirestore(initializeApp(firebaseConfig));
         const subId = new URLSearchParams(window.location.search).get('subdomain') || window.location.search.split('=')[1];
 
-        async function start() {
-            if(!subId) return console.error("No subdomain in URL");
-            
+        // 1. Share Functionality
+        document.getElementById('shareBtn').onclick = async () => {
+            try {
+                await navigator.share({ title: document.title, url: window.location.href });
+            } catch (err) {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Link copied to clipboard!");
+            }
+        };
+
+        async function startApp() {
+            if(!subId) return;
             const q = query(collection(db, "media_content"), where("subdomain", "==", subId));
             const snap = await getDocs(q);
-            
-            if(snap.empty) return console.error("Content not found");
-            
-            const data = snap.docs[0].data();
-            console.log("Full Data Object:", data);
-            renderUI(data);
+            if(snap.empty) return;
+            renderPage(snap.docs[0].data());
         }
 
-        function renderUI(data) {
+        function renderPage(data) {
             // Hero
             document.getElementById('poster').src = data.chooserImg || data.thumbnail;
             
@@ -153,71 +166,77 @@
             document.getElementById('blueTag').innerText = data.blueTags?.[0] || "";
             document.getElementById('meta').innerText = `${data.year} • ${data.ageRating} • ${data.seasons?.length || 0} Season • ${data.languages?.length || 0} Languages`;
 
-            // Play Buttons
+            // Play Button
             document.getElementById('playBtns').innerHTML = `<button class="btn-main"><i class="fa-solid fa-play"></i> Watch Now</button>`;
 
-            // --- EPISODES LOGIC ---
-            if (data.seasons && Array.isArray(data.seasons) && data.seasons.length > 0) {
+            // Episodes
+            if (data.seasons && data.seasons[0]?.episodes) {
                 const epSection = document.getElementById('epSection');
                 const epList = document.getElementById('epList');
-                const episodes = data.seasons[0].episodes;
+                const eps = data.seasons[0].episodes;
+                
+                epSection.classList.remove('hidden');
+                epList.innerHTML = eps.map(ep => `
+                    <div class="ep-card">
+                        <div class="ep-thumb-wrapper"><img src="${ep.thumbnail}" class="ep-thumb"></div>
+                        <div class="ep-info">
+                            <h4>${ep.title}</h4>
+                            <p>S1 E${ep.episodeNo} • ${ep.releasedDate || ''}</p>
+                        </div>
+                        <i class="fa-solid fa-download ep-download"></i>
+                    </div>
+                `).join('');
 
-                if (episodes && episodes.length > 0) {
-                    console.log("Found Episodes:", episodes.length);
-                    epSection.classList.remove('hidden');
-                    epList.innerHTML = ""; // Clear
-                    
-                    episodes.forEach((ep) => {
-                        const card = document.createElement('div');
-                        card.className = 'ep-card';
-                        card.innerHTML = `
-                            <div class="ep-thumb-wrapper">
-                                <img src="${ep.thumbnail}" class="ep-thumb">
-                            </div>
-                            <div class="ep-info">
-                                <h4>${ep.title}</h4>
-                                <p>S1 E${ep.episodeNo} • ${ep.releasedDate || ''}</p>
-                            </div>
-                            <i class="fa-solid fa-download ep-download"></i>
-                        `;
-                        epList.appendChild(card);
-                    });
-
-                    if (episodes.length > 4) {
-                        const vm = document.getElementById('vmBtn');
-                        vm.classList.remove('hidden');
-                        vm.onclick = () => {
-                            epList.classList.toggle('collapsed');
-                            vm.innerText = epList.classList.contains('collapsed') ? "View More" : "View Less";
-                        };
-                    }
+                if (eps.length > 4) {
+                    const vm = document.getElementById('vmBtn');
+                    vm.classList.remove('hidden');
+                    vm.onclick = () => {
+                        epList.classList.toggle('collapsed');
+                        vm.innerText = epList.classList.contains('collapsed') ? "View More" : "View Less";
+                    };
                 }
             }
 
-            // --- TRAILERS LOGIC ---
-            if (data.trailers && data.trailers.length > 0) {
-                const tGrid = document.getElementById('trailGrid');
-                data.trailers.forEach((t, i) => {
-                    tGrid.innerHTML += `<div class="trail-card"><img src="${data.thumbnail}"><p>Trailer ${i+1}</p></div>`;
-                });
+            // Recommendations (Fixed Logic)
+            if (data.genres) {
+                loadRecommendations(data.genres);
             }
 
-            // --- RECS LOGIC ---
-            if (data.genres) fetchRecs(data.genres);
+            // Trailers
+            if (data.trailers) {
+                const trailGrid = document.getElementById('trailGrid');
+                data.trailers.forEach((t, i) => {
+                    trailGrid.innerHTML += `
+                        <div class="trail-card">
+                            <img src="${data.thumbnail}">
+                            <p>Trailer ${i+1}</p>
+                        </div>
+                    `;
+                });
+            }
         }
 
-        async function fetchRecs(genres) {
-            const q = query(collection(db, "media_content"), where("genres", "array-contains-any", genres));
-            const snap = await getDocs(q);
+        async function loadRecommendations(genreValue) {
             const grid = document.getElementById('recGrid');
+            grid.innerHTML = ""; // Clear loader
+            
+            // Since genre is a string in your DB, we use "=="
+            const q = query(collection(db, "media_content"), where("genres", "==", genreValue), limit(10));
+            const snap = await getDocs(q);
+            
             snap.forEach(doc => {
-                if(doc.data().subdomain !== subId) {
-                    grid.innerHTML += `<div class="post-card" onclick="location.search='?subdomain=${doc.data().subdomain}'"><img src="${doc.data().thumbnail}"></div>`;
+                const item = doc.data();
+                if(item.subdomain !== subId) {
+                    const card = document.createElement('div');
+                    card.className = 'post-card';
+                    card.innerHTML = `<img src="${item.thumbnail}">`;
+                    card.onclick = () => location.search = `?subdomain=${item.subdomain}`;
+                    grid.appendChild(card);
                 }
             });
         }
 
-        start();
+        startApp();
     </script>
 </body>
-</html>
+    </html>
