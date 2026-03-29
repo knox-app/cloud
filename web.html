@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallel Search Engine</title>
+    <style>
+        /* --- PLAIN CSS --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #191a1a;
+            color: #e8e8e8;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 80px 20px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Moves content up when search starts */
+        .container.searching {
+            padding-top: 30px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            transition: opacity 0.3s;
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            font-weight: 500;
+            letter-spacing: -1px;
+            color: #fff;
+        }
+
+        /* Search Bar Area */
+        .search-box {
+            position: relative;
+            background: #202222;
+            border: 1px solid #303434;
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus-within {
+            border-color: #00a3bf;
+        }
+
+        input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 12px 15px;
+            font-size: 1.1rem;
+            outline: none;
+        }
+
+        button {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #cfcfcf;
+        }
+
+        /* Results Styling */
+        .hidden { display: none !important; }
+
+        #results {
+            margin-top: 40px;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        .answer-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #00a3bf;
+        }
+
+        .section-title span {
+            margin-right: 10px;
+        }
+
+        #answer-content {
+            line-height: 1.7;
+            font-size: 1.1rem;
+            color: #d1d1d1;
+            white-space: pre-wrap; /* Preserves AI formatting */
+        }
+
+        /* Sources Grid */
+        .sources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .source-card {
+            background: #202222;
+            border: 1px solid #303434;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #fff;
+            font-size: 0.85rem;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .source-card:hover {
+            background: #2a2d2d;
+            transform: translateY(-3px);
+            border-color: #404444;
+        }
+
+        .source-url {
+            display: block;
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Loader */
+        #loader {
+            text-align: center;
+            margin-top: 60px;
+            color: #888;
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid #00a3bf;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 600px) {
+            header h1 { font-size: 2rem; }
+            .container { padding-top: 40px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="main-container">
+        <header id="header">
+            <h1>Where knowledge begins</h1>
+        </header>
+
+        <form id="search-form">
+            <div class="search-box">
+                <input type="text" id="user-input" placeholder="Ask anything..." autocomplete="off" required>
+                <button type="submit">Search</button>
+            </div>
+        </form>
+
+        <div id="loader" class="hidden">
+            <div class="spinner"></div>
+            <p>Searching the web...</p>
+        </div>
+
+        <div id="results" class="hidden">
+            <div class="answer-section">
+                <div class="section-title"><span>✦</span> Answer</div>
+                <div id="answer-content"></div>
+            </div>
+
+            <div class="sources-section">
+                <div class="section-title"><span>🔗</span> Sources</div>
+                <div id="sources-list" class="sources-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* --- JAVASCRIPT LOGIC --- */
+        const form = document.getElementById('search-form');
+        const userInput = document.getElementById('user-input');
+        const loader = document.getElementById('loader');
+        const resultsArea = document.getElementById('results');
+        const container = document.getElementById('main-container');
+        const header = document.getElementById('header');
+        
+        const answerText = document.getElementById('answer-content');
+        const sourcesList = document.getElementById('sources-list');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = userInput.value.trim();
+            if (!query) return;
+
+            // 1. UI Transition
+            header.classList.add('hidden');
+            container.classList.add('searching');
+            loader.classList.remove('hidden');
+            resultsArea.classList.add('hidden');
+            sourcesList.innerHTML = '';
+
+            try {
+                // 2. API Call (Using your exact provided endpoint and key)
+                const response = await fetch('https://api.parallel.ai/v1beta/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': 'b5psE0hK-rjulBtctFJ05-w7LyhCB2stUQZxPFnc'
+                    },
+                    body: JSON.stringify({
+                        "mode": "one-shot",
+                        "search_queries": null,
+                        "max_results": 10,
+                        "objective": query
+                    })
+                });
+
+                if (!response.ok) throw new Error('API request failed');
+
+                const data = await response.json();
+                
+                // 3. Render Results
+                renderData(data);
+
+            } catch (error) {
+                console.error("Error:", error);
+                answerText.innerHTML = `<span style="color: #ff5f5f;">Error: Failed to fetch results. Make sure your API key is active or check for CORS restrictions in your browser.</span>`;
+                resultsArea.classList.remove('hidden');
+            } finally {
+                loader.classList.add('hidden');
+            }
+        });
+
+        function renderData(data) {
+            // Note: Data structure depends on Parallel AI response schema.
+            // Usually data.answer contains the main text.
+            answerText.innerText = data.answer || data.response || "No answer could be generated for this query.";
+
+            if (data.sources && data.sources.length > 0) {
+                data.sources.forEach(source => {
+                    const card = document.createElement('a');
+                    card.href = source.url;
+                    card.target = "_blank";
+                    card.className = "source-card";
+                    
+                    const title = source.title || "Untitled Source";
+                    const domain = new URL(source.url).hostname;
+
+                    card.innerHTML = `
+                        <strong>${title}</strong>
+                        <span class="source-url">${domain}</span>
+                    `;
+                    sourcesList.appendChild(card);
+                });
+            } else {
+                sourcesList.innerHTML = "<p style='color: #666;'>No sources found.</p>";
+            }
+
+            resultsArea.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
