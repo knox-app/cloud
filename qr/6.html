@@ -2,21 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Verify Identity</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Authorize Device</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #000; color: white; margin: 0; text-align: center; }
-        #reader { width: 100%; height: 80vh; }
-        .footer { padding: 20px; background: rgba(0,0,0,0.8); position: fixed; bottom: 0; width: 100%; }
+        body { font-family: -apple-system, sans-serif; background: #000; color: white; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
+        #reader { flex: 1; width: 100%; }
+        .overlay { background: rgba(0,0,0,0.8); padding: 30px 20px; border-radius: 30px 30px 0 0; text-align: center; }
+        .btn-cancel { color: #0071e3; text-decoration: none; font-weight: 500; display: block; margin-top: 20px; }
+        #targetInfo { font-size: 18px; font-weight: 600; margin-bottom: 5px; }
     </style>
 </head>
 <body>
     <div id="reader"></div>
-    <div class="footer">
-        <h3 id="targetName">Scan QR Code</h3>
-        <p id="msg">Align the code within the frame</p>
+    <div class="overlay">
+        <div id="targetInfo">Authenticating...</div>
+        <p style="color:#888; font-size:14px; margin:0">Position the QR code in the frame</p>
+        <a href="5.html" class="btn-cancel">Cancel</a>
     </div>
 
     <script>
@@ -26,13 +30,16 @@
 
         const params = new URLSearchParams(window.location.search);
         const targetId = params.get('target');
-        document.getElementById('targetName').innerText = "Authorizing " + params.get('name');
+        const targetName = params.get('name');
+        document.getElementById('targetInfo').innerText = "Authorize " + targetName;
 
-        let scanner = new Html5QrcodeScanner("reader", { fps: 20, qrbox: 250 });
+        let scanner = new Html5QrcodeScanner("reader", { fps: 20, qrbox: {width: 250, height: 250}, aspectRatio: 1.0 });
+        
         scanner.render((decodedText) => {
             if(decodedText === targetId) {
                 scanner.clear();
-                document.getElementById('msg').innerText = "Verifying...";
+                document.getElementById('targetInfo').innerText = "Confirmed!";
+                
                 db.collection("sessions").doc(targetId).update({
                     status: "confirmed",
                     email: localStorage.getItem("userEmail")
@@ -41,7 +48,7 @@
                     window.location.href="4.html";
                 });
             } else {
-                alert("Security Error: This QR code belongs to a different device.");
+                alert("Security Error: This QR belongs to a different device.");
             }
         });
     </script>
