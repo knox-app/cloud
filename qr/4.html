@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>4 - Profile & Scanner</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; }
+        .info { background: #eee; padding: 15px; border-radius: 8px; display: inline-block; text-align: left; margin-bottom: 20px; }
+        #reader { width: 300px; margin: auto; }
+    </style>
+</head>
+<body>
+    <h2>User Profile</h2>
+    <div id="userData" class="info">Loading...</div>
+    <br>
+    <button onclick="localStorage.clear(); location.href='2.html'">Logout</button>
+
+    <hr>
+    <h3>Scan QR to Login another device</h3>
+    <div id="reader"></div>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", authDomain: "question-metabase.firebaseapp.com", projectId: "question-metabase", storageBucket: "question-metabase.firebasestorage.app", messagingSenderId: "770698198753", appId: "1:770698198753:web:59ae49d78b6013bab5c1a0" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const email = localStorage.getItem("userEmail");
+        if(!email) window.location.href = "2.html";
+
+        // Fetch profile from Firestore
+        db.collection("users").doc(email).get().then(doc => {
+            const d = doc.data();
+            document.getElementById('userData').innerHTML = `
+                <b>Name:</b> ${d.name}<br>
+                <b>Mobile:</b> ${d.mobile}<br>
+                <b>Email:</b> ${d.email}
+            `;
+            startScanner(d.email);
+        });
+
+        function startScanner(myEmail) {
+            let scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+            scanner.render((sessionID) => {
+                // Update the session in Firestore so the other device logs in
+                db.collection("sessions").doc(sessionID).update({
+                    status: "confirmed",
+                    email: myEmail
+                }).then(() => {
+                    alert("Other device authorized!");
+                });
+            });
+        }
+    </script>
+</body>
+</html>
