@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receive Photo - Perplexity</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root { --bg: #ffffff; --text: #1d1d1f; --card: rgba(245, 245, 247, 0.9); }
+        @media (prefers-color-scheme: dark) { :root { --bg: #000; --text: #fff; --card: rgba(28, 28, 30, 0.9); } }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        .card { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 30px; text-align: center; width: 320px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        #qrcode { background: white; padding: 15px; border-radius: 20px; display: inline-block; margin: 20px 0; }
+        #photoResult { width: 100%; border-radius: 15px; display: none; margin-top: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2 id="msgTitle">Perplexity Drop</h2>
+        <p id="msgDesc" style="color:#888; font-size:14px;">Waiting for incoming files...</p>
+        
+        <div id="qrcode"></div>
+        <img id="photoResult" src="">
+        
+        <div id="deviceName" style="font-weight:600; margin-top:15px;"></div>
+    </div>
+
+    <script>
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", 
+            authDomain: "question-metabase.firebaseapp.com", 
+            projectId: "question-metabase", 
+            storageBucket: "question-metabase.firebasestorage.app", 
+            messagingSenderId: "770698198753", 
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0" 
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // 1. Setup Identity
+        let pId = localStorage.getItem("myPersistentId") || "PX-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+        localStorage.setItem("myPersistentId", pId);
+        const pName = localStorage.getItem("myDeviceName") || "New Receiver";
+        document.getElementById('deviceName').innerText = pName;
+
+        // 2. Show QR Code
+        new QRCode(document.getElementById("qrcode"), pId);
+
+        // 3. Update Location for 5.html discovery
+        function updateStatus() {
+            navigator.geolocation.getCurrentPosition(pos => {
+                db.collection("sessions").doc(pId).set({
+                    deviceName: pName, 
+                    lat: pos.coords.latitude, 
+                    lng: pos.coords.longitude,
+                    status: "waiting", 
+                    lastSeen: Date.now()
+                }, { merge: true });
+            });
+        }
+        updateStatus(); setInterval(updateStatus, 10000);
+
+        // 4. Listen for Incoming URL
+        db.collection("sessions").doc(pId).onSnapshot(doc => {
+            const data = doc.data();
+            if(data && data.incomingUrl) {
+                // Hide QR and Show Image
+                document.getElementById('qrcode').style.display = "none";
+                document.getElementById('msgTitle').innerText = "Received Photo";
+                document.getElementById('msgDesc').innerText = "Someone shared an image with you.";
+                
+                const img = document.getElementById('photoResult');
+                img.src = data.incomingUrl;
+                img.style.display = "block";
+
+                // Clear from database so it doesn't loop
+                setTimeout(() => { db.collection("sessions").doc(pId).update({ incomingUrl: null }); }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>
