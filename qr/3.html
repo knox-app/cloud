@@ -1,34 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>3 - QR Login</title>
+    <title>Broadcasting...</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>body { font-family: sans-serif; text-align: center; padding-top: 50px; }</style>
+    <style>
+        body { font-family: -apple-system, sans-serif; text-align: center; background: #000; color: white; padding-top: 100px; }
+        #qrcode { background: white; padding: 20px; border-radius: 20px; display: inline-block; margin-top: 30px; }
+        .status { color: #888; margin-top: 20px; font-size: 14px; }
+    </style>
 </head>
 <body>
-    <h2>Scan to Login</h2>
-    <div id="qrcode" style="display:flex; justify-content:center; margin:20px;"></div>
-    <p id="msg">Open the scanner on your logged-in device</p>
+    <h1>Waiting for Discovery</h1>
+    <p>Keep this page open on your computer</p>
+    <div id="qrcode"></div>
+    <div class="status" id="stat">Getting location...</div>
 
     <script>
         const firebaseConfig = { apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", authDomain: "question-metabase.firebaseapp.com", projectId: "question-metabase", storageBucket: "question-metabase.firebasestorage.app", messagingSenderId: "770698198753", appId: "1:770698198753:web:59ae49d78b6013bab5c1a0" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const sessionID = "SESS" + Math.floor(Math.random() * 1000000);
+        const sessionID = "S-" + Math.floor(Math.random() * 9999);
         new QRCode(document.getElementById("qrcode"), sessionID);
 
-        // Create the session in Firestore
-        db.collection("sessions").doc(sessionID).set({ status: "waiting" });
+        navigator.geolocation.getCurrentPosition(pos => {
+            db.collection("sessions").doc(sessionID).set({
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+                status: "waiting",
+                timestamp: Date.now()
+            });
+            document.getElementById('stat').innerText = "Visible to nearby devices via AirDrop-Auth";
+        });
 
-        // Listen for the scanner to update this document
-        db.collection("sessions").doc(sessionID).onSnapshot((doc) => {
-            const data = doc.data();
-            if(data && data.status === "confirmed") {
-                localStorage.setItem("userEmail", data.email);
-                db.collection("sessions").doc(sessionID).delete(); // Cleanup
+        db.collection("sessions").doc(sessionID).onSnapshot(doc => {
+            if(doc.data()?.status === "confirmed") {
+                localStorage.setItem("userEmail", doc.data().email);
                 window.location.href = "4.html";
             }
         });
