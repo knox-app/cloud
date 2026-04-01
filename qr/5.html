@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nearby Devices</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #f5f5f7; margin: 0; display: flex; flex-direction: column; align-items: center; }
+        .header { width: 100%; padding: 40px 20px; text-align: center; }
+        .radar { width: 150px; height: 150px; border-radius: 50%; border: 2px solid #0071e3; display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 30px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0,113,227,0.4); } 100% { box-shadow: 0 0 0 40px rgba(0,113,227,0); } }
+        
+        .device-list { width: 90%; max-width: 400px; }
+        .device-item { 
+            background: white; padding: 20px; border-radius: 20px; margin-bottom: 15px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s;
+        }
+        .device-item:active { transform: scale(0.95); }
+        .device-info h4 { margin: 0; font-size: 18px; }
+        .device-info p { margin: 0; font-size: 12px; color: #888; }
+        .distance-tag { background: #e8f3ff; color: #0071e3; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display:flex; justify-content:center"><div class="radar"><span>Searching...</span></div></div>
+        <h1>Nearby Devices</h1>
+        <p>Devices within 1 meter waiting to login</p>
+    </div>
+
+    <div class="device-list" id="list">
+        <!-- Devices appear here -->
+    </div>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", authDomain: "question-metabase.firebaseapp.com", projectId: "question-metabase", storageBucket: "question-metabase.firebasestorage.app", messagingSenderId: "770698198753", appId: "1:770698198753:web:59ae49d78b6013bab5c1a0" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function getDistance(lat1, lon1, lat2, lon2) {
+            var R = 6371e3; // metres
+            var φ1 = lat1 * Math.PI/180;
+            var φ2 = lat2 * Math.PI/180;
+            var Δφ = (lat2-lat1) * Math.PI/180;
+            var Δλ = (lon2-lon1) * Math.PI/180;
+            var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; // meters
+        }
+
+        navigator.geolocation.getCurrentPosition(myPos => {
+            const myLat = myPos.coords.latitude;
+            const myLng = myPos.coords.longitude;
+
+            db.collection("sessions").where("status", "==", "waiting").onSnapshot(snap => {
+                const list = document.getElementById('list');
+                list.innerHTML = "";
+                
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    const dist = getDistance(myLat, myLng, data.lat, data.lng);
+
+                    // LOGIC: Filter only devices within 1 meter
+                    if(dist <= 1.5) { // Allowing 1.5m for slight jitter
+                        const item = document.createElement('div');
+                        item.className = "device-item";
+                        item.onclick = () => { window.location.href = `6.html?id=${doc.id}`; }; // 6.html will be scanner
+                        item.innerHTML = `
+                            <div class="device-info">
+                                <h4>Found Device</h4>
+                                <p>ID: ${doc.id}</p>
+                            </div>
+                            <div class="distance-tag">${dist.toFixed(1)}m away</div>
+                        `;
+                        list.appendChild(item);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
