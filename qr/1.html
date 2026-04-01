@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>1 - Register</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding-top: 50px; }
+        .box { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 320px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="box">
+    <h2>Registration</h2>
+    <input type="text" id="name" placeholder="Full Name">
+    <input type="text" id="mobile" placeholder="Mobile Number">
+    <input type="email" id="email" placeholder="Email Address">
+    <input type="password" id="pass" placeholder="Password">
+    <button onclick="saveUser()">Register</button>
+    <p style="text-align:center">Already have account? <a href="2.html">Login</a></p>
+</div>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", authDomain: "question-metabase.firebaseapp.com", projectId: "question-metabase", storageBucket: "question-metabase.firebasestorage.app", messagingSenderId: "770698198753", appId: "1:770698198753:web:59ae49d78b6013bab5c1a0" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function saveUser() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
+        const name = document.getElementById('name').value;
+        const mobile = document.getElementById('mobile').value;
+
+        if(!email || !pass) return alert("Fill all fields");
+
+        db.collection("users").doc(email).set({
+            name: name,
+            mobile: mobile,
+            email: email,
+            password: pass
+        }).then(() => {
+            alert("Registered in Firestore!");
+            window.location.href = "2.html";
+        }).catch(e => alert(e.message));
+    }
+</script>
+</body>
+</html>
