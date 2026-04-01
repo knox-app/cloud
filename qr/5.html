@@ -1,68 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nearby Discovery</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - Perplexity</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --bg: #f5f5f7; --text: #1d1d1f; --row: #ffffff; }
-        @media (prefers-color-scheme: dark) { :root { --bg: #000; --text: #fff; --row: #1c1c1e; } }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; text-align: center; }
-        
-        .radar { width: 120px; height: 120px; border-radius: 50%; border: 2px solid #0071e3; margin: 40px auto; position: relative; display: flex; align-items: center; justify-content: center; }
-        .radar::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid #0071e3; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
-
-        .device-row { background: var(--row); padding: 18px; border-radius: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .device-row:active { opacity: 0.7; }
-        .distance { color: #0071e3; font-weight: 600; font-size: 14px; }
+        :root { --bg: #ffffff; --text: #1d1d1f; --card: rgba(245, 245, 247, 0.9); }
+        @media (prefers-color-scheme: dark) { :root { --bg: #000; --text: #fff; --card: rgba(28, 28, 30, 0.9); } }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        .card { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 30px; width: 300px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        #qrcode { background: white; padding: 15px; border-radius: 15px; display: inline-block; margin: 20px 0; }
+        .status { color: #0071e3; font-size: 13px; font-weight: 500; }
     </style>
 </head>
 <body>
-    <div class="radar"><img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Perplexity_AI_logo.svg" width="40"></div>
-    <h2 style="font-weight: 600; margin-bottom: 5px;">Nearby Perplexity Devices</h2>
-    <p style="color: #86868b; margin-bottom: 30px;">Select a device within 1 meter to authorize.</p>
-
-    <div id="list">Searching...</div>
-
+    <div class="card">
+        <h2 style="margin:0">Perplexity Account</h2>
+        <p style="color:#888; font-size:14px">Scan this QR with your phone</p>
+        <div id="qrcode"></div>
+        <div id="dname" style="font-weight:600; margin-bottom:10px;">Checking device...</div>
+        <div class="status">● Discoverable Nearby</div>
+    </div>
     <script>
         const firebaseConfig = { apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", authDomain: "question-metabase.firebaseapp.com", projectId: "question-metabase", storageBucket: "question-metabase.firebasestorage.app", messagingSenderId: "770698198753", appId: "1:770698198753:web:59ae49d78b6013bab5c1a0" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        function haversine(lat1, lon1, lat2, lon2) {
-            const R = 6371e3;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        }
+        let pId = localStorage.getItem("myPersistentId") || "PX-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+        localStorage.setItem("myPersistentId", pId);
+        const pName = localStorage.getItem("myDeviceName") || "New Perplexity Device";
+        document.getElementById('dname').innerText = pName;
 
-        navigator.geolocation.getCurrentPosition(myPos => {
-            db.collection("sessions").where("status", "==", "waiting").onSnapshot(snap => {
-                const list = document.getElementById('list');
-                list.innerHTML = "";
-                const now = Date.now();
+        new QRCode(document.getElementById("qrcode"), { text: pId, width: 200, height: 200 });
 
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    const isFresh = data.lastSeen && (now - data.lastSeen < 60000); // 60s limit
-
-                    if(data.deviceName && isFresh) {
-                        const dist = haversine(myPos.coords.latitude, myPos.coords.longitude, data.lat, data.lng);
-                        if(dist < 5) { // Show devices within 5 meters
-                            const div = document.createElement('div');
-                            div.className = "device-row";
-                            div.onclick = () => window.location.href=`6.html?target=${doc.id}&name=${encodeURIComponent(data.deviceName)}`;
-                            div.innerHTML = `<div style="text-align:left"><b>${data.deviceName}</b><br><small style="color:#888">${doc.id}</small></div> <span class="distance">${dist.toFixed(1)}m</span>`;
-                            list.appendChild(div);
-                        }
-                    }
-                });
-                if(list.innerHTML === "") list.innerHTML = "<p style='color:#888'>No active devices found nearby.</p>";
+        function heartbeat() {
+            navigator.geolocation.getCurrentPosition(pos => {
+                db.collection("sessions").doc(pId).set({
+                    deviceName: pName, lat: pos.coords.latitude, lng: pos.coords.longitude,
+                    status: "waiting", lastSeen: Date.now()
+                }, { merge: true });
             });
+        }
+        heartbeat(); setInterval(heartbeat, 10000);
+
+        db.collection("sessions").doc(pId).onSnapshot(doc => {
+            const data = doc.data();
+            if(data?.status === "confirmed" && data.email) {
+                localStorage.setItem("userEmail", data.email);
+                db.collection("sessions").doc(pId).update({ status: "expired" }).then(() => { window.location.href = "4.html"; });
+            }
         });
     </script>
 </body>
