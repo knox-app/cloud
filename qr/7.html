@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perplexity Photos</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        :root { --bg: #f5f5f7; --text: #1d1d1f; --card: #ffffff; --accent: #0071e3; }
+        @media (prefers-color-scheme: dark) { :root { --bg: #000; --text: #fff; --card: #1c1c1e; } }
+        
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; text-align: center; }
+        .header { margin-bottom: 30px; padding-top: 20px; }
+        
+        /* Upload Section */
+        .upload-card { background: var(--card); padding: 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 90%; max-width: 400px; margin: 0 auto 40px auto; border: 1px solid rgba(128,128,128,0.1); }
+        input[type="file"] { display: none; }
+        .btn-upload { background: var(--accent); color: white; padding: 14px 28px; border-radius: 14px; cursor: pointer; display: inline-block; font-weight: 600; transition: 0.3s; }
+        .btn-upload:active { transform: scale(0.95); }
+        #status { font-size: 13px; color: #86868b; margin-top: 15px; font-weight: 500; }
+
+        /* Gallery Grid */
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; width: 100%; max-width: 900px; margin: 0 auto; }
+        .photo-card { background: var(--card); border-radius: 18px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); aspect-ratio: 1; border: 1px solid rgba(128,128,128,0.1); animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .photo-card img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+        
+        .nav-link { color: var(--accent); text-decoration: none; font-size: 15px; margin-bottom: 10px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="4.html" class="nav-link">← Back to Profile</a>
+        <h1 style="font-weight: 700; font-size: 32px; margin: 5px 0;">Cloud Photos</h1>
+        <p style="color: #86868b; margin: 0;">Synced with Perplexity Accounts</p>
+    </div>
+
+    <div class="upload-card">
+        <label class="btn-upload">
+            <input type="file" id="imageInput" accept="image/*" onchange="uploadToCloud()">
+            Upload Photo
+        </label>
+        <div id="status">Images appear on all your devices</div>
+    </div>
+
+    <div class="gallery" id="galleryContainer">
+        <!-- Live Gallery -->
+    </div>
+
+    <script>
+        // Your ImgBB Key
+        const IMGBB_KEY = "80c452b9a4b80f240ada316f23078d2c";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            authDomain: "question-metabase.firebaseapp.com",
+            projectId: "question-metabase",
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const userEmail = localStorage.getItem("userEmail");
+        if(!userEmail) window.location.href = "2.html";
+
+        async function uploadToCloud() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+            const status = document.getElementById('status');
+            
+            if(!file) return;
+
+            status.innerHTML = `<span style="color:#0071e3">Uploading...</span>`;
+
+            // 1. Send to ImgBB API
+            const formData = new FormData();
+            formData.append("image", file);
+
+            try {
+                const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+                    method: "POST",
+                    body: formData
+                });
+                const result = await response.json();
+
+                if(result.success) {
+                    const imageUrl = result.data.url;
+
+                    // 2. Save Link to Firebase Firestore
+                    await db.collection("user_photos").add({
+                        owner: userEmail,
+                        url: imageUrl,
+                        createdAt: Date.now()
+                    });
+
+                    status.innerText = "Success! Synced to all devices.";
+                    fileInput.value = ""; // Clear input
+                } else {
+                    status.innerText = "Upload failed. Try again.";
+                }
+            } catch (err) {
+                status.innerText = "Cloud Connection Error.";
+                console.error(err);
+            }
+        }
+
+        // 3. Live Sync: Fetch photos for this user
+        db.collection("user_photos")
+          .where("owner", "==", userEmail)
+          .orderBy("createdAt", "desc")
+          .onSnapshot(snapshot => {
+            const container = document.getElementById('galleryContainer');
+            container.innerHTML = "";
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const div = document.createElement('div');
+                div.className = "photo-card";
+                div.innerHTML = `<img src="${data.url}" onclick="window.open('${data.url}')">`;
+                container.appendChild(div);
+            });
+
+            if(container.innerHTML === "") {
+                container.innerHTML = "<p style='grid-column: 1/-1; color:#888; margin-top:40px;'>No photos found.</p>";
+            }
+        });
+    </script>
+</body>
+</html>
