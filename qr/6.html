@@ -3,225 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nearby Discovery - Perplexity</title>
+    <title>Authorize Device</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        :root {
-            --bg: #f5f5f7;
-            --text: #1d1d1f;
-            --card: rgba(255, 255, 255, 0.7);
-            --accent: #0071e3;
-            --secondary: #86868b;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg: #000000;
-                --text: #f5f5f7;
-                --card: rgba(28, 28, 30, 0.7);
-                --accent: #0071e3;
-                --secondary: #8e8e93;
-            }
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* Radar Animation */
-        .radar-container {
-            margin-top: 60px;
-            position: relative;
-            width: 120px;
-            height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .radar-circle {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border: 2px solid var(--accent);
-            border-radius: 50%;
-            animation: pulse 2.5s infinite ease-out;
-            opacity: 0;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.6); opacity: 0; }
-            50% { opacity: 0.5; }
-            100% { transform: scale(1.8); opacity: 0; }
-        }
-
-        .perplexity-logo {
-            width: 50px;
-            height: 50px;
-            z-index: 10;
-            filter: drop-shadow(0 0 10px rgba(0,113,227,0.3));
-        }
-
-        h2 { font-weight: 600; font-size: 24px; margin: 30px 0 5px 0; }
-        .status-text { color: var(--secondary); font-size: 14px; margin-bottom: 40px; }
-
-        /* Device List */
-        .device-list {
-            width: 90%;
-            max-width: 400px;
-            padding-bottom: 40px;
-        }
-
-        .device-card {
-            background: var(--card);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 20px;
-            border-radius: 20px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            border: 1px solid rgba(128,128,128,0.1);
-            transition: transform 0.2s ease, background 0.2s ease;
-        }
-
-        .device-card:active {
-            transform: scale(0.97);
-            background: rgba(128,128,128,0.2);
-        }
-
-        .device-info b { font-size: 17px; display: block; margin-bottom: 2px; }
-        .device-info small { color: var(--secondary); font-size: 12px; font-family: monospace; }
-        
-        .distance-tag {
-            background: var(--accent);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .empty-state {
-            color: var(--secondary);
-            font-size: 15px;
-            margin-top: 20px;
-        }
+        body { font-family: -apple-system, sans-serif; background: #000; color: white; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        #reader { width: 100%; height: 70vh; background: #000; }
+        .ui-layer { flex: 1; background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border-radius: 30px 30px 0 0; padding: 30px; text-align: center; z-index: 100; }
+        .target-name { font-size: 20px; font-weight: 600; margin: 0 0 5px 0; }
+        .btn-back { color: #0071e3; text-decoration: none; display: inline-block; margin-top: 20px; font-weight: 500; }
+        #message { color: #888; font-size: 14px; }
     </style>
 </head>
 <body>
-
-    <div class="radar-container">
-        <div class="radar-circle" style="animation-delay: 0s;"></div>
-        <div class="radar-circle" style="animation-delay: 0.8s;"></div>
-        <div class="radar-circle" style="animation-delay: 1.6s;"></div>
-        <!-- Simple SVG Proxy for Logo -->
-        <svg class="perplexity-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="45" stroke="#0071e3" stroke-width="8"/>
-            <path d="M50 25V75M25 50H75" stroke="#0071e3" stroke-width="8" stroke-linecap="round"/>
-        </svg>
-    </div>
-
-    <h2>Perplexity Devices</h2>
-    <p class="status-text" id="status">Searching for nearby devices...</p>
-
-    <div class="device-list" id="deviceList">
-        <!-- Devices appear here -->
+    <div id="reader"></div>
+    <div class="ui-layer">
+        <div class="target-name" id="displayTarget">Connecting...</div>
+        <p id="message">Align the QR code within the frame to authorize.</p>
+        <a href="5.html" class="btn-back">Cancel Authorization</a>
     </div>
 
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
             authDomain: "question-metabase.firebaseapp.com",
-            databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "question-metabase",
-            storageBucket: "question-metabase.firebasestorage.app",
-            messagingSenderId: "770698198753",
-            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
-            measurementId: "G-6ZP1FPMKSJ"
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Haversine Formula to calculate distance in meters
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371000; 
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                      Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
+        // Get info from URL (passed by 5.html)
+        const params = new URLSearchParams(window.location.search);
+        const targetId = params.get('target'); // The ID we ARE EXPECTING
+        const targetName = params.get('name');
+        document.getElementById('displayTarget').innerText = "Authorizing " + (targetName || "Device");
 
-        function initDiscovery() {
-            if (!navigator.geolocation) {
-                document.getElementById('status').innerText = "Geolocation not supported by your browser.";
-                return;
-            }
+        const myEmail = localStorage.getItem("userEmail");
 
-            navigator.geolocation.getCurrentPosition(position => {
-                const myLat = position.coords.latitude;
-                const myLng = position.coords.longitude;
-
-                // Listen to active sessions
-                db.collection("sessions").where("status", "==", "waiting").onSnapshot(snapshot => {
-                    const listContainer = document.getElementById('deviceList');
-                    listContainer.innerHTML = "";
-                    const now = Date.now();
-
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        
-                        // Security: Only show devices updated in the last 2 minutes
-                        const isFresh = data.lastSeen && (now - data.lastSeen < 120000);
-
-                        if (isFresh && data.deviceName) {
-                            const distance = calculateDistance(myLat, myLng, data.lat, data.lng);
-
-                            // Distance Filter: Only devices within 50 meters
-                            if (distance < 50) {
-                                const card = document.createElement('div');
-                                card.className = "device-card";
-                                card.onclick = () => {
-                                    window.location.href = `6.html?target=${doc.id}&name=${encodeURIComponent(data.deviceName)}`;
-                                };
-
-                                card.innerHTML = `
-                                    <div class="device-info">
-                                        <b>${data.deviceName}</b>
-                                        <small>${doc.id}</small>
-                                    </div>
-                                    <div class="distance-tag">${distance.toFixed(1)}m</div>
-                                `;
-                                listContainer.appendChild(card);
-                            }
-                        }
-                    });
-
-                    if (listContainer.innerHTML === "") {
-                        listContainer.innerHTML = `<div class="empty-state">No active Perplexity devices found within 50m. Make sure 3.html is open on your other device.</div>`;
-                    }
+        // Initialize Scanner
+        function onScanSuccess(decodedText) {
+            // REMOVE WHITESPACE OR HIDDEN CHARS
+            const scannedId = decodedText.trim();
+            
+            if (scannedId === targetId) {
+                // STOP SCANNER IMMEDIATELY
+                html5QrcodeScanner.clear();
+                document.getElementById('message').innerText = "Identity Verified. Logging in...";
+                
+                // UPDATE FIRESTORE
+                db.collection("sessions").doc(targetId).update({
+                    status: "confirmed",
+                    email: myEmail
+                }).then(() => {
+                    alert("Authorization Successful!");
+                    window.location.href = "4.html";
+                }).catch(err => {
+                    alert("Error updating session: " + err.message);
                 });
-            }, error => {
-                document.getElementById('status').innerText = "Permission Denied. Please enable location services.";
-            }, { enableHighAccuracy: true });
+            } else {
+                // If the user scans the WRONG QR code
+                document.getElementById('message').innerHTML = "<span style='color: #ff3b30'>Security Error: Wrong QR Code.</span>";
+            }
         }
 
-        // Run on load
-        window.onload = initDiscovery;
+        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+            fps: 20, 
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0
+        });
+        
+        html5QrcodeScanner.render(onScanSuccess);
     </script>
 </body>
-    </html>
+</html>
