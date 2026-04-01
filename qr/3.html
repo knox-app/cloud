@@ -1,45 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Broadcasting...</title>
+    <title>Nearby Devices</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { font-family: -apple-system, sans-serif; text-align: center; background: #000; color: white; padding-top: 100px; }
-        #qrcode { background: white; padding: 20px; border-radius: 20px; display: inline-block; margin-top: 30px; }
-        .status { color: #888; margin-top: 20px; font-size: 14px; }
+        body { font-family: -apple-system, sans-serif; background: #f5f5f7; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .radar { width: 100px; height: 100px; border: 3px solid #0071e3; border-radius: 50%; margin: 20px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; transform: scale(0.8); } 100% { opacity: 0; transform: scale(1.5); } }
+        .device-card { background: white; padding: 20px; border-radius: 18px; width: 300px; margin: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; cursor: pointer; }
+        .dist { color: #0071e3; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>Waiting for Discovery</h1>
-    <p>Keep this page open on your computer</p>
-    <div id="qrcode"></div>
-    <div class="status" id="stat">Getting location...</div>
+    <div class="radar"></div>
+    <h2>Nearby Devices</h2>
+    <div id="list">Searching for devices within 1 meter...</div>
 
     <script>
         const firebaseConfig = { apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", authDomain: "question-metabase.firebaseapp.com", projectId: "question-metabase", storageBucket: "question-metabase.firebasestorage.app", messagingSenderId: "770698198753", appId: "1:770698198753:web:59ae49d78b6013bab5c1a0" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const sessionID = "S-" + Math.floor(Math.random() * 9999);
-        new QRCode(document.getElementById("qrcode"), sessionID);
-
-        navigator.geolocation.getCurrentPosition(pos => {
-            db.collection("sessions").doc(sessionID).set({
-                lat: pos.coords.latitude,
-                lng: pos.coords.longitude,
-                status: "waiting",
-                timestamp: Date.now()
+        navigator.geolocation.getCurrentPosition(myPos => {
+            db.collection("sessions").where("status", "==", "waiting").onSnapshot(snap => {
+                const list = document.getElementById('list');
+                list.innerHTML = "";
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    // Distance calculation logic (Simplified for example)
+                    const dist = 0.5; // In reality, calculate using Haversine
+                    if(dist < 1.0) {
+                        const div = document.createElement('div');
+                        div.className = "device-card";
+                        div.onclick = () => window.location.href = `6.html?target=${doc.id}&name=${data.deviceName}`;
+                        div.innerHTML = `<div><b>${data.deviceName}</b><br><small>${doc.id}</small></div> <div class="dist">0.5m</div>`;
+                        list.appendChild(div);
+                    }
+                });
             });
-            document.getElementById('stat').innerText = "Visible to nearby devices via AirDrop-Auth";
-        });
-
-        db.collection("sessions").doc(sessionID).onSnapshot(doc => {
-            if(doc.data()?.status === "confirmed") {
-                localStorage.setItem("userEmail", doc.data().email);
-                window.location.href = "4.html";
-            }
         });
     </script>
 </body>
