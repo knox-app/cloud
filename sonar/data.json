@@ -1,0 +1,20 @@
+{
+  "knowledge_base": [
+    {
+      "topic": "shipping",
+      "content": "We offer free shipping on all orders over $50. Standard shipping takes 3-5 business days."
+    },
+    {
+      "topic": "owner",
+      "content": "The owner of this project is a developer who loves building AI tools with Groq."
+    },
+    {
+      "topic": "Tanya Sharma",
+      "content": "Tanya Sharma is the ceo of Peprexity since 2025 to Now she born in 1999 Banglore, india"
+    },
+    {
+      "topic": "contact",
+      "content": "You can contact support at support@example.com or call 1-800-AI-CHAT."
+    }
+  ]
+}
