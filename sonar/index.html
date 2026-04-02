@@ -3,120 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Assistant - Groq</title>
+    <title>AI Assistant (Notebook Mode)</title>
     <style>
-        /* CSS STYLES */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e5e7eb;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .chat-container {
-            width: 100%;
-            max-width: 450px;
-            height: 80vh;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .chat-header {
-            background: #007bff;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-        .chat-box {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            background-color: #f9f9f9;
-        }
-        .message {
-            padding: 12px 16px;
-            border-radius: 15px;
-            max-width: 80%;
-            word-wrap: break-word;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        .user-msg {
-            background: #007bff;
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 2px;
-        }
-        .ai-msg {
-            background: #e9ecef;
-            color: #333;
-            align-self: flex-start;
-            border-bottom-left-radius: 2px;
-        }
-        .input-area {
-            padding: 15px;
-            display: flex;
-            gap: 10px;
-            background: white;
-            border-top: 1px solid #eee;
-        }
-        input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            outline: none;
-            padding-left: 20px;
-        }
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 0 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background: #0056b3;
-        }
-        /* Loading animation */
-        .typing {
-            font-style: italic;
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 10px;
-            display: none;
-        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background-color: #f3f4f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .chat-container { width: 100%; max-width: 500px; height: 90vh; background: white; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #e5e7eb; }
+        .chat-header { background: #111827; color: white; padding: 20px; text-align: center; font-size: 1.1rem; font-weight: 600; }
+        .chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-color: #ffffff; }
+        .message { padding: 12px 16px; border-radius: 10px; max-width: 85%; font-size: 15px; line-height: 1.6; }
+        .user-msg { background: #2563eb; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .ai-msg { background: #f3f4f6; color: #1f2937; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #e5e7eb; }
+        .typing { font-size: 12px; color: #6b7280; padding: 10px 20px; display: none; }
+        .input-area { padding: 20px; display: flex; gap: 10px; background: white; border-top: 1px solid #e5e7eb; }
+        input { flex: 1; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; font-size: 15px; }
+        input:focus { border-color: #2563eb; ring: 2px solid #2563eb; }
+        button { background: #2563eb; color: white; border: none; padding: 0 20px; border-radius: 8px; cursor: pointer; font-weight: 500; }
+        button:hover { background: #1d4ed8; }
     </style>
 </head>
 <body>
 
 <div class="chat-container">
-    <div class="chat-header">Groq AI Assistant</div>
+    <div class="chat-header">Knowledge AI Assistant</div>
     <div id="chat-box" class="chat-box">
-        <div class="message ai-msg">Hello! How can I help you today?</div>
+        <div class="message ai-msg">Hello! I am ready. I will check your data files first, then use my AI logic to answer.</div>
     </div>
-    <div id="typing-indicator" class="typing" style="padding-left: 20px;">AI is thinking...</div>
+    <div id="typing-indicator" class="typing">Searching knowledge base...</div>
     <div class="input-area">
-        <input type="text" id="user-input" placeholder="Type your message...">
+        <input type="text" id="user-input" placeholder="Ask me anything...">
         <button id="send-btn">Send</button>
     </div>
 </div>
 
 <script>
-    // JAVASCRIPT LOGIC
     const API_KEY = "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";
+
     const chatBox = document.getElementById('chat-box');
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
@@ -130,20 +50,33 @@
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
+    // NEW LOGIC: Scans everything inside the JSON (Topic AND Content)
     async function findLocalData(query) {
         try {
             const response = await fetch('data.json');
-            if (!response.ok) return null;
             const data = await response.json();
+            const words = query.toLowerCase().split(' '); // Split question into words
             
-            // Look for keywords in the JSON file
-            const match = data.knowledge_base.find(item => 
-                query.toLowerCase().includes(item.topic.toLowerCase())
-            );
+            let matchedContent = "";
+
+            data.knowledge_base.forEach(item => {
+                const fullText = (item.topic + " " + item.content).toLowerCase();
+                
+                // Check if any important words from the user's question appear in the content
+                // We ignore small words like 'is', 'the', 'of'
+                const ignoreWords = ['is', 'the', 'a', 'an', 'what', 'who', 'how', 'old', 'are'];
+                const keyWords = words.filter(w => !ignoreWords.includes(w) && w.length > 2);
+
+                const isMatch = keyWords.some(word => fullText.includes(word));
+
+                if (isMatch) {
+                    matchedContent += item.content + " ";
+                }
+            });
             
-            return match ? match.content : null;
+            return matchedContent || null;
         } catch (e) {
-            console.log("No JSON file found or error reading it.");
+            console.error("JSON Fetch Error:", e);
             return null;
         }
     }
@@ -151,13 +84,13 @@
     async function getGroqResponse(userPrompt) {
         typingIndicator.style.display = "block";
         
-        // 1. Check JSON for specific info
         const localContext = await findLocalData(userPrompt);
 
-        // 2. Prepare System Prompt
-        let systemMessage = "You are a helpful and concise AI assistant.";
+        let systemPrompt = "You are a helpful assistant.";
         if (localContext) {
-            systemMessage += ` Use the following specific data to answer the user's question, but summarize it to sound natural: ${localContext}`;
+            // This is the "NotebookLM" style prompt
+            systemPrompt = `You are an expert assistant. I have found the following information in my database: "${localContext}". 
+            Use this information to answer the user's question accurately. If the answer isn't in the data, use your general knowledge.`;
         }
 
         try {
@@ -168,12 +101,12 @@
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile", // Using a high-quality free model
+                    model: "llama-3.3-70b-versatile",
                     messages: [
-                        { role: "system", content: systemMessage },
+                        { role: "system", content: systemPrompt },
                         { role: "user", content: userPrompt }
                     ],
-                    temperature: 0.5
+                    temperature: 0.3 // Lower temperature for more factual answers
                 })
             });
 
@@ -182,25 +115,21 @@
             return result.choices[0].message.content;
         } catch (error) {
             typingIndicator.style.display = "none";
-            return "Error: Could not connect to API. Make sure your key is valid.";
+            return "Error connecting to AI. Please check connection.";
         }
     }
 
     async function handleChat() {
         const text = userInput.value.trim();
         if (!text) return;
-
         addMessage(text, 'user');
         userInput.value = '';
-
         const aiResponse = await getGroqResponse(text);
         addMessage(aiResponse, 'ai');
     }
 
     sendBtn.addEventListener('click', handleChat);
-    userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleChat();
-    });
+    userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleChat(); });
 </script>
 
 </body>
