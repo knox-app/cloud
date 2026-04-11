@@ -3,91 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compose - Superhuman Clone</title>
+    <title>Compose - Superhuman</title>
     <style>
         :root { --bg: #0a0a0a; --surface: #111; --border: #222; --text: #eee; --accent: #3355ff; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        
-        .compose-card {
-            background: var(--surface);
-            width: 90%;
-            max-width: 600px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
-        .header {
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header a { color: #666; text-decoration: none; font-size: 14px; }
-        .header a:hover { color: #fff; }
-
-        .input-group { border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 10px 20px; }
-        .input-group label { color: #555; width: 60px; font-size: 14px; }
-        
-        input, textarea {
-            background: transparent;
-            border: none;
-            color: #fff;
-            width: 100%;
-            padding: 10px 0;
-            font-size: 15px;
-            outline: none;
-            font-family: inherit;
-        }
-
-        textarea { height: 300px; padding: 20px; resize: none; }
-
-        .footer { padding: 15px 20px; display: flex; justify-content: flex-end; border-top: 1px solid var(--border); }
-        
-        #send-btn {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        #send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        #send-btn:hover:not(:disabled) { background: #4466ff; }
-
-        .status-msg { font-size: 12px; padding: 0 20px 10px; display: none; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: var(--surface); width: 600px; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+        .row { border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; }
+        .row label { width: 60px; color: #555; font-size: 14px; }
+        input, textarea { background: none; border: none; color: white; width: 100%; outline: none; padding: 10px 0; font-size: 15px; }
+        textarea { height: 250px; resize: none; }
+        .footer { padding: 15px; display: flex; justify-content: space-between; background: #161616; }
+        #send-btn { background: var(--accent); color: white; border: none; padding: 10px 25px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        #image-upload { display: none; }
+        .img-btn { color: #888; cursor: pointer; font-size: 14px; padding: 10px; }
+        .img-btn:hover { color: white; }
+        #preview-area img { max-width: 100px; margin: 10px; border-radius: 4px; border: 1px solid #333; }
     </style>
 </head>
 <body>
 
-    <div class="compose-card">
-        <div class="header">
-            <span>New Message</span>
-            <a href="./2.html">Discard</a>
-        </div>
-        
-        <div class="input-group">
-            <label>To</label>
-            <input type="email" id="to" placeholder="recipient@example.com" spellcheck="false">
-        </div>
-        
-        <div class="input-group">
-            <label>Subject</label>
-            <input type="text" id="subject" placeholder="Enter subject" spellcheck="false">
-        </div>
-
-        <textarea id="message" placeholder="Write your message here..."></textarea>
-
-        <div id="status" class="status-msg"></div>
-
+    <div class="card">
+        <div class="row"><label>To</label><input type="text" id="to"></div>
+        <div class="row"><label>Subject</label><input type="text" id="subject"></div>
+        <textarea id="message" placeholder="Write your message..."></textarea>
+        <div id="preview-area"></div>
         <div class="footer">
+            <label class="img-btn" for="image-upload">📷 Attach Image</label>
+            <input type="file" id="image-upload" accept="image/*">
             <button id="send-btn">Send Message</button>
         </div>
     </div>
@@ -96,106 +38,64 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
-            authDomain: "question-metabase.firebaseapp.com",
-            projectId: "question-metabase",
-            storageBucket: "question-metabase.firebasestorage.app",
-            messagingSenderId: "770698198753",
-            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U", projectId: "question-metabase", appId: "1:770698198753:web:59ae49d78b6013bab5c1a0" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         const token = localStorage.getItem('gmail_token');
-        if (!token) window.location.href = './1.html';
+        const params = new URLSearchParams(window.location.search);
 
-        // Helper function to encode email for Gmail API (Base64URL)
-        function buildSafeBase64Email(to, subject, message) {
+        // Pre-fill from URL parameters
+        if(params.get('to')) document.getElementById('to').value = params.get('to');
+        if(params.get('subject')) document.getElementById('subject').value = params.get('subject');
+
+        let attachedImages = [];
+
+        // Handle Image Selection
+        document.getElementById('image-upload').onchange = (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const base64 = event.target.result;
+                attachedImages.push(base64);
+                const img = document.createElement('img');
+                img.src = base64;
+                document.getElementById('preview-area').appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        };
+
+        document.getElementById('send-btn').onclick = async () => {
+            const to = document.getElementById('to').value;
+            const subject = document.getElementById('subject').value;
+            let bodyContent = document.getElementById('message').value;
+
+            // Add images to HTML body
+            attachedImages.forEach(imgData => {
+                bodyContent += `<br><img src="${imgData}" style="max-width:100%">`;
+            });
+
             const email = [
                 `To: ${to}`,
                 `Subject: ${subject}`,
                 'MIME-Version: 1.0',
                 'Content-Type: text/html; charset=utf-8',
-                'Content-Transfer-Encoding: 7bit',
                 '',
-                message
+                bodyContent
             ].join('\r\n');
 
-            return btoa(unescape(encodeURIComponent(email)))
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=+$/, '');
-        }
+            const encoded = btoa(unescape(encodeURIComponent(email))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
-        document.getElementById('send-btn').onclick = async () => {
-            const to = document.getElementById('to').value;
-            const subject = document.getElementById('subject').value;
-            const message = document.getElementById('message').value;
-            const btn = document.getElementById('send-btn');
-            const status = document.getElementById('status');
+            const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ raw: encoded })
+            });
 
-            if (!to || !subject) {
-                alert("Please fill in recipient and subject");
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "Sending...";
-            status.style.display = "block";
-            status.innerText = "Uploading to Gmail...";
-
-            try {
-                // 1. Send via Gmail API
-                const rawEmail = buildSafeBase64Email(to, subject, message);
-                const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ raw: rawEmail })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    status.innerText = "Email Sent! Logging to Firestore...";
-                    
-                    // 2. Save to Firestore
-                    await addDoc(collection(db, "sent_emails"), {
-                        recipient: to,
-                        subject: subject,
-                        body_preview: message.substring(0, 100),
-                        gmail_id: result.id,
-                        sent_at: serverTimestamp()
-                    });
-
-                    status.style.color = "#44ff44";
-                    status.innerText = "Success! Redirecting...";
-                    
-                    setTimeout(() => {
-                        window.location.href = './2.html';
-                    }, 1500);
-                } else {
-                    throw new Error(result.error.message);
-                }
-
-            } catch (err) {
-                console.error("Send Error:", err);
-                status.style.color = "#ff4444";
-                status.innerText = "Error: " + err.message;
-                btn.disabled = false;
-                btn.innerText = "Send Message";
-            }
-        };
-
-        // Shortcut: Cmd+Enter or Ctrl+Enter to send
-        document.onkeydown = (e) => {
-            if ((e.metaKey || e.ctrlKey) && e.keyCode === 13) {
-                document.getElementById('send-btn').click();
+            if (res.ok) {
+                await addDoc(collection(db, "sent_emails"), { to, subject, timestamp: serverTimestamp() });
+                alert("Email Sent!");
+                window.location.href = './2.html';
             }
         };
     </script>
