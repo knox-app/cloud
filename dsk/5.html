@@ -196,8 +196,8 @@
                     updatedAt: new Date().toLocaleString() + " UTC+5:30"
                 }, { merge: true });
 
-                // Success: Redirect to 6.html with sessionId
-                window.location.href = "6.html?sessionid=" + docId;
+                // Success: Redirect to 6.html with session
+                window.location.href = "6.html?session=" + docId;
             } catch (err) {
                 console.error("Error: ", err);
                 alert("Storage failed. Check your internet connection.");
