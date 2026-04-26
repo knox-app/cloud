@@ -167,21 +167,24 @@
         }
         errorDiv.style.display = 'none';
 
+        // ✅ Normalize type (case-insensitive)
+        const t = type.toLowerCase();
+
         let familyValue = "no";
-        if (type === 'Kids') familyValue = "comit";
-        if (type === 'busniess') familyValue = "workspace";
-        if (type === 'personal') familyValue = "no";
+        if (t === 'kids') familyValue = "commit";
+        if (t === 'personal') familyValue = "no";
+        if (t === 'business') familyValue = "workspace";
 
         try {
             await setDoc(doc(db, "ASPX Keys", session), {
                 firstName: firstName,
                 lastName: lastName,
-                type: type, // ✅ ADDED (stores URL type)
-                family: familyValue,
+                type: t,           // ✅ saved type
+                family: familyValue, // ✅ mapped family
                 timestamp: new Date()
             });
 
-            window.location.href = `2.html?session=${session}&type=${type}`;
+            window.location.href = `2.html?session=${session}&type=${t}`;
         } catch (e) {
             console.error("Error: ", e);
         }
