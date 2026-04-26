@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verification</title>
-    <!-- Import Google Fonts to match the screenshot -->
+
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-    <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
@@ -22,7 +21,6 @@
             background-color: #ffffff;
         }
 
-        /* Container visibility toggles */
         #email-step, #otp-step, #loading-step {
             display: none;
             width: 100%;
@@ -32,9 +30,8 @@
             text-align: center;
         }
 
-        #loading-step { display: block; } /* Show loading first */
+        #loading-step { display: block; }
 
-        /* SVG Animation */
         .icon-container {
             width: 100px;
             height: 100px;
@@ -86,7 +83,6 @@
             font-weight: 500;
         }
 
-        /* Input styling */
         .input-group {
             display: flex;
             justify-content: center;
@@ -120,11 +116,12 @@
             outline: none;
         }
 
+        /* UPDATED BUTTON STYLE */
         .btn {
             width: 100%;
             padding: 15px;
-            background-color: #999;
-            color: white;
+            background-color: #000;
+            color: #fff;
             border: none;
             border-radius: 8px;
             font-size: 16px;
@@ -133,11 +130,12 @@
         }
 
         .btn:hover {
-            background-color: #777;
+            background-color: #222;
         }
 
         .btn:disabled {
-            background-color: #ccc;
+            background-color: #000;
+            opacity: 0.5;
             cursor: not-allowed;
         }
 
@@ -158,255 +156,107 @@
 </head>
 <body>
 
-    <!-- Loading Step -->
-    <div id="loading-step">
-        <p>Verifying session details...</p>
+<div id="loading-step">
+    <p>Verifying session details...</p>
+</div>
+
+<div id="email-step">
+    <h1>Parental Consent</h1>
+    <p>Because this is a kids account, please provide a parent or guardian's email to continue.</p>
+    <input type="email" id="parentEmailInput" class="standard-input" placeholder="Parent's email address">
+    <button class="btn" id="sendOtpBtn">Send Verification Code</button>
+</div>
+
+<div id="otp-step">
+    <button class="close-btn" onclick="window.history.back()">×</button>
+    
+    <div class="icon-container">
+        <svg class="paper-plane" viewBox="0 0 100 100" fill="none">
+            <circle cx="50" cy="50" r="40" stroke="#E5E7EB" stroke-width="2"/>
+            <circle class="ring" cx="50" cy="50" r="30" stroke="#4B5563" stroke-width="2" stroke-dasharray="4 4"/>
+            <path d="M35 50L45 60L70 35M45 60V75L55 65" stroke="#111827" stroke-width="2"/>
+            <path d="M70 35L25 45L45 60L65 75L70 35Z" stroke="#111827" stroke-width="2"/>
+        </svg>
     </div>
 
-    <!-- Step 1: Ask for Parent Email (Hidden by default) -->
-    <div id="email-step">
-        <h1>Parental Consent</h1>
-        <p>Because this is a kids account, please provide a parent or guardian's email to continue.</p>
-        <input type="email" id="parentEmailInput" class="standard-input" placeholder="Parent's email address">
-        <button class="btn" id="sendOtpBtn">Send Verification Code</button>
+    <h1>Check your email</h1>
+    <p>A temporary sign-in link has been sent to<br><span id="displayEmail"></span></p>
+
+    <div class="input-group">
+        <input type="text" class="otp-box" maxlength="1">
+        <input type="text" class="otp-box" maxlength="1">
+        <input type="text" class="otp-box" maxlength="1">
+        <input type="text" class="otp-box" maxlength="1">
     </div>
 
-    <!-- Step 2: OTP Verification (Matches Screenshot, 4 digits) -->
-    <div id="otp-step">
-        <button class="close-btn" onclick="window.history.back()">×</button>
-        
-        <div class="icon-container">
-            <svg class="paper-plane" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Decorative rings -->
-                <circle cx="50" cy="50" r="40" stroke="#E5E7EB" stroke-width="2"/>
-                <circle class="ring" cx="50" cy="50" r="30" stroke="#4B5563" stroke-width="2" stroke-dasharray="4 4"/>
-                <!-- Paper Plane -->
-                <path d="M35 50L45 60L70 35M45 60V75L55 65" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M70 35L25 45L45 60L65 75L70 35Z" stroke="#111827" stroke-width="2" stroke-linejoin="round"/>
-            </svg>
-        </div>
+    <button class="btn" id="confirmBtn" disabled>Confirm</button>
+</div>
 
-        <h1>Check your email</h1>
-        <p>A temporary sign-in link has been sent to<br><span class="email-display" id="displayEmail"></span></p>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        <!-- 4 Digit Input -->
-        <div class="input-group" id="otpInputs">
-            <input type="text" class="otp-box" maxlength="1" pattern="\d*">
-            <input type="text" class="otp-box" maxlength="1" pattern="\d*">
-            <input type="text" class="otp-box" maxlength="1" pattern="\d*">
-            <input type="text" class="otp-box" maxlength="1" pattern="\d*">
-        </div>
+const firebaseConfig = { projectId: "question-metabase" };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-        <button class="btn" id="confirmBtn" disabled>Confirm</button>
-    </div>
+emailjs.init("Yr9MutUoHOEONnFgn");
 
-    <!-- Firebase SDK (Modular v9) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+let generatedOTP = "";
+let currentParentEmail = "";
 
-        // ==========================================
-        // 1. REPLACE WITH YOUR FIREBASE CONFIG
-        // ==========================================
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "question-metabase", // Based on your screenshot URL
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+const urlParams = new URLSearchParams(window.location.search);
+const sessionId = urlParams.get('session');
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+const loadingStep = document.getElementById('loading-step');
+const emailStep = document.getElementById('email-step');
+const otpStep = document.getElementById('otp-step');
+const sendOtpBtn = document.getElementById('sendOtpBtn');
+const confirmBtn = document.getElementById('confirmBtn');
+const parentEmailInput = document.getElementById('parentEmailInput');
+const displayEmail = document.getElementById('displayEmail');
+const otpBoxes = document.querySelectorAll('.otp-box');
 
-        // ==========================================
-        // 2. EMAILJS INITIALIZATION
-        // ==========================================
-        emailjs.init("Yr9MutUoHOEONnFgn");
+loadingStep.style.display = 'none';
+emailStep.style.display = 'block';
 
-        // State variables
-        let generatedOTP = "";
-        let currentParentEmail = "";
-        
-        // Get URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const sessionId = urlParams.get('session'); // Assuming document ID is passed as 'session'
-        const urlOtp = urlParams.get('otp');
+sendOtpBtn.addEventListener('click', () => {
+    const email = parentEmailInput.value.trim();
+    if (!email) return alert("Enter email");
 
-        // UI Elements
-        const loadingStep = document.getElementById('loading-step');
-        const emailStep = document.getElementById('email-step');
-        const otpStep = document.getElementById('otp-step');
-        const sendOtpBtn = document.getElementById('sendOtpBtn');
-        const confirmBtn = document.getElementById('confirmBtn');
-        const parentEmailInput = document.getElementById('parentEmailInput');
-        const displayEmail = document.getElementById('displayEmail');
-        const otpBoxes = document.querySelectorAll('.otp-box');
+    currentParentEmail = email;
+    generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
 
-        // ==========================================
-        // 3. MAIN LOGIC AND ROUTING
-        // ==========================================
-        async function checkUserData() {
-            if (!sessionId) {
-                alert("No session ID found in URL.");
-                return;
-            }
+    emailStep.style.display = 'none';
+    otpStep.style.display = 'block';
+    displayEmail.innerText = email;
+});
 
-            try {
-                const docRef = doc(db, "ASPX Keys", sessionId);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-
-                    // Condition 1: Redirect immediately for these families
-                    if (data.family === 'no' || data.family === 'busniess' || data.family === 'business') {
-                        window.location.href = "6.html";
-                        return;
-                    }
-
-                    // Condition 2: Kids account requiring parental commit
-                    if (data.family === 'commit' && data.type === 'kids') {
-                        
-                        // If accessed via URL link with parameters (e.g., magic link from email)
-                        if (urlOtp) {
-                            // In a real secure app, OTP is checked against database. 
-                            // Here we trust the URL flow if provided.
-                            await verifyAndUpdateDatabase(currentParentEmail || data.guardians, true);
-                            return;
-                        }
-
-                        // Otherwise, show the step to ask for parent email
-                        loadingStep.style.display = 'none';
-                        emailStep.style.display = 'block';
-                    } else if (data.family === 'commited') {
-                        // Already verified
-                        window.location.href = "6.html";
-                    }
-
-                } else {
-                    alert("Document not found in database!");
-                }
-            } catch (error) {
-                console.error("Error fetching document:", error);
-                alert("Database error. Check console.");
-            }
+otpBoxes.forEach((box, index) => {
+    box.addEventListener('keyup', (e) => {
+        if (e.key >= '0' && e.key <= '9' && index < 3) {
+            otpBoxes[index + 1].focus();
+        }
+        if (e.key === 'Backspace' && index > 0) {
+            otpBoxes[index - 1].focus();
         }
 
-        // ==========================================
-        // 4. OTP GENERATION & EMAIL SENDING
-        // ==========================================
-        sendOtpBtn.addEventListener('click', () => {
-            const email = parentEmailInput.value.trim();
-            if (!email) {
-                alert("Please enter a valid email.");
-                return;
-            }
+        const filled = Array.from(otpBoxes).every(b => b.value !== '');
+        confirmBtn.disabled = !filled;
 
-            currentParentEmail = email;
-            
-            // Generate 4-digit code
-            generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+        confirmBtn.style.backgroundColor = "#000"; // FIXED
+    });
+});
 
-            sendOtpBtn.innerText = "Sending...";
-            sendOtpBtn.disabled = true;
+confirmBtn.addEventListener('click', () => {
+    const entered = Array.from(otpBoxes).map(b => b.value).join('');
+    if (entered === generatedOTP) {
+        alert("Verified");
+    } else {
+        alert("Wrong OTP");
+    }
+});
+</script>
 
-            // Send via EmailJS
-            emailjs.send("service_63mnm5a", "template_qxz1wka", {
-                to_email: email,
-                otp: generatedOTP
-            }).then(
-                function(response) {
-                    console.log("SUCCESS!", response.status, response.text);
-                    // Switch UI
-                    emailStep.style.display = 'none';
-                    otpStep.style.display = 'block';
-                    displayEmail.innerText = email;
-                },
-                function(error) {
-                    console.log("FAILED...", error);
-                    alert("Failed to send email. Check EmailJS configuration.");
-                    sendOtpBtn.innerText = "Send Verification Code";
-                    sendOtpBtn.disabled = false;
-                }
-            );
-        });
-
-        // ==========================================
-        // 5. OTP INPUT BOX LOGIC (Auto-focus & merge)
-        // ==========================================
-        otpBoxes.forEach((box, index) => {
-            box.addEventListener('keyup', (e) => {
-                // Move to next box if number typed
-                if (e.key >= '0' && e.key <= '9') {
-                    if (index < otpBoxes.length - 1) {
-                        otpBoxes[index + 1].focus();
-                    }
-                } 
-                // Handle backspace
-                else if (e.key === 'Backspace') {
-                    if (index > 0) {
-                        otpBoxes[index - 1].focus();
-                    }
-                }
-
-                // Check if all filled to enable button
-                const allFilled = Array.from(otpBoxes).every(b => b.value !== '');
-                confirmBtn.disabled = !allFilled;
-                if(allFilled) {
-                    confirmBtn.style.backgroundColor = "#8B8982"; // Color from screenshot
-                } else {
-                    confirmBtn.style.backgroundColor = "#999";
-                }
-            });
-        });
-
-        // ==========================================
-        // 6. CONFIRM OTP AND UPDATE FIRESTORE
-        // ==========================================
-        confirmBtn.addEventListener('click', async () => {
-            const enteredOTP = Array.from(otpBoxes).map(b => b.value).join('');
-            
-            if (enteredOTP === generatedOTP) {
-                confirmBtn.innerText = "Verifying...";
-                await verifyAndUpdateDatabase(currentParentEmail, false);
-            } else {
-                alert("Incorrect OTP. Please try again.");
-                // Clear boxes
-                otpBoxes.forEach(b => b.value = '');
-                otpBoxes[0].focus();
-                confirmBtn.disabled = true;
-            }
-        });
-
-        async function verifyAndUpdateDatabase(guardianEmail, fromUrlFlow) {
-            try {
-                const docRef = doc(db, "ASPX Keys", sessionId);
-                
-                // Update specific fields as requested
-                await updateDoc(docRef, {
-                    family: "commited",
-                    guardians: guardianEmail
-                });
-
-                // Redirect on success
-                if(fromUrlFlow) {
-                     window.location.href = `6.html?session=${sessionId}&verified=true`;
-                } else {
-                     window.location.href = "6.html";
-                }
-               
-            } catch (error) {
-                console.error("Error updating document:", error);
-                alert("Failed to update database.");
-                confirmBtn.innerText = "Confirm";
-            }
-        }
-
-        // Initialize script
-        checkUserData();
-
-    </script>
 </body>
 </html>
