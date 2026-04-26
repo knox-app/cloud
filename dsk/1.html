@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account</title>
     <style>
-        /* Change font to Arial */
         * {
             box-sizing: border-box;
             font-family: Arial, Helvetica, sans-serif;
@@ -72,7 +71,6 @@
             transition: border-color 0.2s;
         }
 
-        /* Focus color changed from green to black */
         input:focus {
             border-color: #000000;
             border-width: 2px;
@@ -158,7 +156,6 @@
 
     const { session, type } = initSession();
 
-    // The core function to save and redirect
     async function submitData() {
         const firstName = document.getElementById('firstName').value.trim();
         const lastName = document.getElementById('lastName').value.trim();
@@ -176,10 +173,10 @@
         if (type === 'personal') familyValue = "no";
 
         try {
-            // Updated Collection Name to "ASPX Keys"
             await setDoc(doc(db, "ASPX Keys", session), {
                 firstName: firstName,
                 lastName: lastName,
+                type: type, // ✅ ADDED (stores URL type)
                 family: familyValue,
                 timestamp: new Date()
             });
@@ -190,7 +187,6 @@
         }
     }
 
-    // Logic: Enter key on First Name moves focus to Last Name
     document.getElementById('firstName').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -198,7 +194,6 @@
         }
     });
 
-    // Logic: Enter key on Last Name submits the form
     document.getElementById('lastName').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -206,7 +201,6 @@
         }
     });
 
-    // Click logic
     document.getElementById('continueBtn').addEventListener('click', submitData);
 </script>
 
