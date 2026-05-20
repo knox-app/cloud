@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>S-Cloud | Dashboard</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; margin: 0; }
+        header { background: #1c1e21; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-links a { color: #ddd; text-decoration: none; margin-left: 20px; font-size: 14px; }
+        .container { padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; }
+        .card img { width: 100%; height: 160px; object-fit: cover; }
+        .card-info { padding: 10px; font-size: 13px; }
+        .card-actions { padding: 10px; display: flex; gap: 5px; border-top: 1px solid #eee; }
+        button { flex: 1; padding: 6px; font-size: 11px; cursor: pointer; border: 1px solid #ddd; background: #fff; }
+        button:hover { background: #f0f0f0; }
+        .folder-chip { display: inline-block; background: #e4e6eb; padding: 5px 12px; border-radius: 15px; margin-right: 10px; cursor: pointer; font-size: 12px; }
+        .active-tab { border-bottom: 2px solid white; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="font-size: 20px; font-weight: bold;">S-Cloud</div>
+        <div class="nav-links">
+            <a href="dashboard.html?collection=none" id="my-link">My Media</a>
+            <a href="dashboard.html?collection=shared" id="shared-link">Shared with Me</a>
+            <a href="upload.html">Upload</a>
+            <a href="index.html" onclick="localStorage.clear()">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 id="view-title">My Storage</h2>
+        <div id="folders"></div>
+        <div id="media-grid" class="grid"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, updateDoc, doc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            projectId: "question-metabase",
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const userEmail = localStorage.getItem("userEmail");
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('collection');
+
+        if(!userEmail) window.location.href = "index.html";
+
+        async function loadContent() {
+            const grid = document.getElementById('media-grid');
+            const foldersDiv = document.getElementById('folders');
+            const title = document.getElementById('view-title');
+            
+            grid.innerHTML = "Fetching your files...";
+            
+            let q;
+            if(mode === "shared") {
+                title.innerText = "Shared with Me";
+                document.getElementById('shared-link').classList.add('active-tab');
+                q = query(collection(db, "media"), where("sharedWith", "array-contains", userEmail));
+            } else {
+                title.innerText = "My Files";
+                document.getElementById('my-link').classList.add('active-tab');
+                q = query(collection(db, "media"), where("owner", "==", userEmail));
+            }
+
+            const snap = await getDocs(q);
+            grid.innerHTML = "";
+            let folderSet = new Set();
+
+            if (snap.empty) grid.innerHTML = "No images found.";
+
+            snap.forEach(documentSnapshot => {
+                const data = documentSnapshot.data();
+                const id = documentSnapshot.id;
+                folderSet.add(data.folder);
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img src="${data.url}">
+                    <div class="card-info">
+                        <strong>${data.name}</strong><br>
+                        Folder: ${data.folder}
+                    </div>
+                    <div class="card-actions">
+                        <button onclick="shareMedia('${id}')">Email Share</button>
+                        <button onclick="copyLink('${data.url}')">Copy Link</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Folders List
+            foldersDiv.innerHTML = "Folders: ";
+            folderSet.forEach(f => {
+                foldersDiv.innerHTML += `<span class="folder-chip">${f}</span>`;
+            });
+        }
+
+        window.shareMedia = async (docId) => {
+            const email = prompt("Enter the User's Email ID to share with:");
+            if(email) {
+                const ref = doc(db, "media", docId);
+                await updateDoc(ref, { sharedWith: arrayUnion(email) });
+                alert("Shared with " + email);
+            }
+        };
+
+        window.copyLink = (url) => {
+            navigator.clipboard.writeText(url);
+            alert("Direct Image Link copied to clipboard!");
+        };
+
+        loadContent();
+    </script>
+</body>
+</html>
