@@ -5,96 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S-Cloud | Login</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .auth-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        h2 { text-align: center; color: #1c1e21; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #dddfe2; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background: #1877f2; color: white; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        button:hover { background: #166fe5; }
-        p { text-align: center; margin-top: 15px; color: #606770; }
-        a { color: #1877f2; text-decoration: none; cursor: pointer; }
+        :root { --primary: #1a73e8; --text: #3c4043; }
+        body { font-family: 'Google Sans', Arial, sans-serif; background: #fff; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; color: var(--text); }
+        .auth-card { width: 100%; max-width: 400px; padding: 40px; border: 1px solid #dadce0; border-radius: 8px; text-align: center; }
+        .logo { font-size: 24px; font-weight: bold; margin-bottom: 10px; color: #5f6368; }
+        .logo span { color: #4285F4; }
+        h2 { font-size: 22px; margin-bottom: 25px; font-weight: 400; }
+        input { width: 100%; padding: 13px 15px; margin-bottom: 15px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        input:focus { border: 2px solid var(--primary); outline: none; padding: 12px 14px; }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: 500; cursor: pointer; margin-top: 10px; }
+        .toggle { margin-top: 25px; font-size: 14px; color: var(--primary); cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="auth-container">
-        <!-- Login Box -->
-        <div id="login-box">
-            <h2>Login to S-Cloud</h2>
-            <input type="email" id="login-email" placeholder="Email Address">
-            <input type="password" id="login-pass" placeholder="Password">
-            <button onclick="login()">Log In</button>
-            <p>New here? <a onclick="toggleAuth()">Create an account</a></p>
-        </div>
-
-        <!-- Signup Box -->
-        <div id="signup-box" style="display: none;">
-            <h2>Create Account</h2>
-            <input type="text" id="f-name" placeholder="First Name">
-            <input type="text" id="l-name" placeholder="Last Name">
-            <input type="email" id="s-email" placeholder="Email Address">
-            <input type="password" id="s-pass" placeholder="Password">
-            <input type="number" id="s-mobile" placeholder="Mobile Number">
-            <button onclick="signup()">Sign Up</button>
-            <p>Already have an account? <a onclick="toggleAuth()">Log In</a></p>
-        </div>
+<div class="auth-card">
+    <div class="logo">S-<span>Cloud</span></div>
+    
+    <div id="login-form">
+        <h2>Sign in</h2>
+        <input type="email" id="l-email" placeholder="Email">
+        <input type="password" id="l-pass" placeholder="Password">
+        <button onclick="login()">Next</button>
+        <div class="toggle" onclick="toggleView()">Create account</div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    <div id="signup-form" style="display: none;">
+        <h2>Create your Account</h2>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="s-fname" placeholder="First Name">
+            <input type="text" id="s-lname" placeholder="Last Name">
+        </div>
+        <input type="email" id="s-email" placeholder="Email">
+        <input type="password" id="s-pass" placeholder="Password">
+        <input type="number" id="s-mobile" placeholder="Mobile Number">
+        <button onclick="signup()">Register</button>
+        <div class="toggle" onclick="toggleView()">Sign in instead</div>
+    </div>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
-            authDomain: "question-metabase.firebaseapp.com",
-            databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "question-metabase",
-            storageBucket: "question-metabase.firebasestorage.app",
-            messagingSenderId: "770698198753",
-            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+        projectId: "question-metabase",
+        appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.toggleView = () => {
+        const l = document.getElementById('login-form');
+        const s = document.getElementById('signup-form');
+        l.style.display = l.style.display === 'none' ? 'block' : 'none';
+        s.style.display = s.style.display === 'none' ? 'block' : 'none';
+    };
+
+    window.signup = async () => {
+        const user = {
+            fname: document.getElementById('s-fname').value,
+            lname: document.getElementById('s-lname').value,
+            email: document.getElementById('s-email').value,
+            pass: document.getElementById('s-pass').value,
+            mobile: document.getElementById('s-mobile').value
         };
+        await addDoc(collection(db, "users"), user);
+        alert("Account created!");
+        toggleView();
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        window.toggleAuth = () => {
-            const l = document.getElementById('login-box');
-            const s = document.getElementById('signup-box');
-            l.style.display = l.style.display === 'none' ? 'block' : 'none';
-            s.style.display = s.style.display === 'none' ? 'block' : 'none';
-        };
-
-        window.signup = async () => {
-            const userData = {
-                firstName: document.getElementById('f-name').value,
-                lastName: document.getElementById('l-name').value,
-                email: document.getElementById('s-email').value,
-                password: document.getElementById('s-pass').value,
-                mobile: document.getElementById('s-mobile').value
-            };
-            if(!userData.email || !userData.password) return alert("Fill all fields");
-            
-            try {
-                await addDoc(collection(db, "users"), userData);
-                alert("Account created successfully!");
-                toggleAuth();
-            } catch (e) { alert("Error: " + e); }
-        };
-
-        window.login = async () => {
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
-            
-            const q = query(collection(db, "users"), where("email", "==", email), where("password", "==", pass));
-            const querySnapshot = await getDocs(q);
-            
-            if (!querySnapshot.empty) {
-                localStorage.setItem("userEmail", email);
-                window.location.href = "dashboard.html?collection=none";
-            } else {
-                alert("Invalid email or password");
-            }
-        };
-    </script>
+    window.login = async () => {
+        const email = document.getElementById('l-email').value;
+        const pass = document.getElementById('l-pass').value;
+        const q = query(collection(db, "users"), where("email", "==", email), where("pass", "==", pass));
+        const snap = await getDocs(q);
+        if(!snap.empty) {
+            localStorage.setItem("sCloudUser", email);
+            window.location.href = "3.html";
+        } else {
+            alert("Invalid login");
+        }
+    };
+</script>
 </body>
-  </html>
+</html>
