@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication - Gmail Client</title>
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --primary-hover: #1557b0;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-color: #3c4043;
+            --border-color: #dadce0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        nav {
+            width: 100%;
+            background-color: var(--card-background);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        nav a:hover {
+            background-color: #f1f3f4;
+        }
+
+        nav a.active {
+            color: var(--primary-color);
+            background-color: #e8f0fe;
+        }
+
+        .container {
+            max-width: 450px;
+            width: 90%;
+            margin-top: 60px;
+            padding: 40px;
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 400;
+        }
+
+        p {
+            font-size: 14px;
+            color: #5f6368;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: #d93025;
+        }
+
+        .btn-danger:hover {
+            background-color: #b31412;
+        }
+
+        .status-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status-success {
+            background-color: #e6f4ea;
+            color: #137333;
+            border: 1px solid #dadce0;
+        }
+
+        .status-error {
+            background-color: #fce8e6;
+            color: #c5221f;
+            border: 1px solid #dadce0;
+        }
+    </style>
+    <!-- Load Google Identity Services SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+    <nav>
+        <a href="1.html" class="active">1. Auth</a>
+        <a href="2.html">2. Send Email</a>
+        <a href="3.html">3. Read Email</a>
+        <a href="4.html">4. Status Check</a>
+    </nav>
+
+    <div class="container">
+        <h1>Gmail Authentication</h1>
+        <p>Authorize access to manage your Gmail inbox securely.</p>
+
+        <div id="logged-out-view">
+            <button class="btn" id="login-btn">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                    <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
+                    <path d="M3.964 10.707a5.416 5.416 0 010-3.414V4.961H.957a8.997 8.997 0 000 8.078l3.007-2.332z" fill="#FBBC05"/>
+                    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.844 11.426 0 9 0A8.997 8.997 0 00.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                </svg>
+                Sign in with Google
+            </button>
+        </div>
+
+        <div id="logged-in-view" style="display: none;">
+            <div class="status-box status-success" style="display: block; margin-bottom: 20px;">
+                You are currently authenticated.
+            </div>
+            <button class="btn btn-danger" id="logout-btn">Log Out</button>
+        </div>
+
+        <div id="status-message" class="status-box"></div>
+    </div>
+
+    <script>
+        const CLIENT_ID = '960697640788-qh2gmrbupc7p53pldv26ev4n3ccmku6h.apps.googleusercontent.com';
+        const SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
+
+        let tokenClient;
+
+        window.onload = function() {
+            initTokenClient();
+            checkAuthStatus();
+        };
+
+        function initTokenClient() {
+            if (typeof google !== 'undefined') {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,
+                    callback: (tokenResponse) => {
+                        if (tokenResponse && tokenResponse.access_token) {
+                            const expiryTime = Date.now() + (tokenResponse.expires_in * 1000);
+                            localStorage.setItem('gmail_access_token', tokenResponse.access_token);
+                            localStorage.setItem('gmail_token_expiry', expiryTime.toString());
+                            
+                            showStatus('Successfully authenticated!', 'success');
+                            checkAuthStatus();
+                        } else {
+                            showStatus('Authentication process was interrupted.', 'error');
+                        }
+                    },
+                });
+            } else {
+                setTimeout(initTokenClient, 200);
+            }
+        }
+
+        function checkAuthStatus() {
+            const token = localStorage.getItem('gmail_access_token');
+            const expiry = localStorage.getItem('gmail_token_expiry');
+            const now = Date.now();
+
+            if (token && expiry && now < parseInt(expiry)) {
+                document.getElementById('logged-out-view').style.display = 'none';
+                document.getElementById('logged-in-view').style.display = 'block';
+            } else {
+                document.getElementById('logged-out-view').style.display = 'block';
+                document.getElementById('logged-in-view').style.display = 'none';
+                // Clear expired tokens automatically
+                if (token) logout();
+            }
+        }
+
+        document.getElementById('login-btn').addEventListener('click', () => {
+            if (tokenClient) {
+                tokenClient.requestAccessToken({ prompt: 'consent' });
+            } else {
+                showStatus('Authentication SDK not fully loaded. Please refresh the page.', 'error');
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', logout);
+
+        function logout() {
+            localStorage.removeItem('gmail_access_token');
+            localStorage.removeItem('gmail_token_expiry');
+            showStatus('Logged out successfully.', 'success');
+            checkAuthStatus();
+        }
+
+        function showStatus(msg, type) {
+            const statusEl = document.getElementById('status-message');
+            statusEl.innerText = msg;
+            statusEl.className = 'status-box ' + (type === 'success' ? 'status-success' : 'status-error');
+            statusEl.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
