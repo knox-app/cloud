@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Dispatcher - Gmail Client</title>
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --primary-hover: #1557b0;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-color: #3c4043;
+            --border-color: #dadce0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        nav {
+            width: 100%;
+            background-color: var(--card-background);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        nav a:hover {
+            background-color: #f1f3f4;
+        }
+
+        nav a.active {
+            color: var(--primary-color);
+            background-color: #e8f0fe;
+        }
+
+        .container {
+            max-width: 650px;
+            width: 90%;
+            margin: 40px 0;
+            padding: 30px;
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-weight: 400;
+            color: #202124;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .status-section {
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            background-color: #f1f3f4;
+            border: 1px solid var(--border-color);
+        }
+
+        .status-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-details {
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #5f6368;
+        }
+
+        .docs-section {
+            margin-top: 30px;
+        }
+
+        .docs-section h3 {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background-color: #f1f3f4;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 13px;
+            word-break: break-all;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tag {
+            background-color: #e8f0fe;
+            color: var(--primary-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="1.html">1. Auth</a>
+        <a href="2.html">2. Send Email</a>
+        <a href="3.html">3. Read Email</a>
+        <a href="4.html">4. Status Check</a>
+        <a href="5.html" class="active">5. URL Send</a>
+    </nav>
+
+    <div class="container">
+        <h2>Firestore Email Dispatcher</h2>
+
+        <div id="status-container" class="status-section" style="display: none;">
+            <div class="status-title">
+                <div id="status-spinner" class="loader"></div>
+                <span id="status-title-text">Processing Request...</span>
+            </div>
+            <div id="status-details" class="status-details">Extracting query variables from URL...</div>
+        </div>
+
+        <div class="docs-section">
+            <h3>Firestore Query API Integration Instructions</h3>
+            <p style="font-size: 13px; line-height: 1.4; color: #5f6368;">
+                This page parses parameters, connects to the Firebase project <strong>question-metabase</strong>, fetches your HTML template from the <strong>Workspace</strong> collection, verifies authorization against the registered <strong>API Keys</strong> field, and delivers the email.
+            </p>
+
+            <h4>URL Parameters Structure:</h4>
+            <div class="code-block">
+                5.html?api=gymbat.apis.plx&to=recipient@example.com&template=b4nW8WmO4jLEG47xlWEw
+            </div>
+
+            <p style="font-size: 13px; line-height: 1.4; color: #5f6368;">
+                If a custom <code class="tag">message</code> is provided alongside a <code class="tag">template</code>, it will append the message text below the template container.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const FIREBASE_PROJECT_ID = 'question-metabase';
+
+        window.onload = function() {
+            processRequest();
+        };
+
+        async function processRequest() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiParam = urlParams.get('api');         // e.g., gymbat.apis.plx
+            const recipient = urlParams.get('to');         // e.g., xperts.data1@gmail.com
+            const templateId = urlParams.get('template');   // e.g., b4nW8WmO4jLEG47xlWEw
+            const customMsg = urlParams.get('message');    // optional message text
+
+            // Stop execution if no parameters are provided
+            if (!apiParam && !recipient && !templateId) {
+                return;
+            }
+
+            const statusContainer = document.getElementById('status-container');
+            const spinner = document.getElementById('status-spinner');
+            const titleText = document.getElementById('status-title-text');
+            const detailsEl = document.getElementById('status-details');
+
+            statusContainer.style.display = 'block';
+
+            // 1. Verify Local Gmail Session Active State
+            const gmailToken = localStorage.getItem('gmail_access_token');
+            const gmailExpiry = localStorage.getItem('gmail_token_expiry');
+            const now = Date.now();
+
+            if (!gmailToken || !gmailExpiry || now >= parseInt(gmailExpiry)) {
+                updateStatus('Gmail Auth Error', 'Your local Gmail session has expired or is missing. Please log in on Page 1 first.', 'error');
+                return;
+            }
+
+            // 2. Validate Required Parameter Inputs
+            if (!apiParam) {
+                updateStatus('Input Error', 'Missing required parameter: "api" (Fable API Key).', 'error');
+                return;
+            }
+            if (!recipient) {
+                updateStatus('Input Error', 'Missing required parameter: "to" (Receiver email address).', 'error');
+                return;
+            }
+            if (!templateId) {
+                updateStatus('Input Error', 'Missing required parameter: "template" (Firestore Document ID).', 'error');
+                return;
+            }
+
+            try {
+                detailsEl.innerText = `Fetching template data from Firestore document: ${templateId}...`;
+
+                // 3. Request Document Data from Firestore using direct REST API Endpoint
+                const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/Workspace/${templateId}`;
+                const response = await fetch(firestoreUrl);
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error(`Firestore document ID "${templateId}" was not found inside collection "Workspace".`);
+                    } else {
+                        throw new Error(`Firestore request failed with status: ${response.statusText}`);
+                    }
+                }
+
+                const docData = await response.json();
+
+                // Extract Fields cleanly from Firestore formatting
+                const docApiKey = docData.fields?.["API Keys"]?.stringValue;
+                const docTemplateHtml = docData.fields?.["Template"]?.stringValue || "";
+                const docEmailFallback = docData.fields?.["Email"]?.stringValue;
+
+                // 4. Validate Passed API Key against Firestore database record
+                if (docApiKey !== apiParam) {
+                    throw new Error('Authorization Denied: Provided API parameter does not match the workspace record.');
+                }
+
+                detailsEl.innerText = 'Authorization verified. Packaging email content...';
+
+                // Assemble HTML content
+                let finalHtmlBody = docTemplateHtml;
+                if (customMsg) {
+                    finalHtmlBody += `<div style="margin-top: 20px; font-family: sans-serif;">${customMsg.replace(/\n/g, '<br>')}</div>`;
+                }
+
+                const subjectLine = "Automated Live Update Notification";
+
+                // 5. Generate and Transmit Email MIME via Gmail API
+                detailsEl.innerText = `Delivering email to ${recipient}...`;
+                const rawMime = buildSimpleMime(recipient, subjectLine, finalHtmlBody);
+                await sendGmailMime(rawMime, gmailToken);
+
+                updateStatus('Delivery Complete', `Successfully verified and dispatched email to: ${recipient}`, 'success');
+
+            } catch (err) {
+                updateStatus('Execution Failure', err.message, 'error');
+            }
+        }
+
+        function buildSimpleMime(to, subject, bodyHtml) {
+            const mail = [
+                `To: ${to}`,
+                `Subject: ${subject}`,
+                "MIME-Version: 1.0",
+                "Content-Type: text/html; charset=utf-8",
+                "Content-Transfer-Encoding: 7bit\n",
+                bodyHtml
+            ].join("\r\n");
+
+            // Safe Base64 Encoding
+            return btoa(unescape(encodeURIComponent(mail)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+        }
+
+        async function sendGmailMime(rawMime, token) {
+            const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ raw: rawMime })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error?.message || 'Error occurred during Gmail delivery API call.');
+            }
+            return await response.json();
+        }
+
+        function updateStatus(title, description, statusType) {
+            const spinner = document.getElementById('status-spinner');
+            const titleText = document.getElementById('status-title-text');
+            const detailsEl = document.getElementById('status-details');
+            const container = document.getElementById('status-container');
+
+            spinner.style.display = 'none';
+            titleText.innerText = title;
+            detailsEl.innerText = description;
+
+            if (statusType === 'error') {
+                container.style.backgroundColor = '#fce8e6';
+                container.style.borderColor = '#dadce0';
+                titleText.style.color = '#c5221f';
+            } else if (statusType === 'success') {
+                container.style.backgroundColor = '#e6f4ea';
+                container.style.borderColor = '#dadce0';
+                titleText.style.color = '#137333';
+            }
+        }
+    </script>
+</body>
+</html>
