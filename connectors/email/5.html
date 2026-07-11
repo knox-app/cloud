@@ -168,16 +168,16 @@
         <div class="docs-section">
             <h3>Firestore Query API Integration Instructions</h3>
             <p style="font-size: 13px; line-height: 1.4; color: #5f6368;">
-                This page parses parameters, connects to the Firebase project <strong>question-metabase</strong>, fetches your HTML template from the <strong>Workspace</strong> collection, verifies authorization against the registered <strong>API Keys</strong> field, and delivers the email.
+                This page parses the parameters, queries your Firebase project <strong>question-metabase</strong> to find the document with matching <strong>Template ID</strong>, verifies authorization, and delivers the email.
             </p>
 
             <h4>URL Parameters Structure:</h4>
             <div class="code-block">
-                5.html?api=gymbat.apis.plx&to=recipient@example.com&template=b4nW8WmO4jLEG47xlWEw
+                5.html?api=newlifeskys.apis.plx&to=recipient@example.com&template=789415263012
             </div>
 
             <p style="font-size: 13px; line-height: 1.4; color: #5f6368;">
-                If a custom <code class="tag">message</code> is provided alongside a <code class="tag">template</code>, it will append the message text below the template container.
+                If a custom <code class="tag">message</code> parameter is provided, it will append below the database HTML template container.
             </p>
         </div>
     </div>
@@ -191,12 +191,11 @@
 
         async function processRequest() {
             const urlParams = new URLSearchParams(window.location.search);
-            const apiParam = urlParams.get('api');         // e.g., gymbat.apis.plx
+            const apiParam = urlParams.get('api');         // e.g., newlifeskys.apis.plx
             const recipient = urlParams.get('to');         // e.g., xperts.data1@gmail.com
-            const templateId = urlParams.get('template');   // e.g., b4nW8WmO4jLEG47xlWEw
+            const templateId = urlParams.get('template');   // e.g., 789415263012
             const customMsg = urlParams.get('message');    // optional message text
 
-            // Stop execution if no parameters are provided
             if (!apiParam && !recipient && !templateId) {
                 return;
             }
@@ -220,7 +219,7 @@
 
             // 2. Validate Required Parameter Inputs
             if (!apiParam) {
-                updateStatus('Input Error', 'Missing required parameter: "api" (Fable API Key).', 'error');
+                updateStatus('Input Error', 'Missing required parameter: "api" (API Keys matching variable).', 'error');
                 return;
             }
             if (!recipient) {
@@ -228,35 +227,56 @@
                 return;
             }
             if (!templateId) {
-                updateStatus('Input Error', 'Missing required parameter: "template" (Firestore Document ID).', 'error');
+                updateStatus('Input Error', 'Missing required parameter: "template" (Template ID matching variable).', 'error');
                 return;
             }
 
             try {
-                detailsEl.innerText = `Fetching template data from Firestore document: ${templateId}...`;
+                detailsEl.innerText = `Querying Firestore for Template ID: ${templateId}...`;
 
-                // 3. Request Document Data from Firestore using direct REST API Endpoint
-                const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/Workspace/${templateId}`;
-                const response = await fetch(firestoreUrl);
+                // 3. Query Firestore using runQuery structured payload
+                const queryUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery`;
+                
+                const structuredQueryPayload = {
+                    structuredQuery: {
+                        from: [{ collectionId: 'Workspace' }],
+                        where: {
+                            fieldFilter: {
+                                field: { fieldPath: 'Template ID' },
+                                op: 'EQUAL',
+                                value: { stringValue: templateId }
+                            }
+                        },
+                        limit: 1
+                    }
+                };
+
+                const response = await fetch(queryUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(structuredQueryPayload)
+                });
 
                 if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error(`Firestore document ID "${templateId}" was not found inside collection "Workspace".`);
-                    } else {
-                        throw new Error(`Firestore request failed with status: ${response.statusText}`);
-                    }
+                    throw new Error(`Firestore query failed with status: ${response.statusText}`);
                 }
 
-                const docData = await response.json();
+                const queryResult = await response.json();
 
-                // Extract Fields cleanly from Firestore formatting
-                const docApiKey = docData.fields?.["API Keys"]?.stringValue;
-                const docTemplateHtml = docData.fields?.["Template"]?.stringValue || "";
-                const docEmailFallback = docData.fields?.["Email"]?.stringValue;
+                // Firestore runQuery returns an array. Check if a document matched.
+                if (!queryResult || queryResult.length === 0 || !queryResult[0].document) {
+                    throw new Error(`No document found inside collection "Workspace" with Template ID: "${templateId}"`);
+                }
 
-                // 4. Validate Passed API Key against Firestore database record
+                const matchedDoc = queryResult[0].document;
+                const docApiKey = matchedDoc.fields?.["API Keys"]?.stringValue;
+                const docTemplateHtml = matchedDoc.fields?.["Template"]?.stringValue || "";
+
+                // 4. Validate API Key
                 if (docApiKey !== apiParam) {
-                    throw new Error('Authorization Denied: Provided API parameter does not match the workspace record.');
+                    throw new Error('Authorization Denied: The provided api Key parameter does not match the database workspace record.');
                 }
 
                 detailsEl.innerText = 'Authorization verified. Packaging email content...';
@@ -267,14 +287,14 @@
                     finalHtmlBody += `<div style="margin-top: 20px; font-family: sans-serif;">${customMsg.replace(/\n/g, '<br>')}</div>`;
                 }
 
-                const subjectLine = "Automated Live Update Notification";
+                const subjectLine = "Live Update System Notification";
 
                 // 5. Generate and Transmit Email MIME via Gmail API
                 detailsEl.innerText = `Delivering email to ${recipient}...`;
                 const rawMime = buildSimpleMime(recipient, subjectLine, finalHtmlBody);
                 await sendGmailMime(rawMime, gmailToken);
 
-                updateStatus('Delivery Complete', `Successfully verified and dispatched email to: ${recipient}`, 'success');
+                updateStatus('Delivery Complete', `Successfully verified and dispatched email template to: ${recipient}`, 'success');
 
             } catch (err) {
                 updateStatus('Execution Failure', err.message, 'error');
@@ -291,7 +311,6 @@
                 bodyHtml
             ].join("\r\n");
 
-            // Safe Base64 Encoding
             return btoa(unescape(encodeURIComponent(mail)))
                 .replace(/\+/g, '-')
                 .replace(/\//g, '_')
