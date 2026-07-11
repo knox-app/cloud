@@ -235,49 +235,37 @@
             }
 
             try {
-                detailsEl.innerText = `Querying Firestore for Template ID: ${templateId}...`;
+                detailsEl.innerText = 'Retrieving Workspace configurations from Firestore...';
 
-                // 3. Query Firestore using runQuery REST API (Authenticated with your API key)
-                const queryUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery?key=${FIREBASE_API_KEY}`;
+                // 3. Fetch all Workspace documents with a GET request to avoid query syntax limitations
+                const fetchUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/Workspace?key=${FIREBASE_API_KEY}`;
                 
-                const structuredQueryPayload = {
-                    structuredQuery: {
-                        from: [{ collectionId: 'Workspace' }],
-                        where: {
-                            fieldFilter: {
-                                field: { fieldPath: 'Template ID' },
-                                op: 'EQUAL',
-                                value: { stringValue: templateId }
-                            }
-                        },
-                        limit: 1
-                    }
-                };
-
-                const response = await fetch(queryUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(structuredQueryPayload)
-                });
+                const response = await fetch(fetchUrl);
 
                 if (!response.ok) {
-                    throw new Error(`Firestore query failed with status: ${response.statusText}`);
+                    throw new Error(`Firestore fetch failed with status: ${response.status}`);
                 }
 
                 const queryResult = await response.json();
 
-                // Check if a matching document was retrieved
-                if (!queryResult || queryResult.length === 0 || !queryResult[0].document) {
-                    throw new Error(`No document found inside collection "Workspace" with Template ID: "${templateId}"`);
+                if (!queryResult.documents || queryResult.documents.length === 0) {
+                    throw new Error('No documents found in the Workspace collection.');
                 }
 
-                const matchedDoc = queryResult[0].document;
+                // 4. Filter list in memory to find the document with matching Template ID
+                const matchedDoc = queryResult.documents.find(doc => {
+                    const docTemplateId = doc.fields?.["Template ID"]?.stringValue;
+                    return docTemplateId === templateId;
+                });
+
+                if (!matchedDoc) {
+                    throw new Error(`No workspace matched the Template ID: "${templateId}"`);
+                }
+
                 const docApiKey = matchedDoc.fields?.["API Keys"]?.stringValue;
                 const docTemplateHtml = matchedDoc.fields?.["Template"]?.stringValue || "";
 
-                // 4. Validate API Key parameter matches database workspace record
+                // 5. Validate API Key parameter matches database workspace record
                 if (docApiKey !== apiParam) {
                     throw new Error('Authorization Denied: The provided api Key parameter does not match the workspace record.');
                 }
@@ -292,7 +280,7 @@
 
                 const subjectLine = "Live Update System Notification";
 
-                // 5. Generate and Transmit Email MIME via Gmail API
+                // 6. Generate and Transmit Email MIME via Gmail API
                 detailsEl.innerText = `Delivering email to ${recipient}...`;
                 const rawMime = buildSimpleMime(recipient, subjectLine, finalHtmlBody);
                 await sendGmailMime(rawMime, gmailToken);
