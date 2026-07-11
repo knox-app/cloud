@@ -168,7 +168,7 @@
         <div class="docs-section">
             <h3>Firestore Query API Integration Instructions</h3>
             <p style="font-size: 13px; line-height: 1.4; color: #5f6368;">
-                This page parses the parameters, queries your Firebase project <strong>question-metabase</strong> to find the document with matching <strong>Template ID</strong>, verifies authorization, and delivers the email.
+                This page parses parameters, connects to the Firebase project <strong>question-metabase</strong>, matches the document with your <strong>Template ID</strong>, verifies authorization, and delivers the email.
             </p>
 
             <h4>URL Parameters Structure:</h4>
@@ -177,13 +177,15 @@
             </div>
 
             <p style="font-size: 13px; line-height: 1.4; color: #5f6368;">
-                If a custom <code class="tag">message</code> parameter is provided, it will append below the database HTML template container.
+                If a custom <code class="tag">message</code> is provided alongside a <code class="tag">template</code>, it will append the message text below the template container.
             </p>
         </div>
     </div>
 
     <script>
+        // Integrated Firebase parameters
         const FIREBASE_PROJECT_ID = 'question-metabase';
+        const FIREBASE_API_KEY = 'AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U';
 
         window.onload = function() {
             processRequest();
@@ -196,6 +198,7 @@
             const templateId = urlParams.get('template');   // e.g., 789415263012
             const customMsg = urlParams.get('message');    // optional message text
 
+            // Stop execution if parameters are absent
             if (!apiParam && !recipient && !templateId) {
                 return;
             }
@@ -234,8 +237,8 @@
             try {
                 detailsEl.innerText = `Querying Firestore for Template ID: ${templateId}...`;
 
-                // 3. Query Firestore using runQuery structured payload
-                const queryUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery`;
+                // 3. Query Firestore using runQuery REST API (Authenticated with your API key)
+                const queryUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery?key=${FIREBASE_API_KEY}`;
                 
                 const structuredQueryPayload = {
                     structuredQuery: {
@@ -265,7 +268,7 @@
 
                 const queryResult = await response.json();
 
-                // Firestore runQuery returns an array. Check if a document matched.
+                // Check if a matching document was retrieved
                 if (!queryResult || queryResult.length === 0 || !queryResult[0].document) {
                     throw new Error(`No document found inside collection "Workspace" with Template ID: "${templateId}"`);
                 }
@@ -274,9 +277,9 @@
                 const docApiKey = matchedDoc.fields?.["API Keys"]?.stringValue;
                 const docTemplateHtml = matchedDoc.fields?.["Template"]?.stringValue || "";
 
-                // 4. Validate API Key
+                // 4. Validate API Key parameter matches database workspace record
                 if (docApiKey !== apiParam) {
-                    throw new Error('Authorization Denied: The provided api Key parameter does not match the database workspace record.');
+                    throw new Error('Authorization Denied: The provided api Key parameter does not match the workspace record.');
                 }
 
                 detailsEl.innerText = 'Authorization verified. Packaging email content...';
