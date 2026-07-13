@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Client Portal</title>
-    <!-- Firebase Compat SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Google Identity Services client SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
             --bg-color: #f4f6f8;
@@ -167,15 +165,13 @@
 
     <header>
         <div class="header-title">Mailbox Enterprise</div>
-        <div class="user-profile" id="user-info">
-            <!-- Dynamic elements loaded through JS -->
-        </div>
+        <div class="user-profile" id="user-info"></div>
     </header>
 
     <div id="login-screen">
-        <h2>Welcome back</h2>
-        <p>Sign in with your Google account to proceed to your mail client.</p>
-        <button class="btn" id="login-btn">Authenticate with Google</button>
+        <h2>Authentication Required</h2>
+        <p>Log in with your Google Workspace account to read and send messages.</p>
+        <button class="btn" id="login-btn" onclick="requestToken()">Authorize with Google</button>
     </div>
 
     <div class="container" id="main-app">
@@ -183,9 +179,7 @@
         <div class="card">
             <h3>Inbox</h3>
             <button class="btn" onclick="fetchEmails()" style="margin-bottom: 10px; width: 100%;">Refresh Mail</button>
-            <ul class="email-list" id="email-list-container">
-                <!-- Inboxes populate here -->
-            </ul>
+            <ul class="email-list" id="email-list-container"></ul>
 
             <div class="email-view" id="email-detail-view" style="display: none;">
                 <h4 id="view-subject"></h4>
@@ -238,37 +232,86 @@
     </div>
 
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
-            authDomain: "question-metabase.firebaseapp.com",
-            databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "question-metabase",
-            storageBucket: "question-metabase.firebasestorage.app",
-            messagingSenderId: "770698198753",
-            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
-            measurementId: "G-6ZP1FPMKSJ"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const googleProvider = new firebase.auth.GoogleAuthProvider();
+        const CLIENT_ID = '960697640788-qh2gmrbupc7p53pldv26ev4n3ccmku6h.apps.googleusercontent.com';
+        const SCOPES = 'https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
         
-        // Scope settings for Gmail Send and Read capabilities
-        googleProvider.addScope('https://www.googleapis.com/auth/gmail.send');
-        googleProvider.addScope('https://www.googleapis.com/auth/gmail.readonly');
-
-        const loginBtn = document.getElementById('login-btn');
-        const loginScreen = document.getElementById('login-screen');
-        const mainApp = document.getElementById('main-app');
-        const userInfo = document.getElementById('user-info');
-        const fileInput = document.getElementById('file-attachments');
-        const filesList = document.getElementById('files-list');
-
+        let tokenClient;
         let attachmentsStore = [];
 
-        // Handle CC/BCC display toggles
+        // Initialize Google Identity Services token client
+        function initGisClient() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: (tokenResponse) => {
+                    if (tokenResponse.error !== undefined) {
+                        console.error("Authorization Error:", tokenResponse.error);
+                        return;
+                    }
+                    localStorage.setItem('google_access_token', tokenResponse.access_token);
+                    resolveSession();
+                },
+            });
+        }
+
+        // Safe client loader hook
+        window.onload = function() {
+            if (typeof google !== 'undefined' && google.accounts) {
+                initGisClient();
+            } else {
+                // Poll waiting for library load
+                const interval = setInterval(() => {
+                    if (typeof google !== 'undefined' && google.accounts) {
+                        clearInterval(interval);
+                        initGisClient();
+                    }
+                }, 100);
+            }
+            resolveSession();
+        };
+
+        function requestToken() {
+            tokenClient.requestAccessToken({ prompt: 'consent' });
+        }
+
+        function resolveSession() {
+            const token = localStorage.getItem('google_access_token');
+            if (token) {
+                fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error("Invalid Token");
+                    return res.json();
+                })
+                .then(user => {
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('main-app').style.display = 'grid';
+                    document.getElementById('user-info').innerHTML = `
+                        <span>${user.email}</span>
+                        <img src="${user.picture || 'https://via.placeholder.com/32'}" alt="profile img">
+                        <button class="btn btn-danger" onclick="logout()">Sign Out</button>
+                    `;
+                    fetchEmails();
+                })
+                .catch(() => {
+                    logout();
+                });
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('main-app').style.display = 'none';
+                document.getElementById('user-info').innerHTML = '';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('google_access_token');
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('main-app').style.display = 'none';
+            document.getElementById('user-info').innerHTML = '';
+        }
+
+        // Optional fields rendering
         document.getElementById('toggle-cc-bcc-btn').addEventListener('click', function() {
             const extraFields = document.getElementById('cc-bcc-fields');
             if (extraFields.style.display === 'none' || extraFields.style.display === '') {
@@ -280,50 +323,10 @@
             }
         });
 
-        // Event listener for logins
-        loginBtn.addEventListener('click', () => {
-            auth.signInWithPopup(googleProvider).then((result) => {
-                const credential = result.credential;
-                const token = credential.accessToken;
-                localStorage.setItem('google_access_token', token);
-                checkAuthStatus();
-            }).catch((err) => {
-                console.error("Sign-in failure:", err);
-                alert("Sign-in process encountered an issue. Please try again.");
-            });
-        });
-
-        // Track and process local authentication state
-        function checkAuthStatus() {
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    loginScreen.style.display = 'none';
-                    mainApp.style.display = 'grid';
-                    userInfo.innerHTML = `
-                        <span>${user.email}</span>
-                        <img src="${user.photoURL || 'https://via.placeholder.com/32'}" alt="profile image">
-                        <button class="btn btn-danger" onclick="logout()">Sign Out</button>
-                    `;
-                    fetchEmails();
-                } else {
-                    loginScreen.style.display = 'flex';
-                    mainApp.style.display = 'none';
-                    userInfo.innerHTML = '';
-                    localStorage.removeItem('google_access_token');
-                }
-            });
-        }
-
-        function logout() {
-            auth.signOut().then(() => {
-                localStorage.removeItem('google_access_token');
-                checkAuthStatus();
-            });
-        }
-
-        // Process attachments as base64 content
-        fileInput.addEventListener('change', function(e) {
+        // Track and format binary file outputs
+        document.getElementById('file-attachments').addEventListener('change', function(e) {
             attachmentsStore = [];
+            const filesList = document.getElementById('files-list');
             filesList.innerHTML = '';
             Array.from(e.target.files).forEach(file => {
                 const reader = new FileReader();
@@ -339,7 +342,6 @@
             });
         });
 
-        // Build proper RFC 2822 base64url formatted emails
         function buildMimeMessage(to, cc, bcc, subject, body, attachments) {
             const boundary = "boundary_" + Math.random().toString(36).substring(2);
             const nl = "\r\n";
@@ -384,7 +386,6 @@
                 .replace(/=+$/, '');
         }
 
-        // Form Submit listener
         document.getElementById('compose-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const toVal = document.getElementById('to-input').value;
@@ -395,7 +396,7 @@
 
             const token = localStorage.getItem('google_access_token');
             if (!token) {
-                alert("Authorization token missing. Please sign in again.");
+                alert("Session expired. Please authorize.");
                 return;
             }
 
@@ -410,32 +411,23 @@
                 body: JSON.stringify({ raw: rawMime })
             })
             .then(res => {
-                if (res.status === 401) {
-                    alert("Authorization expired. Attempting session recovery.");
-                    logout();
-                    return;
-                }
                 if (res.ok) {
-                    alert("Email sent.");
+                    alert("Email dispatched.");
                     document.getElementById('compose-form').reset();
                     attachmentsStore = [];
-                    filesList.innerHTML = '';
+                    document.getElementById('files-list').innerHTML = '';
                 } else {
-                    alert("Could not deliver email. Verify API permissions.");
+                    alert("Error sending email. Please verify API access.");
                 }
-            })
-            .catch(err => {
-                console.error("Transmittal Error: ", err);
             });
         });
 
-        // Retrieve messages from the account's Gmail inbox
         function fetchEmails() {
             const token = localStorage.getItem('google_access_token');
             if (!token) return;
 
             const listContainer = document.getElementById('email-list-container');
-            listContainer.innerHTML = '<li>Retrieving inbox...</li>';
+            listContainer.innerHTML = '<li>Fetching messages...</li>';
 
             fetch('https://gmail.googleapis.com/v1/users/me/messages?maxResults=8', {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -444,21 +436,20 @@
             .then(data => {
                 listContainer.innerHTML = '';
                 if (!data.messages || data.messages.length === 0) {
-                    listContainer.innerHTML = '<li>Inbox empty.</li>';
+                    listContainer.innerHTML = '<li>No messages found in your inbox.</li>';
                     return;
                 }
                 data.messages.forEach(msg => {
                     fetchEmailDetails(msg.id);
                 });
             })
-            .catch(err => {
+            .catch(() => {
                 listContainer.innerHTML = '<li>Error loading messages.</li>';
             });
         }
 
         function fetchEmailDetails(id) {
             const token = localStorage.getItem('google_access_token');
-            const listContainer = document.getElementById('email-list-container');
             
             fetch(`https://gmail.googleapis.com/v1/users/me/messages/${id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -467,10 +458,9 @@
             .then(msgDetails => {
                 const headers = msgDetails.payload.headers;
                 const subject = (headers.find(h => h.name === 'Subject') || {value: '(No Subject)'}).value;
-                const from = (headers.find(h => h.name === 'From') || {value: 'Unknown Sender'}).value;
+                const from = (headers.find(h => h.name === 'From') || {value: 'Unknown'}).value;
                 
-                // Parse standard message body content
-                let body = "No body contents available.";
+                let body = "No displayable content.";
                 if (msgDetails.payload.body.data) {
                     body = decodeMimeBody(msgDetails.payload.body.data);
                 } else if (msgDetails.payload.parts) {
@@ -484,12 +474,23 @@
                 item.className = 'email-item';
                 item.innerHTML = `
                     <div class="email-subject">${subject}</div>
-                    <div class="email-sender">From: ${from}</div>
+                    <div class="email-sender">${from}</div>
                 `;
                 item.addEventListener('click', () => {
-                    displayEmailView(subject, from, body);
+                    const view = document.getElementById('email-detail-view');
+                    view.style.display = 'block';
+                    document.getElementById('view-subject').innerText = subject;
+                    document.getElementById('view-sender').innerText = `From: ${from}`;
+                    document.getElementById('view-body').innerHTML = body;
+
+                    document.getElementById('reply-btn').onclick = function() {
+                        const emailMatch = from.match(/<([^>]+)>/);
+                        document.getElementById('to-input').value = emailMatch ? emailMatch[1] : from;
+                        document.getElementById('subject-input').value = `Re: ${subject}`;
+                        document.getElementById('body-input').focus();
+                    };
                 });
-                listContainer.appendChild(item);
+                document.getElementById('email-list-container').appendChild(item);
             });
         }
 
@@ -497,25 +498,6 @@
             const cleanStr = data.replace(/-/g, '+').replace(/_/g, '/');
             return decodeURIComponent(escape(atob(cleanStr)));
         }
-
-        function displayEmailView(subject, from, body) {
-            const view = document.getElementById('email-detail-view');
-            view.style.display = 'block';
-            document.getElementById('view-subject').innerText = subject;
-            document.getElementById('view-sender').innerText = `From: ${from}`;
-            document.getElementById('view-body').innerHTML = body;
-
-            // Simple handling to prefill reply contents
-            document.getElementById('reply-btn').onclick = function() {
-                const cleanSenderMatch = from.match(/<([^>]+)>/);
-                const replyTo = cleanSenderMatch ? cleanSenderMatch[1] : from;
-                document.getElementById('to-input').value = replyTo;
-                document.getElementById('subject-input').value = `Re: ${subject}`;
-                document.getElementById('body-input').focus();
-            };
-        }
-
-        window.onload = checkAuthStatus;
     </script>
 </body>
 </html>
