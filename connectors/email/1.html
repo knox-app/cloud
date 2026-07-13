@@ -3,239 +3,519 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authentication - Gmail Client</title>
+    <title>Email Client Portal</title>
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         :root {
-            --primary-color: #1a73e8;
-            --primary-hover: #1557b0;
-            --background-color: #f8f9fa;
-            --card-background: #ffffff;
-            --text-color: #3c4043;
-            --border-color: #dadce0;
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #dddddd;
+            --primary-color: #4a90e2;
+            --primary-hover: #357abd;
         }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        nav {
-            width: 100%;
-            background-color: var(--card-background);
-            border-bottom: 1px solid var(--border-color);
-            padding: 15px 0;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        nav a {
-            text-decoration: none;
+            background-color: var(--bg-color);
             color: var(--text-color);
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
         }
-
-        nav a:hover {
-            background-color: #f1f3f4;
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
-        nav a.active {
-            color: var(--primary-color);
-            background-color: #e8f0fe;
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: bold;
         }
-
-        .container {
-            max-width: 450px;
-            width: 90%;
-            margin-top: 60px;
-            padding: 40px;
-            background-color: var(--card-background);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            text-align: center;
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-
-        h1 {
-            font-size: 24px;
-            margin-bottom: 8px;
-            font-weight: 400;
+        .user-profile img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
         }
-
-        p {
-            font-size: 14px;
-            color: #5f6368;
-            margin-bottom: 30px;
-        }
-
         .btn {
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 12px 24px;
-            font-size: 14px;
-            font-weight: 500;
+            padding: 8px 16px;
             border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 0.9rem;
         }
-
         .btn:hover {
             background-color: var(--primary-hover);
         }
-
         .btn-danger {
-            background-color: #d93025;
+            background-color: #e06d6d;
         }
-
         .btn-danger:hover {
-            background-color: #b31412;
+            background-color: #c95252;
         }
-
-        .status-box {
-            margin-top: 20px;
-            padding: 15px;
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
-            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .form-group textarea {
+            min-height: 120px;
+            font-family: monospace;
+        }
+        .optional-fields {
+            display: none;
+            margin-top: 10px;
+        }
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 0;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+        .email-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        .email-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .email-item:hover {
+            background-color: #f9f9f9;
+        }
+        .email-subject {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .email-sender {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .email-view {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border-color);
+        }
+        #login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 70vh;
+        }
+        #main-app {
             display: none;
         }
-
-        .status-success {
-            background-color: #e6f4ea;
-            color: #137333;
-            border: 1px solid #dadce0;
-        }
-
-        .status-error {
-            background-color: #fce8e6;
-            color: #c5221f;
-            border: 1px solid #dadce0;
+        .attachment-preview {
+            font-size: 0.85rem;
+            color: #555;
+            margin-top: 5px;
         }
     </style>
-    <!-- Load Google Identity Services SDK -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
-    <nav>
-        <a href="1.html" class="active">1. Auth</a>
-        <a href="2.html">2. Send Email</a>
-        <a href="3.html">3. Read Email</a>
-        <a href="4.html">4. Status Check</a>
-    </nav>
-
-    <div class="container">
-        <h1>Gmail Authentication</h1>
-        <p>Authorize access to manage your Gmail inbox securely.</p>
-
-        <div id="logged-out-view">
-            <button class="btn" id="login-btn">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-                    <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
-                    <path d="M3.964 10.707a5.416 5.416 0 010-3.414V4.961H.957a8.997 8.997 0 000 8.078l3.007-2.332z" fill="#FBBC05"/>
-                    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.844 11.426 0 9 0A8.997 8.997 0 00.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
-                </svg>
-                Sign in with Google
-            </button>
+    <header>
+        <div class="header-title">Mailbox Enterprise</div>
+        <div class="user-profile" id="user-info">
+            <!-- Dynamic elements loaded through JS -->
         </div>
+    </header>
 
-        <div id="logged-in-view" style="display: none;">
-            <div class="status-box status-success" style="display: block; margin-bottom: 20px;">
-                You are currently authenticated.
+    <div id="login-screen">
+        <h2>Welcome back</h2>
+        <p>Sign in with your Google account to proceed to your mail client.</p>
+        <button class="btn" id="login-btn">Authenticate with Google</button>
+    </div>
+
+    <div class="container" id="main-app">
+        <!-- Inbox Panel -->
+        <div class="card">
+            <h3>Inbox</h3>
+            <button class="btn" onclick="fetchEmails()" style="margin-bottom: 10px; width: 100%;">Refresh Mail</button>
+            <ul class="email-list" id="email-list-container">
+                <!-- Inboxes populate here -->
+            </ul>
+
+            <div class="email-view" id="email-detail-view" style="display: none;">
+                <h4 id="view-subject"></h4>
+                <p id="view-sender"></p>
+                <div id="view-body" style="background: #fafafa; padding: 10px; border-radius: 4px; overflow-x: auto; min-height: 100px;"></div>
+                <button class="btn" id="reply-btn" style="margin-top: 10px;">Reply</button>
             </div>
-            <button class="btn btn-danger" id="logout-btn">Log Out</button>
         </div>
 
-        <div id="status-message" class="status-box"></div>
+        <!-- Compose Panel -->
+        <div class="card">
+            <h3>Compose Message</h3>
+            <form id="compose-form">
+                <div class="form-group">
+                    <label for="to-input">To:</label>
+                    <input type="email" id="to-input" required placeholder="recipient@example.com">
+                </div>
+                
+                <button type="button" class="toggle-btn" id="toggle-cc-bcc-btn">+ Add CC/BCC</button>
+                <div class="optional-fields" id="cc-bcc-fields">
+                    <div class="form-group">
+                        <label for="cc-input">Cc:</label>
+                        <input type="email" id="cc-input" placeholder="cc@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="bcc-input">Bcc:</label>
+                        <input type="email" id="bcc-input" placeholder="bcc@example.com">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="subject-input">Subject:</label>
+                    <input type="text" id="subject-input" required placeholder="Subject">
+                </div>
+
+                <div class="form-group">
+                    <label for="body-input">Body (HTML & Plaintext supported):</label>
+                    <textarea id="body-input" required placeholder="Write HTML content, images tags, CSS style elements, etc."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="file-attachments">Attach File:</label>
+                    <input type="file" id="file-attachments" multiple>
+                    <div class="attachment-preview" id="files-list"></div>
+                </div>
+
+                <button type="submit" class="btn" style="width: 100%;">Send Email</button>
+            </form>
+        </div>
     </div>
 
     <script>
-        const CLIENT_ID = '960697640788-qh2gmrbupc7p53pldv26ev4n3ccmku6h.apps.googleusercontent.com';
-        const SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
-
-        let tokenClient;
-
-        window.onload = function() {
-            initTokenClient();
-            checkAuthStatus();
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            authDomain: "question-metabase.firebaseapp.com",
+            databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "question-metabase",
+            storageBucket: "question-metabase.firebasestorage.app",
+            messagingSenderId: "770698198753",
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+            measurementId: "G-6ZP1FPMKSJ"
         };
 
-        function initTokenClient() {
-            if (typeof google !== 'undefined') {
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CLIENT_ID,
-                    scope: SCOPES,
-                    callback: (tokenResponse) => {
-                        if (tokenResponse && tokenResponse.access_token) {
-                            const expiryTime = Date.now() + (tokenResponse.expires_in * 1000);
-                            localStorage.setItem('gmail_access_token', tokenResponse.access_token);
-                            localStorage.setItem('gmail_token_expiry', expiryTime.toString());
-                            
-                            showStatus('Successfully authenticated!', 'success');
-                            checkAuthStatus();
-                        } else {
-                            showStatus('Authentication process was interrupted.', 'error');
-                        }
-                    },
-                });
-            } else {
-                setTimeout(initTokenClient, 200);
-            }
-        }
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+        
+        // Scope settings for Gmail Send and Read capabilities
+        googleProvider.addScope('https://www.googleapis.com/auth/gmail.send');
+        googleProvider.addScope('https://www.googleapis.com/auth/gmail.readonly');
 
-        function checkAuthStatus() {
-            const token = localStorage.getItem('gmail_access_token');
-            const expiry = localStorage.getItem('gmail_token_expiry');
-            const now = Date.now();
+        const loginBtn = document.getElementById('login-btn');
+        const loginScreen = document.getElementById('login-screen');
+        const mainApp = document.getElementById('main-app');
+        const userInfo = document.getElementById('user-info');
+        const fileInput = document.getElementById('file-attachments');
+        const filesList = document.getElementById('files-list');
 
-            if (token && expiry && now < parseInt(expiry)) {
-                document.getElementById('logged-out-view').style.display = 'none';
-                document.getElementById('logged-in-view').style.display = 'block';
-            } else {
-                document.getElementById('logged-out-view').style.display = 'block';
-                document.getElementById('logged-in-view').style.display = 'none';
-                // Clear expired tokens automatically
-                if (token) logout();
-            }
-        }
+        let attachmentsStore = [];
 
-        document.getElementById('login-btn').addEventListener('click', () => {
-            if (tokenClient) {
-                tokenClient.requestAccessToken({ prompt: 'consent' });
+        // Handle CC/BCC display toggles
+        document.getElementById('toggle-cc-bcc-btn').addEventListener('click', function() {
+            const extraFields = document.getElementById('cc-bcc-fields');
+            if (extraFields.style.display === 'none' || extraFields.style.display === '') {
+                extraFields.style.display = 'block';
+                this.innerText = '- Remove CC/BCC';
             } else {
-                showStatus('Authentication SDK not fully loaded. Please refresh the page.', 'error');
+                extraFields.style.display = 'none';
+                this.innerText = '+ Add CC/BCC';
             }
         });
 
-        document.getElementById('logout-btn').addEventListener('click', logout);
+        // Event listener for logins
+        loginBtn.addEventListener('click', () => {
+            auth.signInWithPopup(googleProvider).then((result) => {
+                const credential = result.credential;
+                const token = credential.accessToken;
+                localStorage.setItem('google_access_token', token);
+                checkAuthStatus();
+            }).catch((err) => {
+                console.error("Sign-in failure:", err);
+                alert("Sign-in process encountered an issue. Please try again.");
+            });
+        });
+
+        // Track and process local authentication state
+        function checkAuthStatus() {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    loginScreen.style.display = 'none';
+                    mainApp.style.display = 'grid';
+                    userInfo.innerHTML = `
+                        <span>${user.email}</span>
+                        <img src="${user.photoURL || 'https://via.placeholder.com/32'}" alt="profile image">
+                        <button class="btn btn-danger" onclick="logout()">Sign Out</button>
+                    `;
+                    fetchEmails();
+                } else {
+                    loginScreen.style.display = 'flex';
+                    mainApp.style.display = 'none';
+                    userInfo.innerHTML = '';
+                    localStorage.removeItem('google_access_token');
+                }
+            });
+        }
 
         function logout() {
-            localStorage.removeItem('gmail_access_token');
-            localStorage.removeItem('gmail_token_expiry');
-            showStatus('Logged out successfully.', 'success');
-            checkAuthStatus();
+            auth.signOut().then(() => {
+                localStorage.removeItem('google_access_token');
+                checkAuthStatus();
+            });
         }
 
-        function showStatus(msg, type) {
-            const statusEl = document.getElementById('status-message');
-            statusEl.innerText = msg;
-            statusEl.className = 'status-box ' + (type === 'success' ? 'status-success' : 'status-error');
-            statusEl.style.display = 'block';
+        // Process attachments as base64 content
+        fileInput.addEventListener('change', function(e) {
+            attachmentsStore = [];
+            filesList.innerHTML = '';
+            Array.from(e.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    attachmentsStore.push({
+                        name: file.name,
+                        type: file.type,
+                        base64Data: evt.target.result.split(',')[1]
+                    });
+                    filesList.innerHTML += `<div>📎 ${file.name}</div>`;
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // Build proper RFC 2822 base64url formatted emails
+        function buildMimeMessage(to, cc, bcc, subject, body, attachments) {
+            const boundary = "boundary_" + Math.random().toString(36).substring(2);
+            const nl = "\r\n";
+            
+            let headers = [
+                `To: ${to}`,
+                cc ? `Cc: ${cc}` : "",
+                bcc ? `Bcc: ${bcc}` : "",
+                `Subject: ${subject}`,
+                "MIME-Version: 1.0",
+                `Content-Type: multipart/mixed; boundary=${boundary}`,
+                ""
+            ].filter(line => line !== "").join(nl);
+
+            let bodyPart = [
+                `--${boundary}`,
+                "Content-Type: text/html; charset=UTF-8",
+                "Content-Transfer-Encoding: base64",
+                "",
+                btoa(unescape(encodeURIComponent(body))),
+                ""
+            ].join(nl);
+
+            let attachmentPart = "";
+            attachments.forEach(file => {
+                attachmentPart += [
+                    `--${boundary}`,
+                    `Content-Type: ${file.type}; name="${file.name}"`,
+                    "Content-Transfer-Encoding: base64",
+                    `Content-Disposition: attachment; filename="${file.name}"`,
+                    "",
+                    file.base64Data,
+                    ""
+                ].join(nl);
+            });
+
+            const emailRaw = headers + nl + bodyPart + nl + (attachmentPart ? attachmentPart : "") + `--${boundary}--`;
+            
+            return btoa(unescape(encodeURIComponent(emailRaw)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
         }
+
+        // Form Submit listener
+        document.getElementById('compose-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const toVal = document.getElementById('to-input').value;
+            const ccVal = document.getElementById('cc-input').value;
+            const bccVal = document.getElementById('bcc-input').value;
+            const subVal = document.getElementById('subject-input').value;
+            const bodyVal = document.getElementById('body-input').value;
+
+            const token = localStorage.getItem('google_access_token');
+            if (!token) {
+                alert("Authorization token missing. Please sign in again.");
+                return;
+            }
+
+            const rawMime = buildMimeMessage(toVal, ccVal, bccVal, subVal, bodyVal, attachmentsStore);
+
+            fetch('https://gmail.googleapis.com/v1/users/me/messages/send', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ raw: rawMime })
+            })
+            .then(res => {
+                if (res.status === 401) {
+                    alert("Authorization expired. Attempting session recovery.");
+                    logout();
+                    return;
+                }
+                if (res.ok) {
+                    alert("Email sent.");
+                    document.getElementById('compose-form').reset();
+                    attachmentsStore = [];
+                    filesList.innerHTML = '';
+                } else {
+                    alert("Could not deliver email. Verify API permissions.");
+                }
+            })
+            .catch(err => {
+                console.error("Transmittal Error: ", err);
+            });
+        });
+
+        // Retrieve messages from the account's Gmail inbox
+        function fetchEmails() {
+            const token = localStorage.getItem('google_access_token');
+            if (!token) return;
+
+            const listContainer = document.getElementById('email-list-container');
+            listContainer.innerHTML = '<li>Retrieving inbox...</li>';
+
+            fetch('https://gmail.googleapis.com/v1/users/me/messages?maxResults=8', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(res => res.json())
+            .then(data => {
+                listContainer.innerHTML = '';
+                if (!data.messages || data.messages.length === 0) {
+                    listContainer.innerHTML = '<li>Inbox empty.</li>';
+                    return;
+                }
+                data.messages.forEach(msg => {
+                    fetchEmailDetails(msg.id);
+                });
+            })
+            .catch(err => {
+                listContainer.innerHTML = '<li>Error loading messages.</li>';
+            });
+        }
+
+        function fetchEmailDetails(id) {
+            const token = localStorage.getItem('google_access_token');
+            const listContainer = document.getElementById('email-list-container');
+            
+            fetch(`https://gmail.googleapis.com/v1/users/me/messages/${id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(res => res.json())
+            .then(msgDetails => {
+                const headers = msgDetails.payload.headers;
+                const subject = (headers.find(h => h.name === 'Subject') || {value: '(No Subject)'}).value;
+                const from = (headers.find(h => h.name === 'From') || {value: 'Unknown Sender'}).value;
+                
+                // Parse standard message body content
+                let body = "No body contents available.";
+                if (msgDetails.payload.body.data) {
+                    body = decodeMimeBody(msgDetails.payload.body.data);
+                } else if (msgDetails.payload.parts) {
+                    const parsedPart = msgDetails.payload.parts.find(p => p.mimeType === "text/html" || p.mimeType === "text/plain");
+                    if (parsedPart && parsedPart.body.data) {
+                        body = decodeMimeBody(parsedPart.body.data);
+                    }
+                }
+
+                const item = document.createElement('li');
+                item.className = 'email-item';
+                item.innerHTML = `
+                    <div class="email-subject">${subject}</div>
+                    <div class="email-sender">From: ${from}</div>
+                `;
+                item.addEventListener('click', () => {
+                    displayEmailView(subject, from, body);
+                });
+                listContainer.appendChild(item);
+            });
+        }
+
+        function decodeMimeBody(data) {
+            const cleanStr = data.replace(/-/g, '+').replace(/_/g, '/');
+            return decodeURIComponent(escape(atob(cleanStr)));
+        }
+
+        function displayEmailView(subject, from, body) {
+            const view = document.getElementById('email-detail-view');
+            view.style.display = 'block';
+            document.getElementById('view-subject').innerText = subject;
+            document.getElementById('view-sender').innerText = `From: ${from}`;
+            document.getElementById('view-body').innerHTML = body;
+
+            // Simple handling to prefill reply contents
+            document.getElementById('reply-btn').onclick = function() {
+                const cleanSenderMatch = from.match(/<([^>]+)>/);
+                const replyTo = cleanSenderMatch ? cleanSenderMatch[1] : from;
+                document.getElementById('to-input').value = replyTo;
+                document.getElementById('subject-input').value = `Re: ${subject}`;
+                document.getElementById('body-input').focus();
+            };
+        }
+
+        window.onload = checkAuthStatus;
     </script>
 </body>
 </html>
