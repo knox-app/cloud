@@ -56,12 +56,11 @@
     </div>
 
     <script>
-        // Use your Google Client ID
         const CLIENT_ID = '960697640788-qh2gmrbupc7p53pldv26ev4n3ccmku6h.apps.googleusercontent.com';
         const SCOPE = 'https://www.googleapis.com/auth/gmail.send';
         
-        // Dynamically set redirect URI to this current page
-        const REDIRECT_URI = window.location.href.split('#')[0].split('?')[0];
+        // PLACE YOUR EXACT REGISTERED REDIRECT URI HERE:
+        const REDIRECT_URI = 'https://yourdomain.com/path/to/1.html'; 
 
         document.getElementById('login-btn').addEventListener('click', () => {
             const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
@@ -72,7 +71,6 @@
             window.location.href = oauthUrl;
         });
 
-        // Parse token if redirecting back from Google
         function handleOAuthCallback() {
             const hash = window.location.hash;
             const statusDiv = document.getElementById('status');
@@ -83,8 +81,7 @@
                 if (accessToken) {
                     localStorage.setItem('gmail_access_token', accessToken);
                     statusDiv.className = 'status success';
-                    statusDiv.innerText = 'Authorization successful! You can now send emails.';
-                    // Clean URL bar
+                    statusDiv.innerText = 'Authorization successful! Token saved.';
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
             } else if (localStorage.getItem('gmail_access_token')) {
