@@ -55,12 +55,11 @@
     </div>
 
     <script type="text/javascript">
-        // Initialize EmailJS with specified Public Key
         (function() {
+            // Initializing EmailJS Public Key
             emailjs.init("Yr9MutUoHOEONnFgn");
         })();
 
-        // Parse query parameter values
         function getQueryParams() {
             const params = {};
             const search = window.location.search.substring(1);
@@ -80,11 +79,10 @@
             statusDiv.className = `status-box status-${type}`;
         }
 
-        // Send helper for Gmail API implementation
         function constructAndSendGmail(to, messageText, token) {
             const rawMime = [
                 `To: ${to}`,
-                "Subject: Automated Portal Delivery",
+                "Subject: Automated Delivery Direct",
                 "MIME-Version: 1.0",
                 "Content-Type: text/html; charset=UTF-8",
                 "",
@@ -106,56 +104,54 @@
             })
             .then(res => {
                 if (res.ok) {
-                    displayStatus("Message successfully sent via OAuth account.", "success");
+                    displayStatus("Email successfully dispatched using Google access token.", "success");
                 } else {
-                    displayStatus("Gmail API delivery request failed. Verify OAuth access rights.", "error");
+                    displayStatus("Failed to send message via Gmail API. Session may have expired.", "error");
                 }
             })
             .catch(err => {
-                displayStatus(`Error during execution: ${err.message}`, "error");
+                displayStatus(`Execution error: ${err.message}`, "error");
             });
         }
 
-        // Logic execution pathways
         window.onload = function() {
             const args = getQueryParams();
 
-            // Scenario 1: EmailJS path
-            // Pattern: ?api=<Fable_api>&to=<receiver>&template=<template_id>
+            // Scenario 1: EmailJS pathway
+            // Format: ?api=<Fable_api>&to=<receiver>&template=<template_id>
             if (args.api && args.to && args.template) {
-                displayStatus(`Executing EmailJS task via: service_63mnm5a...`, "pending");
-                
+                displayStatus("Processing EmailJS Template Dispatch...", "pending");
+
                 const templateParams = {
                     to_email: args.to,
                     fable_api_key: args.api,
-                    message: `Executing template request using template identifier: ${args.template}`
+                    message: `Transactional template ID: ${args.template}`
                 };
 
-                // emailjs.send(service_id, template_id, template_params)
+                // Service ID: service_63mnm5a, Template ID: template_mfkmx1r
                 emailjs.send("service_63mnm5a", "template_mfkmx1r", templateParams)
-                    .then(function(response) {
-                        displayStatus("EmailJS template dispatched.", "success");
+                    .then(function() {
+                        displayStatus("Template dispatched successfully via EmailJS.", "success");
                     }, function(error) {
-                        displayStatus(`EmailJS routing error: ${JSON.stringify(error)}`, "error");
+                        displayStatus(`EmailJS failed: ${JSON.stringify(error)}`, "error");
                     });
             }
             
-            // Scenario 2: Standard user OAuth path
-            // Pattern: ?to=<receiver>&message=<message>
+            // Scenario 2: Google OAuth / Gmail API pathway
+            // Format: ?to=<receiver>&message=<message>
             else if (args.to && args.message) {
-                displayStatus("Checking active OAuth authorization state...", "pending");
+                displayStatus("Validating active authorization session token...", "pending");
                 const token = localStorage.getItem('google_access_token');
                 
                 if (token) {
                     constructAndSendGmail(args.to, args.message, token);
                 } else {
-                    displayStatus("Authorization missing. Log in through the primary application (1.html) first.", "error");
+                    displayStatus("Authorization missing. Please authenticate via the application portal (1.html).", "error");
                 }
             } 
             
-            // Catch-all
             else {
-                displayStatus("Invalid endpoint query configuration pattern received. Check variables.", "error");
+                displayStatus("Invalid or missing query parameter configurations.", "error");
             }
         };
     </script>
