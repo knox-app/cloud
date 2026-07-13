@@ -3,104 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Portal Entry</title>
+    <title>Processing Email Routing...</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f6f8;
+            background-color: #121212;
+            color: #e0e0e0;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             height: 100vh;
+            margin: 0;
         }
-        .portal-card {
-            background-color: #ffffff;
-            border: 1px solid #dddddd;
+        .container {
+            background-color: #1e1e1e;
+            padding: 2rem;
             border-radius: 8px;
-            padding: 30px;
-            max-width: 400px;
+            max-width: 500px;
             width: 100%;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-        .btn {
-            background-color: #4a90e2;
-            color: white;
-            border: none;
-            padding: 10px 20px;
+        h2 {
+            margin-top: 0;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+        }
+        .detail-row {
+            margin: 0.8rem 0;
+            font-size: 0.9rem;
+        }
+        .label {
+            font-weight: bold;
+            color: #90caf9;
+        }
+        #status {
+            margin-top: 1.5rem;
+            padding: 10px;
             border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 15px;
-            font-size: 0.95rem;
+            font-weight: 500;
+            text-align: center;
         }
-        .btn:hover {
-            background-color: #357abd;
-        }
-        .status-message {
-            color: #666;
-            margin: 15px 0;
-            font-size: 1rem;
-        }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4a90e2;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        .processing { background-color: #333; color: #fff; }
+        .success { background-color: #1b5e20; color: #c8e6c9; }
+        .error { background-color: #b71c1c; color: #ffcdd2; }
     </style>
+
+    <!-- Firebase App and Firestore SDKs (Compat version for browser integration) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-    <div class="portal-card">
-        <h3>Enterprise Portal Gateway</h3>
-        <div id="loader" class="spinner"></div>
-        <p class="status-message" id="portal-status">Authenticating secure connection...</p>
-        <div id="action-area"></div>
-    </div>
+<div class="container">
+    <h2>Email Processing Unit</h2>
+    <div class="detail-row"><span class="label">Recipient:</span> <span id="param-recipient">-</span></div>
+    <div class="detail-row"><span class="label">Subject:</span> <span id="param-subject">-</span></div>
+    <div class="detail-row"><span class="label">Message:</span> <span id="param-message">-</span></div>
+    <div class="detail-row"><span class="label">CC:</span> <span id="param-cc">-</span></div>
+    <div class="detail-row"><span class="label">BCC:</span> <span id="param-bcc">-</span></div>
+    
+    <div id="status" class="processing">Initializing processing...</div>
+</div>
 
-    <script>
-        window.onload = function() {
-            const token = localStorage.getItem('google_access_token');
-            const statusText = document.getElementById('portal-status');
-            const loader = document.getElementById('loader');
-            const actionArea = document.getElementById('action-area');
+<script>
+    // Firebase Configuration Placeholder
+    const firebaseConfig = {
+        apiKey: "YOUR_FIREBASE_API_KEY",
+        authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
+        projectId: "YOUR_FIREBASE_PROJECT_ID",
+        storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
+        appId: "YOUR_FIREBASE_APP_ID"
+    };
 
-            loader.style.display = 'none';
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-            if (token) {
-                // Verify token authenticity against user info endpoint
-                fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error("Expired session");
-                    return res.json();
-                })
-                .then(user => {
-                    statusText.innerHTML = `Welcome back! Verified as: <strong>${user.email}</strong>`;
-                    actionArea.innerHTML = `<a href="1.html" class="btn">Proceed to Mail Panel</a>`;
-                })
-                .catch(() => {
-                    localStorage.removeItem('google_access_token');
-                    statusText.innerHTML = "Your session has expired. Re-authorization is required.";
-                    actionArea.innerHTML = `<a href="1.html" class="btn">Authorize Now</a>`;
-                });
-            } else {
-                statusText.innerHTML = "No active Google login session detected.";
-                actionArea.innerHTML = `<a href="1.html" class="btn">Login with Google</a>`;
+    // Helper: Parse Query Parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const rawRecipient = urlParams.get('recipiten') || ''; // Uses 'recipiten' parameter
+    const message = urlParams.get('message') || '';
+    const cc = urlParams.get('cc') || '';
+    const bcc = urlParams.get('bcccc') || ''; // Uses 'bcccc' parameter
+    const subject = urlParams.get('subject') || 'Testing Mail 1';
+
+    // Clean up potential URL encoding artifacts
+    const recipient = decodeURIComponent(rawRecipient).trim();
+
+    // Update UI elements with values
+    document.getElementById('param-recipient').textContent = recipient || '(Empty)';
+    document.getElementById('param-subject').textContent = subject;
+    document.getElementById('param-message').textContent = message || '(Empty)';
+    document.getElementById('param-cc').textContent = cc || 'None';
+    document.getElementById('param-bcc').textContent = bcc || 'None';
+
+    const statusEl = document.getElementById('status');
+
+    function updateStatus(text, className) {
+        statusEl.textContent = text;
+        statusEl.className = className;
+    }
+
+    // Process Routing Logic
+    async function routeEmail() {
+        if (!recipient) {
+            updateStatus('Error: Recipient email is required.', 'error');
+            return;
+        }
+
+        const isInternalDomain = recipient.endsWith('@perplexit.com') || recipient.endsWith('@perplexity.com');
+
+        if (isInternalDomain) {
+            updateStatus('Internal domain detected. Writing to Cloud Firestore...', 'processing');
+            saveToFirestore();
+        } else {
+            updateStatus('External domain detected. Routing to Gmail API...', 'processing');
+            sendViaGmailAPI();
+        }
+    }
+
+    // Route A: Save directly to Cloud Firestore
+    function saveToFirestore() {
+        const formattedDate = new Date().toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+
+        const senderEmail = localStorage.getItem('user_email') || 'unknown@gmail.com';
+
+        db.collection("Email").add({
+            "Date and Time": formattedDate,
+            "Message": message,
+            "Reciver": recipient, // Matching structure from screenshot
+            "Reply": "",
+            "Sender": senderEmail,
+            "Subject": subject
+        })
+        .then((docRef) => {
+            console.log("Document successfully written with ID: ", docRef.id);
+            updateStatus('Success: Logged to Firestore database successfully.', 'success');
+        })
+        .catch((error) => {
+            console.error("Error writing document: ", error);
+            updateStatus('Error saving database record: ' + error.message, 'error');
+        });
+    }
+
+    // Route B: Send via Gmail API
+    async function sendViaGmailAPI() {
+        const token = localStorage.getItem('gmail_access_token');
+        const expiry = localStorage.getItem('gmail_token_expiry');
+
+        if (!token || !expiry || Date.now() >= parseInt(expiry)) {
+            updateStatus('Error: Unauthorized or OAuth session expired. Please log in again via 1.html.', 'error');
+            return;
+        }
+
+        try {
+            // Build RFC 822 compliant MIME message
+            const emailParts = [];
+            emailParts.push(`To: ${recipient}`);
+            if (cc) {
+                // Split multiple CC targets if separated by semicolons
+                const cleanCc = cc.replace(/;/g, ',');
+                emailParts.push(`Cc: ${cleanCc}`);
             }
-        };
-    </script>
+            if (bcc) {
+                const cleanBcc = bcc.replace(/;/g, ',');
+                emailParts.push(`Bcc: ${cleanBcc}`);
+            }
+            emailParts.push(`Subject: ${subject}`);
+            emailParts.push('Content-Type: text/plain; charset=utf-8');
+            emailParts.push('');
+            emailParts.push(message);
+
+            const rawEmail = emailParts.join('\r\n');
+            
+            // Base64URL encode the message
+            const base64UrlSafeEmail = btoa(unescape(encodeURIComponent(rawEmail)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+
+            const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    raw: base64UrlSafeEmail
+                })
+            });
+
+            if (response.ok) {
+                updateStatus('Success: Email dispatched successfully via Gmail API.', 'success');
+            } else {
+                const errData = await response.json();
+                updateStatus(`API Error: ${errData.error.message || 'Transmission failed.'}`, 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            updateStatus('Network failure or API error during dispatch.', 'error');
+        }
+    }
+
+    // Execute routing process
+    routeEmail();
+</script>
+
 </body>
 </html>
