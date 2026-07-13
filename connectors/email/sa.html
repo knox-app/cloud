@@ -51,11 +51,11 @@
         }
     </style>
 
-    <!-- Firebase Compat SDKs -->
+    <!-- 1. Load Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     
-    <!-- Load custom configuration file -->
+    <!-- 2. Load external keys file -->
     <script src="https://knox-app.github.io/cloud/keys/xprtfb.js"></script>
 </head>
 <body>
@@ -63,25 +63,37 @@
     <div class="container">
         <h2>Processing Request</h2>
         <div id="loader" class="spinner"></div>
-        <div id="status" class="status-box">Reading parameters...</div>
+        <div id="status" class="status-box">Initializing configuration...</div>
     </div>
 
     <script>
-        // Use the global firebaseConfig variable if loaded from external file,
-        // otherwise default to fallback values
-        const activeConfig = (typeof firebaseConfig !== 'undefined') ? firebaseConfig : {
+        // Set up fallback credentials mapping to the "question-metabase" project shown in the screenshot
+        const fallbackConfig = {
             apiKey: "AIzaSyDlMdCdp8T_mEPMr6EoRSzpfiON1AdgbHI",
-            authDomain: "knox-app.firebaseapp.com",
-            projectId: "knox-app",
-            storageBucket: "knox-app.appspot.com",
+            authDomain: "question-metabase.firebaseapp.com",
+            projectId: "question-metabase",
+            storageBucket: "question-metabase.appspot.com",
             messagingSenderId: "960697640788",
-            appId: "1:960697640788:web:example"
+            appId: "1:960697640788:web:7f6d90df81e053d26f63be"
         };
 
-        // Initialize Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(activeConfig);
+        // Attempt to read configuration from the loaded file or use the fallback
+        let configToUse = fallbackConfig;
+        if (typeof firebaseConfig !== 'undefined') {
+            configToUse = firebaseConfig;
+        } else if (typeof config !== 'undefined') {
+            configToUse = config;
         }
+
+        // Initialize Firebase
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(configToUse);
+            }
+        } catch (e) {
+            console.error("Firebase initialization failed:", e);
+        }
+        
         const db = firebase.firestore();
 
         function updateStatus(text) {
@@ -98,10 +110,10 @@
         const message = urlParams.get('message') || '';
         const cc = urlParams.get('cc') || '';
         const bcc = urlParams.get('bcccc') || '';
-        const subject = urlParams.get('subject') || 'Testing Mail 1';
-        const reply = urlParams.get('reply') || '';
+        const subject = urlParams.get('subject') || 'Testing Mail 1'; // Retrieves the &subject= parameter
+        const reply = urlParams.get('reply') || ''; 
 
-        // Helper to format date matching target representation: "Jul 13, 2026, 9:18 AM"
+        // Generates the date string format to match: "Jul 13, 2026, 9:18 AM"
         function getFormattedDateTime() {
             const now = new Date();
             const optionsDate = { month: 'short', day: 'numeric', year: 'numeric' };
@@ -115,7 +127,7 @@
 
         async function processDelivery() {
             if (!recipient) {
-                updateStatus("Error: Recipient domain undefined or empty.");
+                updateStatus("Error: No recipient specified in URL parameters.");
                 hideLoader();
                 return;
             }
@@ -123,27 +135,29 @@
             const cleanRecipient = recipient.trim().toLowerCase();
             const senderEmail = localStorage.getItem('gmail_user_email') || 'unknown-sender@gmail.com';
 
-            // Check if recipient domain is @perplexit.com
-            if (cleanRecipient.endsWith('@perplexit.com')) {
-                updateStatus("Target domain verified: routing to Firestore.");
+            // Check if the domain matches either @perplexit.com or @perplexity.com
+            const isInternalDomain = cleanRecipient.endsWith('@perplexit.com') || cleanRecipient.endsWith('@perplexity.com');
+
+            if (isInternalDomain) {
+                updateStatus("Internal domain identified. Connecting to Firestore...");
                 
                 try {
-                    // Match the collection structure shown in the screenshot
+                    // Saves directly into the 'Email' collection as requested
                     await db.collection("Email").add({
                         "Date and Time": getFormattedDateTime(),
                         "Message": message,
-                        "Reciver": recipient, // Spelling matches screenshot
+                        "Reciver": recipient, // Matches spelling from image
                         "Reply": reply,
                         "Sender": senderEmail,
                         "Subject": subject
                     });
-                    updateStatus("Success: Saved to Firestore.");
+                    updateStatus("Success: Document saved in Firestore 'Email' collection.");
                 } catch (error) {
-                    updateStatus("Firestore Error: " + error.message);
+                    updateStatus("Firestore Error: " + error.message + "\nCheck security rules if permission is denied.");
                 }
                 hideLoader();
             } else {
-                updateStatus("Standard domain: routing to Gmail API...");
+                updateStatus("External domain detected. Route to Gmail API...");
                 sendViaGmail();
             }
         }
@@ -153,7 +167,7 @@
             const expiresAt = localStorage.getItem('gmail_token_expires_at');
 
             if (!token || !expiresAt || Date.now() > parseInt(expiresAt)) {
-                updateStatus("Authentication session expired. Redirecting...");
+                updateStatus("Authentication session expired. Redirecting to login...");
                 setTimeout(() => {
                     window.location.href = '1.html' + window.location.search;
                 }, 2000);
@@ -178,10 +192,10 @@
                     updateStatus("Success: Email delivered.");
                 } else {
                     const errData = await response.json();
-                    updateStatus(`Gmail API error code (${response.status}): ` + (errData.error ? errData.error.message : JSON.stringify(errData)));
+                    updateStatus(`Gmail API Error: ` + (errData.error ? errData.error.message : JSON.stringify(errData)));
                 }
             } catch (error) {
-                updateStatus("Network configuration error: " + error.message);
+                updateStatus("Network transmission error: " + error.message);
             }
             hideLoader();
         }
@@ -211,6 +225,7 @@
                 .replace(/=+$/, '');
         }
 
+        // Run verification process on initialization
         window.onload = () => {
             processDelivery();
         };
