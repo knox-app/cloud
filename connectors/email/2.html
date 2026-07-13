@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise Portal Entry</title>
-    <!-- Firebase Compat SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -73,37 +70,37 @@
     </div>
 
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
-            authDomain: "question-metabase.firebaseapp.com",
-            databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "question-metabase",
-            storageBucket: "question-metabase.firebasestorage.app",
-            messagingSenderId: "770698198753",
-            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
-            measurementId: "G-6ZP1FPMKSJ"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-
-        // Perform validation of session
-        auth.onAuthStateChanged((user) => {
+        window.onload = function() {
+            const token = localStorage.getItem('google_access_token');
             const statusText = document.getElementById('portal-status');
             const loader = document.getElementById('loader');
             const actionArea = document.getElementById('action-area');
 
             loader.style.display = 'none';
 
-            if (user) {
-                statusText.innerHTML = `Welcome back! Verified as: <strong>${user.email}</strong>`;
-                actionArea.innerHTML = `<a href="1.html" class="btn">Proceed to Application Panel</a>`;
+            if (token) {
+                // Verify token authenticity against user info endpoint
+                fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error("Expired session");
+                    return res.json();
+                })
+                .then(user => {
+                    statusText.innerHTML = `Welcome back! Verified as: <strong>${user.email}</strong>`;
+                    actionArea.innerHTML = `<a href="1.html" class="btn">Proceed to Mail Panel</a>`;
+                })
+                .catch(() => {
+                    localStorage.removeItem('google_access_token');
+                    statusText.innerHTML = "Your session has expired. Re-authorization is required.";
+                    actionArea.innerHTML = `<a href="1.html" class="btn">Authorize Now</a>`;
+                });
             } else {
-                statusText.innerHTML = "No existing authentication context found.";
-                actionArea.innerHTML = `<a href="1.html" class="btn">Authenticate with Google Auth</a>`;
+                statusText.innerHTML = "No active Google login session detected.";
+                actionArea.innerHTML = `<a href="1.html" class="btn">Login with Google</a>`;
             }
-        });
+        };
     </script>
 </body>
 </html>
