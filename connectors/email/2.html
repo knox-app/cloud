@@ -3,181 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email router</title>
-    <!-- Firebase SDK (v9 Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <!-- Loading your config from the provided JS source -->
-    <script src="https://knox-app.github.io/cloud/keys/xprtfb.js"></script>
+    <title>Processing Email Delivery</title>
     <style>
         body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #f4f5f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .status-box {
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            margin-top: 15px;
             font-family: monospace;
-            background-color: #121212;
-            color: #e0e0e0;
-            padding: 20px;
+            white-space: pre-wrap;
+            word-break: break-all;
         }
-        .console {
-            background-color: #1e1e1e;
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 20px;
-            max-width: 600px;
-            margin: 40px auto;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #4285f4;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
         }
-        h3 { border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; }
-        .param-list { margin: 15px 0; }
-        .param { margin-bottom: 6px; }
-        .label { color: #888; }
-        .status { margin-top: 20px; color: #ffca28; word-wrap: break-word; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
+
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-    <div class="console">
-        <h3>Email Processor Console</h3>
-        <div class="param-list">
-            <div class="param"><span class="label">Recipient:</span> <span id="param-recipient">-</span></div>
-            <div class="param"><span class="label">Subject:</span> <span id="param-subject">-</span></div>
-            <div class="param"><span class="label">Message:</span> <span id="param-message">-</span></div>
-            <div class="param"><span class="label">CC:</span> <span id="param-cc">-</span></div>
-            <div class="param"><span class="label">BCC:</span> <span id="param-bcc">-</span></div>
-        </div>
-        <div id="status" class="status">Processing request...</div>
+    <div class="container">
+        <h2>Processing Request</h2>
+        <div id="loader" class="spinner"></div>
+        <div id="status" class="status-box">Reading parameters...</div>
     </div>
 
     <script>
-        // Initialize Firebase
-        // Fallback to a placeholder if the external keys script does not declare `firebaseConfig`
-        const config = (typeof firebaseConfig !== 'undefined') ? firebaseConfig : {
-            apiKey: "AIzaSyDl...placeholder", 
-            authDomain: "your-app.firebaseapp.com",
-            projectId: "your-app-id",
-            storageBucket: "your-app-id.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:12345:web:abcdef"
+        // CONFIGURATIONS
+        // Replace this config with the keys loaded from your Firebase project.
+        const firebaseConfig = {
+            apiKey: "AIzaSyDlMdCdp8T_mEPMr6EoRSzpfiON1AdgbHI", // Standard API Key
+            authDomain: "knox-app.firebaseapp.com",
+            projectId: "knox-app",
+            storageBucket: "knox-app.appspot.com",
+            messagingSenderId: "960697640788",
+            appId: "1:960697640788:web:example"
         };
 
-        if (firebase.apps.length === 0) {
-            firebase.initializeApp(config);
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.firestore();
 
-        // Parse URL Parameters
+        // Helper to update status in the UI
+        function updateStatus(text) {
+            document.getElementById('status').textContent = text;
+        }
+
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        // Parse query parameters
         const urlParams = new URLSearchParams(window.location.search);
-        
-        // Supports both standard spelling and the parameter schema provided
-        const recipient = urlParams.get('recipiten') || urlParams.get('recipient') || '';
+        const recipient = urlParams.get('recipiten') || ''; // Uses spelling matches in query
         const message = urlParams.get('message') || '';
         const cc = urlParams.get('cc') || '';
-        const bcc = urlParams.get('bcccc') || urlParams.get('bcc') || '';
-        const subject = urlParams.get('subject') || 'Testing Mail';
+        const bcc = urlParams.get('bcccc') || ''; // Uses spelling matches in query
 
-        // Render parameters to the console display
-        document.getElementById('param-recipient').innerText = recipient || "(empty)";
-        document.getElementById('param-subject').innerText = subject;
-        document.getElementById('param-message').innerText = message || "(empty)";
-        document.getElementById('param-cc').innerText = cc || "(empty)";
-        document.getElementById('param-bcc').innerText = bcc || "(empty)";
-
-        const statusDiv = document.getElementById('status');
-
-        if (!recipient) {
-            statusDiv.innerText = "Error: No recipient email specified in URL parameters.";
-        } else {
-            routeEmail();
-        }
-
-        function routeEmail() {
-            // Check if recipient domain ends with @perplexit.com
-            const isPerplexit = recipient.toLowerCase().endsWith('@perplexit.com');
-
-            if (isPerplexit) {
-                saveToFirestore();
-            } else {
-                sendViaGmailAPI();
-            }
-        }
-
-        // Logic to Save to Firestore
-        function saveToFirestore() {
-            statusDiv.innerText = "Target domain is @perplexit.com. Saving metadata to Firestore...";
-
-            // Formats date matches the screenshot style (e.g. "Jul 13, 2026, 9:18 AM")
-            const formattedDate = new Date().toLocaleString('en-US', { 
-                month: 'short', 
-                day: 'numeric', 
-                year: 'numeric', 
-                hour: 'numeric', 
-                minute: '2-digit', 
-                hour12: true 
-            });
-
-            db.collection("Email").add({
-                "Date and Time": formattedDate,
-                "Message": message,
-                "Reciver": recipient, // Matches screenshot field spelling
-                "Reply": "",
-                "Sender": "vinayaknigam196@gmail.com", // Adjust dynamically if profile access is integrated
-                "Subject": subject
-            })
-            .then((docRef) => {
-                statusDiv.style.color = "#81c784";
-                statusDiv.innerText = `Data successfully logged to Firestore with Document ID: ${docRef.id}`;
-            })
-            .catch((error) => {
-                statusDiv.style.color = "#e57373";
-                statusDiv.innerText = `Firestore Error: ${error.message}`;
-            });
-        }
-
-        // Logic to Send via Gmail API (RFC 822 Raw Payload Upload)
-        function sendViaGmailAPI() {
-            statusDiv.innerText = "Target domain requires standard delivery. Preparing transmission via Gmail API...";
-            
-            const token = localStorage.getItem('gmail_access_token');
-            if (!token) {
-                statusDiv.style.color = "#e57373";
-                statusDiv.innerText = "Error: Authorization token missing. Please authenticate through 1.html first.";
+        async function processDelivery() {
+            if (!recipient) {
+                updateStatus("Error: No recipient specified in the query parameters.");
+                hideLoader();
                 return;
             }
 
-            // Construct SMTP/RFC 822 raw message formatting
-            const emailLines = [
-                `To: ${recipient}`,
-                cc ? `Cc: ${cc}` : '',
-                bcc ? `Bcc: ${bcc}` : '',
-                `Subject: ${subject}`,
-                'Content-Type: text/plain; charset=utf-8',
-                'MIME-Version: 1.0',
-                '',
-                message
-            ].filter(line => line !== '');
+            const cleanRecipient = recipient.trim().toLowerCase();
 
-            const rawEmail = emailLines.join('\r\n');
-
-            // Send raw email via Gmail's media upload endpoint
-            fetch('https://gmail.googleapis.com/upload/gmail/v1/users/me/messages/send?uploadType=media', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'message/rfc822'
-                },
-                body: rawEmail
-            })
-            .then(response => {
-                if (response.ok) return response.json();
-                throw new Error(`API returned status ${response.status} (${response.statusText})`);
-            })
-            .then(data => {
-                statusDiv.style.color = "#81c784";
-                statusDiv.innerText = `Success: Email delivered successfully. API Message ID: ${data.id}`;
-            })
-            .catch(error => {
-                statusDiv.style.color = "#e57373";
-                statusDiv.innerText = `Delivery Failed: ${error.message}`;
-            });
+            // Check if domain is perplexit.com
+            if (cleanRecipient.endsWith('@perplexit.com')) {
+                updateStatus("Domain @perplexit.com detected. Routing to Firestore...");
+                try {
+                    await db.collection("internal_emails").add({
+                        recipient: recipient,
+                        message: message,
+                        cc: cc,
+                        bcc: bcc,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    updateStatus("Success: Record saved to Firestore database.");
+                } catch (error) {
+                    updateStatus("Firestore Error: " + error.message);
+                }
+                hideLoader();
+            } else {
+                updateStatus("Standard domain detected. Routing to Gmail API...");
+                sendViaGmail();
+            }
         }
+
+        async function sendViaGmail() {
+            const token = localStorage.getItem('gmail_access_token');
+            const expiresAt = localStorage.getItem('gmail_token_expires_at');
+
+            // Verify token exists and is not expired
+            if (!token || !expiresAt || Date.now() > parseInt(expiresAt)) {
+                updateStatus("Authentication missing or expired. Redirecting to login page...");
+                setTimeout(() => {
+                    // Redirect back to 1.html preserving parameters
+                    window.location.href = '1.html' + window.location.search;
+                }, 2000);
+                return;
+            }
+
+            try {
+                // Construct RFC 5322 formatted email
+                const emailContent = buildMimeMessage(recipient, cc, bcc, "Message Delivery Request", message);
+                
+                const response = await fetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        raw: emailContent
+                    })
+                });
+
+                if (response.ok) {
+                    updateStatus("Success: Email successfully sent via Gmail API.");
+                } else {
+                    const errData = await response.json();
+                    updateStatus(`Gmail API Error (${response.status}): ` + (errData.error ? errData.error.message : JSON.stringify(errData)));
+                }
+            } catch (error) {
+                updateStatus("Network / System Error: " + error.message);
+            }
+            hideLoader();
+        }
+
+        // Helper function to build a Base64URL-encoded MIME message
+        function buildMimeMessage(to, cc, bcc, subject, body) {
+            const emailParts = [];
+            
+            emailParts.push(`To: ${to}`);
+            if (cc) {
+                // Ensure Multiple values separated by ';' in parameters match standard RFC comma separator
+                const formattedCc = cc.replace(/;/g, ',');
+                emailParts.push(`Cc: ${formattedCc}`);
+            }
+            if (bcc) {
+                const formattedBcc = bcc.replace(/;/g, ',');
+                emailParts.push(`Bcc: ${formattedBcc}`);
+            }
+            
+            emailParts.push(`Subject: ${subject}`);
+            emailParts.push('Content-Type: text/plain; charset="UTF-8"');
+            emailParts.push('MIME-Version: 1.0');
+            emailParts.push('');
+            emailParts.push(body);
+
+            const email = emailParts.join('\r\n');
+            
+            // Generate safe Base64 URL scheme matching Gmail API expectations
+            return btoa(unescape(encodeURIComponent(email)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+        }
+
+        // Execute routing on page load
+        window.onload = () => {
+            processDelivery();
+        };
     </script>
 </body>
 </html>
