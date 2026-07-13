@@ -3,411 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inbox - Gmail Client</title>
+    <title>Query Dispatch Gateway</title>
+    <!-- EmailJS Integration library -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        :root {
-            --primary-color: #1a73e8;
-            --primary-hover: #1557b0;
-            --background-color: #f8f9fa;
-            --card-background: #ffffff;
-            --text-color: #3c4043;
-            --border-color: #dadce0;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
             padding: 0;
+            background-color: #f4f6f8;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-        }
-
-        nav {
-            width: 100%;
-            background-color: var(--card-background);
-            border-bottom: 1px solid var(--border-color);
-            padding: 15px 0;
-            display: flex;
             justify-content: center;
-            gap: 20px;
+            height: 100vh;
         }
-
-        nav a {
-            text-decoration: none;
-            color: var(--text-color);
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-
-        nav a:hover {
-            background-color: #f1f3f4;
-        }
-
-        nav a.active {
-            color: var(--primary-color);
-            background-color: #e8f0fe;
-        }
-
-        .container {
-            max-width: 900px;
-            width: 95%;
-            margin: 40px 0;
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 20px;
-            background-color: var(--card-background);
-            border: 1px solid var(--border-color);
+        .dispatch-card {
+            background-color: #ffffff;
+            border: 1px solid #dddddd;
             border-radius: 8px;
-            min-height: 600px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-        }
-
-        .email-list {
-            border-right: 1px solid var(--border-color);
-            overflow-y: auto;
-            max-height: 600px;
-        }
-
-        .email-list-header {
-            padding: 15px;
-            border-bottom: 1px solid var(--border-color);
-            background-color: #fcfcfc;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .email-list-header h3 {
-            margin: 0;
-            font-weight: 500;
-        }
-
-        .refresh-btn {
-            background: none;
-            border: none;
-            color: var(--primary-color);
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .email-item {
-            padding: 15px;
-            border-bottom: 1px solid #f1f3f4;
-            cursor: pointer;
-            transition: background-color 0.1s;
-        }
-
-        .email-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .email-item.active {
-            background-color: #e8f0fe;
-        }
-
-        .email-item .sender {
-            font-size: 13px;
-            font-weight: bold;
-            color: #202124;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .email-item .subject {
-            font-size: 12px;
-            color: #5f6368;
-            margin-bottom: 4px;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .email-item .snippet {
-            font-size: 11px;
-            color: #80868b;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .email-reader {
-            padding: 25px;
-            overflow-y: auto;
-            max-height: 600px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .reader-placeholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: #80868b;
-            font-size: 14px;
-            text-align: center;
-        }
-
-        .email-header {
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-
-        .email-header h2 {
-            margin: 0 0 10px 0;
-            font-size: 20px;
-            font-weight: 400;
-        }
-
-        .email-meta {
-            font-size: 13px;
-            color: #5f6368;
-        }
-
-        .email-body {
-            font-size: 14px;
-            line-height: 1.6;
-            word-break: break-word;
-        }
-
-        .email-body iframe {
+            padding: 30px;
+            max-width: 500px;
             width: 100%;
-            border: none;
-            min-height: 350px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
-
-        .status-msg {
-            padding: 15px;
-            text-align: center;
-            font-size: 13px;
-            color: #5f6368;
+        .status-box {
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+        .status-pending {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        .status-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .status-error {
+            background-color: #fee2e2;
+            color: #991b1b;
         }
     </style>
 </head>
 <body>
 
-    <nav>
-        <a href="1.html">1. Auth</a>
-        <a href="2.html">2. Send Email</a>
-        <a href="3.html" class="active">3. Read Email</a>
-        <a href="4.html">4. Status Check</a>
-    </nav>
-
-    <div class="container">
-        <div class="email-list">
-            <div class="email-list-header">
-                <h3>Inbox</h3>
-                <button class="refresh-btn" id="refresh-btn">Refresh</button>
-            </div>
-            <div id="list-container">
-                <div class="status-msg">Loading messages...</div>
-            </div>
-        </div>
-
-        <div class="email-reader" id="email-reader">
-            <div class="reader-placeholder">
-                Select an email from the list to read its content.
-            </div>
-        </div>
+    <div class="dispatch-card">
+        <h3>Outbound Query Dispatcher</h3>
+        <p>Executing programmatic API directives based on URL parameters...</p>
+        <div id="runtime-status" class="status-box status-pending">Evaluating incoming query parameters...</div>
     </div>
 
-    <script>
-        let accessToken = null;
+    <script type="text/javascript">
+        // Initialize EmailJS with specified Public Key
+        (function() {
+            emailjs.init("Yr9MutUoHOEONnFgn");
+        })();
 
-        window.onload = function() {
-            checkAuth();
-        };
-
-        function checkAuth() {
-            const token = localStorage.getItem('gmail_access_token');
-            const expiry = localStorage.getItem('gmail_token_expiry');
-            const now = Date.now();
-
-            if (!token || !expiry || now >= parseInt(expiry)) {
-                document.getElementById('list-container').innerHTML = `
-                    <div class="status-msg" style="color:#d93025">
-                        Please authorize access on <a href="1.html">Page 1</a> to read emails.
-                    </div>
-                `;
-            } else {
-                accessToken = token;
-                fetchMessages();
-            }
-        }
-
-        document.getElementById('refresh-btn').addEventListener('click', () => {
-            if (accessToken) fetchMessages();
-        });
-
-        async function fetchMessages() {
-            const listContainer = document.getElementById('list-container');
-            listContainer.innerHTML = '<div class="status-msg">Fetching items...</div>';
-
-            try {
-                const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10', {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                });
-
-                if (!response.ok) throw new Error('Could not fetch message list');
-
-                const data = await response.json();
-                if (!data.messages || data.messages.length === 0) {
-                    listContainer.innerHTML = '<div class="status-msg">Your inbox is empty.</div>';
-                    return;
+        // Parse query parameter values
+        function getQueryParams() {
+            const params = {};
+            const search = window.location.search.substring(1);
+            if (search) {
+                const parts = search.split('&');
+                for (let i = 0; i < parts.length; i++) {
+                    const pair = parts[i].split('=');
+                    params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
                 }
+            }
+            return params;
+        }
 
-                listContainer.innerHTML = '';
-                for (let msg of data.messages) {
-                    fetchHeaderDetails(msg.id);
+        function displayStatus(text, type) {
+            const statusDiv = document.getElementById('runtime-status');
+            statusDiv.innerText = text;
+            statusDiv.className = `status-box status-${type}`;
+        }
+
+        // Send helper for Gmail API implementation
+        function constructAndSendGmail(to, messageText, token) {
+            const rawMime = [
+                `To: ${to}`,
+                "Subject: Automated Portal Delivery",
+                "MIME-Version: 1.0",
+                "Content-Type: text/html; charset=UTF-8",
+                "",
+                `<p>${messageText}</p>`
+            ].join('\r\n');
+
+            const encodedMime = btoa(unescape(encodeURIComponent(rawMime)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+
+            fetch('https://gmail.googleapis.com/v1/users/me/messages/send', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ raw: encodedMime })
+            })
+            .then(res => {
+                if (res.ok) {
+                    displayStatus("Message successfully sent via OAuth account.", "success");
+                } else {
+                    displayStatus("Gmail API delivery request failed. Verify OAuth access rights.", "error");
                 }
-            } catch (err) {
-                listContainer.innerHTML = `<div class="status-msg" style="color:#d93025">${err.message}</div>`;
-            }
-        }
-
-        async function fetchHeaderDetails(msgId) {
-            try {
-                const response = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                });
-
-                if (!response.ok) return;
-                const details = await response.json();
-
-                const headers = details.payload.headers;
-                const subject = headers.find(h => h.name === 'Subject')?.value || '(No Subject)';
-                const from = headers.find(h => h.name === 'From')?.value || 'Unknown Sender';
-                const date = headers.find(h => h.name === 'Date')?.value || '';
-
-                renderListItem(msgId, from, subject, details.snippet);
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        function renderListItem(id, sender, subject, snippet) {
-            const listContainer = document.getElementById('list-container');
-            const item = document.createElement('div');
-            item.className = 'email-item';
-            item.setAttribute('data-id', id);
-            item.innerHTML = `
-                <div class="sender">${escapeHtml(sender)}</div>
-                <div class="subject">${escapeHtml(subject)}</div>
-                <div class="snippet">${escapeHtml(snippet || '')}</div>
-            `;
-
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.email-item').forEach(el => el.classList.remove('active'));
-                item.classList.add('active');
-                readMessage(id);
+            })
+            .catch(err => {
+                displayStatus(`Error during execution: ${err.message}`, "error");
             });
-
-            listContainer.appendChild(item);
         }
 
-        async function readMessage(msgId) {
-            const reader = document.getElementById('email-reader');
-            reader.innerHTML = '<div class="reader-placeholder">Loading complete message content...</div>';
+        // Logic execution pathways
+        window.onload = function() {
+            const args = getQueryParams();
 
-            try {
-                const response = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}`, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                });
-                if (!response.ok) throw new Error('Failed to retrieve email content');
+            // Scenario 1: EmailJS path
+            // Pattern: ?api=<Fable_api>&to=<receiver>&template=<template_id>
+            if (args.api && args.to && args.template) {
+                displayStatus(`Executing EmailJS task via: service_63mnm5a...`, "pending");
                 
-                const data = await response.json();
-                const headers = data.payload.headers;
-                const subject = headers.find(h => h.name === 'Subject')?.value || '(No Subject)';
-                const from = headers.find(h => h.name === 'From')?.value || 'Unknown Sender';
-                const date = headers.find(h => h.name === 'Date')?.value || '';
-
-                const body = parseMessageBody(data.payload);
-
-                reader.innerHTML = `
-                    <div class="email-header">
-                        <h2>${escapeHtml(subject)}</h2>
-                        <div class="email-meta">
-                            <strong>From:</strong> ${escapeHtml(from)} <br>
-                            <strong>Date:</strong> ${escapeHtml(date)}
-                        </div>
-                    </div>
-                    <div class="email-body" id="body-render-target"></div>
-                `;
-
-                const renderTarget = document.getElementById('body-render-target');
-                
-                // Using an iframe prevents local stylesheets from interfering with email rendering
-                const iframe = document.createElement('iframe');
-                renderTarget.appendChild(iframe);
-                
-                const doc = iframe.contentWindow.document;
-                doc.open();
-                doc.write(body);
-                doc.close();
-
-                // Dynamically scale iframe height to fit contents
-                iframe.onload = function() {
-                    iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+                const templateParams = {
+                    to_email: args.to,
+                    fable_api_key: args.api,
+                    message: `Executing template request using template identifier: ${args.template}`
                 };
-            } catch (err) {
-                reader.innerHTML = `<div class="reader-placeholder" style="color:#d93025">${err.message}</div>`;
-            }
-        }
 
-        function parseMessageBody(payload) {
-            if (!payload) return "";
-            if (payload.body && payload.body.data) {
-                return base64Decode(payload.body.data);
+                // emailjs.send(service_id, template_id, template_params)
+                emailjs.send("service_63mnm5a", "template_mfkmx1r", templateParams)
+                    .then(function(response) {
+                        displayStatus("EmailJS template dispatched.", "success");
+                    }, function(error) {
+                        displayStatus(`EmailJS routing error: ${JSON.stringify(error)}`, "error");
+                    });
             }
-            if (payload.parts) {
-                return findHtmlOrTextPart(payload.parts);
-            }
-            return "";
-        }
-
-        function findHtmlOrTextPart(parts) {
-            let htmlPart = parts.find(p => p.mimeType === "text/html");
-            if (htmlPart && htmlPart.body && htmlPart.body.data) {
-                return base64Decode(htmlPart.body.data);
-            }
-            let textPart = parts.find(p => p.mimeType === "text/plain");
-            if (textPart && textPart.body && textPart.body.data) {
-                return `<pre>${escapeHtml(base64Decode(textPart.body.data))}</pre>`;
-            }
-            for (let part of parts) {
-                if (part.parts) {
-                    let recursiveResult = findHtmlOrTextPart(part.parts);
-                    if (recursiveResult) return recursiveResult;
+            
+            // Scenario 2: Standard user OAuth path
+            // Pattern: ?to=<receiver>&message=<message>
+            else if (args.to && args.message) {
+                displayStatus("Checking active OAuth authorization state...", "pending");
+                const token = localStorage.getItem('google_access_token');
+                
+                if (token) {
+                    constructAndSendGmail(args.to, args.message, token);
+                } else {
+                    displayStatus("Authorization missing. Log in through the primary application (1.html) first.", "error");
                 }
+            } 
+            
+            // Catch-all
+            else {
+                displayStatus("Invalid endpoint query configuration pattern received. Check variables.", "error");
             }
-            return "";
-        }
-
-        function base64Decode(str) {
-            // Decodes web-safe base64 strings correctly
-            return decodeURIComponent(escape(atob(str.replace(/-/g, '+').replace(/_/g, '/'))));
-        }
-
-        function escapeHtml(unsafe) {
-            return unsafe
-                 .replace(/&/g, "&amp;")
-                 .replace(/</g, "&lt;")
-                 .replace(/>/g, "&gt;")
-                 .replace(/"/g, "&quot;")
-                 .replace(/'/g, "&#039;");
-        }
+        };
     </script>
 </body>
 </html>
