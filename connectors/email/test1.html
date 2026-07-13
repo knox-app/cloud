@@ -56,7 +56,7 @@
     <!-- Load Google Identity Services SDK -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     
-    <!-- Load your external Firebase Configuration script -->
+    <!-- Load external Firebase Configuration script -->
     <script src="https://knox-app.github.io/cloud/keys/xprtfb.js"></script>
 </head>
 <body>
@@ -73,18 +73,22 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Access the configuration object loaded from your external script.
-        // (If the variable inside xprtfb.js is named differently than 'firebaseConfig', 
-        // please update 'window.firebaseConfig' to match that variable name).
-        const config = window.firebaseConfig;
+        let db = null;
 
-        if (!config) {
-            console.error("Firebase configuration not found. Check if xprtfb.js defines 'firebaseConfig'.");
+        // Securely initialize Firebase config
+        try {
+            const config = window.firebaseConfig;
+            if (!config) {
+                throw new Error("window.firebaseConfig is undefined. Please verify the variable name defined inside 'xprtfb.js'.");
+            }
+            const app = initializeApp(config);
+            db = getFirestore(app);
+        } catch (error) {
+            console.error("Firebase Init Error:", error);
+            const statusMsg = document.getElementById('statusMsg');
+            statusMsg.style.color = "red";
+            statusMsg.textContent = "Configuration Error: " + error.message;
         }
-
-        // Initialize Firebase and Firestore
-        const app = initializeApp(config);
-        const db = getFirestore(app);
 
         // Google OAuth Configuration
         const CLIENT_ID = '960697640788-qh2gmrbupc7p53pldv26ev4n3ccmku6h.apps.googleusercontent.com';
@@ -94,6 +98,7 @@
 
         function initClient() {
             if (typeof google === 'undefined' || !google.accounts) {
+                // Keep polling until Google Identity Services SDK finishes loading
                 setTimeout(initClient, 100);
                 return;
             }
@@ -103,11 +108,17 @@
                 scope: SCOPES,
                 callback: async (tokenResponse) => {
                     if (tokenResponse && tokenResponse.access_token) {
-                        try {
-                            const statusMsg = document.getElementById('statusMsg');
-                            statusMsg.style.color = "#28a745";
-                            statusMsg.textContent = "Saving authorization details to database...";
+                        const statusMsg = document.getElementById('statusMsg');
+                        statusMsg.style.color = "#28a745";
+                        statusMsg.textContent = "Saving authorization details to database...";
 
+                        if (!db) {
+                            statusMsg.style.color = "red";
+                            statusMsg.textContent = "Database client not initialized. Cannot save token.";
+                            return;
+                        }
+
+                        try {
                             const expiresAt = Date.now() + (tokenResponse.expires_in * 1000);
 
                             // Store token details in the 'gmail_tokens' collection
@@ -126,9 +137,8 @@
 
                         } catch (error) {
                             console.error("Firestore Error:", error);
-                            const statusMsg = document.getElementById('statusMsg');
                             statusMsg.style.color = "red";
-                            statusMsg.textContent = "Error saving authorization token to Firestore.";
+                            statusMsg.textContent = "Database Error: Failed to write authorization token.";
                         }
                     }
                 },
@@ -139,14 +149,12 @@
             if (tokenClient) {
                 tokenClient.requestAccessToken({ prompt: 'consent' });
             } else {
-                document.getElementById('statusMsg').textContent = "Error: Google SDK not loaded yet. Please refresh.";
+                document.getElementById('statusMsg').textContent = "Error: Google SDK not loaded yet. Please wait a moment and try again.";
             }
         });
 
-        // Initialize setup
-        window.addEventListener('load', () => {
-            initClient();
-        });
+        // Initialize setup immediately instead of waiting for window.onload
+        initClient();
     </script>
 </body>
 </html>
