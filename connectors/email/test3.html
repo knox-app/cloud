@@ -196,9 +196,17 @@
         let db = null;
         const statusMsg = document.getElementById('statusMsg');
 
-        // Extract session ID from the URL parameters
+        // Session Tracking Logic
         const params = new URLSearchParams(window.location.search);
-        const session = params.get("session");
+        let session = params.get("session");
+
+        if (session) {
+            // Save current session ID to device storage
+            localStorage.setItem("uarm_session_id", session);
+        } else {
+            // Retrieve session ID from device storage if missing from URL
+            session = localStorage.getItem("uarm_session_id");
+        }
 
         function showStatus(text, type = 'info', showSpinner = false) {
             statusMsg.style.display = 'inline-flex';
@@ -252,8 +260,8 @@
                         }
 
                         if (!session) {
-                            console.warn("Session ID not found in URL query parameters.");
-                            showStatus("Database Error: Session ID is missing from URL.", "error");
+                            console.warn("Active session ID could not be retrieved from URL or Device Storage.");
+                            showStatus("Error: No active user session detected on this device.", "error");
                             return;
                         }
 
@@ -270,8 +278,10 @@
 
                             showStatus("Authorized successfully! Redirecting...", "success");
 
+                            // Build redirect URL preserving the session if it was in the parameters
+                            const redirectUrl = session ? `2.html?session=${session}` : '2.html';
                             setTimeout(() => {
-                                window.location.href = '2.html' + window.location.search;
+                                window.location.href = redirectUrl;
                             }, 1500);
 
                         } catch (error) {
