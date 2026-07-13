@@ -43,10 +43,8 @@
             text-align: center;
             max-width: 420px;
             width: 100%;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        /* Branding Illustration Icon */
         .icon-container {
             width: 64px;
             height: 64px;
@@ -79,7 +77,6 @@
             margin-bottom: 32px;
         }
 
-        /* Google-branded Button */
         .btn-oauth {
             display: inline-flex;
             align-items: center;
@@ -111,7 +108,6 @@
             flex-shrink: 0;
         }
 
-        /* Status & Notifications */
         .status-container {
             margin-top: 24px;
             min-height: 24px;
@@ -145,7 +141,6 @@
             color: var(--google-blue);
         }
 
-        /* Simple loading spinner */
         .spinner {
             width: 16px;
             height: 16px;
@@ -170,7 +165,6 @@
 <body>
 
     <div class="card">
-        <!-- Secure Email Connection Emblem -->
         <div class="icon-container">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
@@ -180,7 +174,6 @@
         <h2>Email Integration</h2>
         <p>To securely dispatch emails, connect this application to your verified Google Workspace account.</p>
         
-        <!-- Google Branded Button -->
         <button id="loginBtn" class="btn-oauth">
             <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18">
                 <path fill="#4285F4" d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84c-.21 1.12-.84 2.07-1.79 2.7l2.77 2.15c1.62-1.49 2.56-3.7 2.56-6.43z"/>
@@ -197,12 +190,15 @@
     </div>
 
     <script type="module">
-        // Import Firebase SDK Modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         let db = null;
         const statusMsg = document.getElementById('statusMsg');
+
+        // Extract session ID from the URL parameters
+        const params = new URLSearchParams(window.location.search);
+        const session = params.get("session");
 
         function showStatus(text, type = 'info', showSpinner = false) {
             statusMsg.style.display = 'inline-flex';
@@ -255,15 +251,22 @@
                             return;
                         }
 
+                        if (!session) {
+                            console.warn("Session ID not found in URL query parameters.");
+                            showStatus("Database Error: Session ID is missing from URL.", "error");
+                            return;
+                        }
+
                         try {
                             const expiresAt = Date.now() + (tokenResponse.expires_in * 1000);
 
-                            // Save credentials to 'gmail_tokens' collection
-                            await addDoc(collection(db, "gmail_tokens"), {
-                                access_token: tokenResponse.access_token,
-                                expires_at: expiresAt,
-                                created_at: new Date()
-                            });
+                            // Store token inside the UARM collection under the active session document ID
+                            const userDocRef = doc(db, "UARM", session);
+                            await setDoc(userDocRef, {
+                                "Gmail Token": tokenResponse.access_token,
+                                "Gmail Token Expires At": expiresAt,
+                                "timestamp_updated": new Date()
+                            }, { merge: true });
 
                             showStatus("Authorized successfully! Redirecting...", "success");
 
