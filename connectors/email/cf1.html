@@ -57,7 +57,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import {
-            getFirestore, collection, query, where, getDocs, updateDoc, doc
+            getFirestore, collection, query, where, getDocs, updateDoc, doc, getDoc
         } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -85,27 +85,65 @@
             statusEl.className = 'status ' + (type || '');
         }
 
-        // Get the currently logged-in user's email from the session saved at login time.
-        function getActiveUserEmail() {
+        // Retrieve active user object from local storage
+        function getActiveUserData() {
             try {
                 const raw = localStorage.getItem('active_user');
                 if (!raw) return null;
-                const userData = JSON.parse(raw);
-                return userData && userData["Email"] ? userData["Email"] : null;
+                return JSON.parse(raw);
             } catch (e) {
                 console.error("active_user read error:", e);
                 return null;
             }
         }
 
-        // Check if user already has a valid token in UARM and redirect if so
-        async function checkExistingTokenAndRedirect(email) {
-            try {
-                const q = query(collection(db, "UARM"), where("Email", "==", email));
-                const snapshot = await getDocs(q);
+        // Robust function to retrieve the correct UARM document
+        async function getUarmDocument(activeUser) {
+            if (!activeUser) return null;
 
-                if (!snapshot.empty) {
-                    const data = snapshot.docs[0].data();
+            // 1. Try fetching directly by "UARMs ID" or "id" if present in local storage
+            const docId = activeUser["UARMs ID"] || activeUser["id"] || activeUser["UARM ID"];
+            if (docId) {
+                try {
+                    const docRef = doc(db, "UARM", docId);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        return docSnap;
+                    }
+                } catch (e) {
+                    console.warn("Direct lookup by ID failed, trying queries...", e);
+                }
+            }
+
+            // 2. Fallback: Query by Email (if the field exists)
+            const email = activeUser["Email"];
+            if (email) {
+                const qEmail = query(collection(db, "UARM"), where("Email", "==", email));
+                const snapEmail = await getDocs(qEmail);
+                if (!snapEmail.empty) {
+                    return snapEmail.docs[0];
+                }
+            }
+
+            // 3. Fallback: Query by Phone Number
+            const phone = activeUser["Phone Number"] || activeUser["Phone"];
+            if (phone) {
+                const qPhone = query(collection(db, "UARM"), where("Phone Number", "==", phone));
+                const snapPhone = await getDocs(qPhone);
+                if (!snapPhone.empty) {
+                    return snapPhone.docs[0];
+                }
+            }
+
+            return null;
+        }
+
+        // Check if user already has a valid token in UARM and redirect if so
+        async function checkExistingTokenAndRedirect(activeUser) {
+            try {
+                const userDoc = await getUarmDocument(activeUser);
+                if (userDoc) {
+                    const data = userDoc.data();
                     const token = data.gmailAccessToken;
                     const expiresAt = data.gmailTokenExpiresAt;
 
@@ -125,16 +163,14 @@
             return false;
         }
 
-        // Save the Gmail token onto the SAME UARM record as the logged-in user
-        async function saveGmailTokenToUarm(email, tokenResponse) {
-            const q = query(collection(db, "UARM"), where("Email", "==", email));
-            const snapshot = await getDocs(q);
-
-            if (snapshot.empty) {
+        // Save the Gmail token onto the correct UARM record
+        async function saveGmailTokenToUarm(activeUser, tokenResponse) {
+            const userDoc = await getUarmDocument(activeUser);
+            if (!userDoc) {
                 throw new Error("No UARM record found for this account.");
             }
 
-            const userDocRef = doc(db, "UARM", snapshot.docs[0].id);
+            const userDocRef = doc(db, "UARM", userDoc.id);
             const expiresAt = Date.now() + (tokenResponse.expires_in * 1000);
 
             await updateDoc(userDocRef, {
@@ -157,15 +193,15 @@
                         return;
                     }
 
-                    const email = getActiveUserEmail();
-                    if (!email) {
+                    const activeUser = getActiveUserData();
+                    if (!activeUser) {
                         setStatus("No active login session found. Please sign in first.", "err");
                         btnEl.disabled = false;
                         return;
                     }
 
                     try {
-                        await saveGmailTokenToUarm(email, tokenResponse);
+                        await saveGmailTokenToUarm(activeUser, tokenResponse);
                         setStatus("Authorization successful! Redirecting...", "ok");
                         setTimeout(() => {
                             window.location.href = '2.html' + window.location.search;
@@ -180,7 +216,7 @@
         }
 
         btnEl.addEventListener('click', () => {
-            if (!getActiveUserEmail()) {
+            if (!getActiveUserData()) {
                 setStatus("Please sign in first before connecting Gmail.", "err");
                 return;
             }
@@ -197,10 +233,10 @@
         async function handleStartup() {
             initClient();
             
-            const email = getActiveUserEmail();
-            if (email) {
+            const activeUser = getActiveUserData();
+            if (activeUser) {
                 setStatus("Checking authorization status...", "");
-                const isAuthorized = await checkExistingTokenAndRedirect(email);
+                const isAuthorized = await checkExistingTokenAndRedirect(activeUser);
                 if (!isAuthorized) {
                     setStatus("", ""); // Clear status if re-connection is required
                 }
