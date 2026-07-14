@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Authentication</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #f4f5f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        h2 { margin-bottom: 10px; color: #333; }
+        p { color: #666; font-size: 14px; margin-bottom: 30px; }
+        .btn-oauth {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .btn-oauth:hover { background-color: #357ae8; }
+        .btn-oauth:disabled { background-color: #9db8e8; cursor: not-allowed; }
+        .status { margin-top: 20px; font-size: 14px; font-weight: bold; }
+        .status.ok { color: #28a745; }
+        .status.err { color: #d93025; }
+    </style>
+    <!-- Load Google Identity Services SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Email Integration Login</h2>
+        <p>To send emails through this utility, please authorize access to your Google account.</p>
+        <button id="loginBtn" class="btn-oauth">Connect Google Account</button>
+        <div id="statusMsg" class="status"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import {
+            getFirestore, collection, query, where, getDocs, updateDoc, doc
+        } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            authDomain: "question-metabase.firebaseapp.com",
+            databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "question-metabase",
+            storageBucket: "question-metabase.firebasestorage.app",
+            messagingSenderId: "770698198753",
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+            measurementId: "G-6ZP1FPMKSJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const CLIENT_ID = '960697640788-qh2gmrbupc7p53pldv26ev4n3ccmku6h.apps.googleusercontent.com';
+        const SCOPES = 'https://www.googleapis.com/auth/gmail.send';
+
+        const statusEl = document.getElementById('statusMsg');
+        const btnEl = document.getElementById('loginBtn');
+
+        function setStatus(msg, type) {
+            statusEl.textContent = msg;
+            statusEl.className = 'status ' + (type || '');
+        }
+
+        // Get the currently logged-in user's email from the session saved at login time.
+        function getActiveUserEmail() {
+            try {
+                const raw = localStorage.getItem('active_user');
+                if (!raw) return null;
+                const userData = JSON.parse(raw);
+                return userData && userData["Email"] ? userData["Email"] : null;
+            } catch (e) {
+                console.error("active_user read error:", e);
+                return null;
+            }
+        }
+
+        // Check if user already has a valid token in UARM and redirect if so
+        async function checkExistingTokenAndRedirect(email) {
+            try {
+                const q = query(collection(db, "UARM"), where("Email", "==", email));
+                const snapshot = await getDocs(q);
+
+                if (!snapshot.empty) {
+                    const data = snapshot.docs[0].data();
+                    const token = data.gmailAccessToken;
+                    const expiresAt = data.gmailTokenExpiresAt;
+
+                    // Verify token exists and has not expired (with a 30-second buffer)
+                    if (token && expiresAt && expiresAt > (Date.now() + 30000)) {
+                        setStatus("Already authorized! Redirecting...", "ok");
+                        btnEl.disabled = true;
+                        setTimeout(() => {
+                            window.location.href = '2.html' + window.location.search;
+                        }, 1200);
+                        return true;
+                    }
+                }
+            } catch (err) {
+                console.error("Error checking existing token:", err);
+            }
+            return false;
+        }
+
+        // Save the Gmail token onto the SAME UARM record as the logged-in user
+        async function saveGmailTokenToUarm(email, tokenResponse) {
+            const q = query(collection(db, "UARM"), where("Email", "==", email));
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                throw new Error("No UARM record found for this account.");
+            }
+
+            const userDocRef = doc(db, "UARM", snapshot.docs[0].id);
+            const expiresAt = Date.now() + (tokenResponse.expires_in * 1000);
+
+            await updateDoc(userDocRef, {
+                gmailAccessToken: tokenResponse.access_token,
+                gmailTokenExpiresAt: expiresAt,
+                gmailConnectedAt: new Date()
+            });
+        }
+
+        let tokenClient;
+
+        function initClient() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: async (tokenResponse) => {
+                    if (!tokenResponse || !tokenResponse.access_token) {
+                        setStatus("Authorization failed. Please try again.", "err");
+                        btnEl.disabled = false;
+                        return;
+                    }
+
+                    const email = getActiveUserEmail();
+                    if (!email) {
+                        setStatus("No active login session found. Please sign in first.", "err");
+                        btnEl.disabled = false;
+                        return;
+                    }
+
+                    try {
+                        await saveGmailTokenToUarm(email, tokenResponse);
+                        setStatus("Authorization successful! Redirecting...", "ok");
+                        setTimeout(() => {
+                            window.location.href = '2.html' + window.location.search;
+                        }, 1500);
+                    } catch (err) {
+                        console.error("Token save error:", err);
+                        setStatus("Connected, but saving to your account failed.", "err");
+                        btnEl.disabled = false;
+                    }
+                },
+            });
+        }
+
+        btnEl.addEventListener('click', () => {
+            if (!getActiveUserEmail()) {
+                setStatus("Please sign in first before connecting Gmail.", "err");
+                return;
+            }
+            if (tokenClient) {
+                btnEl.disabled = true;
+                setStatus("Waiting for Google authorization...", "");
+                tokenClient.requestAccessToken({ prompt: 'consent' });
+            } else {
+                setStatus("Error: Google SDK not loaded yet. Please refresh.", "err");
+            }
+        });
+
+        // Initialize setup and verify existing active login
+        async function handleStartup() {
+            initClient();
+            
+            const email = getActiveUserEmail();
+            if (email) {
+                setStatus("Checking authorization status...", "");
+                const isAuthorized = await checkExistingTokenAndRedirect(email);
+                if (!isAuthorized) {
+                    setStatus("", ""); // Clear status if re-connection is required
+                }
+            } else {
+                setStatus("Please sign in first before connecting Gmail.", "err");
+            }
+        }
+
+        window.onload = () => {
+            handleStartup();
+        };
+    </script>
+</body>
+</html>
