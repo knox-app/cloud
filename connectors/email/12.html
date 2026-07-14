@@ -67,8 +67,7 @@
             projectId: "question-metabase",
             storageBucket: "question-metabase.firebasestorage.app",
             messagingSenderId: "770698198753",
-            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
-            measurementId: "G-6ZP1FPMKSJ"
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -97,7 +96,7 @@
             }
         }
 
-        // Robust function to retrieve the correct UARM document
+        // Retrieve the correct UARM document safely
         async function getUarmDocument(activeUser) {
             if (!activeUser) return null;
 
@@ -115,7 +114,7 @@
                 }
             }
 
-            // 2. Fallback: Query by Email (if the field exists)
+            // 2. Fallback: Query by Email
             const email = activeUser["Email"];
             if (email) {
                 const qEmail = query(collection(db, "UARM"), where("Email", "==", email));
