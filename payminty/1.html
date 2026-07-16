@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Complete Checkout | Paymintly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+<body class="bg-[#f6f9fc] min-h-screen flex items-center justify-center">
+    <div class="bg-white max-w-4xl w-full mx-4 rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+        <!-- Summary Section -->
+        <div class="bg-indigo-600 p-10 text-white md:w-2/5">
+            <div id="companyLogo" class="mb-8 font-bold text-2xl">PAYMINTLY</div>
+            <h2 class="text-gray-200 text-sm font-medium">Subscription</h2>
+            <p id="planName" class="text-2xl font-bold mb-4">Loading Plan...</p>
+            <div class="text-4xl font-bold" id="planPrice">₹0.00</div>
+            <div class="mt-10 pt-10 border-t border-indigo-500 text-sm text-indigo-100">
+                Contact your company for your 16-digit activation code.
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <form id="transactForm" class="p-10 md:w-3/5 space-y-4">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">Payment Details</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" id="fname" placeholder="First Name" required class="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                <input type="text" id="lname" placeholder="Last Name" required class="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <input type="email" id="email" placeholder="Team Email" required class="w-full p-3 border rounded-lg">
+            <input type="text" id="address" placeholder="Billing Address" required class="w-full p-3 border rounded-lg">
+            
+            <div class="pt-6 border-t mt-6">
+                <label class="text-sm font-semibold text-gray-600">PAYMINTLY CODE (16 DIGITS)</label>
+                <input type="text" id="payCode" maxlength="16" placeholder="XXXX XXXX XXXX XXXX" required class="w-full p-3 border rounded-lg font-mono text-lg tracking-widest mt-2">
+            </div>
+
+            <button type="submit" class="w-full bg-indigo-600 text-white py-4 rounded-lg font-bold hover:bg-indigo-700 shadow-lg transition transform active:scale-95">Pay Now</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Init EmailJS
+        emailjs.init("Yr9MutUoHOEONnFgn");
+
+        const params = new URLSearchParams(window.location.search);
+        const planID = params.get('plan');
+        const orgID = params.get('org');
+
+        const app = initializeApp({ /* Provided Config */
+            apiKey: "AIzaSyA_0q4Evwirxr4loAZ2ZzGVfKP-51oSi14",
+            projectId: "xperts-ed-tech"
+        });
+        const db = getFirestore(app);
+
+        let activePlan = null;
+        let companyData = null;
+
+        async function initPage() {
+            if(!planID) return alert("Missing Plan ID");
+            const planDoc = await getDoc(doc(db, "Plans & Subscriptions", planID));
+            if(planDoc.exists()) {
+                activePlan = planDoc.data();
+                document.getElementById('planName').innerText = activePlan.Name;
+                document.getElementById('planPrice').innerText = `₹${activePlan['Price (INR)']}`;
+            }
+        }
+
+        document.getElementById('transactForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const code = document.getElementById('payCode').value;
+
+            if(code.length === 16) {
+                // Prepare email data
+                const templateParams = {
+                    first_name: document.getElementById('fname').value,
+                    last_name: document.getElementById('lname').value,
+                    team_email: document.getElementById('email').value,
+                    subscription_name: activePlan.Name,
+                    company_name: "Paymintly Client",
+                    date: new Date().toLocaleDateString(),
+                    location: "New Delhi, India"
+                };
+
+                try {
+                    await emailjs.send("service_63mnm5a", "template_qxz1wka", templateParams);
+                    alert("Payment Successful! Invoice sent to email.");
+                    window.location.href = "https://google.com"; // Default redirect
+                } catch(err) {
+                    alert("Email error: " + JSON.stringify(err));
+                }
+            } else {
+                alert("Invalid Code. Must be 16 digits.");
+            }
+        };
+
+        initPage();
+    </script>
+</body>
+                  </html>
