@@ -548,11 +548,19 @@
     // Direct routing for approved accounts
     async function proceedDirectly(email) {
         try {
-            // Store "Team Email" into session details
-            await updateDoc(doc(db, "ASPX Keys", session), {
+            // Prepare update object
+            const updatePayload = {
                 "Team Email": email,
                 "updatedAt": new Date()
-            });
+            };
+
+            // Include plan details if present
+            if (planId) {
+                updatePayload["Plans"] = planId;
+            }
+
+            // Store updates into session document
+            await updateDoc(doc(db, "ASPX Keys", session), updatePayload);
 
             // LocalStorage Sync
             localStorage.setItem('active_user', JSON.stringify(targetUserData));
@@ -636,10 +644,17 @@
             });
 
             // Set up Session Database Details
-            await updateDoc(doc(db, "ASPX Keys", session), {
+            const updatePayload = {
                 "Team Email": targetUserData["Email"],
                 "updatedAt": new Date()
-            });
+            };
+
+            // Save plan ID under "Plans" field in the session document
+            if (planId) {
+                updatePayload["Plans"] = planId;
+            }
+
+            await updateDoc(doc(db, "ASPX Keys", session), updatePayload);
 
             // Synchronize active profile parameters locally
             const updatedUserData = {
