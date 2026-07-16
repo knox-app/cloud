@@ -1,118 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paymintly | Login & Signup</title>
+    <meta charset="UTF-8"><title>Checkout | Paymintly</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f6f9fc; }
-        .stripe-card { box-shadow: 0 50px 100px -20px rgba(50,50,93,.25), 0 30px 60px -30px rgba(0,0,0,.3); }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white p-8 rounded-xl stripe-card w-full max-w-md">
-        <div class="mb-8 text-center">
-            <h1 class="text-2xl font-bold text-indigo-600">Paymintly</h1>
-            <p class="text-gray-500 text-sm">Payments made easy</p>
+<body class="bg-[#f8fafc] min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-4xl w-full bg-white shadow-2xl rounded-3xl overflow-hidden flex flex-col md:flex-row">
+        <!-- Plan Summary Left -->
+        <div class="md:w-5/12 bg-indigo-600 p-10 text-white flex flex-col justify-between">
+            <div>
+                <img id="cLogo" class="h-12 mb-10 hidden rounded-lg shadow-lg">
+                <h2 id="pName" class="text-3xl font-bold">Loading...</h2>
+                <div class="text-5xl font-extrabold mt-6" id="pPrice">₹0</div>
+                <div id="cName" class="mt-4 opacity-70 text-sm"></div>
+            </div>
+            <div class="text-[10px] tracking-widest opacity-40">SECURE TRANSACTION BY PAYMINTLY</div>
         </div>
 
-        <div class="flex border-b mb-6">
-            <button id="loginTab" class="flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 font-semibold">Login</button>
-            <button id="signupTab" class="flex-1 pb-2 border-b-2 border-transparent text-gray-400 hover:text-indigo-600">Register Company</button>
-        </div>
-
-        <!-- Login Form -->
-        <form id="loginForm" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Email or Phone</label>
-                <input type="text" id="loginEmail" required class="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none">
+        <!-- Checkout Form Right -->
+        <form id="txForm" class="md:w-7/12 p-10 space-y-4">
+            <h3 class="text-xl font-bold mb-6 text-gray-800">Checkout Details</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" id="fn" placeholder="First Name" required class="p-3 border rounded-xl w-full">
+                <input type="text" id="ln" placeholder="Last Name" required class="p-3 border rounded-xl w-full">
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="loginPass" required class="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input type="email" id="em" placeholder="Team Email" required class="p-3 border rounded-xl w-full">
+            <input type="text" id="adr" placeholder="Address" required class="p-3 border rounded-xl w-full">
+            
+            <div class="pt-6 border-t mt-6">
+                <label class="text-xs font-bold text-gray-400 mb-2 block uppercase">16-Digit Payment Code</label>
+                <input type="text" id="code" maxlength="16" placeholder="XXXX XXXX XXXX XXXX" required class="w-full p-4 border-2 border-indigo-50 rounded-xl font-mono text-xl tracking-[0.2em] text-center focus:border-indigo-400 outline-none">
             </div>
-            <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-md font-semibold hover:bg-indigo-700 transition">Sign In</button>
-        </form>
-
-        <!-- Signup Form -->
-        <form id="signupForm" class="space-y-4 hidden h-[500px] overflow-y-auto pr-2">
-            <input type="text" id="regName" placeholder="Full Name" required class="w-full p-2 border rounded-md">
-            <input type="email" id="regEmail" placeholder="Email ID" required class="w-full p-2 border rounded-md">
-            <input type="tel" id="regPhone" placeholder="Phone Number" required class="w-full p-2 border rounded-md">
-            <input type="text" id="regAddress" placeholder="Address" required class="w-full p-2 border rounded-md">
-            <input type="url" id="regLogo" placeholder="Company Logo URL" required class="w-full p-2 border rounded-md">
-            <textarea id="regConfig" placeholder="Firebase Config JSON" required class="w-full p-2 border rounded-md h-20 text-xs"></textarea>
-            <input type="password" id="regPass" placeholder="Password" required class="w-full p-2 border rounded-md">
-            <input type="url" id="regRedirect" placeholder="Redirect URL" required class="w-full p-2 border rounded-md">
-            <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-md font-semibold hover:bg-indigo-700 transition">Create Account</button>
+            
+            <button type="submit" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all">Pay Now</button>
         </form>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA_0q4Evwirxr4loAZ2ZzGVfKP-51oSi14",
             authDomain: "xperts-ed-tech.firebaseapp.com",
             projectId: "xperts-ed-tech",
-            storageBucket: "xperts-ed-tech.firebasestorage.app",
-            messagingSenderId: "960602403596",
             appId: "1:960602403596:web:fdf87f7b9a6181b6db4f29"
         };
-
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
+        
+        emailjs.init("Yr9MutUoHOEONnFgn");
 
-        // Tab Switching Logic
-        const loginTab = document.getElementById('loginTab');
-        const signupTab = document.getElementById('signupTab');
-        const loginForm = document.getElementById('loginForm');
-        const signupForm = document.getElementById('signupForm');
+        const params = new URLSearchParams(window.location.search);
+        const planID = params.get('plan'), orgID = params.get('org');
+        let redirectLink = "https://google.com";
 
-        signupTab.onclick = () => {
-            signupForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-            signupTab.className = "flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 font-semibold";
-            loginTab.className = "flex-1 pb-2 border-b-2 border-transparent text-gray-400";
-        };
+        async function loadData() {
+            if(!planID || !orgID) return alert("Invalid URL Parameters");
 
-        loginTab.onclick = () => {
-            loginForm.classList.remove('hidden');
-            signupForm.classList.add('hidden');
-            loginTab.className = "flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 font-semibold";
-            signupTab.className = "flex-1 pb-2 border-b-2 border-transparent text-gray-400";
-        };
+            // Company Data
+            const cSnap = await getDoc(doc(db, "Companies", orgID));
+            if(cSnap.exists()) {
+                const c = cSnap.data();
+                document.getElementById('cName').innerText = "By " + c.fullName;
+                document.getElementById('cLogo').src = c.logo;
+                document.getElementById('cLogo').classList.remove('hidden');
+                redirectLink = c.redirect;
+            }
 
-        // Auth Logic
-        loginForm.onsubmit = async (e) => {
+            // Plan Data
+            const pSnap = await getDoc(doc(db, "Plans & Subscriptions", planID));
+            if(pSnap.exists()) {
+                const p = pSnap.data();
+                document.getElementById('pName').innerText = p.Name;
+                document.getElementById('pPrice').innerText = "₹" + p['Price (INR)'];
+            }
+        }
+
+        document.getElementById('txForm').onsubmit = async (e) => {
             e.preventDefault();
+            if(document.getElementById('code').value.length !== 16) return alert("Invalid 16-digit code");
+
+            const emailData = {
+                to_email: document.getElementById('em').value,
+                first_name: document.getElementById('fn').value,
+                last_name: document.getElementById('ln').value,
+                sub_name: document.getElementById('pName').innerText,
+                comp_name: document.getElementById('cName').innerText,
+                date: new Date().toLocaleDateString(),
+                logo: document.getElementById('cLogo').src
+            };
+
             try {
-                await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPass').value);
-                window.location.href = "2.html";
-            } catch (err) { alert(err.message); }
+                await emailjs.send("service_63mnm5a", "template_qxz1wka", emailData);
+                alert("Success! Invoice sent to your email.");
+                window.location.href = redirectLink;
+            } catch(err) { alert("Email Failed: " + JSON.stringify(err)); }
         };
 
-        signupForm.onsubmit = async (e) => {
-            e.preventDefault();
-            try {
-                const cred = await createUserWithEmailAndPassword(auth, document.getElementById('regEmail').value, document.getElementById('regPass').value);
-                await setDoc(doc(db, "companies", cred.user.uid), {
-                    name: document.getElementById('regName').value,
-                    phone: document.getElementById('regPhone').value,
-                    address: document.getElementById('regAddress').value,
-                    logo: document.getElementById('regLogo').value,
-                    fbConfig: document.getElementById('regConfig').value,
-                    redirectUrl: document.getElementById('regRedirect').value
-                });
-                alert("Registration Successful!");
-                window.location.href = "2.html";
-            } catch (err) { alert(err.message); }
-        };
+        loadData();
     </script>
 </body>
-              </html>
+</html>
