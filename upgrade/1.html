@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In & Verification</title>
+    <title>TES2</title>
     <style>
         /* CSS Variables for Dynamic Light/Dark Mode */
         :root {
@@ -153,8 +153,8 @@
 <div class="container">
     <!-- Screen 1: Email Input -->
     <div id="emailScreen">
-        <h1>Sign in to workspace</h1>
-        <p class="subtitle">Please verify your Team Email to proceed with subscription options.</p>
+        <h1 id="screenTitle">Sign in to workspace</h1>
+        <p class="subtitle" id="screenSubtitle">Please verify your Team Email to proceed with subscription options.</p>
 
         <!-- Suggested Logged-in User Option -->
         <div id="suggestedBox" class="suggested-account hidden">
@@ -194,7 +194,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, where, doc, setDoc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, where, doc, setDoc, updateDoc, deleteField, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     // Firebase Configuration
     const firebaseConfig = {
@@ -223,6 +223,7 @@
     let targetUserDocId = null;
     let targetUserData = null;
     let generatedOtp = null;
+    let requiredPlanType = "Busniess"; // Default fallback
 
     // Theme logic
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -239,8 +240,9 @@
     }
     applyTheme();
 
-    // 1. Session Setup
-    async function initSession() {
+    // 1. Session Setup and Fetching Plan Details
+    async function initSessionAndFetchPlan() {
+        // Generate and update session in the URL query string if missing
         if (!session) {
             session = Math.floor(1000000000 + Math.random() * 9000000000).toString();
             try {
@@ -249,14 +251,36 @@
                     createdAt: new Date()
                 });
             } catch (err) {
-                console.error("Session init failed:", err);
+                console.error("Session initialization failed:", err);
             }
-            window.history.replaceState({}, '', `1.html?session=${session}&type=${planId || ''}`);
+            window.history.replaceState({}, '', `?session=${session}&type=${planId || ''}${theme ? '&theme=' + theme : ''}`);
+        }
+
+        // Fetch specified Plan Details if "type" parameter exists in URL
+        if (planId) {
+            try {
+                const planDocRef = doc(db, "Plans & Subscriptions", planId);
+                const planSnap = await getDoc(planDocRef);
+                if (planSnap.exists()) {
+                    const planData = planSnap.data();
+                    requiredPlanType = planData.Type || "Busniess";
+                    
+                    // UI Context update based on loaded Plan Name
+                    if (planData.Name) {
+                        document.getElementById('screenTitle').innerText = `Sign in for ${planData.Name}`;
+                        document.getElementById('screenSubtitle').innerText = `Please verify your email to unlock access to your ${planData.Name} workspace.`;
+                    }
+                } else {
+                    console.warn("Target subscription plan ID was not found in database.");
+                }
+            } catch (err) {
+                console.error("Error retrieving plan details:", err);
+            }
         }
     }
-    initSession();
+    initSessionAndFetchPlan();
 
-    // Check Local Storage for active user
+    // Check Local Storage for active user credentials
     try {
         const activeUserStr = localStorage.getItem('active_user');
         if (activeUserStr) {
@@ -339,27 +363,28 @@
 
             const userType = targetUserData["Type"];
 
-            // If account is already Business (using database exact spelling: "Busniess")
-            if (userType === "Busniess" || userType === "Business") {
+            // Compare user type with required plan type standard
+            if (requiredPlanType === "Busniess" || requiredPlanType === "Business") {
+                if (userType === "Busniess" || userType === "Business") {
+                    await proceedDirectly(emailInput);
+                } else if (userType === "kids") {
+                    const confirmUpgrade = confirm("This plan requires a Business Account. Your account is currently a Kids Account. Would you like to change your account type via Guardian OTP verification?");
+                    if (confirmUpgrade) {
+                        await handleOtpFlow(targetUserData);
+                    } else {
+                        resetBtn();
+                    }
+                } else {
+                    const confirmUpgrade = confirm("To access this subscription, your account must be set to a Business Account. Change your account type now?");
+                    if (confirmUpgrade) {
+                        await handleOtpFlow(targetUserData);
+                    } else {
+                        resetBtn();
+                    }
+                }
+            } else {
+                // If plan doesn't explicitly mandate business verification, allow straight connection
                 await proceedDirectly(emailInput);
-            } 
-            // If account is Kids
-            else if (userType === "kids") {
-                const confirmUpgrade = confirm("This account is configured as a Kids Account. To register a subscription plan, it must be upgraded to a Business Workspace Account. Would you like to proceed with Guardian verification?");
-                if (confirmUpgrade) {
-                    await handleOtpFlow(targetUserData);
-                } else {
-                    resetBtn();
-                }
-            } 
-            // Any other type
-            else {
-                const confirmUpgrade = confirm("To access subscription services, this account must be upgraded to a Business Account. Would you like to proceed?");
-                if (confirmUpgrade) {
-                    await handleOtpFlow(targetUserData);
-                } else {
-                    resetBtn();
-                }
             }
 
         } catch (err) {
@@ -375,7 +400,7 @@
         document.getElementById('continueBtn').disabled = false;
     }
 
-    // Direct routing for active business accounts
+    // Direct routing for approved accounts
     async function proceedDirectly(email) {
         try {
             // Store "Team Email" into session details
@@ -403,7 +428,7 @@
     async function handleOtpFlow(userData) {
         const guardianEmail = userData["Guardian"];
         if (!guardianEmail) {
-            alert("No Guardian email associated with this account. Please contact administrative support.");
+            alert("No Guardian email associated with this account. Please contact support.");
             resetBtn();
             return;
         }
@@ -412,12 +437,12 @@
         generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
         try {
-            // Mask guardian email address for layout display
+            // Mask guardian email address for display
             const emailParts = guardianEmail.split('@');
             const maskedLocal = emailParts[0].substring(0, 3) + "••••" + emailParts[0].slice(-1);
             document.getElementById('guardianMasked').innerText = `${maskedLocal}@${emailParts[1]}`;
 
-            // Send dynamic code using EmailJS
+            // Send verification code using EmailJS
             await emailjs.send("service_63mnm5a", "template_qxz1wka", {
                 to_email: guardianEmail,
                 otp: generatedOtp,
@@ -429,13 +454,13 @@
             document.getElementById('otpScreen').classList.remove('hidden');
 
         } catch (err) {
-            console.error("Failed to route verification email via EmailJS:", err);
+            console.error("Failed to send verification email via EmailJS:", err);
             alert("Verification service is temporarily unavailable. Please try again.");
             resetBtn();
         }
     }
 
-    // Verify OTP & perform Firestore upgrade transitions
+    // Verify OTP & update Firestore user type
     document.getElementById('verifyOtpBtn').addEventListener('click', async () => {
         const enteredOtp = document.getElementById('otpInput').value.trim();
         const otpError = document.getElementById('otpError');
