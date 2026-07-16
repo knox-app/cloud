@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paymintly | Access</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; background: #f6f9fc; }</style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white shadow-xl rounded-2xl w-full max-w-lg p-8 border border-gray-100">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-indigo-600">Paymintly</h1>
+            <div class="flex justify-center gap-6 mt-6 border-b">
+                <button id="showLogin" class="pb-2 border-b-2 border-indigo-600 text-indigo-600 font-bold">Login</button>
+                <button id="showSignup" class="pb-2 border-b-2 border-transparent text-gray-400 hover:text-indigo-600 transition">Register Company</button>
+            </div>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="space-y-4">
+            <input type="email" id="logEmail" placeholder="Email Address" required class="w-full p-3 bg-gray-50 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="password" id="logPass" placeholder="Password" required class="w-full p-3 bg-gray-50 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+            <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold shadow-lg hover:bg-indigo-700 transition">Sign In</button>
+        </form>
+
+        <!-- Registration Form -->
+        <form id="signupForm" class="hidden space-y-3 h-[450px] overflow-y-auto pr-2">
+            <input type="text" id="sName" placeholder="Full Name" required class="w-full p-3 border rounded-lg">
+            <input type="email" id="sEmail" placeholder="Email ID" required class="w-full p-3 border rounded-lg">
+            <input type="tel" id="sPhone" placeholder="Phone Number" required class="w-full p-3 border rounded-lg">
+            <input type="text" id="sAddr" placeholder="Address" required class="w-full p-3 border rounded-lg">
+            <input type="url" id="sLogo" placeholder="Company Logo URL" required class="w-full p-3 border rounded-lg">
+            <textarea id="sFB" placeholder="Firebase Config JSON" required class="w-full p-3 border rounded-lg h-20 text-xs"></textarea>
+            <input type="password" id="sPass" placeholder="Password" required class="w-full p-3 border rounded-lg">
+            <input type="url" id="sRedir" placeholder="Redirect URL" required class="w-full p-3 border rounded-lg">
+            <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold">Create Company Account</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_0q4Evwirxr4loAZ2ZzGVfKP-51oSi14",
+            authDomain: "xperts-ed-tech.firebaseapp.com",
+            projectId: "xperts-ed-tech",
+            storageBucket: "xperts-ed-tech.firebasestorage.app",
+            messagingSenderId: "960602403596",
+            appId: "1:960602403596:web:fdf87f7b9a6181b6db4f29"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Tab Switching Logic
+        const lBtn = document.getElementById('showLogin'), sBtn = document.getElementById('showSignup');
+        const lFrm = document.getElementById('loginForm'), sFrm = document.getElementById('signupForm');
+
+        sBtn.onclick = () => { sFrm.classList.remove('hidden'); lFrm.classList.add('hidden'); sBtn.className="pb-2 border-b-2 border-indigo-600 text-indigo-600 font-bold"; lBtn.className="pb-2 border-b-2 border-transparent text-gray-400"; };
+        lBtn.onclick = () => { lFrm.classList.remove('hidden'); sFrm.classList.add('hidden'); lBtn.className="pb-2 border-b-2 border-indigo-600 text-indigo-600 font-bold"; sBtn.className="pb-2 border-b-2 border-transparent text-gray-400"; };
+
+        lFrm.onsubmit = async (e) => {
+            e.preventDefault();
+            try {
+                await signInWithEmailAndPassword(auth, document.getElementById('logEmail').value, document.getElementById('logPass').value);
+                window.location.href = '2.html';
+            } catch(e) { alert("Login Error: " + e.message); }
+        };
+
+        sFrm.onsubmit = async (e) => {
+            e.preventDefault();
+            try {
+                const res = await createUserWithEmailAndPassword(auth, document.getElementById('sEmail').value, document.getElementById('sPass').value);
+                await setDoc(doc(db, "Companies", res.user.uid), {
+                    fullName: document.getElementById('sName').value,
+                    logo: document.getElementById('sLogo').value,
+                    fbConfig: document.getElementById('sFB').value,
+                    redirect: document.getElementById('sRedir').value,
+                    phone: document.getElementById('sPhone').value
+                });
+                alert("Account Created!"); window.location.href = '2.html';
+            } catch(e) { alert("Signup Error: " + e.message); }
+        };
+    </script>
+</body>
+</html>
