@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In & Verification</title>
+    <style>
+        /* CSS Variables for Dynamic Light/Dark Mode */
+        :root {
+            --bg-color: #ffffff;
+            --text-primary: #000000;
+            --text-secondary: #555555;
+            --input-border: #dddddd;
+            --input-focus: #000000;
+            --input-bg: #ffffff;
+            --btn-bg: #111111;
+            --btn-text: #ffffff;
+            --btn-hover: #333333;
+            --card-bg: #f9f9f9;
+        }
+
+        body.dark {
+            --bg-color: #000000;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --input-border: #3a3a3a;
+            --input-focus: #ffffff;
+            --input-bg: #111111;
+            --btn-bg: #ffffff;
+            --btn-text: #000000;
+            --btn-hover: #e0e0e0;
+            --card-bg: #111111;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container { 
+            text-align: center; 
+            max-width: 420px; 
+            width: 90%; 
+            padding: 30px 20px; 
+        }
+        
+        h1 { font-size: 28px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
+        
+        p.subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
+        
+        .profile-container {
+            margin-bottom: 20px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--input-border);
+        }
+
+        .profile-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .input-group { position: relative; margin-bottom: 20px; text-align: left; }
+        
+        .input-group label {
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: var(--bg-color);
+            padding: 0 5px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        input[type="text"], input[type="password"], input[type="email"] {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            box-sizing: border-box;
+            outline: none;
+            background-color: var(--input-bg);
+            color: var(--text-primary);
+            transition: border-color 0.2s, background-color 0.3s, color 0.3s;
+        }
+
+        input:focus { border-color: var(--input-focus); }
+
+        .btn {
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            border: none;
+            padding: 16px;
+            width: 100%;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s, color 0.2s;
+            font-weight: 500;
+        }
+
+        .btn:hover { background: var(--btn-hover); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .suggested-account {
+            background: var(--card-bg);
+            border: 1px dashed var(--input-border);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .hidden { display: none !important; }
+        .error-message {
+            color: #ff3b30;
+            font-size: 13px;
+            margin-top: -10px;
+            margin-bottom: 15px;
+            text-align: left;
+            display: none;
+        }
+    </style>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <!-- Screen 1: Email Input -->
+    <div id="emailScreen">
+        <h1>Sign in to workspace</h1>
+        <p class="subtitle">Please verify your Team Email to proceed with subscription options.</p>
+
+        <!-- Suggested Logged-in User Option -->
+        <div id="suggestedBox" class="suggested-account hidden">
+            <span id="suggestedEmailText"></span>
+            <span style="color: #0066cc; font-size: 12px; font-weight: 600;">Use this</span>
+        </div>
+
+        <!-- Dynamic Profile Display -->
+        <div id="profileContainer" class="profile-container">
+            <img id="profilePic" class="profile-pic" src="" alt="Profile Picture">
+            <span id="profileName" class="profile-name"></span>
+        </div>
+
+        <div class="input-group">
+            <label>Team Email</label>
+            <input type="email" id="teamEmail" placeholder="name@company.com" autocomplete="off">
+        </div>
+        <div id="emailError" class="error-message"></div>
+
+        <button class="btn" id="continueBtn">Continue</button>
+    </div>
+
+    <!-- Screen 2: OTP Verification for Kids accounts transitioning to Business -->
+    <div id="otpScreen" class="hidden">
+        <h1>Guardian Verification</h1>
+        <p class="subtitle">An OTP has been sent to your Guardian Email (<span id="guardianMasked" style="font-weight: 600;"></span>) to authorize upgrading this account to a Business Workspace.</p>
+
+        <div class="input-group">
+            <label>Enter OTP</label>
+            <input type="text" id="otpInput" placeholder="6-digit code" maxlength="6" autocomplete="off">
+        </div>
+        <div id="otpError" class="error-message"></div>
+
+        <button class="btn" id="verifyOtpBtn">Verify & Upgrade</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, where, doc, setDoc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+        authDomain: "question-metabase.firebaseapp.com",
+        databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "question-metabase",
+        storageBucket: "question-metabase.firebasestorage.app",
+        messagingSenderId: "770698198753",
+        appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+        measurementId: "G-6ZP1FPMKSJ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Initialize EmailJS
+    emailjs.init("Yr9MutUoHOEONnFgn");
+
+    // Parsed Query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    let session = urlParams.get('session');
+    let planId = urlParams.get('type');
+    const theme = urlParams.get("theme") ? urlParams.get("theme").toLowerCase() : null;
+
+    let targetUserDocId = null;
+    let targetUserData = null;
+    let generatedOtp = null;
+
+    // Theme logic
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    function applyTheme() {
+        if (theme === "dark" || theme === "d") {
+            document.body.classList.add("dark");
+        } else if (theme === "light" || theme === "l") {
+            document.body.classList.remove("dark");
+        } else if (mediaQuery.matches) {
+            document.body.classList.add("dark");
+        } else {
+            document.body.classList.remove("dark");
+        }
+    }
+    applyTheme();
+
+    // 1. Session Setup
+    async function initSession() {
+        if (!session) {
+            session = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+            try {
+                await setDoc(doc(db, "ASPX Keys", session), {
+                    sessionId: session,
+                    createdAt: new Date()
+                });
+            } catch (err) {
+                console.error("Session init failed:", err);
+            }
+            window.history.replaceState({}, '', `1.html?session=${session}&type=${planId || ''}`);
+        }
+    }
+    initSession();
+
+    // Check Local Storage for active user
+    try {
+        const activeUserStr = localStorage.getItem('active_user');
+        if (activeUserStr) {
+            const activeUser = JSON.parse(activeUserStr);
+            if (activeUser && activeUser.Email) {
+                const suggestedBox = document.getElementById('suggestedBox');
+                const suggestedText = document.getElementById('suggestedEmailText');
+                suggestedText.innerText = `Logged in as: ${activeUser.Email}`;
+                suggestedBox.classList.remove('hidden');
+                
+                suggestedBox.addEventListener('click', () => {
+                    document.getElementById('teamEmail').value = activeUser.Email;
+                    fetchUserProfile(activeUser.Email);
+                });
+            }
+        }
+    } catch (e) {
+        console.warn("Storage check skipped:", e);
+    }
+
+    // Dynamic profile check on manual email input blur
+    document.getElementById('teamEmail').addEventListener('blur', () => {
+        const emailVal = document.getElementById('teamEmail').value.trim();
+        if (emailVal) {
+            fetchUserProfile(emailVal);
+        }
+    });
+
+    // Helper to search profile details
+    async function fetchUserProfile(email) {
+        try {
+            const q = query(collection(db, "UARM"), where("Email", "==", email));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+                const data = snap.docs[0].data();
+                if (data["Profile Picture"]) {
+                    document.getElementById('profilePic').src = data["Profile Picture"];
+                    document.getElementById('profileName').innerText = `${data["First Name"] || ""} ${data["Last Name"] || ""}`;
+                    document.getElementById('profileContainer').style.display = 'flex';
+                } else {
+                    document.getElementById('profileContainer').style.display = 'none';
+                }
+            } else {
+                document.getElementById('profileContainer').style.display = 'none';
+            }
+        } catch (err) {
+            console.error("Profile check error:", err);
+        }
+    }
+
+    // Main action controller
+    document.getElementById('continueBtn').addEventListener('click', async () => {
+        const emailInput = document.getElementById('teamEmail').value.trim();
+        const emailErr = document.getElementById('emailError');
+        emailErr.style.display = 'none';
+
+        if (!emailInput) {
+            emailErr.innerText = "Please enter your team email address.";
+            emailErr.style.display = 'block';
+            return;
+        }
+
+        document.getElementById('continueBtn').innerText = "Processing...";
+        document.getElementById('continueBtn').disabled = true;
+
+        try {
+            const q = query(collection(db, "UARM"), where("Email", "==", emailInput));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                emailErr.innerText = "This email does not exist in our system.";
+                emailErr.style.display = 'block';
+                resetBtn();
+                return;
+            }
+
+            const docSnap = querySnapshot.docs[0];
+            targetUserDocId = docSnap.id;
+            targetUserData = docSnap.data();
+
+            const userType = targetUserData["Type"];
+
+            // If account is already Business (using database exact spelling: "Busniess")
+            if (userType === "Busniess" || userType === "Business") {
+                await proceedDirectly(emailInput);
+            } 
+            // If account is Kids
+            else if (userType === "kids") {
+                const confirmUpgrade = confirm("This account is configured as a Kids Account. To register a subscription plan, it must be upgraded to a Business Workspace Account. Would you like to proceed with Guardian verification?");
+                if (confirmUpgrade) {
+                    await handleOtpFlow(targetUserData);
+                } else {
+                    resetBtn();
+                }
+            } 
+            // Any other type
+            else {
+                const confirmUpgrade = confirm("To access subscription services, this account must be upgraded to a Business Account. Would you like to proceed?");
+                if (confirmUpgrade) {
+                    await handleOtpFlow(targetUserData);
+                } else {
+                    resetBtn();
+                }
+            }
+
+        } catch (err) {
+            console.error("Database validation error:", err);
+            emailErr.innerText = "An error occurred. Please verify your connection and try again.";
+            emailErr.style.display = 'block';
+            resetBtn();
+        }
+    });
+
+    function resetBtn() {
+        document.getElementById('continueBtn').innerText = "Continue";
+        document.getElementById('continueBtn').disabled = false;
+    }
+
+    // Direct routing for active business accounts
+    async function proceedDirectly(email) {
+        try {
+            // Store "Team Email" into session details
+            await updateDoc(doc(db, "ASPX Keys", session), {
+                "Team Email": email,
+                "updatedAt": new Date()
+            });
+
+            // LocalStorage Sync
+            localStorage.setItem('active_user', JSON.stringify(targetUserData));
+
+            let redirectUrl = `2.html?session=${session}`;
+            if (planId) redirectUrl += `&type=${planId}`;
+            if (theme) redirectUrl += `&theme=${theme}`;
+            
+            window.location.href = redirectUrl;
+        } catch (e) {
+            console.error("Error setting up direct session:", e);
+            alert("Failed to sync session settings. Please retry.");
+            resetBtn();
+        }
+    }
+
+    // Initiate Guardian verification OTP flow
+    async function handleOtpFlow(userData) {
+        const guardianEmail = userData["Guardian"];
+        if (!guardianEmail) {
+            alert("No Guardian email associated with this account. Please contact administrative support.");
+            resetBtn();
+            return;
+        }
+
+        // Generate 6-digit verification code
+        generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        try {
+            // Mask guardian email address for layout display
+            const emailParts = guardianEmail.split('@');
+            const maskedLocal = emailParts[0].substring(0, 3) + "••••" + emailParts[0].slice(-1);
+            document.getElementById('guardianMasked').innerText = `${maskedLocal}@${emailParts[1]}`;
+
+            // Send dynamic code using EmailJS
+            await emailjs.send("service_63mnm5a", "template_qxz1wka", {
+                to_email: guardianEmail,
+                otp: generatedOtp,
+                user_name: userData["First Name"] || "User"
+            });
+
+            // Transition UI screens
+            document.getElementById('emailScreen').classList.add('hidden');
+            document.getElementById('otpScreen').classList.remove('hidden');
+
+        } catch (err) {
+            console.error("Failed to route verification email via EmailJS:", err);
+            alert("Verification service is temporarily unavailable. Please try again.");
+            resetBtn();
+        }
+    }
+
+    // Verify OTP & perform Firestore upgrade transitions
+    document.getElementById('verifyOtpBtn').addEventListener('click', async () => {
+        const enteredOtp = document.getElementById('otpInput').value.trim();
+        const otpError = document.getElementById('otpError');
+        otpError.style.display = 'none';
+
+        if (!enteredOtp) {
+            otpError.innerText = "Please enter the OTP code sent to your guardian.";
+            otpError.style.display = 'block';
+            return;
+        }
+
+        if (enteredOtp !== generatedOtp) {
+            otpError.innerText = "Incorrect OTP code. Please verify and try again.";
+            otpError.style.display = 'block';
+            return;
+        }
+
+        document.getElementById('verifyOtpBtn').innerText = "Updating Account...";
+        document.getElementById('verifyOtpBtn').disabled = true;
+
+        try {
+            // Update User Document values to Business Workspace standards
+            const userRef = doc(db, "UARM", targetUserDocId);
+            await updateDoc(userRef, {
+                "Type": "Busniess",       // Database matched casing "Busniess"
+                "Family": "Workspace",    // Workspace Family standard
+                "Guardian": deleteField() // Remove guardian property
+            });
+
+            // Set up Session Database Details
+            await updateDoc(doc(db, "ASPX Keys", session), {
+                "Team Email": targetUserData["Email"],
+                "updatedAt": new Date()
+            });
+
+            // Synchronize active profile parameters locally
+            const updatedUserData = {
+                ...targetUserData,
+                "Type": "Busniess",
+                "Family": "Workspace"
+            };
+            delete updatedUserData["Guardian"];
+            localStorage.setItem('active_user', JSON.stringify(updatedUserData));
+
+            // Proceed to the next step
+            let redirectUrl = `2.html?session=${session}`;
+            if (planId) redirectUrl += `&type=${planId}`;
+            if (theme) redirectUrl += `&theme=${theme}`;
+            
+            window.location.href = redirectUrl;
+
+        } catch (err) {
+            console.error("Failed to apply profile upgrades:", err);
+            otpError.innerText = "Failed to apply profile changes. Please try again.";
+            otpError.style.display = 'block';
+            document.getElementById('verifyOtpBtn').innerText = "Verify & Upgrade";
+            document.getElementById('verifyOtpBtn').disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
