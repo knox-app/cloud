@@ -1,684 +1,447 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In & Verification</title>
-    <style>
-        /* CSS Variables for Dynamic Light/Dark Mode */
-        :root {
-            --bg-color: #ffffff;
-            --text-primary: #000000;
-            --text-secondary: #555555;
-            --input-border: #dddddd;
-            --input-focus: #000000;
-            --input-bg: #ffffff;
-            --btn-bg: #111111;
-            --btn-text: #ffffff;
-            --btn-hover: #333333;
-            --card-bg: #f9f9f9;
-            --modal-overlay-bg: rgba(0, 0, 0, 0.4);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Your Subscription Registration</title>
+  
+  <!-- Tailwind CSS for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase Compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-        body.dark {
-            --bg-color: #000000;
-            --text-primary: #ffffff;
-            --text-secondary: #aaaaaa;
-            --input-border: #3a3a3a;
-            --input-focus: #ffffff;
-            --input-bg: #111111;
-            --btn-bg: #ffffff;
-            --btn-text: #000000;
-            --btn-hover: #e0e0e0;
-            --card-bg: #111111;
-            --modal-overlay-bg: rgba(0, 0, 0, 0.7);
-        }
+  <!-- EmailJS SDK Integration -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .container { 
-            text-align: center; 
-            max-width: 420px; 
-            width: 90%; 
-            padding: 30px 20px; 
-        }
-        
-        h1 { font-size: 28px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
-        
-        p.subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
-        
-        .profile-container {
-            margin-bottom: 20px;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .profile-pic {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--input-border);
-        }
-
-        .profile-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .input-group { position: relative; margin-bottom: 20px; text-align: left; }
-        
-        .input-group label {
-            position: absolute;
-            top: -10px;
-            left: 15px;
-            background: var(--bg-color);
-            padding: 0 5px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        input[type="text"], input[type="password"], input[type="email"] {
-            width: 100%;
-            padding: 16px;
-            font-size: 16px;
-            border: 1px solid var(--input-border);
-            border-radius: 12px;
-            box-sizing: border-box;
-            outline: none;
-            background-color: var(--input-bg);
-            color: var(--text-primary);
-            transition: border-color 0.2s, background-color 0.3s, color 0.3s;
-        }
-
-        input:focus { border-color: var(--input-focus); }
-
-        .btn {
-            background: var(--btn-bg);
-            color: var(--btn-text);
-            border: none;
-            padding: 16px;
-            width: 100%;
-            border-radius: 30px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background 0.2s, color 0.2s;
-            font-weight: 500;
-        }
-
-        .btn:hover { background: var(--btn-hover); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        .suggested-account {
-            background: var(--card-bg);
-            border: 1px dashed var(--input-border);
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .hidden { display: none !important; }
-        .error-message {
-            color: #ff3b30;
-            font-size: 13px;
-            margin-top: -10px;
-            margin-bottom: 15px;
-            text-align: left;
-            display: none;
-        }
-
-        /* --- Custom Dialog Modal Styles --- */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--modal-overlay-bg);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(5px);
-            transition: opacity 0.2s ease;
-        }
-
-        .modal-content {
-            background: var(--bg-color);
-            color: var(--text-primary);
-            padding: 24px;
-            border-radius: 20px;
-            max-width: 380px;
-            width: 85%;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--input-border);
-            animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes modalPop {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .modal-content h3 {
-            margin-top: 0;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-
-        .modal-content p {
-            font-size: 14px;
-            color: var(--text-secondary);
-            line-height: 1.5;
-            margin-bottom: 24px;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        .modal-actions button {
-            flex: 1;
-            padding: 12px 18px;
-            font-size: 14px;
-            border-radius: 24px;
-            cursor: pointer;
-            border: none;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        .modal-btn-confirm {
-            background: var(--btn-bg);
-            color: var(--btn-text);
-        }
-
-        .modal-btn-confirm:hover {
-            background: var(--btn-hover);
-        }
-
-        .modal-btn-cancel {
-            background: transparent;
-            color: var(--text-secondary);
-            border: 1px solid var(--input-border) !important;
-        }
-
-        .modal-btn-cancel:hover {
-            background: var(--card-bg);
-        }
-    </style>
-    <!-- EmailJS SDK -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+    }
+  </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col justify-between text-slate-800">
 
-<div class="container">
-    <!-- Screen 1: Email Input -->
-    <div id="emailScreen">
-        <h1 id="screenTitle">Sign in to workspace</h1>
-        <p class="subtitle" id="screenSubtitle">Please verify your Team Email to proceed with subscription options.</p>
+  <!-- Header -->
+  <header class="border-b border-slate-200 bg-white py-4 px-6 sm:px-12 flex justify-between items-center shadow-sm">
+    <div class="flex items-center gap-3">
+      <img id="org-logo" src="https://via.placeholder.com/40" alt="Organization Logo" class="h-10 w-10 rounded-lg object-contain bg-slate-100 p-1 hidden">
+      <span id="org-name" class="font-semibold text-lg text-slate-900">Loading checkout portal...</span>
+    </div>
+    <span class="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-medium uppercase tracking-wider">Secure Checkout</span>
+  </header>
 
-        <!-- Suggested Logged-in User Option -->
-        <div id="suggestedBox" class="suggested-account hidden">
-            <span id="suggestedEmailText"></span>
-            <span style="color: #0066cc; font-size: 12px; font-weight: 600;">Use this</span>
+  <!-- Main Content Loader -->
+  <div id="global-loader" class="flex-grow flex flex-col items-center justify-center p-6">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+    <p class="text-slate-600 font-medium" id="loader-status">Fetching checkout session parameters...</p>
+  </div>
+
+  <!-- Error Screen -->
+  <div id="error-screen" class="hidden flex-grow flex flex-col items-center justify-center p-6 max-w-md mx-auto text-center">
+    <div class="bg-red-50 text-red-600 p-4 rounded-full mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    </div>
+    <h2 class="text-xl font-bold text-slate-900 mb-2">Checkout Error</h2>
+    <p id="error-message" class="text-slate-600 text-sm mb-6"></p>
+    <button onclick="window.location.reload()" class="bg-slate-900 hover:bg-slate-800 text-white font-medium py-2 px-6 rounded-lg transition text-sm">Retry Request</button>
+  </div>
+
+  <!-- Main Grid Content -->
+  <main id="main-content" class="hidden flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Left Column: Checkout Forms -->
+    <div class="lg:col-span-7 space-y-6">
+      
+      <!-- Regulatory Note -->
+      <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-amber-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p class="text-xs text-amber-800 leading-relaxed font-medium">
+              <strong>Regulatory Compliance Notice:</strong> We are processing transactions under Promo Clearance protocols while our NBFC License processing is underway with the RBI. 
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Section -->
+      <form id="checkout-form" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sm:p-8 space-y-6">
+        
+        <!-- Section: Billing Info -->
+        <div>
+          <h3 class="text-base font-semibold text-slate-900 mb-4">Billing Information</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="first-name" class="block text-xs font-medium text-slate-600 mb-1">First Name *</label>
+              <input type="text" id="first-name" required class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+              <label for="last-name" class="block text-xs font-medium text-slate-600 mb-1">Last Name *</label>
+              <input type="text" id="last-name" required class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-medium text-slate-600 mb-1">Team Email Address</label>
+              <input type="email" id="team-email" disabled class="w-full bg-slate-50 border border-slate-300 text-slate-500 rounded-lg px-3 py-2.5 text-sm cursor-not-allowed">
+            </div>
+            <div class="sm:col-span-2">
+              <label for="phone-number" class="block text-xs font-medium text-slate-600 mb-1">Phone Number *</label>
+              <input type="tel" id="phone-number" required class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="+91 00000 00000">
+            </div>
+          </div>
         </div>
 
-        <!-- Dynamic Profile Display -->
-        <div id="profileContainer" class="profile-container">
-            <img id="profilePic" class="profile-pic" src="" alt="Profile Picture">
-            <span id="profileName" class="profile-name"></span>
+        <hr class="border-slate-100">
+
+        <!-- Section: Secure Promo Validation -->
+        <div>
+          <h3 class="text-base font-semibold text-slate-900 mb-1">Referral / Promo Activation</h3>
+          <p class="text-xs text-slate-500 mb-4">Enter your institutional license coupon code to authorize plan activation.</p>
+          
+          <div>
+            <label for="promo-code" class="block text-xs font-medium text-slate-600 mb-1">Access Authorization Code *</label>
+            <div class="relative">
+              <input type="text" id="promo-code" required class="w-full border border-slate-300 rounded-lg pl-3 pr-24 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 uppercase font-mono tracking-wider" placeholder="e.g. 795ASF4485">
+              <button type="button" id="btn-validate" class="absolute right-1.5 top-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium px-4 py-1.5 rounded-md transition duration-150">Verify</button>
+            </div>
+            <p id="validation-feedback" class="text-xs mt-2 hidden"></p>
+          </div>
         </div>
 
-        <div class="input-group">
-            <label>Team Email</label>
-            <input type="email" id="teamEmail" placeholder="name@company.com" autocomplete="off">
-        </div>
-        <div id="emailError" class="error-message"></div>
-
-        <button class="btn" id="continueBtn">Continue</button>
+        <button type="submit" id="btn-submit" disabled class="w-full bg-slate-300 text-slate-500 cursor-not-allowed font-medium text-sm py-3 px-4 rounded-lg transition duration-200">
+          Verify Coupon to Activate License
+        </button>
+      </form>
     </div>
 
-    <!-- Screen 2: OTP Verification for Kids accounts transitioning to Business -->
-    <div id="otpScreen" class="hidden">
-        <h1>Guardian Verification</h1>
-        <p class="subtitle">An OTP has been sent to your Guardian Email (<span id="guardianMasked" style="font-weight: 600;"></span>) to authorize upgrading this account to a Business Workspace.</p>
-
-        <div class="input-group">
-            <label>Enter OTP</label>
-            <input type="text" id="otpInput" placeholder="6-digit code" maxlength="6" autocomplete="off">
+    <!-- Right Column: Cart / Plan Details -->
+    <div class="lg:col-span-5 space-y-6">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+        <h3 class="text-base font-semibold text-slate-900">Registration Details</h3>
+        
+        <!-- Organization dynamic widget -->
+        <div class="bg-slate-50 rounded-lg p-4 flex items-center gap-4 border border-slate-100">
+          <div class="bg-white p-1 rounded-md border border-slate-200">
+            <img id="sidebar-org-logo" src="https://via.placeholder.com/48" alt="Logo" class="h-10 w-10 object-contain">
+          </div>
+          <div>
+            <h4 id="sidebar-org-name" class="font-medium text-sm text-slate-900">...</h4>
+            <p id="sidebar-org-industry" class="text-xs text-slate-500">...</p>
+          </div>
         </div>
-        <div id="otpError" class="error-message"></div>
 
-        <button class="btn" id="verifyOtpBtn">Verify & Upgrade</button>
-    </div>
-</div>
-
-<!-- Custom Dialog Overlay -->
-<div id="customModal" class="modal-overlay hidden">
-    <div class="modal-content">
-        <h3 id="modalTitle">Verification Needed</h3>
-        <p id="modalMessage">Message content goes here.</p>
-        <div class="modal-actions">
-            <button id="modalCancelBtn" class="modal-btn-cancel">Cancel</button>
-            <button id="modalConfirmBtn" class="modal-btn-confirm">Confirm</button>
+        <!-- Plan selection dynamic summary -->
+        <div class="space-y-3">
+          <div class="flex justify-between items-center text-sm pb-3 border-b border-slate-100">
+            <span class="text-slate-500">Allocated Plan ID</span>
+            <span id="summary-plan-id" class="font-mono bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded text-xs font-semibold">--</span>
+          </div>
+          <div class="flex justify-between items-center text-sm pb-3 border-b border-slate-100">
+            <span class="text-slate-500">Subscription Item</span>
+            <span id="summary-sub-name" class="text-slate-900 font-medium font-mono">--</span>
+          </div>
+          <div class="flex justify-between items-center text-sm pt-2">
+            <span class="text-slate-900 font-semibold">Total Amount Due</span>
+            <span class="text-green-600 font-bold text-base">₹0.00 <span class="text-xs font-normal text-slate-500">(Promo Verified)</span></span>
+          </div>
         </div>
+      </div>
     </div>
-</div>
+  </main>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, where, doc, setDoc, updateDoc, deleteField, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  <!-- Footer -->
+  <footer class="border-t border-slate-200 py-6 text-center text-xs text-slate-400 bg-white">
+    <p>Paymintly: Payments Make Easy</p>
+  </footer>
 
-    // Firebase Configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
-        authDomain: "question-metabase.firebaseapp.com",
-        databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "question-metabase",
-        storageBucket: "question-metabase.firebasestorage.app",
-        messagingSenderId: "770698198753",
-        appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
-        measurementId: "G-6ZP1FPMKSJ"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // Initialize EmailJS
+  <script>
+    // Initialize EmailJS using public key
     emailjs.init("Yr9MutUoHOEONnFgn");
 
-    // Parsed Query parameters
+    // Primary Firebase Configuration
+    const primaryFirebaseConfig = {
+      apiKey: "AIzaSyA_0q4Evwirxr4loAZ2ZzGVfKP-51oSi14",
+      authDomain: "xperts-ed-tech.firebaseapp.com",
+      projectId: "xperts-ed-tech",
+      storageBucket: "xperts-ed-tech.firebasestorage.app",
+      messagingSenderId: "960602403596",
+      appId: "1:960602403596:web:fdf87f7b9a6181b6db4f29",
+      measurementId: "G-000SED73EW"
+    };
+
+    let dbPrimary;
+    let dbSecondary;
+    let verifiedPromoCode = null;
+    let resolvedEmail = "";
+    let orgDataGlobal = {};
+
     const urlParams = new URLSearchParams(window.location.search);
-    let session = urlParams.get('session');
-    let planId = urlParams.get('type');
-    const theme = urlParams.get("theme") ? urlParams.get("theme").toLowerCase() : null;
+    const sessionParam = urlParams.get('session');
+    const apiParam = urlParams.get('api');
+    const paymentParam = urlParams.get('payment');
 
-    let targetUserDocId = null;
-    let targetUserData = null;
-    let generatedOtp = null;
-    let requiredPlanType = "Busniess"; // Default fallback
+    const globalLoader = document.getElementById('global-loader');
+    const loaderStatus = document.getElementById('loader-status');
+    const errorScreen = document.getElementById('error-screen');
+    const errorMessage = document.getElementById('error-message');
+    const mainContent = document.getElementById('main-content');
+    const promoInput = document.getElementById('promo-code');
+    const btnValidate = document.getElementById('btn-validate');
+    const feedbackText = document.getElementById('validation-feedback');
+    const btnSubmit = document.getElementById('btn-submit');
 
-    // Theme logic
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    function applyTheme() {
-        if (theme === "dark" || theme === "d") {
-            document.body.classList.add("dark");
-        } else if (theme === "light" || theme === "l") {
-            document.body.classList.remove("dark");
-        } else if (mediaQuery.matches) {
-            document.body.classList.add("dark");
-        } else {
-            document.body.classList.remove("dark");
-        }
+    // Display localized subscription configuration matches based on payment query ID
+    const subscriptionMap = {
+      "1": "Claude Max Plan Tier",
+      "2": "Claude Pro Premium Bundle",
+      "3": "Enterprise Scaler Access"
+    };
+    const resolvedSubscriptionName = subscriptionMap[paymentParam] || `Standard Plan License Ref: ${paymentParam}`;
+    document.getElementById('summary-sub-name').textContent = resolvedSubscriptionName;
+
+    function setFeedback(message, isSuccess) {
+      feedbackText.textContent = message;
+      feedbackText.className = `text-xs mt-2 font-medium ${isSuccess ? 'text-emerald-600' : 'text-red-600'}`;
+      feedbackText.classList.remove('hidden');
     }
-    applyTheme();
 
-    /* --- Custom Modal Interface Controller --- */
-    const customModal = document.getElementById('customModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalMessage = document.getElementById('modalMessage');
-    const modalCancelBtn = document.getElementById('modalCancelBtn');
-    const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+    function showError(message) {
+      globalLoader.classList.add('hidden');
+      mainContent.classList.add('hidden');
+      errorScreen.classList.remove('hidden');
+      errorMessage.textContent = message;
+    }
 
-    function showCustomAlert(title, message, onOk = null) {
-        modalTitle.innerText = title;
-        modalMessage.innerText = message;
-        modalCancelBtn.classList.add('hidden');
-        modalConfirmBtn.innerText = "OK";
+    function extractConfigFromJS(jsText) {
+      const config = {};
+      const keys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'measurementId'];
+      keys.forEach(key => {
+        const regex = new RegExp(`${key}\\s*:\\s*["'`]([^"'`]+)["'`]`);
+        const match = jsText.match(regex);
+        if (match) config[key] = match[1];
+      });
+      return config;
+    }
+
+    async function initCheckout() {
+      try {
+        if (!sessionParam || !apiParam || !paymentParam) {
+          throw new Error("Missing query components. Layout format: 1.html?session=<id>&api=<api keys>&payment=<plan id>");
+        }
+
+        document.getElementById('summary-plan-id').textContent = paymentParam;
+
+        loaderStatus.textContent = "Connecting to authorization registries...";
+        const primaryApp = firebase.initializeApp(primaryFirebaseConfig, "primaryApp");
+        dbPrimary = primaryApp.firestore();
+
+        loaderStatus.textContent = "Reading portal system variables...";
+        const orgQuery = await dbPrimary.collection("Organizations")
+          .where("API Keys", "==", apiParam)
+          .get();
+
+        if (orgQuery.empty) {
+          throw new Error("The API key provided is not matching any verified organization system profiles.");
+        }
+
+        const orgDoc = orgQuery.docs[0];
+        orgDataGlobal = orgDoc.data();
+
+        document.getElementById('org-name').textContent = orgDataGlobal.Name || "Checkout Services";
+        document.getElementById('sidebar-org-name').textContent = orgDataGlobal.Name || "Partner Organization";
+        document.getElementById('sidebar-org-industry').textContent = orgDataGlobal.Industry || "Corporate Node";
         
-        modalConfirmBtn.onclick = () => {
-            customModal.classList.add('hidden');
-            if (onOk) onOk();
-        };
-        customModal.classList.remove('hidden');
-    }
-
-    function showCustomConfirm(title, message, onConfirm, onCancel = null) {
-        modalTitle.innerText = title;
-        modalMessage.innerText = message;
-        modalCancelBtn.classList.remove('hidden');
-        modalConfirmBtn.innerText = "Yes, Continue";
-        modalCancelBtn.innerText = "Cancel";
-
-        modalConfirmBtn.onclick = () => {
-            customModal.classList.add('hidden');
-            if (onConfirm) onConfirm();
-        };
-
-        modalCancelBtn.onclick = () => {
-            customModal.classList.add('hidden');
-            if (onCancel) onCancel();
-        };
-        customModal.classList.remove('hidden');
-    }
-
-    // 1. Session Setup and Fetching Plan Details
-    async function initSessionAndFetchPlan() {
-        // Generate and update session in the URL query string if missing
-        if (!session) {
-            session = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-            try {
-                await setDoc(doc(db, "ASPX Keys", session), {
-                    sessionId: session,
-                    createdAt: new Date()
-                });
-            } catch (err) {
-                console.error("Session initialization failed:", err);
-            }
-            window.history.replaceState({}, '', `?session=${session}&type=${planId || ''}${theme ? '&theme=' + theme : ''}`);
+        if (orgDataGlobal.Logo) {
+          const logoElem = document.getElementById('org-logo');
+          const logoElemSide = document.getElementById('sidebar-org-logo');
+          logoElem.src = orgDataGlobal.Logo;
+          logoElemSide.src = orgDataGlobal.Logo;
+          logoElem.classList.remove('hidden');
         }
 
-        // Fetch specified Plan Details if "type" parameter exists in URL
-        if (planId) {
-            try {
-                const planDocRef = doc(db, "Plans & Subscriptions", planId);
-                const planSnap = await getDoc(planDocRef);
-                if (planSnap.exists()) {
-                    const planData = planSnap.data();
-                    requiredPlanType = planData.Type || "Busniess";
-                    
-                    // UI Context update based on loaded Plan Name
-                    if (planData.Name) {
-                        document.getElementById('screenTitle').innerText = `Sign in for ${planData.Name}`;
-                        document.getElementById('screenSubtitle').innerText = `Please verify your email to unlock access to your ${planData.Name} workspace.`;
-                    }
-                } else {
-                    console.warn("Target subscription plan ID was not found in database.");
-                }
-            } catch (err) {
-                console.error("Error retrieving plan details:", err);
-            }
+        const remoteJsUrl = orgDataGlobal["Firebase Configration Url"];
+        if (!remoteJsUrl) {
+          throw new Error("Missing session metadata target pointer parameter.");
         }
-    }
-    initSessionAndFetchPlan();
 
-    // Check Local Storage for active user credentials
-    try {
-        const activeUserStr = localStorage.getItem('active_user');
-        if (activeUserStr) {
-            const activeUser = JSON.parse(activeUserStr);
-            if (activeUser && activeUser.Email) {
-                const suggestedBox = document.getElementById('suggestedBox');
-                const suggestedText = document.getElementById('suggestedEmailText');
-                suggestedText.innerText = `Logged in as: ${activeUser.Email}`;
-                suggestedBox.classList.remove('hidden');
-                
-                suggestedBox.addEventListener('click', () => {
-                    document.getElementById('teamEmail').value = activeUser.Email;
-                    fetchUserProfile(activeUser.Email);
-                });
-            }
+        loaderStatus.textContent = "Configuring backend database references...";
+        const scriptResponse = await fetch(remoteJsUrl);
+        if (!scriptResponse.ok) {
+          throw new Error("Unable to load organization session connection libraries.");
         }
-    } catch (e) {
-        console.warn("Storage check skipped:", e);
+        
+        const scriptText = await scriptResponse.text();
+        const secondaryConfig = extractConfigFromJS(scriptText);
+
+        if (!secondaryConfig.projectId || !secondaryConfig.apiKey) {
+          throw new Error("Config script reading returned null endpoint fields.");
+        }
+
+        const secondaryApp = firebase.initializeApp(secondaryConfig, "secondaryApp");
+        dbSecondary = secondaryApp.firestore();
+
+        loaderStatus.textContent = "Resolving user email session records...";
+        const sessionDocRef = dbSecondary.collection("ASPX Keys").doc(sessionParam);
+        const sessionDoc = await sessionDocRef.get();
+
+        if (!sessionDoc.exists) {
+          throw new Error(`The workspace session key '${sessionParam}' could not be located.`);
+        }
+
+        const sessionData = sessionDoc.data();
+        resolvedEmail = sessionData["Team Email"];
+
+        if (!resolvedEmail) {
+          throw new Error("The session token contains no defined team email address attributes.");
+        }
+
+        document.getElementById('team-email').value = resolvedEmail;
+
+        globalLoader.classList.add('hidden');
+        mainContent.classList.remove('hidden');
+
+      } catch (error) {
+        console.error(error);
+        showError(error.message || "An operational setup boundary error occurred.");
+      }
     }
 
-    // Dynamic profile check on manual email input blur
-    document.getElementById('teamEmail').addEventListener('blur', () => {
-        const emailVal = document.getElementById('teamEmail').value.trim();
-        if (emailVal) {
-            fetchUserProfile(emailVal);
+    async function validatePromoCode() {
+      const codeInputVal = promoInput.value.trim();
+      if (!codeInputVal) {
+        setFeedback("Please supply a valid validation code.", false);
+        return false;
+      }
+
+      btnValidate.disabled = true;
+      btnValidate.textContent = "Checking...";
+
+      try {
+        const querySnapshot = await dbPrimary.collection("Copen Codes")
+          .where("Copen Code", "==", codeInputVal)
+          .where("For", "==", paymentParam)
+          .get();
+
+        if (querySnapshot.empty) {
+          setFeedback("This validation code is either incorrect or not configured for this plan level.", false);
+          verifiedPromoCode = null;
+          toggleSubmitState(false);
+          return false;
         }
+
+        setFeedback("Referral Code verified. Promo license clearance unlocked.", true);
+        verifiedPromoCode = codeInputVal;
+        toggleSubmitState(true);
+        return true;
+
+      } catch (err) {
+        console.error(err);
+        setFeedback("Database verification timed out. Please retry.", false);
+        return false;
+      } finally {
+        btnValidate.disabled = false;
+        btnValidate.textContent = "Verify";
+      }
+    }
+
+    function toggleSubmitState(enable) {
+      if (enable) {
+        btnSubmit.disabled = false;
+        btnSubmit.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+        btnSubmit.classList.add('bg-indigo-600', 'hover:bg-indigo-700', 'text-white');
+        btnSubmit.textContent = "Complete Workspace Registration";
+      } else {
+        btnSubmit.disabled = true;
+        btnSubmit.classList.add('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+        btnSubmit.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'text-white');
+        btnSubmit.textContent = "Verify Coupon to Activate License";
+      }
+    }
+
+    document.getElementById('checkout-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      if (!verifiedPromoCode || promoInput.value.trim() !== verifiedPromoCode) {
+        setFeedback("Please re-run the coupon check to authorize submission.", false);
+        return;
+      }
+
+      const firstName = document.getElementById('first-name').value.trim();
+      const lastName = document.getElementById('last-name').value.trim();
+      const phone = document.getElementById('phone-number').value.trim();
+
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = "Processing authorization registration...";
+
+      try {
+        // Prepare variables for the EmailJS template variables mapping
+        const formattedDate = new Date().toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        const companyName = orgDataGlobal.Name || "My Company";
+        const nearestLocation = orgDataGlobal.Address || orgDataGlobal["Business Location"] || "India";
+        const logoUrl = orgDataGlobal.Logo || "https://via.placeholder.com/150";
+        const pdfFilePlaceholderUrl = `https://paymintly.com/invoices/receipt_INV-${sessionParam}.pdf`;
+
+        // Send Transactional Receipt Email using EmailJS
+        await emailjs.send("service_63mnm5a", "template_qxz1wka", {
+          to_email: resolvedEmail,
+          first_name: firstName,
+          last_name: lastName,
+          subscription_name: resolvedSubscriptionName,
+          company_name: companyName,
+          logo_url: logoUrl,
+          date: formattedDate,
+          location: nearestLocation,
+          pdf_url: pdfFilePlaceholderUrl,
+          phone_number: phone
+        });
+
+        // Backup update logic: Writing mail trace item to Firestore collection
+        await dbSecondary.collection("mail").add({
+          to: resolvedEmail,
+          message: {
+            subject: `Receipt: Workspace Registration Activated`,
+            html: `Invoice created successfully for ${firstName} ${lastName}. Code Used: ${verifiedPromoCode}`
+          }
+        });
+
+        const customRedirectUrl = urlParams.get('redirect') || 'https://knox-app.github.io/success';
+        btnSubmit.textContent = "Workspace Activated. Redirecting...";
+        
+        setTimeout(() => {
+          window.location.href = customRedirectUrl;
+        }, 1200);
+
+      } catch (err) {
+        console.error("Transmission error:", err);
+        alert("An error was experienced transmitting confirmation templates. Workspace state setup recorded.");
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Complete Workspace Registration";
+      }
     });
 
-    // Helper to search profile details
-    async function fetchUserProfile(email) {
-        try {
-            const q = query(collection(db, "UARM"), where("Email", "==", email));
-            const snap = await getDocs(q);
-            if (!snap.empty) {
-                const data = snap.docs[0].data();
-                if (data["Profile Picture"]) {
-                    document.getElementById('profilePic').src = data["Profile Picture"];
-                    document.getElementById('profileName').innerText = `${data["First Name"] || ""} ${data["Last Name"] || ""}`;
-                    document.getElementById('profileContainer').style.display = 'flex';
-                } else {
-                    document.getElementById('profileContainer').style.display = 'none';
-                }
-            } else {
-                document.getElementById('profileContainer').style.display = 'none';
-            }
-        } catch (err) {
-            console.error("Profile check error:", err);
-        }
-    }
-
-    // Main action controller
-    document.getElementById('continueBtn').addEventListener('click', async () => {
-        const emailInput = document.getElementById('teamEmail').value.trim();
-        const emailErr = document.getElementById('emailError');
-        emailErr.style.display = 'none';
-
-        if (!emailInput) {
-            emailErr.innerText = "Please enter your team email address.";
-            emailErr.style.display = 'block';
-            return;
-        }
-
-        document.getElementById('continueBtn').innerText = "Processing...";
-        document.getElementById('continueBtn').disabled = true;
-
-        try {
-            const q = query(collection(db, "UARM"), where("Email", "==", emailInput));
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-                emailErr.innerText = "This email does not exist in our system.";
-                emailErr.style.display = 'block';
-                resetBtn();
-                return;
-            }
-
-            const docSnap = querySnapshot.docs[0];
-            targetUserDocId = docSnap.id;
-            targetUserData = docSnap.data();
-
-            const userType = targetUserData["Type"];
-
-            // Compare user type with required plan type standard
-            if (requiredPlanType === "Busniess" || requiredPlanType === "Business") {
-                if (userType === "Busniess" || userType === "Business") {
-                    await proceedDirectly(emailInput);
-                } else if (userType === "kids") {
-                    showCustomConfirm(
-                        "Workspace Upgrade Required",
-                        "This plan requires a Business Account. Your account is currently configured as a Kids Account. Would you like to upgrade your profile via Guardian OTP authorization?",
-                        async () => {
-                            await handleOtpFlow(targetUserData);
-                        },
-                        () => {
-                            resetBtn();
-                        }
-                    );
-                } else {
-                    showCustomConfirm(
-                        "Workspace Upgrade Required",
-                        "To register this subscription, your account must be updated to a Business Workspace profile. Would you like to apply these changes now?",
-                        async () => {
-                            await handleOtpFlow(targetUserData);
-                        },
-                        () => {
-                            resetBtn();
-                        }
-                    );
-                }
-            } else {
-                // If plan doesn't explicitly mandate business verification, allow straight connection
-                await proceedDirectly(emailInput);
-            }
-
-        } catch (err) {
-            console.error("Database validation error:", err);
-            emailErr.innerText = "An error occurred. Please verify your connection and try again.";
-            emailErr.style.display = 'block';
-            resetBtn();
-        }
+    btnValidate.addEventListener('click', validatePromoCode);
+    promoInput.addEventListener('input', () => {
+      if (verifiedPromoCode) {
+        verifiedPromoCode = null;
+        toggleSubmitState(false);
+      }
     });
 
-    function resetBtn() {
-        document.getElementById('continueBtn').innerText = "Continue";
-        document.getElementById('continueBtn').disabled = false;
-    }
-
-    // Direct routing for approved accounts
-    async function proceedDirectly(email) {
-        try {
-            // Prepare update object
-            const updatePayload = {
-                "Team Email": email,
-                "updatedAt": new Date()
-            };
-
-            // Include plan details if present
-            if (planId) {
-                updatePayload["Plans"] = planId;
-            }
-
-            // Store updates into session document
-            await updateDoc(doc(db, "ASPX Keys", session), updatePayload);
-
-            // LocalStorage Sync
-            localStorage.setItem('active_user', JSON.stringify(targetUserData));
-
-            let redirectUrl = `2.html?session=${session}`;
-            if (planId) redirectUrl += `&type=${planId}`;
-            if (theme) redirectUrl += `&theme=${theme}`;
-            
-            window.location.href = redirectUrl;
-        } catch (e) {
-            console.error("Error setting up direct session:", e);
-            showCustomAlert("Connection Error", "Failed to synchronize session configurations. Please try again.");
-            resetBtn();
-        }
-    }
-
-    // Initiate Guardian verification OTP flow
-    async function handleOtpFlow(userData) {
-        const guardianEmail = userData["Guardian"];
-        if (!guardianEmail) {
-            showCustomAlert("Upgrade Unavailable", "No Guardian contact details found on this profile. Please contact administrative support.");
-            resetBtn();
-            return;
-        }
-
-        // Generate 6-digit verification code
-        generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-
-        try {
-            // Mask guardian email address for display
-            const emailParts = guardianEmail.split('@');
-            const maskedLocal = emailParts[0].substring(0, 3) + "••••" + emailParts[0].slice(-1);
-            document.getElementById('guardianMasked').innerText = `${maskedLocal}@${emailParts[1]}`;
-
-            // Send verification code using EmailJS
-            await emailjs.send("service_63mnm5a", "template_qxz1wka", {
-                to_email: guardianEmail,
-                otp: generatedOtp,
-                user_name: userData["First Name"] || "User"
-            });
-
-            // Transition UI screens
-            document.getElementById('emailScreen').classList.add('hidden');
-            document.getElementById('otpScreen').classList.remove('hidden');
-
-        } catch (err) {
-            console.error("Failed to send verification email via EmailJS:", err);
-            showCustomAlert("Service Error", "The verification network failed to transmit the security code. Please check your network and retry.");
-            resetBtn();
-        }
-    }
-
-    // Verify OTP & update Firestore user type
-    document.getElementById('verifyOtpBtn').addEventListener('click', async () => {
-        const enteredOtp = document.getElementById('otpInput').value.trim();
-        const otpError = document.getElementById('otpError');
-        otpError.style.display = 'none';
-
-        if (!enteredOtp) {
-            otpError.innerText = "Please enter the OTP code sent to your guardian.";
-            otpError.style.display = 'block';
-            return;
-        }
-
-        if (enteredOtp !== generatedOtp) {
-            otpError.innerText = "Incorrect OTP code. Please verify and try again.";
-            otpError.style.display = 'block';
-            return;
-        }
-
-        document.getElementById('verifyOtpBtn').innerText = "Updating Account...";
-        document.getElementById('verifyOtpBtn').disabled = true;
-
-        try {
-            // Update User Document values to Business Workspace standards
-            const userRef = doc(db, "UARM", targetUserDocId);
-            await updateDoc(userRef, {
-                "Type": "Busniess",       // Database matched casing "Busniess"
-                "Family": "Workspace",    // Workspace Family standard
-                "Guardian": deleteField() // Remove guardian property
-            });
-
-            // Set up Session Database Details
-            const updatePayload = {
-                "Team Email": targetUserData["Email"],
-                "updatedAt": new Date()
-            };
-
-            // Save plan ID under "Plans" field in the session document
-            if (planId) {
-                updatePayload["Plans"] = planId;
-            }
-
-            await updateDoc(doc(db, "ASPX Keys", session), updatePayload);
-
-            // Synchronize active profile parameters locally
-            const updatedUserData = {
-                ...targetUserData,
-                "Type": "Busniess",
-                "Family": "Workspace"
-            };
-            delete updatedUserData["Guardian"];
-            localStorage.setItem('active_user', JSON.stringify(updatedUserData));
-
-            // Proceed to the next step
-            let redirectUrl = `2.html?session=${session}`;
-            if (planId) redirectUrl += `&type=${planId}`;
-            if (theme) redirectUrl += `&theme=${theme}`;
-            
-            window.location.href = redirectUrl;
-
-        } catch (err) {
-            console.error("Failed to apply profile upgrades:", err);
-            showCustomAlert("Update Failed", "An internal communication issue prevented your account type from switching. Please try again.");
-            document.getElementById('verifyOtpBtn').innerText = "Verify & Upgrade";
-            document.getElementById('verifyOtpBtn').disabled = false;
-        }
-    });
-</script>
+    window.addEventListener('DOMContentLoaded', initCheckout);
+  </script>
 </body>
 </html>
