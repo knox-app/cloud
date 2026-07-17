@@ -666,7 +666,7 @@
             localStorage.setItem('active_user', JSON.stringify(updatedUserData));
 
             // Proceed to the next step
-            let redirectUrl = `2.html?session=${session}`;
+            let redirectUrl = `checkout.html?session=${session}`;
             if (planId) redirectUrl += `&type=${planId}`;
             if (theme) redirectUrl += `&theme=${theme}`;
             
