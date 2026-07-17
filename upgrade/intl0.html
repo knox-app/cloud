@@ -41,7 +41,7 @@
             display: inline-block;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .error { color: #ff5252; margin-top: 10px; }
+        .error { color: #ff5252; margin-top: 15px; font-size: 0.9rem; }
         .success-icon { color: #4caf50; font-size: 4rem; margin-bottom: 10px; }
     </style>
 </head>
@@ -54,18 +54,17 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs (Compat Version) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
-    <!-- Your Configuration Script -->
+    <!-- Your Configuration Script (defines firebaseConfig variable) -->
     <script src="https://knox-app.github.io/cloud/keys/xprtfb.js"></script>
 
     <script>
         const statusText = document.getElementById('status-text');
         const uiBox = document.getElementById('ui-box');
 
-        // Utility to generate API Key
         function generateApiKey() {
             const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             let result = "";
@@ -75,7 +74,6 @@
             return result + ".apis.plx";
         }
 
-        // Delay function to make UI transitions visible
         const sleep = ms => new Promise(res => setTimeout(res, ms));
 
         async function processTransfer() {
@@ -84,26 +82,37 @@
             const planId = urlParams.get('plan');
 
             if (!sessionId || !planId) {
-                statusText.innerHTML = '<span class="error">Configuration Error: Missing Parameters</span>';
+                statusText.innerHTML = '<span class="error">Error: Missing session or plan in URL</span>';
                 return;
             }
 
             try {
-                // Initialize Firestore
+                // --- FIX: INITIALIZE FIREBASE MANUALLY ---
+                // We check if an app already exists, if not, we initialize with the 
+                // config variable loaded from your external xprtfb.js script.
+                if (!firebase.apps.length) {
+                    if (typeof firebaseConfig !== 'undefined') {
+                        firebase.initializeApp(firebaseConfig);
+                    } else {
+                        throw new Error("firebaseConfig not found in external script.");
+                    }
+                }
+
                 const db = firebase.firestore();
 
-                // STAGE 1: Initialising Payments (Fetching data)
+                // STAGE 1: Initialising Payments
                 statusText.innerText = "Initialising Payments";
                 const aspxDocRef = db.collection("ASPX Keys").doc(sessionId);
                 const aspxDoc = await aspxDocRef.get();
 
                 if (!aspxDoc.exists) {
-                    statusText.innerHTML = '<span class="error">Invalid Session. Please try again.</span>';
+                    statusText.innerHTML = '<span class="error">Invalid Session ID</span>';
                     return;
                 }
 
+                // Field name is "Team Email" in your screenshot
                 const teamEmail = aspxDoc.data()["Team Email"];
-                await sleep(1200);
+                await sleep(1500);
 
                 // STAGE 2: Creating Your Team
                 statusText.innerText = "Creating Your Team";
@@ -120,35 +129,35 @@
                 };
 
                 await db.collection("Organizations").add(orgData);
-                await sleep(1200);
+                await sleep(1500);
 
-                // STAGE 3: Managing Tokens (Deleting original session)
+                // STAGE 3: Managing Tokens
                 statusText.innerText = "Managing Tokens";
                 await aspxDocRef.delete();
-                await sleep(1000);
+                await sleep(1200);
 
                 // STAGE 4: Finalizing Account
                 statusText.innerText = "Finalizing Account";
                 await sleep(1500);
 
-                // Completion UI
+                // Completion
                 uiBox.innerHTML = `
                     <div class="success-icon">✓</div>
                     <div class="status" style="color: #4caf50;">Setup Complete</div>
-                    <p style="color: #888;">Your account is now active.</p>
+                    <p style="color: #888;">Your account has been successfully transferred.</p>
                 `;
 
             } catch (error) {
-                console.error(error);
+                console.error("Firebase Error:", error);
                 statusText.innerHTML = `<span class="error">System Error: ${error.message}</span>`;
             }
         }
 
-        // Start when Firebase is ready
+        // Run the process
         window.onload = () => {
-            // Short delay to ensure external script is loaded
+            // Wait slightly for the external JS to load fully
             setTimeout(processTransfer, 1000);
         };
     </script>
 </body>
-              </html>
+</html>
