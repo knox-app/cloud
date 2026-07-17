@@ -160,9 +160,9 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Initialize EmailJS
+    // Initialize EmailJS with your verified credentials
     const emailJsPublicKey = "Yr9MutUoHOEONnFgn";
-    const emailJsServiceId = "Yr9MutUoHOEONnFgn"; 
+    const emailJsServiceId = "service_63mnm5a"; 
     const emailJsTemplateId = "template_mfkmx1r";
     emailjs.init(emailJsPublicKey);
 
@@ -170,7 +170,7 @@
 
     // Global states
     let loadedPlan = null;
-    let validPromoCode = ""; // Fetched dynamically from `/Paymintly/Code`
+    let validPromoCode = ""; // Loaded dynamically from `/Paymintly/Code`
 
     function showError(message) {
       const errBox = document.getElementById("errorMessage");
