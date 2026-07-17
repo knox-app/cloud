@@ -12,7 +12,6 @@
   <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <style>
-    /* Custom style for loading screen */
     .loader {
       border-top-color: #3b82f6;
       -webkit-animation: spinner 1.5s linear infinite;
@@ -76,7 +75,7 @@
             </div>
           </div>
 
-          <!-- Referral / Promo Code Section (License Compliance) -->
+          <!-- Referral / Promo Code Section -->
           <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
             <div class="flex items-start justify-between border-b pb-3 border-gray-100">
               <h2 class="text-lg font-semibold text-gray-900">Activation & Payment</h2>
@@ -145,7 +144,7 @@
   </footer>
 
   <script>
-    // 1. Firebase Configuration Setup
+    // Firebase Configuration Setup
     const firebaseConfig = {
       apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
       authDomain: "question-metabase.firebaseapp.com",
@@ -163,18 +162,16 @@
 
     // Initialize EmailJS
     const emailJsPublicKey = "Yr9MutUoHOEONnFgn";
-    const emailJsServiceId = "Yr9MutUoHOEONnFgn"; // Set as specified by user
+    const emailJsServiceId = "Yr9MutUoHOEONnFgn"; 
     const emailJsTemplateId = "template_mfkmx1r";
     emailjs.init(emailJsPublicKey);
 
-    // List of accepted promo codes
-    const validPromoCodes = ["PAYMINTLY100", "PROMO2026", "RBI_FREE", "TAPASYA_SPECIAL", "MAX20X"];
-    const redirectSuccessUrl = "https://question-metabase.firebaseapp.com"; // Default success redirect destination
+    const redirectSuccessUrl = "https://question-metabase.firebaseapp.com"; 
 
-    // Global variable to keep loaded plan state
+    // Global states
     let loadedPlan = null;
+    let validPromoCode = ""; // Fetched dynamically from `/Paymintly/Code`
 
-    // Helper functions
     function showError(message) {
       const errBox = document.getElementById("errorMessage");
       errBox.innerText = message;
@@ -191,7 +188,7 @@
         : `$${cleanVal.toFixed(2)}`;
     }
 
-    // 2. Fetch Data from Firestore & Parse URL Parameters
+    // Fetch Data from Firestore & Parse URL Parameters
     async function initCheckout() {
       try {
         const urlParams = new URLSearchParams(window.location.search);
@@ -204,7 +201,7 @@
           return;
         }
 
-        // Validate API keys and configuration
+        // 1. Fetch API Key details from Organization document
         const paymintlyDoc = await db.collection("Paymintly").doc("Organization").get();
         if (!paymintlyDoc.exists) {
           showError("Organization parameters could not be loaded from Firestore.");
@@ -218,7 +215,13 @@
           return;
         }
 
-        // Fetch user data via session ID
+        // 2. Dynamic Fetch of Referral/Promo Code
+        const codeDoc = await db.collection("Paymintly").doc("Code").get();
+        if (codeDoc.exists) {
+          validPromoCode = codeDoc.data()["CODE"];
+        }
+
+        // 3. Fetch User data via session ID (UARM Collection)
         const userDoc = await db.collection("UARM").doc(sessionId).get();
         if (userDoc.exists) {
           const userData = userDoc.data();
@@ -227,14 +230,14 @@
           document.getElementById("teamEmail").value = userData["Email"] || userData["Team Email"] || "";
           document.getElementById("phoneNumber").value = userData["Phone Number"] || "";
         } else {
-          // Check ASPX Keys collection fallback as an alternative route
+          // Alternative fallback to ASPX Keys if UARM document does not exist
           const aspxDoc = await db.collection("ASPX Keys").doc(sessionId).get();
           if (aspxDoc.exists) {
             document.getElementById("teamEmail").value = aspxDoc.data()["Team Email"] || "";
           }
         }
 
-        // Fetch plan and payment information
+        // 4. Fetch subscription details
         const planDoc = await db.collection("Plans & Subscriptions").doc(paymentId).get();
         if (!planDoc.exists) {
           showError("The selected subscription option is no longer available.");
@@ -244,7 +247,7 @@
         loadedPlan = planDoc.data();
         renderPlanSummary(loadedPlan);
 
-        // Hide overlay once data is loaded
+        // Hide loader overlay
         document.getElementById("loadingOverlay").classList.add("hidden");
 
       } catch (error) {
@@ -260,13 +263,12 @@
       const duration = plan["Duration (Days)"] || "365";
       document.getElementById("planDuration").innerText = `${duration} Days`;
 
-      // Determine currency
       const isUsd = !!plan["Price (USD)"] && (!plan["Price (INR)"] || plan["Type"] === "International");
       const currencyCode = isUsd ? "USD" : "INR";
       const rawPrice = isUsd ? plan["Price (USD)"] : plan["Price (INR)"];
       
       const numericPrice = parseFloat(rawPrice.toString().replace(/[^0-9.]/g, '')) || 0;
-      const taxRate = 0.18; // 18% Standard tax
+      const taxRate = 0.18; // 18% standard GST
       const taxAmount = numericPrice * taxRate;
       const totalCost = numericPrice + taxAmount;
 
@@ -274,7 +276,6 @@
       document.getElementById("taxPrice").innerText = formatCurrency(taxAmount, currencyCode);
       document.getElementById("totalPrice").innerText = formatCurrency(totalCost, currencyCode);
 
-      // Populate features
       const bulletContainer = document.getElementById("bulletPointsList");
       bulletContainer.innerHTML = "";
       
@@ -300,21 +301,20 @@
     document.getElementById("billingForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
-      const promoInput = document.getElementById("promoCode").value.trim().toUpperCase();
+      const promoInput = document.getElementById("promoCode").value.trim();
       const promoFeedback = document.getElementById("promoFeedback");
       const submitBtn = document.getElementById("submitBtn");
 
-      // Reset styles
       promoFeedback.classList.add("hidden");
 
-      if (!validPromoCodes.includes(promoInput)) {
+      // Validating code matching database
+      if (validPromoCode && promoInput !== validPromoCode) {
         promoFeedback.innerText = "Invalid Activation Code. Please input an authorized code.";
         promoFeedback.className = "mt-1.5 text-xs text-red-600";
         promoFeedback.classList.remove("hidden");
         return;
       }
 
-      // If valid, notify user
       promoFeedback.innerText = "Activation Code Applied Successfully!";
       promoFeedback.className = "mt-1.5 text-xs text-green-600";
       promoFeedback.classList.remove("hidden");
@@ -322,7 +322,6 @@
       submitBtn.disabled = true;
       submitBtn.innerText = "Processing activation...";
 
-      // Gather input values
       const firstName = document.getElementById("firstName").value;
       const lastName = document.getElementById("lastName").value;
       const teamEmail = document.getElementById("teamEmail").value;
@@ -345,7 +344,6 @@
       try {
         await emailjs.send(emailJsServiceId, emailJsTemplateId, emailParams);
         
-        // Show success and redirect
         submitBtn.className = "w-full py-3 px-4 bg-green-600 text-white font-medium rounded-lg";
         submitBtn.innerText = "Subscribed! Redirecting...";
         
