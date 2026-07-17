@@ -147,7 +147,7 @@
           </div>
           <div class="flex justify-between items-center text-sm pb-3 border-b border-slate-100">
             <span class="text-slate-500">Subscription Item</span>
-            <span id="summary-sub-name" class="text-slate-900 font-medium font-mono">--</span>
+            <span id="summary-sub-name" class="text-slate-900 font-medium font-mono text-xs">Loading plan info...</span>
           </div>
           <div class="flex justify-between items-center text-sm pt-2">
             <span class="text-slate-900 font-semibold">Total Amount Due</span>
@@ -164,10 +164,10 @@
   </footer>
 
   <script>
-    // Initialize EmailJS using public key
+    // Initialize EmailJS using your public key
     emailjs.init("Yr9MutUoHOEONnFgn");
 
-    // Primary Firebase Configuration
+    // Primary Core Database Config
     const primaryFirebaseConfig = {
       apiKey: "AIzaSyA_0q4Evwirxr4loAZ2ZzGVfKP-51oSi14",
       authDomain: "xperts-ed-tech.firebaseapp.com",
@@ -183,6 +183,7 @@
     let verifiedPromoCode = null;
     let resolvedEmail = "";
     let orgDataGlobal = {};
+    let resolvedSubscriptionName = "Standard License Plan";
 
     const urlParams = new URLSearchParams(window.location.search);
     const sessionParam = urlParams.get('session');
@@ -198,15 +199,6 @@
     const btnValidate = document.getElementById('btn-validate');
     const feedbackText = document.getElementById('validation-feedback');
     const btnSubmit = document.getElementById('btn-submit');
-
-    // Display localized subscription configuration matches based on payment query ID
-    const subscriptionMap = {
-      "1": "Claude Max Plan Tier",
-      "2": "Claude Pro Premium Bundle",
-      "3": "Enterprise Scaler Access"
-    };
-    const resolvedSubscriptionName = subscriptionMap[paymentParam] || `Standard Plan License Ref: ${paymentParam}`;
-    document.getElementById('summary-sub-name').textContent = resolvedSubscriptionName;
 
     function setFeedback(message, isSuccess) {
       feedbackText.textContent = message;
@@ -235,22 +227,24 @@
     async function initCheckout() {
       try {
         if (!sessionParam || !apiParam || !paymentParam) {
-          throw new Error("Missing query components. Layout format: 1.html?session=<id>&api=<api keys>&payment=<plan id>");
+          throw new Error("Missing query components. Format: 1.html?session=<id>&api=<api keys>&payment=<plan id>");
         }
 
         document.getElementById('summary-plan-id').textContent = paymentParam;
 
-        loaderStatus.textContent = "Connecting to authorization registries...";
+        // Step 1: Connect to Core Database
+        loaderStatus.textContent = "Connecting to core portal authentication service...";
         const primaryApp = firebase.initializeApp(primaryFirebaseConfig, "primaryApp");
         dbPrimary = primaryApp.firestore();
 
-        loaderStatus.textContent = "Reading portal system variables...";
+        // Step 2: Fetch Organization and its dynamic config URL
+        loaderStatus.textContent = "Verifying provider credentials...";
         const orgQuery = await dbPrimary.collection("Organizations")
           .where("API Keys", "==", apiParam)
           .get();
 
         if (orgQuery.empty) {
-          throw new Error("The API key provided is not matching any verified organization system profiles.");
+          throw new Error("The API key provided does not match any registered organization profiles.");
         }
 
         const orgDoc = orgQuery.docs[0];
@@ -270,55 +264,78 @@
 
         const remoteJsUrl = orgDataGlobal["Firebase Configration Url"];
         if (!remoteJsUrl) {
-          throw new Error("Missing session metadata target pointer parameter.");
+          throw new Error("Missing session metadata database configuration URL from organization.");
         }
 
-        loaderStatus.textContent = "Configuring backend database references...";
+        // Step 3: Fetch JS payload, extract variables, and initialize Secondary Firebase Database
+        loaderStatus.textContent = "Loading configuration from Organization's dynamic URL...";
         const scriptResponse = await fetch(remoteJsUrl);
         if (!scriptResponse.ok) {
-          throw new Error("Unable to load organization session connection libraries.");
+          throw new Error("Unable to load dynamic database connection credentials.");
         }
         
         const scriptText = await scriptResponse.text();
         const secondaryConfig = extractConfigFromJS(scriptText);
 
         if (!secondaryConfig.projectId || !secondaryConfig.apiKey) {
-          throw new Error("Config script reading returned null endpoint fields.");
+          throw new Error("Config dynamic load returned empty credential components.");
         }
 
         const secondaryApp = firebase.initializeApp(secondaryConfig, "secondaryApp");
         dbSecondary = secondaryApp.firestore();
 
-        loaderStatus.textContent = "Resolving user email session records...";
+        // Step 4: Query Session Data ("ASPX Keys") from the newly initialized Secondary DB
+        loaderStatus.textContent = "Resolving session parameter documents from dynamic database...";
         const sessionDocRef = dbSecondary.collection("ASPX Keys").doc(sessionParam);
         const sessionDoc = await sessionDocRef.get();
 
         if (!sessionDoc.exists) {
-          throw new Error(`The workspace session key '${sessionParam}' could not be located.`);
+          throw new Error(`The workspace session key ID '${sessionParam}' could not be located in this database.`);
         }
 
         const sessionData = sessionDoc.data();
         resolvedEmail = sessionData["Team Email"];
 
         if (!resolvedEmail) {
-          throw new Error("The session token contains no defined team email address attributes.");
+          throw new Error("The session document contains no defined team email parameters.");
         }
 
+        // Prefill team email to read-only input
         document.getElementById('team-email').value = resolvedEmail;
 
+        // Step 5: Query dynamic Plan name from "Plans & Subscriptions" collection in the Secondary DB
+        loaderStatus.textContent = "Resolving plan model information...";
+        try {
+          const planDocRef = dbSecondary.collection("Plans & Subscriptions").doc(paymentParam);
+          const planDoc = await planDocRef.get();
+          if (planDoc.exists) {
+            const planData = planDoc.data();
+            resolvedSubscriptionName = planData.Name || planData.Title || planData["Subscription Name"] || planData["Plan Name"] || `Plan ID ${paymentParam}`;
+          } else {
+            // Default fallbacks if document does not exist
+            const fallbackMap = { "1": "Claude Max Plan", "2": "Claude Pro Bundle" };
+            resolvedSubscriptionName = fallbackMap[paymentParam] || `Plan Ref: ${paymentParam}`;
+          }
+        } catch (planError) {
+          console.warn("Could not query dynamic plan names:", planError);
+          resolvedSubscriptionName = `Plan Ref: ${paymentParam}`;
+        }
+        document.getElementById('summary-sub-name').textContent = resolvedSubscriptionName;
+
+        // Display page layout
         globalLoader.classList.add('hidden');
         mainContent.classList.remove('hidden');
 
       } catch (error) {
         console.error(error);
-        showError(error.message || "An operational setup boundary error occurred.");
+        showError(error.message || "An initialization boundary state error occurred.");
       }
     }
 
     async function validatePromoCode() {
       const codeInputVal = promoInput.value.trim();
       if (!codeInputVal) {
-        setFeedback("Please supply a valid validation code.", false);
+        setFeedback("Please enter a validation code.", false);
         return false;
       }
 
@@ -332,7 +349,7 @@
           .get();
 
         if (querySnapshot.empty) {
-          setFeedback("This validation code is either incorrect or not configured for this plan level.", false);
+          setFeedback("This verification code is invalid for this subscription tier.", false);
           verifiedPromoCode = null;
           toggleSubmitState(false);
           return false;
@@ -371,7 +388,7 @@
       e.preventDefault();
 
       if (!verifiedPromoCode || promoInput.value.trim() !== verifiedPromoCode) {
-        setFeedback("Please re-run the coupon check to authorize submission.", false);
+        setFeedback("Please re-run the coupon validation to complete registration.", false);
         return;
       }
 
@@ -383,7 +400,6 @@
       btnSubmit.textContent = "Processing authorization registration...";
 
       try {
-        // Prepare variables for the EmailJS template variables mapping
         const formattedDate = new Date().toLocaleDateString('en-US', { 
           weekday: 'long', 
           year: 'numeric', 
@@ -395,7 +411,7 @@
         const logoUrl = orgDataGlobal.Logo || "https://via.placeholder.com/150";
         const pdfFilePlaceholderUrl = `https://paymintly.com/invoices/receipt_INV-${sessionParam}.pdf`;
 
-        // Send Transactional Receipt Email using EmailJS
+        // Transmit EmailJS message payload parameters
         await emailjs.send("service_63mnm5a", "template_qxz1wka", {
           to_email: resolvedEmail,
           first_name: firstName,
@@ -409,7 +425,7 @@
           phone_number: phone
         });
 
-        // Backup update logic: Writing mail trace item to Firestore collection
+        // Write verification history item to collection
         await dbSecondary.collection("mail").add({
           to: resolvedEmail,
           message: {
@@ -427,7 +443,7 @@
 
       } catch (err) {
         console.error("Transmission error:", err);
-        alert("An error was experienced transmitting confirmation templates. Workspace state setup recorded.");
+        alert("Registration registered but an invoice email dispatch failed. Please contact your administrator.");
         btnSubmit.disabled = false;
         btnSubmit.textContent = "Complete Workspace Registration";
       }
