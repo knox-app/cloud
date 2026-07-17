@@ -3,461 +3,367 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Complete Your Subscription Registration</title>
-  
-  <!-- Tailwind CSS for styling -->
+  <title>Upgrade - Billing Page</title>
+  <!-- Tailwind CSS CDN for styling -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
   <!-- Firebase Compat SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-  <!-- EmailJS SDK Integration -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f9fafb;
+    /* Custom style for loading screen */
+    .loader {
+      border-top-color: #3b82f6;
+      -webkit-animation: spinner 1.5s linear infinite;
+      animation: spinner 1.5s linear infinite;
+    }
+    @-webkit-keyframes spinner {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+    @keyframes spinner {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between text-slate-800">
+<body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen flex flex-col justify-between">
 
-  <!-- Header -->
-  <header class="border-b border-slate-200 bg-white py-4 px-6 sm:px-12 flex justify-between items-center shadow-sm">
-    <div class="flex items-center gap-3">
-      <img id="org-logo" src="https://via.placeholder.com/40" alt="Organization Logo" class="h-10 w-10 rounded-lg object-contain bg-slate-100 p-1 hidden">
-      <span id="org-name" class="font-semibold text-lg text-slate-900">Loading checkout portal...</span>
-    </div>
-    <span class="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-medium uppercase tracking-wider">Secure Checkout</span>
-  </header>
-
-  <!-- Main Content Loader -->
-  <div id="global-loader" class="flex-grow flex flex-col items-center justify-center p-6">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-    <p class="text-slate-600 font-medium" id="loader-status">Fetching checkout session parameters...</p>
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
+    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
+    <p class="text-gray-600 font-medium">Loading checkout options...</p>
   </div>
 
-  <!-- Error Screen -->
-  <div id="error-screen" class="hidden flex-grow flex flex-col items-center justify-center p-6 max-w-md mx-auto text-center">
-    <div class="bg-red-50 text-red-600 p-4 rounded-full mb-4">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-      </svg>
-    </div>
-    <h2 class="text-xl font-bold text-slate-900 mb-2">Checkout Error</h2>
-    <p id="error-message" class="text-slate-600 text-sm mb-6"></p>
-    <button onclick="window.location.reload()" class="bg-slate-900 hover:bg-slate-800 text-white font-medium py-2 px-6 rounded-lg transition text-sm">Retry Request</button>
-  </div>
+  <!-- Main Content Container -->
+  <main class="max-w-6xl mx-auto px-4 py-8 md:py-16 w-full flex-grow">
+    <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg"></div>
 
-  <!-- Main Grid Content -->
-  <main id="main-content" class="hidden flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
-    
-    <!-- Left Column: Checkout Forms -->
-    <div class="lg:col-span-7 space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       
-      <!-- Regulatory Note -->
-      <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-amber-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-            </svg>
+      <!-- Left Column: Form Info -->
+      <div class="lg:col-span-7 space-y-8">
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight text-gray-900">Configure your plan</h1>
+          <p class="mt-2 text-sm text-gray-500">Please verify your details and enter a promo or referral activation code below.</p>
+        </div>
+
+        <form id="billingForm" class="space-y-6">
+          <!-- Billing Information -->
+          <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+            <h2 class="text-lg font-semibold text-gray-900 border-b pb-3 border-gray-100">Billing Information</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="firstName" class="block text-xs font-semibold uppercase text-gray-500 mb-1">First Name</label>
+                <input type="text" id="firstName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm">
+              </div>
+              <div>
+                <label for="lastName" class="block text-xs font-semibold uppercase text-gray-500 mb-1">Last Name</label>
+                <input type="text" id="lastName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm">
+              </div>
+            </div>
+
+            <div>
+              <label for="teamEmail" class="block text-xs font-semibold uppercase text-gray-500 mb-1">Team Email</label>
+              <input type="email" id="teamEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm">
+            </div>
+
+            <div>
+              <label for="phoneNumber" class="block text-xs font-semibold uppercase text-gray-500 mb-1">Phone Number</label>
+              <input type="tel" id="phoneNumber" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm">
+            </div>
           </div>
-          <div class="ml-3">
-            <p class="text-xs text-amber-800 leading-relaxed font-medium">
-              <strong>Regulatory Compliance Notice:</strong> We are processing transactions under Promo Clearance protocols while our NBFC License processing is underway with the RBI. 
+
+          <!-- Referral / Promo Code Section (License Compliance) -->
+          <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+            <div class="flex items-start justify-between border-b pb-3 border-gray-100">
+              <h2 class="text-lg font-semibold text-gray-900">Activation & Payment</h2>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                Promo Code Required
+              </span>
+            </div>
+            
+            <p class="text-xs text-gray-500 leading-relaxed">
+              * Active card channels are offline under regulatory RBI guideline standards for pending NBFC authorization. Please apply an authorized partner code below to register your subscription setup.
             </p>
+
+            <div>
+              <label for="promoCode" class="block text-xs font-semibold uppercase text-gray-500 mb-1">Referral / Promo Code</label>
+              <input type="text" id="promoCode" placeholder="Enter your active activation code" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm placeholder-gray-400">
+              <p id="promoFeedback" class="mt-1.5 text-xs hidden"></p>
+            </div>
           </div>
-        </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="submitBtn" class="w-full py-3 px-4 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50">
+            Activate Subscription
+          </button>
+        </form>
       </div>
 
-      <!-- Form Section -->
-      <form id="checkout-form" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sm:p-8 space-y-6">
+      <!-- Right Column: Order Summary Card -->
+      <div class="lg:col-span-5 bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
+        <h2 class="text-lg font-semibold text-gray-900 border-b pb-3 border-gray-100" id="planName">Loading Plan...</h2>
         
-        <!-- Section: Billing Info -->
-        <div>
-          <h3 class="text-base font-semibold text-slate-900 mb-4">Billing Information</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label for="first-name" class="block text-xs font-medium text-slate-600 mb-1">First Name *</label>
-              <input type="text" id="first-name" required class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-            <div>
-              <label for="last-name" class="block text-xs font-medium text-slate-600 mb-1">Last Name *</label>
-              <input type="text" id="last-name" required class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-            <div class="sm:col-span-2">
-              <label class="block text-xs font-medium text-slate-600 mb-1">Team Email Address</label>
-              <input type="email" id="team-email" disabled class="w-full bg-slate-50 border border-slate-300 text-slate-500 rounded-lg px-3 py-2.5 text-sm cursor-not-allowed">
-            </div>
-            <div class="sm:col-span-2">
-              <label for="phone-number" class="block text-xs font-medium text-slate-600 mb-1">Phone Number *</label>
-              <input type="tel" id="phone-number" required class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="+91 00000 00000">
-            </div>
-          </div>
-        </div>
-
-        <hr class="border-slate-100">
-
-        <!-- Section: Secure Promo Validation -->
-        <div>
-          <h3 class="text-base font-semibold text-slate-900 mb-1">Referral / Promo Activation</h3>
-          <p class="text-xs text-slate-500 mb-4">Enter your institutional license coupon code to authorize plan activation.</p>
-          
-          <div>
-            <label for="promo-code" class="block text-xs font-medium text-slate-600 mb-1">Access Authorization Code *</label>
-            <div class="relative">
-              <input type="text" id="promo-code" required class="w-full border border-slate-300 rounded-lg pl-3 pr-24 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 uppercase font-mono tracking-wider" placeholder="e.g. 795ASF4485">
-              <button type="button" id="btn-validate" class="absolute right-1.5 top-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium px-4 py-1.5 rounded-md transition duration-150">Verify</button>
-            </div>
-            <p id="validation-feedback" class="text-xs mt-2 hidden"></p>
-          </div>
-        </div>
-
-        <button type="submit" id="btn-submit" disabled class="w-full bg-slate-300 text-slate-500 cursor-not-allowed font-medium text-sm py-3 px-4 rounded-lg transition duration-200">
-          Verify Coupon to Activate License
-        </button>
-      </form>
-    </div>
-
-    <!-- Right Column: Cart / Plan Details -->
-    <div class="lg:col-span-5 space-y-6">
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
-        <h3 class="text-base font-semibold text-slate-900">Registration Details</h3>
-        
-        <!-- Organization dynamic widget -->
-        <div class="bg-slate-50 rounded-lg p-4 flex items-center gap-4 border border-slate-100">
-          <div class="bg-white p-1 rounded-md border border-slate-200">
-            <img id="sidebar-org-logo" src="https://via.placeholder.com/48" alt="Logo" class="h-10 w-10 object-contain">
-          </div>
-          <div>
-            <h4 id="sidebar-org-name" class="font-medium text-sm text-slate-900">...</h4>
-            <p id="sidebar-org-industry" class="text-xs text-slate-500">...</p>
-          </div>
-        </div>
-
-        <!-- Plan selection dynamic summary -->
         <div class="space-y-3">
-          <div class="flex justify-between items-center text-sm pb-3 border-b border-slate-100">
-            <span class="text-slate-500">Allocated Plan ID</span>
-            <span id="summary-plan-id" class="font-mono bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded text-xs font-semibold">--</span>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500" id="planDurationLabel">Subscription Duration</span>
+            <span class="font-medium text-gray-900" id="planDuration">--</span>
           </div>
-          <div class="flex justify-between items-center text-sm pb-3 border-b border-slate-100">
-            <span class="text-slate-500">Subscription Item</span>
-            <span id="summary-sub-name" class="text-slate-900 font-medium font-mono text-xs">Loading plan info...</span>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">Base Cost</span>
+            <span class="font-medium text-gray-900" id="basePrice">--</span>
           </div>
-          <div class="flex justify-between items-center text-sm pt-2">
-            <span class="text-slate-900 font-semibold">Total Amount Due</span>
-            <span class="text-green-600 font-bold text-base">₹0.00 <span class="text-xs font-normal text-slate-500">(Promo Verified)</span></span>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">Tax</span>
+            <span class="font-medium text-gray-900" id="taxPrice">--</span>
+          </div>
+          <div class="border-t border-gray-100 pt-3 flex justify-between">
+            <span class="font-semibold text-gray-900">Total Amount</span>
+            <span class="font-bold text-gray-900 text-lg" id="totalPrice">--</span>
           </div>
         </div>
+
+        <!-- Plan Features List -->
+        <div class="border-t border-gray-100 pt-4 space-y-3">
+          <h3 class="text-xs font-semibold uppercase text-gray-400 tracking-wider">Features Included:</h3>
+          <ul class="space-y-2" id="bulletPointsList">
+            <li class="text-sm text-gray-400">Loading plan specifications...</li>
+          </ul>
+        </div>
       </div>
+
     </div>
   </main>
 
-  <!-- Footer -->
-  <footer class="border-t border-slate-200 py-6 text-center text-xs text-slate-400 bg-white">
-    <p>Paymintly: Payments Make Easy</p>
+  <footer class="bg-gray-100 py-6 border-t border-gray-200">
+    <div class="max-w-6xl mx-auto px-4 text-center text-xs text-gray-500">
+      &copy; 2026 Paymintly. All rights reserved. Managed under RBI digital framework compliances.
+    </div>
   </footer>
 
   <script>
-    // Initialize EmailJS using your public key
-    emailjs.init("Yr9MutUoHOEONnFgn");
-
-    // Primary Core Database Config
-    const primaryFirebaseConfig = {
-      apiKey: "AIzaSyA_0q4Evwirxr4loAZ2ZzGVfKP-51oSi14",
-      authDomain: "xperts-ed-tech.firebaseapp.com",
-      projectId: "xperts-ed-tech",
-      storageBucket: "xperts-ed-tech.firebasestorage.app",
-      messagingSenderId: "960602403596",
-      appId: "1:960602403596:web:fdf87f7b9a6181b6db4f29",
-      measurementId: "G-000SED73EW"
+    // 1. Firebase Configuration Setup
+    const firebaseConfig = {
+      apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+      authDomain: "question-metabase.firebaseapp.com",
+      databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "question-metabase",
+      storageBucket: "question-metabase.firebasestorage.app",
+      messagingSenderId: "770698198753",
+      appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+      measurementId: "G-6ZP1FPMKSJ"
     };
 
-    let dbPrimary;
-    let dbSecondary;
-    let verifiedPromoCode = null;
-    let resolvedEmail = "";
-    let orgDataGlobal = {};
-    let resolvedSubscriptionName = "Standard License Plan";
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionParam = urlParams.get('session');
-    const apiParam = urlParams.get('api');
-    const paymentParam = urlParams.get('payment');
+    // Initialize EmailJS
+    const emailJsPublicKey = "Yr9MutUoHOEONnFgn";
+    const emailJsServiceId = "Yr9MutUoHOEONnFgn"; // Set as specified by user
+    const emailJsTemplateId = "template_mfkmx1r";
+    emailjs.init(emailJsPublicKey);
 
-    const globalLoader = document.getElementById('global-loader');
-    const loaderStatus = document.getElementById('loader-status');
-    const errorScreen = document.getElementById('error-screen');
-    const errorMessage = document.getElementById('error-message');
-    const mainContent = document.getElementById('main-content');
-    const promoInput = document.getElementById('promo-code');
-    const btnValidate = document.getElementById('btn-validate');
-    const feedbackText = document.getElementById('validation-feedback');
-    const btnSubmit = document.getElementById('btn-submit');
+    // List of accepted promo codes
+    const validPromoCodes = ["PAYMINTLY100", "PROMO2026", "RBI_FREE", "TAPASYA_SPECIAL", "MAX20X"];
+    const redirectSuccessUrl = "https://question-metabase.firebaseapp.com"; // Default success redirect destination
 
-    function setFeedback(message, isSuccess) {
-      feedbackText.textContent = message;
-      feedbackText.className = `text-xs mt-2 font-medium ${isSuccess ? 'text-emerald-600' : 'text-red-600'}`;
-      feedbackText.classList.remove('hidden');
-    }
+    // Global variable to keep loaded plan state
+    let loadedPlan = null;
 
+    // Helper functions
     function showError(message) {
-      globalLoader.classList.add('hidden');
-      mainContent.classList.add('hidden');
-      errorScreen.classList.remove('hidden');
-      errorMessage.textContent = message;
+      const errBox = document.getElementById("errorMessage");
+      errBox.innerText = message;
+      errBox.classList.remove("hidden");
+      document.getElementById("loadingOverlay").classList.add("hidden");
     }
 
-    function extractConfigFromJS(jsText) {
-      const config = {};
-      const keys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'measurementId'];
-      keys.forEach(key => {
-        const regex = new RegExp(`${key}\\s*:\\s*["'`]([^"'`]+)["'`]`);
-        const match = jsText.match(regex);
-        if (match) config[key] = match[1];
-      });
-      return config;
+    function formatCurrency(val, currency = 'INR') {
+      if (!val) return '--';
+      const cleanVal = parseFloat(val.toString().replace(/,/g, ''));
+      if (isNaN(cleanVal)) return val;
+      return currency === 'INR' 
+        ? `₹${cleanVal.toLocaleString('en-IN')}` 
+        : `$${cleanVal.toFixed(2)}`;
     }
 
+    // 2. Fetch Data from Firestore & Parse URL Parameters
     async function initCheckout() {
       try {
-        if (!sessionParam || !apiParam || !paymentParam) {
-          throw new Error("Missing query components. Format: 1.html?session=<id>&api=<api keys>&payment=<plan id>");
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session');
+        const apiKeyParam = urlParams.get('api');
+        const paymentId = urlParams.get('payment');
+
+        if (!sessionId || !apiKeyParam || !paymentId) {
+          showError("Initialization parameters are incomplete. Please verify the URL structure.");
+          return;
         }
 
-        document.getElementById('summary-plan-id').textContent = paymentParam;
-
-        // Step 1: Connect to Core Database
-        loaderStatus.textContent = "Connecting to core portal authentication service...";
-        const primaryApp = firebase.initializeApp(primaryFirebaseConfig, "primaryApp");
-        dbPrimary = primaryApp.firestore();
-
-        // Step 2: Fetch Organization and its dynamic config URL
-        loaderStatus.textContent = "Verifying provider credentials...";
-        const orgQuery = await dbPrimary.collection("Organizations")
-          .where("API Keys", "==", apiParam)
-          .get();
-
-        if (orgQuery.empty) {
-          throw new Error("The API key provided does not match any registered organization profiles.");
+        // Validate API keys and configuration
+        const paymintlyDoc = await db.collection("Paymintly").doc("Organization").get();
+        if (!paymintlyDoc.exists) {
+          showError("Organization parameters could not be loaded from Firestore.");
+          return;
         }
 
-        const orgDoc = orgQuery.docs[0];
-        orgDataGlobal = orgDoc.data();
-
-        document.getElementById('org-name').textContent = orgDataGlobal.Name || "Checkout Services";
-        document.getElementById('sidebar-org-name').textContent = orgDataGlobal.Name || "Partner Organization";
-        document.getElementById('sidebar-org-industry').textContent = orgDataGlobal.Industry || "Corporate Node";
-        
-        if (orgDataGlobal.Logo) {
-          const logoElem = document.getElementById('org-logo');
-          const logoElemSide = document.getElementById('sidebar-org-logo');
-          logoElem.src = orgDataGlobal.Logo;
-          logoElemSide.src = orgDataGlobal.Logo;
-          logoElem.classList.remove('hidden');
+        const orgData = paymintlyDoc.data();
+        const storedApiKey = orgData["API Keys"];
+        if (storedApiKey !== apiKeyParam) {
+          showError("Security validation error: Invalid API Key provided.");
+          return;
         }
 
-        const remoteJsUrl = orgDataGlobal["Firebase Configration Url"];
-        if (!remoteJsUrl) {
-          throw new Error("Missing session metadata database configuration URL from organization.");
-        }
-
-        // Step 3: Fetch JS payload, extract variables, and initialize Secondary Firebase Database
-        loaderStatus.textContent = "Loading configuration from Organization's dynamic URL...";
-        const scriptResponse = await fetch(remoteJsUrl);
-        if (!scriptResponse.ok) {
-          throw new Error("Unable to load dynamic database connection credentials.");
-        }
-        
-        const scriptText = await scriptResponse.text();
-        const secondaryConfig = extractConfigFromJS(scriptText);
-
-        if (!secondaryConfig.projectId || !secondaryConfig.apiKey) {
-          throw new Error("Config dynamic load returned empty credential components.");
-        }
-
-        const secondaryApp = firebase.initializeApp(secondaryConfig, "secondaryApp");
-        dbSecondary = secondaryApp.firestore();
-
-        // Step 4: Query Session Data ("ASPX Keys") from the newly initialized Secondary DB
-        loaderStatus.textContent = "Resolving session parameter documents from dynamic database...";
-        const sessionDocRef = dbSecondary.collection("ASPX Keys").doc(sessionParam);
-        const sessionDoc = await sessionDocRef.get();
-
-        if (!sessionDoc.exists) {
-          throw new Error(`The workspace session key ID '${sessionParam}' could not be located in this database.`);
-        }
-
-        const sessionData = sessionDoc.data();
-        resolvedEmail = sessionData["Team Email"];
-
-        if (!resolvedEmail) {
-          throw new Error("The session document contains no defined team email parameters.");
-        }
-
-        // Prefill team email to read-only input
-        document.getElementById('team-email').value = resolvedEmail;
-
-        // Step 5: Query dynamic Plan name from "Plans & Subscriptions" collection in the Secondary DB
-        loaderStatus.textContent = "Resolving plan model information...";
-        try {
-          const planDocRef = dbSecondary.collection("Plans & Subscriptions").doc(paymentParam);
-          const planDoc = await planDocRef.get();
-          if (planDoc.exists) {
-            const planData = planDoc.data();
-            resolvedSubscriptionName = planData.Name || planData.Title || planData["Subscription Name"] || planData["Plan Name"] || `Plan ID ${paymentParam}`;
-          } else {
-            // Default fallbacks if document does not exist
-            const fallbackMap = { "1": "Claude Max Plan", "2": "Claude Pro Bundle" };
-            resolvedSubscriptionName = fallbackMap[paymentParam] || `Plan Ref: ${paymentParam}`;
+        // Fetch user data via session ID
+        const userDoc = await db.collection("UARM").doc(sessionId).get();
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          document.getElementById("firstName").value = userData["First Name"] || "";
+          document.getElementById("lastName").value = userData["Last Name"] || "";
+          document.getElementById("teamEmail").value = userData["Email"] || userData["Team Email"] || "";
+          document.getElementById("phoneNumber").value = userData["Phone Number"] || "";
+        } else {
+          // Check ASPX Keys collection fallback as an alternative route
+          const aspxDoc = await db.collection("ASPX Keys").doc(sessionId).get();
+          if (aspxDoc.exists) {
+            document.getElementById("teamEmail").value = aspxDoc.data()["Team Email"] || "";
           }
-        } catch (planError) {
-          console.warn("Could not query dynamic plan names:", planError);
-          resolvedSubscriptionName = `Plan Ref: ${paymentParam}`;
         }
-        document.getElementById('summary-sub-name').textContent = resolvedSubscriptionName;
 
-        // Display page layout
-        globalLoader.classList.add('hidden');
-        mainContent.classList.remove('hidden');
+        // Fetch plan and payment information
+        const planDoc = await db.collection("Plans & Subscriptions").doc(paymentId).get();
+        if (!planDoc.exists) {
+          showError("The selected subscription option is no longer available.");
+          return;
+        }
+
+        loadedPlan = planDoc.data();
+        renderPlanSummary(loadedPlan);
+
+        // Hide overlay once data is loaded
+        document.getElementById("loadingOverlay").classList.add("hidden");
 
       } catch (error) {
-        console.error(error);
-        showError(error.message || "An initialization boundary state error occurred.");
+        console.error("Configuration Error:", error);
+        showError("An error occurred during verification. Please try again.");
       }
     }
 
-    async function validatePromoCode() {
-      const codeInputVal = promoInput.value.trim();
-      if (!codeInputVal) {
-        setFeedback("Please enter a validation code.", false);
-        return false;
-      }
+    // Render Order Details Panel
+    function renderPlanSummary(plan) {
+      document.getElementById("planName").innerText = plan["Name"] || "Premium Plan";
+      
+      const duration = plan["Duration (Days)"] || "365";
+      document.getElementById("planDuration").innerText = `${duration} Days`;
 
-      btnValidate.disabled = true;
-      btnValidate.textContent = "Checking...";
+      // Determine currency
+      const isUsd = !!plan["Price (USD)"] && (!plan["Price (INR)"] || plan["Type"] === "International");
+      const currencyCode = isUsd ? "USD" : "INR";
+      const rawPrice = isUsd ? plan["Price (USD)"] : plan["Price (INR)"];
+      
+      const numericPrice = parseFloat(rawPrice.toString().replace(/[^0-9.]/g, '')) || 0;
+      const taxRate = 0.18; // 18% Standard tax
+      const taxAmount = numericPrice * taxRate;
+      const totalCost = numericPrice + taxAmount;
 
-      try {
-        const querySnapshot = await dbPrimary.collection("Copen Codes")
-          .where("Copen Code", "==", codeInputVal)
-          .where("For", "==", paymentParam)
-          .get();
+      document.getElementById("basePrice").innerText = formatCurrency(numericPrice, currencyCode);
+      document.getElementById("taxPrice").innerText = formatCurrency(taxAmount, currencyCode);
+      document.getElementById("totalPrice").innerText = formatCurrency(totalCost, currencyCode);
 
-        if (querySnapshot.empty) {
-          setFeedback("This verification code is invalid for this subscription tier.", false);
-          verifiedPromoCode = null;
-          toggleSubmitState(false);
-          return false;
-        }
-
-        setFeedback("Referral Code verified. Promo license clearance unlocked.", true);
-        verifiedPromoCode = codeInputVal;
-        toggleSubmitState(true);
-        return true;
-
-      } catch (err) {
-        console.error(err);
-        setFeedback("Database verification timed out. Please retry.", false);
-        return false;
-      } finally {
-        btnValidate.disabled = false;
-        btnValidate.textContent = "Verify";
-      }
-    }
-
-    function toggleSubmitState(enable) {
-      if (enable) {
-        btnSubmit.disabled = false;
-        btnSubmit.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
-        btnSubmit.classList.add('bg-indigo-600', 'hover:bg-indigo-700', 'text-white');
-        btnSubmit.textContent = "Complete Workspace Registration";
+      // Populate features
+      const bulletContainer = document.getElementById("bulletPointsList");
+      bulletContainer.innerHTML = "";
+      
+      const bulletPoints = plan["Bullet Points"] || [];
+      if (Array.isArray(bulletPoints) && bulletPoints.length > 0) {
+        bulletPoints.forEach(point => {
+          const li = document.createElement("li");
+          li.className = "text-sm text-gray-600 flex items-start space-x-2";
+          li.innerHTML = `
+            <svg class="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>${point}</span>
+          `;
+          bulletContainer.appendChild(li);
+        });
       } else {
-        btnSubmit.disabled = true;
-        btnSubmit.classList.add('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
-        btnSubmit.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'text-white');
-        btnSubmit.textContent = "Verify Coupon to Activate License";
+        bulletContainer.innerHTML = `<li class="text-sm text-gray-500 italic">Standard Platform Features Included</li>`;
       }
     }
 
-    document.getElementById('checkout-form').addEventListener('submit', async function(e) {
+    // Form submission processing
+    document.getElementById("billingForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
-      if (!verifiedPromoCode || promoInput.value.trim() !== verifiedPromoCode) {
-        setFeedback("Please re-run the coupon validation to complete registration.", false);
+      const promoInput = document.getElementById("promoCode").value.trim().toUpperCase();
+      const promoFeedback = document.getElementById("promoFeedback");
+      const submitBtn = document.getElementById("submitBtn");
+
+      // Reset styles
+      promoFeedback.classList.add("hidden");
+
+      if (!validPromoCodes.includes(promoInput)) {
+        promoFeedback.innerText = "Invalid Activation Code. Please input an authorized code.";
+        promoFeedback.className = "mt-1.5 text-xs text-red-600";
+        promoFeedback.classList.remove("hidden");
         return;
       }
 
-      const firstName = document.getElementById('first-name').value.trim();
-      const lastName = document.getElementById('last-name').value.trim();
-      const phone = document.getElementById('phone-number').value.trim();
+      // If valid, notify user
+      promoFeedback.innerText = "Activation Code Applied Successfully!";
+      promoFeedback.className = "mt-1.5 text-xs text-green-600";
+      promoFeedback.classList.remove("hidden");
 
-      btnSubmit.disabled = true;
-      btnSubmit.textContent = "Processing authorization registration...";
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Processing activation...";
+
+      // Gather input values
+      const firstName = document.getElementById("firstName").value;
+      const lastName = document.getElementById("lastName").value;
+      const teamEmail = document.getElementById("teamEmail").value;
+      const phoneNumber = document.getElementById("phoneNumber").value;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session');
+
+      // Setup parameters for EmailJS Template variables
+      const emailParams = {
+        to_email: teamEmail,
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: phoneNumber,
+        plan_name: loadedPlan ? loadedPlan["Name"] : "Plan",
+        promo_code: promoInput,
+        session_id: sessionId
+      };
 
       try {
-        const formattedDate = new Date().toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        });
-        const companyName = orgDataGlobal.Name || "My Company";
-        const nearestLocation = orgDataGlobal.Address || orgDataGlobal["Business Location"] || "India";
-        const logoUrl = orgDataGlobal.Logo || "https://via.placeholder.com/150";
-        const pdfFilePlaceholderUrl = `https://paymintly.com/invoices/receipt_INV-${sessionParam}.pdf`;
-
-        // Transmit EmailJS message payload parameters
-        await emailjs.send("service_63mnm5a", "template_qxz1wka", {
-          to_email: resolvedEmail,
-          first_name: firstName,
-          last_name: lastName,
-          subscription_name: resolvedSubscriptionName,
-          company_name: companyName,
-          logo_url: logoUrl,
-          date: formattedDate,
-          location: nearestLocation,
-          pdf_url: pdfFilePlaceholderUrl,
-          phone_number: phone
-        });
-
-        // Write verification history item to collection
-        await dbSecondary.collection("mail").add({
-          to: resolvedEmail,
-          message: {
-            subject: `Receipt: Workspace Registration Activated`,
-            html: `Invoice created successfully for ${firstName} ${lastName}. Code Used: ${verifiedPromoCode}`
-          }
-        });
-
-        const customRedirectUrl = urlParams.get('redirect') || 'https://knox-app.github.io/success';
-        btnSubmit.textContent = "Workspace Activated. Redirecting...";
+        await emailjs.send(emailJsServiceId, emailJsTemplateId, emailParams);
+        
+        // Show success and redirect
+        submitBtn.className = "w-full py-3 px-4 bg-green-600 text-white font-medium rounded-lg";
+        submitBtn.innerText = "Subscribed! Redirecting...";
         
         setTimeout(() => {
-          window.location.href = customRedirectUrl;
-        }, 1200);
+          window.location.href = redirectSuccessUrl;
+        }, 2000);
 
       } catch (err) {
-        console.error("Transmission error:", err);
-        alert("Registration registered but an invoice email dispatch failed. Please contact your administrator.");
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = "Complete Workspace Registration";
+        console.error("EmailJS Error details:", err);
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Activate Subscription";
+        alert("Activation email dispatch failed, but registration was verified. Redirecting to workspace.");
+        window.location.href = redirectSuccessUrl;
       }
     });
 
-    btnValidate.addEventListener('click', validatePromoCode);
-    promoInput.addEventListener('input', () => {
-      if (verifiedPromoCode) {
-        verifiedPromoCode = null;
-        toggleSubmitState(false);
-      }
-    });
-
-    window.addEventListener('DOMContentLoaded', initCheckout);
+    // Run verification initialization
+    window.addEventListener("DOMContentLoaded", initCheckout);
   </script>
 </body>
 </html>
