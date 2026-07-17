@@ -11,8 +11,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-  <!-- HTML2PDF CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     .loader {
       border-top-color: #3b82f6;
@@ -36,6 +34,18 @@
     <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
     <p class="text-gray-600 font-medium">Loading checkout options...</p>
   </div>
+
+  <!-- Dynamic Header Area -->
+  <header class="bg-white border-b border-gray-200 py-4">
+    <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <img id="partnerLogo" src="" alt="Brand Logo" class="h-8 object-contain hidden" />
+        <span class="text-gray-300 text-xl font-light hidden" id="logoSeparator">|</span>
+        <span class="text-xl font-bold tracking-tight text-gray-900">Paymintly</span>
+      </div>
+      <div id="companyHeaderName" class="text-xs text-gray-500 font-medium hidden sm:block"></div>
+    </div>
+  </header>
 
   <!-- Main Content Container -->
   <main class="max-w-6xl mx-auto px-4 py-8 md:py-16 w-full flex-grow">
@@ -145,91 +155,8 @@
     </div>
   </footer>
 
-  <!-- HTML Invoice Render Template (Kept off-screen dynamically) -->
-  <div style="position: absolute; left: -9999px; top: -9999px;">
-    <div id="invoiceTemplate" style="width: 210mm; min-height: 297mm; padding: 20mm; font-family: sans-serif; background: white; color: #333;">
-      
-      <!-- Top header (Company details + Logo) -->
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-        <tr>
-          <td style="vertical-align: top;">
-            <img id="pdfLogo" src="" alt="Company Logo" style="max-height: 60px; max-width: 200px; object-fit: contain;" />
-          </td>
-          <td style="text-align: right; vertical-align: top;">
-            <h1 id="pdfCompanyName" style="margin: 0; font-size: 22px; color: #111;">--</h1>
-            <p id="pdfCompanyAddress" style="margin: 4px 0 0 0; font-size: 11px; color: #666; max-width: 250px; display: inline-block;">--</p>
-          </td>
-        </tr>
-      </table>
-
-      <!-- Dividers -->
-      <div style="border-top: 2px solid #111; margin-bottom: 25px;"></div>
-
-      <h2 style="font-size: 20px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; color: #111;">Transaction Invoice</h2>
-
-      <!-- Client & Transaction metadata Grid -->
-      <table style="width: 100%; margin-bottom: 30px; font-size: 13px; border-collapse: collapse;">
-        <tr>
-          <td style="width: 50%; vertical-align: top; padding-right: 20px;">
-            <h3 style="margin: 0 0 8px 0; font-size: 12px; text-transform: uppercase; color: #666;">Billed To:</h3>
-            <p style="margin: 0 0 4px 0; font-weight: bold;" id="pdfClientName">--</p>
-            <p style="margin: 0 0 4px 0;" id="pdfClientEmail">--</p>
-            <p style="margin: 0 0 4px 0;" id="pdfClientPhone">--</p>
-          </td>
-          <td style="width: 50%; vertical-align: top; text-align: right;">
-            <h3 style="margin: 0 0 8px 0; font-size: 12px; text-transform: uppercase; color: #666;">Details:</h3>
-            <p style="margin: 0 0 4px 0;"><strong>Invoice Date:</strong> <span id="pdfInvoiceDate">--</span></p>
-            <p style="margin: 0 0 4px 0;"><strong>Session Reference:</strong> <span id="pdfSessionId" style="font-family: monospace; font-size: 11px;">--</span></p>
-            <p style="margin: 0 0 4px 0;"><strong>Referral Applied:</strong> <span id="pdfPromoCode">--</span></p>
-          </td>
-        </tr>
-      </table>
-
-      <!-- Billing items Table -->
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 13px;">
-        <thead>
-          <tr style="background-color: #f4f4f5; border-bottom: 1px solid #ddd;">
-            <th style="text-align: left; padding: 12px 10px; font-weight: bold; text-transform: uppercase; font-size: 11px; color: #555;">Description</th>
-            <th style="text-align: right; padding: 12px 10px; font-weight: bold; text-transform: uppercase; font-size: 11px; color: #555; width: 25%;">Duration</th>
-            <th style="text-align: right; padding: 12px 10px; font-weight: bold; text-transform: uppercase; font-size: 11px; color: #555; width: 25%;">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 15px 10px; font-weight: bold;" id="pdfItemDescription">--</td>
-            <td style="padding: 15px 10px; text-align: right;" id="pdfItemDuration">--</td>
-            <td style="padding: 15px 10px; text-align: right;" id="pdfItemBasePrice">--</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Calculations totals -->
-      <table style="width: 40%; margin-left: auto; border-collapse: collapse; font-size: 13px; margin-bottom: 40px;">
-        <tr>
-          <td style="padding: 8px 10px; color: #666;">Subtotal:</td>
-          <td style="padding: 8px 10px; text-align: right;" id="pdfSubtotal">--</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 10px; color: #666; border-bottom: 1px solid #ddd;">Tax (18%):</td>
-          <td style="padding: 8px 10px; text-align: right; border-bottom: 1px solid #ddd;" id="pdfTax">--</td>
-        </tr>
-        <tr style="font-weight: bold; font-size: 15px; color: #111;">
-          <td style="padding: 12px 10px;">Total Due:</td>
-          <td style="padding: 12px 10px; text-align: right;" id="pdfTotal">--</td>
-        </tr>
-      </table>
-
-      <!-- Bottom footer layout -->
-      <div style="border-top: 1px solid #ddd; padding-top: 15px; margin-top: auto; font-size: 11px; color: #777; line-height: 1.5;">
-        <p style="margin: 0 0 5px 0;">If you have not done this transaction, please contact us immediately.</p>
-        <p style="margin: 0; font-weight: bold; font-size: 12px; color: #333;">Paymintly: Payments Make Easy</p>
-      </div>
-
-    </div>
-  </div>
-
   <script>
-    // Firebase Configuration
+    // Firebase Configuration Setup
     const firebaseConfig = {
       apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
       authDomain: "question-metabase.firebaseapp.com",
@@ -245,20 +172,19 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Initialize EmailJS with your verified credentials
+    // Initialize EmailJS
     const emailJsPublicKey = "Yr9MutUoHOEONnFgn";
     const emailJsServiceId = "service_63mnm5a"; 
     const emailJsTemplateId = "template_mfkmx1r";
     emailjs.init(emailJsPublicKey);
 
-    // Global variables populated dynamically from Firebase Query
+    // Global states
     let loadedPlan = null;
     let allowedCodes = [];
-    let companyLogo = "";
-    let companyName = "";
-    let companyAddress = "";
-    let redirectUrl = "https://question-metabase.firebaseapp.com"; // Fallback URL
-    let userLocation = "India"; // Default fallback
+    let redirectSuccessUrl = "https://question-metabase.firebaseapp.com"; // Fallback URL
+    let companyName = "Paymintly Partner";
+    let logoUrl = "";
+    let userNearestLocation = "India";
 
     function showError(message) {
       const errBox = document.getElementById("errorMessage");
@@ -276,26 +202,27 @@
         : `$${cleanVal.toFixed(2)}`;
     }
 
-    // Try fetching client approximate location
-    async function fetchUserLocation() {
+    // Attempt approximate user geolocation
+    async function fetchApproximateLocation() {
       try {
-        const res = await fetch('https://ipapi.co/json/');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.city && data.country_name) {
-            userLocation = `${data.city}, ${data.country_name}`;
-          }
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+        if (data && data.city) {
+          userNearestLocation = `${data.city}, ${data.region_name || data.region || ""}, ${data.country_name}`;
         }
       } catch (err) {
-        console.warn("Location query timed out. Defaulting destination.");
+        // Fallback to time zone
+        try {
+          userNearestLocation = Intl.DateTimeFormat().resolvedOptions().timeZone || "India";
+        } catch (e) {
+          userNearestLocation = "India";
+        }
       }
     }
 
-    // Parse URL and populate dynamic Firestore settings
+    // Fetch Data from Firestore & Parse URL Parameters
     async function initCheckout() {
       try {
-        await fetchUserLocation();
-
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session');
         const apiKeyParam = urlParams.get('api');
@@ -306,26 +233,40 @@
           return;
         }
 
-        // 1. Fetch Organization settings by querying API Keys field match
-        const paymintlyQuery = await db.collection("Paymintly").where("API Keys", "==", apiKeyParam).limit(1).get();
+        // Fetch location details asynchronously
+        fetchApproximateLocation();
+
+        // 1. Fetch organization document dynamically matching the 'api' parameter
+        const paymintlyQuery = await db.collection("Paymintly")
+                                       .where("API Keys", "==", apiKeyParam)
+                                       .limit(1)
+                                       .get();
+
         if (paymintlyQuery.empty) {
-          showError("Security validation error: Invalid API Key.");
+          showError("Security validation error: Invalid API Key provided.");
           return;
         }
 
         const orgDoc = paymintlyQuery.docs[0];
         const orgData = orgDoc.data();
 
-        companyLogo = orgData.Logo || "";
-        companyName = orgData.Name || "My Company";
-        companyAddress = orgData.Address || "Company Location Address";
-        allowedCodes = orgData.Codes || [];
-        redirectUrl = orgData.Redirect || redirectUrl;
+        // Load organization config data
+        allowedCodes = orgData["Codes"] || [];
+        redirectSuccessUrl = orgData["Redirect"] || redirectSuccessUrl;
+        companyName = orgData["Name"] || companyName;
+        logoUrl = orgData["Logo"] || "";
 
-        // Prepare logo & company properties on PDF Render template
-        document.getElementById("pdfLogo").src = companyLogo;
-        document.getElementById("pdfCompanyName").innerText = companyName;
-        document.getElementById("pdfCompanyAddress").innerText = companyAddress;
+        // Apply partner logo adjustments if defined
+        if (logoUrl) {
+          const logoImg = document.getElementById("partnerLogo");
+          logoImg.src = logoUrl;
+          logoImg.classList.remove("hidden");
+          document.getElementById("logoSeparator").classList.remove("hidden");
+        }
+        if (companyName) {
+          document.getElementById("companyHeaderName").innerText = companyName;
+          document.getElementById("companyHeaderName").classList.remove("hidden");
+        }
 
         // 2. Fetch User data via session ID (UARM Collection)
         const userDoc = await db.collection("UARM").doc(sessionId).get();
@@ -343,7 +284,7 @@
           }
         }
 
-        // 3. Fetch Plan Details
+        // 3. Fetch subscription details
         const planDoc = await db.collection("Plans & Subscriptions").doc(paymentId).get();
         if (!planDoc.exists) {
           showError("The selected subscription option is no longer available.");
@@ -353,7 +294,7 @@
         loadedPlan = planDoc.data();
         renderPlanSummary(loadedPlan);
 
-        // Hide loading screen
+        // Hide loader overlay
         document.getElementById("loadingOverlay").classList.add("hidden");
 
       } catch (error) {
@@ -362,7 +303,7 @@
       }
     }
 
-    // Render summary UI
+    // Render Order Details Panel
     function renderPlanSummary(plan) {
       document.getElementById("planName").innerText = plan["Name"] || "Premium Plan";
       
@@ -403,7 +344,7 @@
       }
     }
 
-    // Process PDF and Form Submit
+    // Form submission processing
     document.getElementById("billingForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
@@ -413,7 +354,7 @@
 
       promoFeedback.classList.add("hidden");
 
-      // Validate against the collection's dynamically fetched Codes array
+      // Verify input matches retrieved list from database
       if (allowedCodes.length > 0 && !allowedCodes.includes(promoInput)) {
         promoFeedback.innerText = "Invalid Activation Code. Please input an authorized code.";
         promoFeedback.className = "mt-1.5 text-xs text-red-600";
@@ -426,83 +367,49 @@
       promoFeedback.classList.remove("hidden");
 
       submitBtn.disabled = true;
-      submitBtn.innerText = "Generating Invoice & Activating...";
+      submitBtn.innerText = "Processing activation...";
 
       const firstName = document.getElementById("firstName").value;
       const lastName = document.getElementById("lastName").value;
       const teamEmail = document.getElementById("teamEmail").value;
       const phoneNumber = document.getElementById("phoneNumber").value;
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const sessionId = urlParams.get('session');
+      // Prepare date formatting
+      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      const currentFormattedDate = new Date().toLocaleDateString("en-US", options);
 
-      // Populate text inside the off-screen Invoice Template prior to PDF rendering
-      const isUsd = !!loadedPlan["Price (USD)"] && (!loadedPlan["Price (INR)"] || loadedPlan["Type"] === "International");
-      const currencyCode = isUsd ? "USD" : "INR";
-      const rawPrice = isUsd ? loadedPlan["Price (USD)"] : loadedPlan["Price (INR)"];
-      const numericPrice = parseFloat(rawPrice.toString().replace(/[^0-9.]/g, '')) || 0;
-      const taxAmount = numericPrice * 0.18;
-      const totalCost = numericPrice + taxAmount;
-
-      document.getElementById("pdfClientName").innerText = `${firstName} ${lastName}`;
-      document.getElementById("pdfClientEmail").innerText = teamEmail;
-      document.getElementById("pdfClientPhone").innerText = phoneNumber;
-      document.getElementById("pdfInvoiceDate").innerText = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
-      document.getElementById("pdfSessionId").innerText = sessionId;
-      document.getElementById("pdfPromoCode").innerText = promoInput;
-
-      document.getElementById("pdfItemDescription").innerText = `${loadedPlan["Name"]} Subscription`;
-      document.getElementById("pdfItemDuration").innerText = `${loadedPlan["Duration (Days)"] || "365"} Days`;
-      document.getElementById("pdfItemBasePrice").innerText = formatCurrency(numericPrice, currencyCode);
-      document.getElementById("pdfSubtotal").innerText = formatCurrency(numericPrice, currencyCode);
-      document.getElementById("pdfTax").innerText = formatCurrency(taxAmount, currencyCode);
-      document.getElementById("pdfTotal").innerText = formatCurrency(totalCost, currencyCode);
+      // Setup parameters matching the variables needed for the invoice layout
+      const emailParams = {
+        to_email: teamEmail,
+        first_name: firstName,
+        last_name: lastName,
+        subscription_name: loadedPlan ? loadedPlan["Name"] : "Premium Subscription",
+        company_name: companyName,
+        date: currentFormattedDate,
+        nearest_location: userNearestLocation,
+        logo_url: logoUrl || "https://img.icons8.com/color/96/shield.png" // Fallback logo if missing
+      };
 
       try {
-        // Generate PDF using html2pdf
-        const element = document.getElementById("invoiceTemplate");
-        const pdfOptions = {
-          margin: 10,
-          filename: `invoice_${sessionId}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        const pdfDataUri = await html2pdf().set(pdfOptions).from(element).outputPdf('datauristring');
-        const pdfBase64 = pdfDataUri.split(',')[1]; // Extract pure base64 raw string
-
-        // Payload matched to the requested format layout
-        const emailParams = {
-          to_email: teamEmail,
-          first_name: firstName,
-          last_name: lastName,
-          plan_name: loadedPlan["Name"],
-          company_name: companyName,
-          date: new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }),
-          location: userLocation,
-          logo_url: companyLogo,
-          pdf_file: pdfBase64 // Reference this in the "Attachments" section of EmailJS settings
-        };
-
         await emailjs.send(emailJsServiceId, emailJsTemplateId, emailParams);
         
         submitBtn.className = "w-full py-3 px-4 bg-green-600 text-white font-medium rounded-lg";
         submitBtn.innerText = "Subscribed! Redirecting...";
         
         setTimeout(() => {
-          window.location.href = redirectUrl;
-        }, 1500);
+          window.location.href = redirectSuccessUrl;
+        }, 2000);
 
       } catch (err) {
-        console.error("Processing failure details:", err);
+        console.error("EmailJS Error details:", err);
         submitBtn.disabled = false;
         submitBtn.innerText = "Activate Subscription";
-        alert("Activation email dispatch failed, but registration was verified. Redirecting to your workspace.");
-        window.location.href = redirectUrl;
+        alert("Activation email dispatch failed, but registration was verified. Redirecting to workspace.");
+        window.location.href = redirectSuccessUrl;
       }
     });
 
+    // Run verification initialization
     window.addEventListener("DOMContentLoaded", initCheckout);
   </script>
 </body>
