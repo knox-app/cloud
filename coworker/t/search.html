@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fable Search (Test 1)</title>
+    <style>
+        :root {
+            --bg-color: #fcfbf7;
+            --text-color: #2c2c2c;
+            --primary-color: #5c4d7d;
+            --primary-hover: #453760;
+            --border-color: #e0dcd3;
+            --card-bg: #ffffff;
+            --snippet-color: #555555;
+            --link-color: #1a0dab;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --primary-color: #9d8db9;
+            --primary-hover: #b5a8cf;
+            --border-color: #2d2d2d;
+            --card-bg: #1d1d1d;
+            --snippet-color: #b0b0b0;
+            --link-color: #8ab4f8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 1rem 2rem;
+            gap: 1rem;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-family: inherit;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .btn-icon:hover {
+            opacity: 0.9;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-container {
+            width: 100%;
+            text-align: center;
+            margin-top: 5vh;
+            transition: margin-top 0.5s ease;
+        }
+
+        .search-container.results-active {
+            margin-top: 0;
+        }
+
+        .brand h1 {
+            font-family: 'Georgia', serif;
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            font-weight: normal;
+        }
+
+        .brand p {
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            opacity: 0.7;
+            letter-spacing: 1px;
+        }
+
+        .search-form {
+            width: 100%;
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            outline: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s;
+        }
+
+        .search-input:focus {
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            border-color: var(--primary-color);
+        }
+
+        .search-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .search-button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Results Area */
+        .results-container {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .result-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .result-url {
+            font-size: 0.85rem;
+            color: var(--snippet-color);
+            word-break: break-all;
+            margin-bottom: 0.3rem;
+            display: block;
+        }
+
+        .result-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-title a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+
+        .result-title a:hover {
+            text-decoration: underline;
+        }
+
+        .result-snippet {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--snippet-color);
+        }
+
+        /* Modal Settings */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+
+        .save-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+
+        /* States */
+        .status-message {
+            text-align: center;
+            padding: 2rem;
+            font-style: italic;
+            color: var(--snippet-color);
+        }
+
+        .loading-spinner {
+            display: none;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.8rem;
+            opacity: 0.6;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+        }
+
+        @media (max-width: 600px) {
+            .search-form {
+                flex-direction: column;
+            }
+            .search-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <button class="btn-icon" id="themeToggleBtn" title="Toggle Theme" aria-label="Toggle Theme">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707M12 5a7 7 0 100 14 7 7 0 000-14z"></path>
+            </svg>
+        </button>
+        <button class="btn-icon" id="settingsBtn" title="API Settings" aria-label="API Settings">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+        </button>
+    </header>
+
+    <main>
+        <div class="search-container" id="searchContainer">
+            <div class="brand">
+                <h1>Fable Search</h1>
+                <p>TEST 1</p>
+            </div>
+            
+            <form class="search-form" id="searchForm">
+                <div class="search-input-wrapper">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Enter your search query..." autocomplete="off" required>
+                </div>
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        </div>
+
+        <div class="loading-spinner" id="loadingSpinner"></div>
+        <div id="statusMessage" class="status-message" style="display: none;"></div>
+
+        <section class="results-container" id="resultsContainer">
+            <!-- Dynamically populated search results go here -->
+        </section>
+    </main>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>OpenSERP Settings</h2>
+                <button class="modal-close" id="closeSettingsBtn">&times;</button>
+            </div>
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="apiUrlInput">OpenSERP Base API URL</label>
+                    <input type="url" id="apiUrlInput" placeholder="http://localhost:7000" required>
+                    <small style="opacity: 0.7; font-size: 0.8rem; display: block; margin-top: 0.25rem;">Ensure CORS is enabled or your API is accessible from this browser.</small>
+                </div>
+                <div class="form-group">
+                    <label for="engineSelect">Search Engine</label>
+                    <select id="engineSelect">
+                        <option value="google">Google</option>
+                        <option value="yandex">Yandex</option>
+                        <option value="baidu">Baidu</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="limitInput">Results Limit</label>
+                    <input type="number" id="limitInput" min="1" max="100" value="10">
+                </div>
+                <button type="submit" class="save-btn">Save Configurations</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        Fable Search (Test 1) &bull; Powered by OpenSERP API
+    </footer>
+
+    <script>
+        // Default API configuration values
+        const DEFAULTS = {
+            apiUrl: 'http://localhost:7000',
+            engine: 'google',
+            limit: 10,
+            theme: 'light'
+        };
+
+        // Cache DOM elements
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const searchContainer = document.getElementById('searchContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const statusMessage = document.getElementById('statusMessage');
+        
+        // Modal elements
+        const settingsModal = document.getElementById('settingsModal');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const settingsForm = document.getElementById('settingsForm');
+        const apiUrlInput = document.getElementById('apiUrlInput');
+        const engineSelect = document.getElementById('engineSelect');
+        const limitInput = document.getElementById('limitInput');
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+        // Initialize state from LocalStorage or defaults
+        let config = {
+            apiUrl: localStorage.getItem('openserp_url') || DEFAULTS.apiUrl,
+            engine: localStorage.getItem('openserp_engine') || DEFAULTS.engine,
+            limit: parseInt(localStorage.getItem('openserp_limit'), 10) || DEFAULTS.limit,
+            theme: localStorage.getItem('fable_theme') || DEFAULTS.theme
+        };
+
+        // Apply theme on load
+        document.documentElement.setAttribute('data-theme', config.theme);
+
+        // Fill setting inputs with loaded state
+        apiUrlInput.value = config.apiUrl;
+        engineSelect.value = config.engine;
+        limitInput.value = config.limit;
+
+        // Theme Toggle Handler
+        themeToggleBtn.addEventListener('click', () => {
+            const nextTheme = config.theme === 'light' ? 'dark' : 'light';
+            config.theme = nextTheme;
+            localStorage.setItem('fable_theme', nextTheme);
+            document.documentElement.setAttribute('data-theme', nextTheme);
+        });
+
+        // Settings Modal Handlers
+        settingsBtn.addEventListener('click', () => settingsModal.style.display = 'flex');
+        closeSettingsBtn.addEventListener('click', () => settingsModal.style.display = 'none');
+        window.addEventListener('click', (e) => {
+            if (e.target === settingsModal) settingsModal.style.display = 'none';
+        });
+
+        settingsForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            config.apiUrl = apiUrlInput.value.trim().replace(/\/$/, ""); // Strip trailing slash
+            config.engine = engineSelect.value;
+            config.limit = parseInt(limitInput.value, 10);
+
+            localStorage.setItem('openserp_url', config.apiUrl);
+            localStorage.setItem('openserp_engine', config.engine);
+            localStorage.setItem('openserp_limit', config.limit);
+
+            settingsModal.style.display = 'none';
+            showStatus(`Settings saved successfully. Base endpoint: ${config.apiUrl}`, 3000);
+        });
+
+        // Search Form Submission Handler
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            performSearch(query);
+        });
+
+        // Search Function
+        async function performSearch(query) {
+            // Adjust layouts
+            searchContainer.classList.add('results-active');
+            resultsContainer.style.display = 'none';
+            statusMessage.style.display = 'none';
+            loadingSpinner.style.display = 'block';
+
+            // Construct endpoint URL according to typical OpenSERP routes
+            // OpenSERP endpoint structure: {host}/{engine}/search?lang=en&limit={limit}&text={query}
+            const requestUrl = `${config.apiUrl}/${config.engine}/search?lang=en&limit=${config.limit}&text=${encodeURIComponent(query)}`;
+
+            try {
+                const response = await fetch(requestUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP Error Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                renderResults(data);
+
+            } catch (error) {
+                console.error("Search Error:", error);
+                showStatus(`Failed to fetch results. Make sure OpenSERP is running at <a href="${config.apiUrl}" target="_blank">${config.apiUrl}</a> and CORS allows connection. <br><br>Error details: ${error.message}`);
+            } finally {
+                loadingSpinner.style.display = 'none';
+            }
+        }
+
+        // Render Results to UI
+        function renderResults(results) {
+            resultsContainer.innerHTML = '';
+            
+            if (!results || results.length === 0) {
+                showStatus("No results found or invalid response received from the OpenSERP server.");
+                return;
+            }
+
+            resultsContainer.style.display = 'flex';
+
+            results.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+
+                const displayUrl = item.url || '#';
+                const displayTitle = item.title || 'Untitled';
+                const displayDescription = item.description || 'No description available.';
+
+                card.innerHTML = `
+                    <span class="result-url">${escapeHTML(displayUrl)}</span>
+                    <h2 class="result-title">
+                        <a href="${escapeHTML(displayUrl)}" target="_blank" rel="noopener">${escapeHTML(displayTitle)}</a>
+                    </h2>
+                    <p class="result-snippet">${escapeHTML(displayDescription)}</p>
+                `;
+                resultsContainer.appendChild(card);
+            });
+        }
+
+        // Helper: Show Message
+        function showStatus(msg, timeout = 0) {
+            statusMessage.innerHTML = msg;
+            statusMessage.style.display = 'block';
+            if (timeout > 0) {
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, timeout);
+            }
+        }
+
+        // Helper: Sanitize HTML strings
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+    </script>
+</body>
+</html>
