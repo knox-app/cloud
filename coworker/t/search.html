@@ -68,10 +68,6 @@
             color: var(--text-color);
         }
 
-        .btn-icon:hover {
-            opacity: 0.9;
-        }
-
         main {
             flex: 1;
             display: flex;
@@ -90,10 +86,6 @@
             transition: margin-top 0.5s ease;
         }
 
-        .search-container.results-active {
-            margin-top: 0;
-        }
-
         .brand h1 {
             font-family: 'Georgia', serif;
             font-size: 3rem;
@@ -104,9 +96,21 @@
 
         .brand p {
             font-size: 0.9rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             opacity: 0.7;
             letter-spacing: 1px;
+        }
+
+        .api-indicator {
+            font-size: 0.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--snippet-color);
+            font-family: monospace;
+            background: var(--card-bg);
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            display: inline-block;
         }
 
         .search-form {
@@ -131,11 +135,9 @@
             color: var(--text-color);
             outline: none;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: box-shadow 0.2s;
         }
 
         .search-input:focus {
-            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
             border-color: var(--primary-color);
         }
 
@@ -146,7 +148,6 @@
             border-radius: 30px;
             font-weight: bold;
             font-size: 1rem;
-            transition: background-color 0.2s;
         }
 
         .search-button:hover {
@@ -167,7 +168,6 @@
             border: 1px solid var(--border-color);
             padding: 1.5rem;
             border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
         }
 
         .result-url {
@@ -219,7 +219,6 @@
             border-radius: 12px;
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
 
         .modal-header {
@@ -253,7 +252,6 @@
             border: 1px solid var(--border-color);
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-size: 0.95rem;
         }
 
         .save-btn {
@@ -263,15 +261,28 @@
             border-radius: 6px;
             width: 100%;
             font-weight: bold;
-            margin-top: 1rem;
         }
 
-        /* States */
-        .status-message {
-            text-align: center;
-            padding: 2rem;
-            font-style: italic;
-            color: var(--snippet-color);
+        /* Troubleshooting Guide Box */
+        .troubleshoot-box {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .troubleshoot-box h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        .troubleshoot-box ul {
+            margin-left: 1.25rem;
+            margin-top: 0.5rem;
         }
 
         .loading-spinner {
@@ -298,30 +309,16 @@
             border-top: 1px solid var(--border-color);
             margin-top: auto;
         }
-
-        @media (max-width: 600px) {
-            .search-form {
-                flex-direction: column;
-            }
-            .search-button {
-                width: 100%;
-            }
-        }
     </style>
 </head>
 <body>
 
     <header>
-        <button class="btn-icon" id="themeToggleBtn" title="Toggle Theme" aria-label="Toggle Theme">
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707M12 5a7 7 0 100 14 7 7 0 000-14z"></path>
-            </svg>
+        <button class="btn-icon" id="themeToggleBtn" title="Toggle Theme">
+            &#9788;
         </button>
-        <button class="btn-icon" id="settingsBtn" title="API Settings" aria-label="API Settings">
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-            </svg>
+        <button class="btn-icon" id="settingsBtn" title="API Settings">
+            &#9881;
         </button>
     </header>
 
@@ -330,6 +327,10 @@
             <div class="brand">
                 <h1>Fable Search</h1>
                 <p>TEST 1</p>
+            </div>
+            
+            <div>
+                <span class="api-indicator" id="apiIndicator">Endpoint: Loading...</span>
             </div>
             
             <form class="search-form" id="searchForm">
@@ -341,10 +342,10 @@
         </div>
 
         <div class="loading-spinner" id="loadingSpinner"></div>
-        <div id="statusMessage" class="status-message" style="display: none;"></div>
+        <div id="statusMessage" style="display: none; width: 100%;"></div>
 
         <section class="results-container" id="resultsContainer">
-            <!-- Dynamically populated search results go here -->
+            <!-- Search results are dynamically output here -->
         </section>
     </main>
 
@@ -358,8 +359,8 @@
             <form id="settingsForm">
                 <div class="form-group">
                     <label for="apiUrlInput">OpenSERP Base API URL</label>
-                    <input type="url" id="apiUrlInput" placeholder="http://localhost:7000" required>
-                    <small style="opacity: 0.7; font-size: 0.8rem; display: block; margin-top: 0.25rem;">Ensure CORS is enabled or your API is accessible from this browser.</small>
+                    <input type="text" id="apiUrlInput" placeholder="http://localhost:7000" required>
+                    <small style="opacity: 0.7; font-size: 0.8rem; display: block; margin-top: 0.25rem;">Must include http:// or https://</small>
                 </div>
                 <div class="form-group">
                     <label for="engineSelect">Search Engine</label>
@@ -383,7 +384,6 @@
     </footer>
 
     <script>
-        // Default API configuration values
         const DEFAULTS = {
             apiUrl: 'http://localhost:7000',
             engine: 'google',
@@ -398,6 +398,7 @@
         const resultsContainer = document.getElementById('resultsContainer');
         const loadingSpinner = document.getElementById('loadingSpinner');
         const statusMessage = document.getElementById('statusMessage');
+        const apiIndicator = document.getElementById('apiIndicator');
         
         // Modal elements
         const settingsModal = document.getElementById('settingsModal');
@@ -409,7 +410,7 @@
         const limitInput = document.getElementById('limitInput');
         const themeToggleBtn = document.getElementById('themeToggleBtn');
 
-        // Initialize state from LocalStorage or defaults
+        // Load configuration
         let config = {
             apiUrl: localStorage.getItem('openserp_url') || DEFAULTS.apiUrl,
             engine: localStorage.getItem('openserp_engine') || DEFAULTS.engine,
@@ -417,15 +418,18 @@
             theme: localStorage.getItem('fable_theme') || DEFAULTS.theme
         };
 
-        // Apply theme on load
-        document.documentElement.setAttribute('data-theme', config.theme);
+        // Enforce protocol validation on loaded configuration
+        sanitizeConfigUrl();
 
-        // Fill setting inputs with loaded state
+        // Apply theme and indicators
+        document.documentElement.setAttribute('data-theme', config.theme);
+        updateApiIndicator();
+
         apiUrlInput.value = config.apiUrl;
         engineSelect.value = config.engine;
         limitInput.value = config.limit;
 
-        // Theme Toggle Handler
+        // Theme Toggle
         themeToggleBtn.addEventListener('click', () => {
             const nextTheme = config.theme === 'light' ? 'dark' : 'light';
             config.theme = nextTheme;
@@ -433,7 +437,7 @@
             document.documentElement.setAttribute('data-theme', nextTheme);
         });
 
-        // Settings Modal Handlers
+        // Settings Modal
         settingsBtn.addEventListener('click', () => settingsModal.style.display = 'flex');
         closeSettingsBtn.addEventListener('click', () => settingsModal.style.display = 'none');
         window.addEventListener('click', (e) => {
@@ -442,7 +446,15 @@
 
         settingsForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            config.apiUrl = apiUrlInput.value.trim().replace(/\/$/, ""); // Strip trailing slash
+            let inputUrl = apiUrlInput.value.trim();
+            
+            // Force protocol prefixing to prevent relative path translation
+            if (!/^https?:\/\//i.test(inputUrl)) {
+                inputUrl = 'http://' + inputUrl;
+            }
+            inputUrl = inputUrl.replace(/\/$/, ""); // Remove trailing slash
+
+            config.apiUrl = inputUrl;
             config.engine = engineSelect.value;
             config.limit = parseInt(limitInput.value, 10);
 
@@ -450,29 +462,33 @@
             localStorage.setItem('openserp_engine', config.engine);
             localStorage.setItem('openserp_limit', config.limit);
 
+            updateApiIndicator();
             settingsModal.style.display = 'none';
-            showStatus(`Settings saved successfully. Base endpoint: ${config.apiUrl}`, 3000);
         });
 
-        // Search Form Submission Handler
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const query = searchInput.value.trim();
-            if (!query) return;
-
-            performSearch(query);
+            if (query) performSearch(query);
         });
 
-        // Search Function
+        function sanitizeConfigUrl() {
+            if (!/^https?:\/\//i.test(config.apiUrl)) {
+                config.apiUrl = 'http://localhost:7000';
+                localStorage.setItem('openserp_url', config.apiUrl);
+            }
+        }
+
+        function updateApiIndicator() {
+            apiIndicator.textContent = `Endpoint: ${config.apiUrl}/${config.engine}/search`;
+        }
+
         async function performSearch(query) {
-            // Adjust layouts
-            searchContainer.classList.add('results-active');
             resultsContainer.style.display = 'none';
             statusMessage.style.display = 'none';
             loadingSpinner.style.display = 'block';
 
-            // Construct endpoint URL according to typical OpenSERP routes
-            // OpenSERP endpoint structure: {host}/{engine}/search?lang=en&limit={limit}&text={query}
+            // Clean construct URL
             const requestUrl = `${config.apiUrl}/${config.engine}/search?lang=en&limit=${config.limit}&text=${encodeURIComponent(query)}`;
 
             try {
@@ -487,18 +503,18 @@
 
             } catch (error) {
                 console.error("Search Error:", error);
-                showStatus(`Failed to fetch results. Make sure OpenSERP is running at <a href="${config.apiUrl}" target="_blank">${config.apiUrl}</a> and CORS allows connection. <br><br>Error details: ${error.message}`);
+                showTroubleshootingMsg(requestUrl, error.message);
             } finally {
                 loadingSpinner.style.display = 'none';
             }
         }
 
-        // Render Results to UI
         function renderResults(results) {
             resultsContainer.innerHTML = '';
             
             if (!results || results.length === 0) {
-                showStatus("No results found or invalid response received from the OpenSERP server.");
+                statusMessage.innerHTML = `<p style="text-align:center;">No results returned from the engine.</p>`;
+                statusMessage.style.display = 'block';
                 return;
             }
 
@@ -507,34 +523,58 @@
             results.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'result-card';
-
-                const displayUrl = item.url || '#';
-                const displayTitle = item.title || 'Untitled';
-                const displayDescription = item.description || 'No description available.';
-
                 card.innerHTML = `
-                    <span class="result-url">${escapeHTML(displayUrl)}</span>
+                    <span class="result-url">${escapeHTML(item.url || '#')}</span>
                     <h2 class="result-title">
-                        <a href="${escapeHTML(displayUrl)}" target="_blank" rel="noopener">${escapeHTML(displayTitle)}</a>
+                        <a href="${escapeHTML(item.url || '#')}" target="_blank" rel="noopener">${escapeHTML(item.title || 'Untitled')}</a>
                     </h2>
-                    <p class="result-snippet">${escapeHTML(displayDescription)}</p>
+                    <p class="result-snippet">${escapeHTML(item.description || 'No description available.')}</p>
                 `;
                 resultsContainer.appendChild(card);
             });
         }
 
-        // Helper: Show Message
-        function showStatus(msg, timeout = 0) {
-            statusMessage.innerHTML = msg;
-            statusMessage.style.display = 'block';
-            if (timeout > 0) {
-                setTimeout(() => {
-                    statusMessage.style.display = 'none';
-                }, timeout);
+        function showTroubleshootingMsg(attemptedUrl, errorMsg) {
+            const isHttpsHost = window.location.protocol === 'https:';
+            const isHttpTarget = attemptedUrl.startsWith('http://');
+
+            let errorHtml = `
+                <div class="result-card" style="border-color: #f5c6cb;">
+                    <p style="color: #721c24; font-weight: bold; margin-bottom: 0.5rem;">Connection Failed</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;"><strong>Attempted API Target:</strong> <code style="word-break: break-all;">${escapeHTML(attemptedUrl)}</code></p>
+                    <p style="font-size: 0.9rem; margin-bottom: 1rem;"><strong>System Error:</strong> <code>${escapeHTML(errorMsg)}</code></p>
+            `;
+
+            if (isHttpsHost && isHttpTarget) {
+                errorHtml += `
+                    <div class="troubleshoot-box">
+                        <h4>&#9888; Mixed Content Blocked</h4>
+                        <p>You are accessing this search page over <strong>HTTPS</strong> (GitHub Pages), but your configured OpenSERP URL is using unsecure <strong>HTTP</strong> (localhost).</p>
+                        <p><strong>How to fix this:</strong></p>
+                        <ul>
+                            <li><strong>Option A:</strong> Download this <code>index.html</code> file to your computer and run it locally (from your hard drive or a local HTTP server). Browsers allow local files to make HTTP requests.</li>
+                            <li><strong>Option B:</strong> Secure your OpenSERP endpoint with HTTPS (using a reverse proxy like Nginx or a tunnel service like Ngrok) and update your settings endpoint to use <code>https://</code>.</li>
+                        </ul>
+                    </div>
+                `;
+            } else {
+                errorHtml += `
+                    <div class="troubleshoot-box">
+                        <h4>&#9881; Troubleshooting Connection Checklist:</h4>
+                        <ul>
+                            <li>Verify that your OpenSERP instance is active and running.</li>
+                            <li>Click the gear icon in the top right corner to verify the base URL configuration.</li>
+                            <li>Ensure CORS policies are enabled on your OpenSERP backend server configuration.</li>
+                        </ul>
+                    </div>
+                `;
             }
+
+            errorHtml += `</div>`;
+            statusMessage.innerHTML = errorHtml;
+            statusMessage.style.display = 'block';
         }
 
-        // Helper: Sanitize HTML strings
         function escapeHTML(str) {
             if (!str) return '';
             return str.replace(/[&<>'"]/g, 
