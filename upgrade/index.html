@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plans & Subscriptions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --claude-bg: #f9f5f0;
+            --card-white: #ffffff;
+            --text-main: #1d1d1b;
+            --text-muted: #666665;
+            --claude-orange: #d97757;
+            --border: #eceae7;
+            --highlight: #fdf0ea;
+            --highlight-text: #b85c3b;
+        }
+
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--claude-bg);
+            color: var(--text-main);
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .container { width: 100%; max-width: 480px; }
+
+        h1 { font-size: 26px; font-weight: 700; margin: 8px 0 20px; letter-spacing: -0.5px; text-align: center; }
+
+        /* Switcher */
+        .switcher {
+            display: flex; background: #eeedea; padding: 4px; border-radius: 12px;
+            margin: 0 auto 32px auto; width: fit-content;
+        }
+        .switch-btn {
+            padding: 8px 24px; font-size: 14px; font-weight: 600; border-radius: 9px;
+            cursor: pointer; color: var(--text-muted); transition: 0.2s;
+        }
+        .switch-btn.active { background: white; color: var(--text-main); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        /* Plan Card */
+        .card {
+            background: var(--card-white);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 32px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+
+        .brand-logo { width: 44px; height: 44px; object-fit: cover; border-radius: 12px; margin-bottom: 18px; }
+
+        .plan-name { font-size: 24px; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
+        .plan-sub { font-size: 14.5px; color: var(--text-muted); margin: 6px 0 22px 0; line-height: 1.4; }
+
+        .price-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 24px; }
+        .price-val { font-size: 40px; font-weight: 700; color: var(--text-main); }
+        .price-meta { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+
+        .cta-button {
+            display: block; width: 100%; text-align: center;
+            background: #111111;
+            color: white;
+            padding: 13px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: opacity 0.2s;
+            margin-bottom: 28px;
+        }
+        .cta-button:hover { opacity: 0.9; }
+
+        /* Feature List */
+        .feature-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--border); padding-top: 24px; }
+        .feature-item { display: flex; align-items: flex-start; margin-bottom: 14px; font-size: 14.5px; line-height: 1.5; color: #4b4b49; }
+        .tick-icon { width: 17px; height: 17px; color: #b2b0ad; margin-right: 12px; margin-top: 2px; flex-shrink: 0; }
+
+        /* Inline highlight for bracketed text — scannable, no tap needed */
+        .highlight-box {
+            background-color: var(--highlight);
+            color: var(--highlight-text);
+            padding: 1px 6px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+        .loader { padding: 60px; text-align: center; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Plans</h1>
+
+        <div class="switcher">
+            <div id="btn-ind" class="switch-btn active" onclick="loadTab('Individual')">Individual</div>
+            <div id="btn-org" class="switch-btn" onclick="loadTab('Organizations')">Enterprise</div>
+        </div>
+
+        <div id="plans-outlet">
+            <div class="loader">Loading plans...</div>
+        </div>
+    </div>
+
+    <script>
+        // Paste your own Firebase project config here — never load it from a third-party script.
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "question-metabase",
+            storageBucket: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "1:770698198753:web:59ae49d78b6013bab5c1a0"
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let activeType = urlParams.get('plans') === 'Organization' ? 'Organizations' : 'Individual';
+        const isIndia = urlParams.get('c') === 'india';
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
+
+            const tickSvg = `<svg class="tick-icon" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+
+            // Bracketed text <like this> becomes an inline highlight — no tap required
+            function formatBullets(text) {
+                if (!text) return "";
+                return text.replace(/<(.*?)>/g, '<span class="highlight-box">$1</span>');
+            }
+
+            async function renderPlans(type) {
+                const outlet = document.getElementById('plans-outlet');
+                outlet.innerHTML = '<div class="loader">Refreshing...</div>';
+
+                document.getElementById('btn-ind').classList.toggle('active', type === 'Individual');
+                document.getElementById('btn-org').classList.toggle('active', type === 'Organizations');
+
+                try {
+                    const snap = await db.collection("Plans & Subscriptions").where("Type", "==", type).get();
+                    outlet.innerHTML = "";
+
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        const p = isIndia ? d["Price (INR)"] : d["Price (USD)"];
+                        const currency = isIndia ? "₹" : "$";
+
+                        const iconMarkup = d.Icon ? `<img src="${d.Icon}" class="brand-logo" alt="logo">` : '';
+
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.innerHTML = `
+                            ${iconMarkup}
+                            <h2 class="plan-name">${d.Name}</h2>
+                            <p class="plan-sub">${d["Semi Subject"] || ''}</p>
+
+                            <div class="price-row">
+                                <span class="price-val">${currency}${p}</span>
+                                <span class="price-meta">/ month</span>
+                            </div>
+
+                            <a href="${d.Redirect}" class="cta-button">Get started</a>
+
+                            <ul class="feature-list">
+                                ${d["Bullet Points"].map(bullet => `
+                                    <li class="feature-item">
+                                        ${tickSvg}
+                                        <span>${formatBullets(bullet)}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        `;
+                        outlet.appendChild(card);
+                    });
+                } catch (e) { outlet.innerHTML = "Service unavailable."; }
+            }
+
+            window.loadTab = (t) => {
+                activeType = t;
+                renderPlans(t);
+            };
+
+            renderPlans(activeType);
+
+        } catch (err) { console.error("Config check:", err); }
+    </script>
+</body>
+      </html>
+      
