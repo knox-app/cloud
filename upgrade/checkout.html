@@ -150,7 +150,7 @@
   </main>
 
   <footer class="bg-gray-100 py-6 border-t border-gray-200">
-    <div class="max-w-6xl mx-auto px-4 text-center text-xs text-gray-500">
+    <div class="max-w-6xl auto px-4 text-center text-xs text-gray-500">
       &copy; 2026 Paymintly. All rights reserved. Managed under RBI digital framework compliances.
     </div>
   </footer>
@@ -226,10 +226,11 @@
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session');
         const apiKeyParam = urlParams.get('api');
-        const paymentId = urlParams.get('payment');
+        // CHANGED: Use 'type' parameter instead of 'payment'
+        const planId = urlParams.get('type'); 
 
-        if (!sessionId || !apiKeyParam || !paymentId) {
-          showError("Initialization parameters are incomplete. Please verify the URL structure.");
+        if (!sessionId || !apiKeyParam || !planId) {
+          showError("Initialization parameters are incomplete. Please verify the URL structure (session, api, type).");
           return;
         }
 
@@ -284,8 +285,8 @@
           }
         }
 
-        // 3. Fetch subscription details
-        const planDoc = await db.collection("Plans & Subscriptions").doc(paymentId).get();
+        // 3. Fetch subscription details using planId (from 'type' param)
+        const planDoc = await db.collection("Plans & Subscriptions").doc(planId).get();
         if (!planDoc.exists) {
           showError("The selected subscription option is no longer available.");
           return;
@@ -413,4 +414,4 @@
     window.addEventListener("DOMContentLoaded", initCheckout);
   </script>
 </body>
-                </html>
+  </html>
