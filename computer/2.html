@@ -3,167 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xperts | Production PDF Generator</title>
+    <title>Xperts Pro | PDF Document Studio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
     
-    <!-- External Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
-            --bg-app: #f8f9fa;
+            --bg-app: #f1f3f4;
             --bg-paper: #ffffff;
             --text-main: #1a1a1a;
             --text-muted: #5f6368;
             --border-color: #dadce0;
             --accent: #1a73e8;
             --toolbar-bg: #ffffff;
-            --shadow: 0 1px 3px rgba(0,0,0,0.12);
+            --shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+            --edit-outline: transparent;
         }
 
         [data-theme="dark"] {
-            --bg-app: #121212;
-            --bg-paper: #1e1e1e;
-            --text-main: #e8eaed;
-            --text-muted: #9aa0a6;
+            --bg-app: #202124;
+            --bg-paper: #ffffff; /* We keep the paper white for high-quality PDF contrast even in dark mode */
+            --text-main: #1a1a1a; /* Text remains dark on white paper */
+            --text-muted: #5f6368;
             --border-color: #3c4043;
-            --accent: #8ab4f8;
             --toolbar-bg: #2d2e31;
-            --shadow: 0 4px 6px rgba(0,0,0,0.3);
+            --accent: #8ab4f8;
         }
 
+        [data-theme="dark"] body { color: #e8eaed; background-color: var(--bg-app); }
+
         * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-app);
-            color: var(--text-main);
-            transition: background 0.3s ease;
-        }
+        body { margin: 0; font-family: 'Inter', sans-serif; transition: background 0.3s; }
 
         /* Toolbar */
         .toolbar {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            height: 60px;
-            background: var(--toolbar-bg);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 1000;
-            box-shadow: var(--shadow);
-        }
-
-        .toolbar-title { font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
-        .nav-buttons { display: flex; gap: 8px; }
-
-        .btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            border: 1px solid var(--border-color);
-            background: var(--bg-paper);
+            position: fixed; top: 0; left: 0; right: 0; height: 64px;
+            background: var(--toolbar-bg); border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; z-index: 1000; box-shadow: var(--shadow);
             color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: 0.2s;
-        }
-        .btn:hover { background: var(--bg-app); }
-        .btn-primary { background: var(--accent); color: white; border: none; }
-        .btn-primary:hover { opacity: 0.9; }
-
-        /* Document Layout */
-        .viewport {
-            margin-top: 80px;
-            display: flex;
-            justify-content: center;
-            padding-bottom: 40px;
         }
 
-        #pdf-content {
-            width: 210mm;
-            min-height: 297mm;
-            background: white;
-            color: #000; /* Standard black text for PDF consistency */
-            padding: 25mm;
-            box-shadow: var(--shadow);
-            position: relative;
+        [data-theme="dark"] .toolbar { color: #e8eaed; }
+
+        .toolbar-group { display: flex; align-items: center; gap: 8px; }
+        .toolbar-label { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-right: 4px; }
+
+        select, .btn {
+            height: 36px; padding: 0 12px; border-radius: 4px; border: 1px solid var(--border-color);
+            background: var(--toolbar-bg); color: inherit; font-family: inherit; font-size: 14px;
+            cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s;
+        }
+        .btn:hover { background: rgba(0,0,0,0.05); }
+        [data-theme="dark"] .btn:hover { background: rgba(255,255,255,0.1); }
+        .btn-primary { background: var(--accent); color: white; border: none; font-weight: 600; }
+        .btn-active { border-color: var(--accent); background: rgba(26, 115, 232, 0.1); color: var(--accent); }
+
+        /* Document Viewport */
+        .viewport { margin-top: 84px; display: flex; justify-content: center; padding-bottom: 60px; overflow-x: auto; }
+
+        #document-canvas {
+            background: white; color: #000; box-shadow: var(--shadow);
+            padding: 20mm; position: relative; transition: width 0.3s ease;
+            outline: none;
         }
 
-        [data-theme="dark"] #pdf-content { color: #000; background: white; } /* Keep PDF white even in dark mode for view */
+        /* Page Size Classes */
+        .size-a4 { width: 210mm; min-height: 297mm; }
+        .size-letter { width: 216mm; min-height: 279mm; }
+        .size-full { width: 95%; min-height: 100vh; }
 
-        /* Document Elements Styles */
-        .doc-title { font-size: 32pt; font-weight: 700; margin-bottom: 10pt; line-height: 1.2; }
-        .doc-author { font-size: 14pt; color: #666; margin-bottom: 40pt; border-bottom: 2px solid #eee; padding-bottom: 10pt; }
-        
-        h1 { font-size: 24pt; margin-top: 30pt; }
-        h2 { font-size: 18pt; margin-top: 20pt; border-left: 4px solid var(--accent); padding-left: 15px; }
-        p { font-size: 11pt; line-height: 1.6; margin-bottom: 12pt; text-align: justify; }
-        
-        ul, ol { margin-bottom: 15pt; }
-        li { margin-bottom: 5pt; font-size: 11pt; }
+        /* Editing Mode */
+        [contenteditable="true"]:hover { background-color: rgba(26, 115, 232, 0.05); outline: 1px dashed var(--accent); }
+        .edit-mode-active { border: 2px solid var(--accent) !important; }
 
-        table { width: 100%; border-collapse: collapse; margin: 20pt 0; }
-        th, td { border: 1px solid #ddd; padding: 10pt; text-align: left; font-size: 10pt; }
-        th { background: #f4f4f4; font-weight: 600; }
+        /* Typography */
+        h1, h2, h3, p, li, td, th { outline: none; }
+        .doc-title { font-size: 28pt; font-weight: 700; margin-bottom: 8pt; }
+        .doc-author { font-size: 12pt; color: #666; margin-bottom: 30pt; padding-bottom: 10pt; border-bottom: 1px solid #eee; }
+        h1 { font-size: 22pt; margin-top: 25pt; }
+        h2 { font-size: 16pt; margin-top: 18pt; color: #1a73e8; }
+        p { font-size: 11pt; line-height: 1.6; margin-bottom: 10pt; text-align: justify; }
+        table { width: 100%; border-collapse: collapse; margin: 15pt 0; }
+        th, td { border: 1px solid #ddd; padding: 8pt; font-size: 10pt; }
+        th { background: #f8f9fa; }
+        blockquote { border-left: 4px solid #1a73e8; margin: 15pt 0; padding: 10pt 20pt; background: #f1f3f4; font-style: italic; }
+        pre { background: #272c34; color: #fff; padding: 15pt; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 9pt; }
+        .chart-container { margin: 25pt 0; height: 350px; page-break-inside: avoid; }
+        .page-break { page-break-after: always; height: 0; margin: 0; }
 
-        blockquote { border-left: 4px solid #ccc; margin: 20pt 0; padding: 10pt 20pt; font-style: italic; background: #fafafa; }
-        
-        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; font-family: 'JetBrains Mono', monospace; font-size: 10pt; overflow-x: auto; }
-
-        .chart-box { margin: 30pt 0; height: 350px; page-break-inside: avoid; }
-        .divider { border: 0; border-top: 1px solid #eee; margin: 30pt 0; }
-        .page-break { page-break-after: always; }
-
-        /* Loader & Errors */
-        #status-overlay {
-            position: fixed; top: 60px; left: 0; right: 0; bottom: 0;
+        /* Status & Overlays */
+        #status-screen {
+            position: fixed; top: 64px; left: 0; right: 0; bottom: 0;
             background: var(--bg-app); display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 2000;
         }
-        .spinner { width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s infinite linear; }
+        .loader { width: 48px; height: 48px; border: 5px solid var(--border-color); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s infinite linear; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none !important; }
-        .error-card { text-align: center; max-width: 400px; padding: 20px; }
+
+        @media print { .toolbar { display: none; } .viewport { margin: 0; padding: 0; } #document-canvas { box-shadow: none; width: 100% !important; } }
     </style>
 </head>
 <body>
 
-    <div class="toolbar">
-        <div class="toolbar-title">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-            Xperts Document Generator
+    <header class="toolbar">
+        <div class="toolbar-group">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span style="font-weight:700">Xperts Studio</span>
         </div>
-        <div class="nav-buttons">
-            <button class="btn" onclick="toggleTheme()">Theme</button>
-            <button class="btn" onclick="location.reload()">Reload</button>
-            <button class="btn" onclick="window.print()">Print</button>
-            <button class="btn btn-primary" onclick="exportPDF()">Download PDF</button>
-        </div>
-    </div>
 
-    <div id="status-overlay">
-        <div id="loading-spinner" class="spinner"></div>
-        <div id="error-message" class="error-card hidden">
-            <h2 style="color:#d93025">Error</h2>
-            <p id="error-text"></p>
-            <button class="btn btn-primary" style="margin: 0 auto" onclick="location.reload()">Retry</button>
+        <div class="toolbar-group">
+            <span class="toolbar-label">Format</span>
+            <select id="pageSize" onchange="changePageSize(this.value)">
+                <option value="size-a4">A4 (Standard)</option>
+                <option value="size-letter">Letter</option>
+                <option value="size-full">Full Width</option>
+            </select>
         </div>
-        <p id="loading-text" style="margin-top: 15px;">Initializing SDK...</p>
+
+        <div class="toolbar-group">
+            <button id="editBtn" class="btn" onclick="toggleEditMode()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit Content
+            </button>
+            <button class="btn" onclick="toggleTheme()">Theme</button>
+            <button class="btn btn-primary" onclick="exportPDF()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download PDF
+            </button>
+        </div>
+    </header>
+
+    <div id="status-screen">
+        <div class="loader"></div>
+        <p id="status-text" style="margin-top: 20px; font-weight: 500;">Loading document engine...</p>
+        <div id="error-box" class="hidden" style="text-align:center">
+            <h3 style="color:#d93025">Connection Failed</h3>
+            <p id="error-msg"></p>
+            <button class="btn btn-primary" style="margin:auto" onclick="location.reload()">Retry Connection</button>
+        </div>
     </div>
 
     <main class="viewport">
-        <div id="pdf-content" class="hidden">
+        <article id="document-canvas" class="size-a4 hidden">
             <!-- Dynamic Content -->
-        </div>
+        </article>
     </main>
 
     <script type="module">
@@ -185,172 +174,178 @@
 
         const params = new URLSearchParams(window.location.search);
         const docId = params.get('id');
-        const theme = params.get('theme') || 'light';
-        const autoDownload = params.get('download') === 'true';
+        let isEditMode = false;
+        let chartInstances = [];
 
-        document.documentElement.setAttribute('data-theme', theme);
-
-        async function loadDocument() {
+        async function init() {
             if (!docId) {
-                showError("No Document ID provided in URL (?id=...)");
+                showError("No valid Document ID found in URL. Use ?id=DOCUMENT_ID");
                 return;
             }
 
             try {
-                // Based on screenshot, collection name is 'Computers'
+                // Accessing collection "Computers" as seen in user screenshot
                 const docRef = doc(db, "Computers", docId);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
-                    const rawData = docSnap.data();
-                    let jsonData;
-
-                    // Support both raw object or stringified field 'JSON'
-                    if (typeof rawData.JSON === 'string') {
-                        jsonData = JSON.parse(rawData.JSON);
-                    } else {
-                        jsonData = rawData;
-                    }
-
-                    render(jsonData);
+                    let data = docSnap.data();
+                    if (typeof data.JSON === 'string') data = JSON.parse(data.JSON);
+                    render(data);
                 } else {
-                    showError(`Document "${docId}" not found in "Computers" collection.`);
+                    showError(`The document ID "${docId}" does not exist in the database.`);
                 }
             } catch (e) {
-                showError("Failed to fetch data: " + e.message);
+                showError("Firestore Error: " + e.message);
             }
         }
 
         function render(data) {
-            const container = document.getElementById('pdf-content');
-            container.innerHTML = '';
+            const canvas = document.getElementById('document-canvas');
+            canvas.innerHTML = '';
 
             if (data.title) {
-                const title = document.createElement('div');
-                title.className = 'doc-title';
-                title.textContent = data.title;
-                container.appendChild(title);
+                const t = document.createElement('div');
+                t.className = 'doc-title';
+                t.textContent = data.title;
+                canvas.appendChild(t);
             }
 
             if (data.author) {
-                const author = document.createElement('div');
-                author.className = 'doc-author';
-                author.textContent = `Author: ${data.author}`;
-                container.appendChild(author);
+                const a = document.createElement('div');
+                a.className = 'doc-author';
+                a.textContent = `Author: ${data.author}`;
+                canvas.appendChild(a);
             }
 
             if (data.sections) {
-                data.sections.forEach((sec, index) => {
-                    const element = createSection(sec, index);
-                    if (element) container.appendChild(element);
+                data.sections.forEach((sec, idx) => {
+                    const el = buildElement(sec, idx);
+                    if (el) canvas.appendChild(el);
                 });
             }
 
-            document.getElementById('status-overlay').classList.add('hidden');
-            container.classList.remove('hidden');
+            document.getElementById('status-screen').classList.add('hidden');
+            canvas.classList.remove('hidden');
 
-            // Render Charts
-            data.sections.forEach((sec, index) => {
-                if (sec.type === 'chart') buildChart(sec, index);
+            // Initialize charts
+            data.sections.forEach((sec, idx) => {
+                if (sec.type === 'chart') createChart(sec, idx);
             });
 
-            if (autoDownload) {
-                setTimeout(exportPDF, 1500);
-            }
+            if (params.get('download') === 'true') setTimeout(exportPDF, 2000);
         }
 
-        function createSection(sec, idx) {
+        function buildElement(sec, idx) {
+            let el;
             switch(sec.type) {
                 case 'heading':
-                    const h = document.createElement(`h${sec.level || 1}`);
-                    h.textContent = sec.text;
-                    return h;
+                    el = document.createElement(`h${sec.level || 2}`);
+                    el.textContent = sec.text;
+                    break;
                 case 'paragraph':
-                    const p = document.createElement('p');
-                    p.textContent = sec.text;
-                    return p;
+                    el = document.createElement('p');
+                    el.textContent = sec.text;
+                    break;
                 case 'list':
-                    const list = document.createElement(sec.style === 'ordered' ? 'ol' : 'ul');
-                    sec.items.forEach(item => {
+                    el = document.createElement(sec.style === 'ordered' ? 'ol' : 'ul');
+                    sec.items.forEach(txt => {
                         const li = document.createElement('li');
-                        li.textContent = item;
-                        list.appendChild(li);
+                        li.textContent = txt;
+                        el.appendChild(li);
                     });
-                    return list;
+                    break;
                 case 'table':
-                    const table = document.createElement('table');
+                    el = document.createElement('table');
                     if (sec.columns) {
                         const tr = document.createElement('tr');
                         sec.columns.forEach(c => { const th = document.createElement('th'); th.textContent = c; tr.appendChild(th); });
-                        table.appendChild(tr);
+                        el.appendChild(tr);
                     }
                     sec.rows.forEach(r => {
                         const tr = document.createElement('tr');
-                        r.forEach(val => { const td = document.createElement('td'); td.textContent = val; tr.appendChild(td); });
-                        table.appendChild(tr);
+                        r.forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+                        el.appendChild(tr);
                     });
-                    return table;
+                    break;
                 case 'quote':
-                    const bq = document.createElement('blockquote');
-                    bq.textContent = sec.text;
-                    return bq;
+                    el = document.createElement('blockquote');
+                    el.textContent = sec.text;
+                    break;
                 case 'code':
-                    const pre = document.createElement('pre');
-                    pre.textContent = sec.text;
-                    return pre;
+                    el = document.createElement('pre');
+                    el.textContent = sec.text;
+                    break;
                 case 'image':
-                    const img = document.createElement('img');
-                    img.src = sec.url;
-                    img.style.maxWidth = '100%';
-                    return img;
+                    el = document.createElement('img');
+                    el.src = sec.url;
+                    el.style.width = '100%';
+                    break;
                 case 'chart':
-                    const div = document.createElement('div');
-                    div.className = 'chart-box';
-                    const canvas = document.createElement('canvas');
-                    canvas.id = `chart-${idx}`;
-                    div.appendChild(canvas);
-                    return div;
+                    el = document.createElement('div');
+                    el.className = 'chart-container';
+                    const can = document.createElement('canvas');
+                    can.id = `chart-${idx}`;
+                    el.appendChild(can);
+                    break;
                 case 'divider':
-                    const hr = document.createElement('hr');
-                    hr.className = 'divider';
-                    return hr;
+                    el = document.createElement('hr');
+                    el.style.margin = '20pt 0';
+                    break;
                 case 'page-break':
-                    const pb = document.createElement('div');
-                    pb.className = 'page-break';
-                    return pb;
-                default: return null;
+                    el = document.createElement('div');
+                    el.className = 'page-break';
+                    break;
             }
+            return el;
         }
 
-        function buildChart(sec, idx) {
+        function createChart(sec, idx) {
             const ctx = document.getElementById(`chart-${idx}`).getContext('2d');
-            new Chart(ctx, {
+            const inst = new Chart(ctx, {
                 type: (sec.chartType || 'bar').toLowerCase(),
                 data: {
                     labels: sec.labels || [],
                     datasets: [{
-                        label: sec.title || 'Data',
+                        label: sec.title || 'Report Data',
                         data: sec.values || [],
                         backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#9C27B0'],
                         borderWidth: 1
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: false,
-                    plugins: { legend: { position: 'bottom' } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, animation: false }
             });
+            chartInstances.push(inst);
         }
 
-        function showError(msg) {
-            document.getElementById('loading-spinner').classList.add('hidden');
-            document.getElementById('loading-text').classList.add('hidden');
-            const err = document.getElementById('error-message');
-            err.classList.remove('hidden');
-            document.getElementById('error-text').textContent = msg;
-        }
+        // Feature: Edit Mode
+        window.toggleEditMode = () => {
+            isEditMode = !isEditMode;
+            const btn = document.getElementById('editBtn');
+            const canvas = document.getElementById('document-canvas');
+            
+            if (isEditMode) {
+                btn.classList.add('btn-active');
+                btn.innerHTML = `Save & Lock`;
+                // Make all text elements editable
+                const targets = canvas.querySelectorAll('p, h1, h2, h3, li, td, th, blockquote, .doc-title, .doc-author');
+                targets.forEach(el => el.setAttribute('contenteditable', 'true'));
+                canvas.classList.add('edit-mode-active');
+            } else {
+                btn.classList.remove('btn-active');
+                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Content`;
+                const targets = canvas.querySelectorAll('[contenteditable="true"]');
+                targets.forEach(el => el.removeAttribute('contenteditable'));
+                canvas.classList.remove('edit-mode-active');
+            }
+        };
+
+        // Feature: Page Sizing
+        window.changePageSize = (size) => {
+            const canvas = document.getElementById('document-canvas');
+            canvas.className = '';
+            canvas.classList.add(size);
+        };
 
         window.toggleTheme = () => {
             const current = document.documentElement.getAttribute('data-theme');
@@ -358,19 +353,37 @@
         };
 
         window.exportPDF = () => {
-            const element = document.getElementById('pdf-content');
+            // Force exit edit mode before export
+            if(isEditMode) toggleEditMode();
+
+            const element = document.getElementById('document-canvas');
+            const sizeValue = document.getElementById('pageSize').value;
+            
+            // Map our classes to html2pdf formats
+            let format = 'a4';
+            if(sizeValue === 'size-letter') format = 'letter';
+            if(sizeValue === 'size-full') format = [element.offsetWidth * 0.2645, element.offsetHeight * 0.2645]; // px to mm approx
+
             const opt = {
                 margin: 0,
-                filename: `document_${docId}.pdf`,
+                filename: `xperts_doc_${docId}.pdf`,
                 image: { type: 'jpeg', quality: 1.0 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                html2canvas: { scale: 3, useCORS: true, letterRendering: true },
+                jsPDF: { unit: 'mm', format: format, orientation: 'portrait' },
                 pagebreak: { mode: ['css', 'legacy'] }
             };
+            
             html2pdf().set(opt).from(element).save();
         };
 
-        loadDocument();
+        function showError(msg) {
+            document.querySelector('.loader').classList.add('hidden');
+            document.getElementById('status-text').classList.add('hidden');
+            document.getElementById('error-box').classList.remove('hidden');
+            document.getElementById('error-msg').textContent = msg;
+        }
+
+        init();
     </script>
 </body>
-</html>
+    </html>
