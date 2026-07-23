@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Generator | Xperts</title>
+    <title>Xperts | Production PDF Generator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
     
-    <!-- Dependencies -->
+    <!-- External Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -20,182 +20,150 @@
             --text-muted: #5f6368;
             --border-color: #dadce0;
             --accent: #1a73e8;
-            --accent-hover: #1557b0;
             --toolbar-bg: #ffffff;
-            --shadow: 0 1px 3px rgba(0,0,0,0.1);
-            --code-bg: #f5f5f5;
+            --shadow: 0 1px 3px rgba(0,0,0,0.12);
         }
 
         [data-theme="dark"] {
-            --bg-app: #202124;
-            --bg-paper: #2d2e31;
+            --bg-app: #121212;
+            --bg-paper: #1e1e1e;
             --text-main: #e8eaed;
             --text-muted: #9aa0a6;
             --border-color: #3c4043;
             --accent: #8ab4f8;
-            --accent-hover: #aecbfa;
             --toolbar-bg: #2d2e31;
-            --shadow: 0 1px 3px rgba(0,0,0,0.3);
-            --code-bg: #3c4043;
+            --shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
-        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        * { box-sizing: border-box; }
         body {
             margin: 0;
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-app);
             color: var(--text-main);
-            transition: background-color 0.3s;
-            overflow-x: hidden;
+            transition: background 0.3s ease;
         }
 
-        /* Toolbar Styles */
+        /* Toolbar */
         .toolbar {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 64px;
+            top: 0; left: 0; right: 0;
+            height: 60px;
             background: var(--toolbar-bg);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            padding: 0 24px;
-            z-index: 1000;
             justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
             box-shadow: var(--shadow);
         }
 
-        .toolbar-brand { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 18px; }
-        .toolbar-actions { display: flex; gap: 8px; }
+        .toolbar-title { font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+        .nav-buttons { display: flex; gap: 8px; }
 
         .btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
             padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
+            border-radius: 6px;
             font-size: 14px;
             font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--bg-paper);
+            color: var(--text-main);
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
+            gap: 6px;
+            transition: 0.2s;
         }
+        .btn:hover { background: var(--bg-app); }
+        .btn-primary { background: var(--accent); color: white; border: none; }
+        .btn-primary:hover { opacity: 0.9; }
 
-        .btn:hover { background: var(--bg-app); border-color: var(--text-muted); }
-        .btn-primary { background: var(--accent); color: #fff; border: none; }
-        .btn-primary:hover { background: var(--accent-hover); }
-
-        /* Document Container */
-        .page-container {
-            margin-top: 84px;
-            margin-bottom: 40px;
+        /* Document Layout */
+        .viewport {
+            margin-top: 80px;
             display: flex;
             justify-content: center;
-            padding: 0 20px;
+            padding-bottom: 40px;
         }
 
-        #document-render {
+        #pdf-content {
             width: 210mm;
             min-height: 297mm;
-            padding: 20mm;
-            background: var(--bg-paper);
+            background: white;
+            color: #000; /* Standard black text for PDF consistency */
+            padding: 25mm;
             box-shadow: var(--shadow);
             position: relative;
         }
 
-        /* Typography & Content Elements */
-        h1 { font-size: 32pt; margin-bottom: 8pt; color: var(--text-main); }
-        h2 { font-size: 18pt; margin-top: 24pt; margin-bottom: 12pt; border-bottom: 1px solid var(--border-color); padding-bottom: 4pt; }
-        h3 { font-size: 14pt; margin-top: 18pt; }
-        p { font-size: 11pt; line-height: 1.6; margin-bottom: 12pt; color: var(--text-main); }
-        .author { color: var(--text-muted); font-size: 12pt; margin-bottom: 40pt; }
+        [data-theme="dark"] #pdf-content { color: #000; background: white; } /* Keep PDF white even in dark mode for view */
 
-        table { width: 100%; border-collapse: collapse; margin: 16pt 0; }
-        th, td { border: 1px solid var(--border-color); padding: 8pt; text-align: left; font-size: 10pt; }
-        th { background: var(--bg-app); font-weight: 600; }
-
-        blockquote { border-left: 4px solid var(--accent); margin: 16pt 0; padding: 8pt 20pt; font-style: italic; background: var(--bg-app); border-radius: 0 4px 4px 0; }
+        /* Document Elements Styles */
+        .doc-title { font-size: 32pt; font-weight: 700; margin-bottom: 10pt; line-height: 1.2; }
+        .doc-author { font-size: 14pt; color: #666; margin-bottom: 40pt; border-bottom: 2px solid #eee; padding-bottom: 10pt; }
         
-        pre { background: var(--code-bg); padding: 12pt; border-radius: 6px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 9pt; }
-
-        img { max-width: 100%; height: auto; border-radius: 4px; margin: 16pt 0; }
+        h1 { font-size: 24pt; margin-top: 30pt; }
+        h2 { font-size: 18pt; margin-top: 20pt; border-left: 4px solid var(--accent); padding-left: 15px; }
+        p { font-size: 11pt; line-height: 1.6; margin-bottom: 12pt; text-align: justify; }
         
-        .chart-container { margin: 24pt 0; position: relative; height: 300px; width: 100%; }
+        ul, ol { margin-bottom: 15pt; }
+        li { margin-bottom: 5pt; font-size: 11pt; }
 
-        .divider { border: 0; border-top: 1px solid var(--border-color); margin: 24pt 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20pt 0; }
+        th, td { border: 1px solid #ddd; padding: 10pt; text-align: left; font-size: 10pt; }
+        th { background: #f4f4f4; font-weight: 600; }
+
+        blockquote { border-left: 4px solid #ccc; margin: 20pt 0; padding: 10pt 20pt; font-style: italic; background: #fafafa; }
+        
+        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; font-family: 'JetBrains Mono', monospace; font-size: 10pt; overflow-x: auto; }
+
+        .chart-box { margin: 30pt 0; height: 350px; page-break-inside: avoid; }
+        .divider { border: 0; border-top: 1px solid #eee; margin: 30pt 0; }
         .page-break { page-break-after: always; }
 
-        /* States */
-        #loader, #error-view {
-            position: fixed; top: 64px; left: 0; right: 0; bottom: 0;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: var(--bg-app); z-index: 900;
+        /* Loader & Errors */
+        #status-overlay {
+            position: fixed; top: 60px; left: 0; right: 0; bottom: 0;
+            background: var(--bg-app); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 2000;
         }
-        
-        .spinner {
-            width: 40px; height: 40px; border: 4px solid var(--border-color);
-            border-top: 4px solid var(--accent); border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s infinite linear; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none !important; }
-
-        /* Print Hacks */
-        @media print {
-            .toolbar { display: none; }
-            body { background: white; }
-            .page-container { margin: 0; padding: 0; }
-            #document-render { box-shadow: none; width: 100%; padding: 0; }
-        }
+        .error-card { text-align: center; max-width: 400px; padding: 20px; }
     </style>
 </head>
 <body>
 
-    <header class="toolbar">
-        <div class="toolbar-brand">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Xperts DocGen
+    <div class="toolbar">
+        <div class="toolbar-title">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Xperts Document Generator
         </div>
-        <div class="toolbar-actions">
-            <button class="btn" onclick="toggleTheme()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-11.314l.707.707m11.314 11.314l.707.707M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
-                Theme
-            </button>
-            <button class="btn" onclick="location.reload()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                Reload
-            </button>
-            <button class="btn" onclick="window.print()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                Print
-            </button>
-            <button class="btn btn-primary" onclick="exportPDF()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Download PDF
-            </button>
+        <div class="nav-buttons">
+            <button class="btn" onclick="toggleTheme()">Theme</button>
+            <button class="btn" onclick="location.reload()">Reload</button>
+            <button class="btn" onclick="window.print()">Print</button>
+            <button class="btn btn-primary" onclick="exportPDF()">Download PDF</button>
         </div>
-    </header>
-
-    <div id="loader">
-        <div class="spinner"></div>
-        <p style="margin-top: 15px;">Fetching document...</p>
     </div>
 
-    <div id="error-view" class="hidden">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ea4335" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <h2 id="error-title">Document Not Found</h2>
-        <p id="error-msg">Please check the ID in your URL.</p>
-        <button class="btn btn-primary" onclick="location.reload()">Retry</button>
+    <div id="status-overlay">
+        <div id="loading-spinner" class="spinner"></div>
+        <div id="error-message" class="error-card hidden">
+            <h2 style="color:#d93025">Error</h2>
+            <p id="error-text"></p>
+            <button class="btn btn-primary" style="margin: 0 auto" onclick="location.reload()">Retry</button>
+        </div>
+        <p id="loading-text" style="margin-top: 15px;">Initializing SDK...</p>
     </div>
 
-    <main class="page-container">
-        <article id="document-render" class="hidden">
-            <!-- Content Injected Here -->
-        </article>
+    <main class="viewport">
+        <div id="pdf-content" class="hidden">
+            <!-- Dynamic Content -->
+        </div>
     </main>
 
     <script type="module">
@@ -215,193 +183,155 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // State Management
         const params = new URLSearchParams(window.location.search);
         const docId = params.get('id');
-        const themeParam = params.get('theme');
+        const theme = params.get('theme') || 'light';
         const autoDownload = params.get('download') === 'true';
 
-        // Set Initial Theme
-        if (themeParam) document.documentElement.setAttribute('data-theme', themeParam);
-        else if (window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.setAttribute('data-theme', theme);
 
-        async function init() {
+        async function loadDocument() {
             if (!docId) {
-                showError("Missing Document ID", "Please provide ?id=YOUR_ID in the URL.");
+                showError("No Document ID provided in URL (?id=...)");
                 return;
             }
 
             try {
-                const docRef = doc(db, "documents", docId);
+                // Based on screenshot, collection name is 'Computers'
+                const docRef = doc(db, "Computers", docId);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
-                    let data = docSnap.data();
-                    
-                    // Handle cases where data might be stringified in a 'JSON' field (as seen in screenshot)
-                    if (data.JSON && typeof data.JSON === 'string') {
-                        try { data = JSON.parse(data.JSON); } catch(e) { console.error("JSON parse error", e); }
+                    const rawData = docSnap.data();
+                    let jsonData;
+
+                    // Support both raw object or stringified field 'JSON'
+                    if (typeof rawData.JSON === 'string') {
+                        jsonData = JSON.parse(rawData.JSON);
+                    } else {
+                        jsonData = rawData;
                     }
 
-                    renderDocument(data);
+                    render(jsonData);
                 } else {
-                    showError("Document Not Found", `No document exists with ID: ${docId}`);
+                    showError(`Document "${docId}" not found in "Computers" collection.`);
                 }
-            } catch (error) {
-                showError("Network Error", error.message);
+            } catch (e) {
+                showError("Failed to fetch data: " + e.message);
             }
         }
 
-        function renderDocument(data) {
-            const container = document.getElementById('document-render');
+        function render(data) {
+            const container = document.getElementById('pdf-content');
             container.innerHTML = '';
 
-            // Title & Author
             if (data.title) {
-                const h1 = document.createElement('h1');
-                h1.textContent = data.title;
-                container.appendChild(h1);
+                const title = document.createElement('div');
+                title.className = 'doc-title';
+                title.textContent = data.title;
+                container.appendChild(title);
             }
 
             if (data.author) {
                 const author = document.createElement('div');
-                author.className = 'author';
-                author.textContent = `By ${data.author}`;
+                author.className = 'doc-author';
+                author.textContent = `Author: ${data.author}`;
                 container.appendChild(author);
             }
 
-            // Sections
-            if (data.sections && Array.isArray(data.sections)) {
-                data.sections.forEach((section, idx) => {
-                    const el = createSectionElement(section, idx);
-                    if (el) container.appendChild(el);
+            if (data.sections) {
+                data.sections.forEach((sec, index) => {
+                    const element = createSection(sec, index);
+                    if (element) container.appendChild(element);
                 });
             }
 
-            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('status-overlay').classList.add('hidden');
             container.classList.remove('hidden');
 
-            // Trigger Charts
-            setTimeout(() => {
-                if (data.sections) {
-                    data.sections.forEach((section, idx) => {
-                        if (section.type === 'chart') initChart(section, idx);
-                    });
-                }
-                
-                if (autoDownload) {
-                    setTimeout(exportPDF, 1500);
-                }
-            }, 500);
+            // Render Charts
+            data.sections.forEach((sec, index) => {
+                if (sec.type === 'chart') buildChart(sec, index);
+            });
+
+            if (autoDownload) {
+                setTimeout(exportPDF, 1500);
+            }
         }
 
-        function createSectionElement(section, index) {
-            const wrapper = document.createElement('div');
-            
-            switch (section.type) {
+        function createSection(sec, idx) {
+            switch(sec.type) {
                 case 'heading':
-                    const h = document.createElement(`h${section.level || 2}`);
-                    h.textContent = section.text;
+                    const h = document.createElement(`h${sec.level || 1}`);
+                    h.textContent = sec.text;
                     return h;
-
                 case 'paragraph':
                     const p = document.createElement('p');
-                    p.textContent = section.text;
+                    p.textContent = sec.text;
                     return p;
-
                 case 'list':
-                    const list = document.createElement(section.style === 'ordered' ? 'ol' : 'ul');
-                    section.items.forEach(item => {
+                    const list = document.createElement(sec.style === 'ordered' ? 'ol' : 'ul');
+                    sec.items.forEach(item => {
                         const li = document.createElement('li');
                         li.textContent = item;
-                        li.style.marginBottom = '6pt';
                         list.appendChild(li);
                     });
                     return list;
-
                 case 'table':
                     const table = document.createElement('table');
-                    if (section.columns) {
-                        const thead = document.createElement('thead');
+                    if (sec.columns) {
                         const tr = document.createElement('tr');
-                        section.columns.forEach(col => {
-                            const th = document.createElement('th');
-                            th.textContent = col;
-                            tr.appendChild(th);
-                        });
-                        thead.appendChild(tr);
-                        table.appendChild(thead);
+                        sec.columns.forEach(c => { const th = document.createElement('th'); th.textContent = c; tr.appendChild(th); });
+                        table.appendChild(tr);
                     }
-                    const tbody = document.createElement('tbody');
-                    section.rows.forEach(rowData => {
+                    sec.rows.forEach(r => {
                         const tr = document.createElement('tr');
-                        rowData.forEach(cellData => {
-                            const td = document.createElement('td');
-                            td.textContent = cellData;
-                            tr.appendChild(td);
-                        });
-                        tbody.appendChild(tr);
+                        r.forEach(val => { const td = document.createElement('td'); td.textContent = val; tr.appendChild(td); });
+                        table.appendChild(tr);
                     });
-                    table.appendChild(tbody);
                     return table;
-
                 case 'quote':
                     const bq = document.createElement('blockquote');
-                    bq.textContent = section.text;
+                    bq.textContent = sec.text;
                     return bq;
-
                 case 'code':
                     const pre = document.createElement('pre');
-                    const code = document.createElement('code');
-                    code.textContent = section.text;
-                    pre.appendChild(code);
+                    pre.textContent = sec.text;
                     return pre;
-
                 case 'image':
                     const img = document.createElement('img');
-                    img.src = section.url;
-                    if (section.caption) img.alt = section.caption;
+                    img.src = sec.url;
+                    img.style.maxWidth = '100%';
                     return img;
-
                 case 'chart':
-                    const chartCont = document.createElement('div');
-                    chartCont.className = 'chart-container';
+                    const div = document.createElement('div');
+                    div.className = 'chart-box';
                     const canvas = document.createElement('canvas');
-                    canvas.id = `chart-${index}`;
-                    chartCont.appendChild(canvas);
-                    return chartCont;
-
+                    canvas.id = `chart-${idx}`;
+                    div.appendChild(canvas);
+                    return div;
                 case 'divider':
-                    return document.createElement('hr').className = 'divider';
-
+                    const hr = document.createElement('hr');
+                    hr.className = 'divider';
+                    return hr;
                 case 'page-break':
                     const pb = document.createElement('div');
                     pb.className = 'page-break';
                     return pb;
-
-                default:
-                    return null;
+                default: return null;
             }
         }
 
-        function initChart(section, index) {
-            const ctx = document.getElementById(`chart-${index}`).getContext('2d');
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            const color = isDark ? '#e8eaed' : '#1a1a1a';
-
+        function buildChart(sec, idx) {
+            const ctx = document.getElementById(`chart-${idx}`).getContext('2d');
             new Chart(ctx, {
-                type: section.chartType || 'bar',
+                type: (sec.chartType || 'bar').toLowerCase(),
                 data: {
-                    labels: section.labels,
+                    labels: sec.labels || [],
                     datasets: [{
-                        label: section.title || 'Data',
-                        data: section.values,
-                        backgroundColor: [
-                            'rgba(26, 115, 232, 0.7)', 'rgba(52, 168, 83, 0.7)', 
-                            'rgba(251, 188, 5, 0.7)', 'rgba(234, 67, 53, 0.7)',
-                            'rgba(156, 39, 176, 0.7)'
-                        ],
-                        borderColor: isDark ? '#3c4043' : '#fff',
+                        label: sec.title || 'Data',
+                        data: sec.values || [],
+                        backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#9C27B0'],
                         borderWidth: 1
                     }]
                 },
@@ -409,56 +339,38 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     animation: false,
-                    plugins: {
-                        legend: { labels: { color: color } }
-                    },
-                    scales: section.chartType === 'pie' || section.chartType === 'doughnut' ? {} : {
-                        y: { ticks: { color: color }, grid: { color: isDark ? '#3c4043' : '#eee' } },
-                        x: { ticks: { color: color }, grid: { display: false } }
-                    }
+                    plugins: { legend: { position: 'bottom' } }
                 }
             });
         }
 
-        function showError(title, msg) {
-            document.getElementById('loader').classList.add('hidden');
-            const view = document.getElementById('error-view');
-            view.classList.remove('hidden');
-            document.getElementById('error-title').textContent = title;
-            document.getElementById('error-msg').textContent = msg;
+        function showError(msg) {
+            document.getElementById('loading-spinner').classList.add('hidden');
+            document.getElementById('loading-text').classList.add('hidden');
+            const err = document.getElementById('error-message');
+            err.classList.remove('hidden');
+            document.getElementById('error-text').textContent = msg;
         }
 
-        // Global functions for toolbar buttons
         window.toggleTheme = () => {
             const current = document.documentElement.getAttribute('data-theme');
-            const target = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', target);
-            // Refresh document to update chart colors
-            init(); 
+            document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
         };
 
         window.exportPDF = () => {
-            const element = document.getElementById('document-render');
+            const element = document.getElementById('pdf-content');
             const opt = {
-                margin: [10, 10],
-                filename: `Document_${docId}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
+                margin: 0,
+                filename: `document_${docId}.pdf`,
+                image: { type: 'jpeg', quality: 1.0 },
                 html2canvas: { scale: 2, useCORS: true, letterRendering: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak: { mode: ['css', 'legacy'] }
             };
-
-            // Temporarily force light theme for PDF export for better printing
-            const originalTheme = document.documentElement.getAttribute('data-theme');
-            document.documentElement.setAttribute('data-theme', 'light');
-
-            html2pdf().set(opt).from(element).save().then(() => {
-                document.documentElement.setAttribute('data-theme', originalTheme);
-            });
+            html2pdf().set(opt).from(element).save();
         };
 
-        // Start
-        init();
+        loadDocument();
     </script>
 </body>
-    </html>
+</html>
