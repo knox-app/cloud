@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MNWeTHNXT by Slike Systems</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#FF7A29;
+  --accent-deep:#E1600F;
+  --blue:#2F80ED;
+  --ink:#1D2130;
+  --muted:#5B6274;
+  --glass-bg:rgba(255,255,255,.5);
+  --glass-bg-2:rgba(255,255,255,.62);
+  --glass-border:rgba(255,255,255,.65);
+  --glass-shadow:0 8px 32px rgba(31,38,60,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family:'Inter',sans-serif;
+  color:var(--ink);
+  min-height:100vh;
+  padding-bottom:44px;
+  position:relative;
+  overflow-x:hidden;
+  background:#EEF2FA;
+  transition:background 1s ease, color .6s ease;
+}
+body.night{ color:#ECEFF7; background:#0B0E18; }
+
+/* ---------- liquid glass ambient background ---------- */
+#bg-blobs{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+.blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;}
+.blob1{width:280px;height:280px;background:#FF9D5C;top:-60px;left:-60px;animation:blobA 22s ease-in-out infinite alternate;}
+.blob2{width:320px;height:320px;background:#5FA8FF;top:10%;right:-100px;animation:blobB 26s ease-in-out infinite alternate;}
+.blob3{width:260px;height:260px;background:#5FE0C9;bottom:0;left:10%;animation:blobC 24s ease-in-out infinite alternate;}
+.blob4{width:220px;height:220px;background:#C78CFF;bottom:-60px;right:15%;animation:blobD 28s ease-in-out infinite alternate;}
+body.night .blob{opacity:.28;}
+@keyframes blobA{to{transform:translate(60px,50px) scale(1.15);}}
+@keyframes blobB{to{transform:translate(-50px,60px) scale(1.1);}}
+@keyframes blobC{to{transform:translate(40px,-40px) scale(1.2);}}
+@keyframes blobD{to{transform:translate(-40px,-30px) scale(1.1);}}
+
+.wrap{max-width:520px;margin:0 auto;padding:22px 16px;position:relative;z-index:1;}
+
+/* ---------- glass base ---------- */
+.glass{
+  background:var(--glass-bg);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,.75);
+  position:relative;
+}
+.glass:before{
+  content:'';position:absolute;top:0;left:0;right:0;height:40%;
+  background:linear-gradient(180deg,rgba(255,255,255,.35),transparent);
+  border-radius:inherit;pointer-events:none;
+}
+body.night .glass{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);box-shadow:0 8px 32px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);}
+body.night .glass:before{background:linear-gradient(180deg,rgba(255,255,255,.08),transparent);}
+
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;}
+.brand-block{line-height:1.1;}
+.brand{font-family:'Poppins',sans-serif;font-weight:800;font-size:1.3rem;letter-spacing:-.3px;}
+.brand span{background:linear-gradient(90deg,var(--accent),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.brand-sub{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.header-ctrls{display:flex;gap:8px;}
+.pill-btn{
+  border:none;font-family:'Inter',sans-serif;font-weight:600;font-size:.8rem;
+  padding:9px 12px;border-radius:14px;cursor:pointer;color:inherit;
+}
+.pill-btn:active{transform:scale(.94);}
+
+.search-card{display:flex;gap:8px;border-radius:18px;padding:6px;margin-top:2px;}
+#searchInput{flex:1;border:none;background:transparent;outline:none;font-size:.95rem;padding:10px 12px;color:inherit;}
+#searchInput::placeholder{color:var(--muted);}
+.icon-btn{
+  border:none;background:linear-gradient(135deg,var(--accent),var(--accent-deep));color:#fff;
+  width:42px;height:42px;border-radius:13px;font-size:1.05rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s;
+  box-shadow:0 4px 14px rgba(225,96,15,.35);
+}
+.icon-btn:active{transform:scale(.9);}
+#suggestions{
+  position:absolute;top:56px;left:0;right:0;border-radius:16px;overflow:hidden;z-index:20;display:none;
+  background:rgba(255,255,255,.85);backdrop-filter:blur(24px);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow);
+}
+body.night #suggestions{background:rgba(20,22,34,.9);border-color:rgba(255,255,255,.14);}
+#suggestions.show{display:block;}
+.sugg-item{padding:11px 14px;cursor:pointer;border-bottom:1px solid rgba(0,0,0,.06);font-size:.9rem;}
+body.night .sugg-item{border-color:rgba(255,255,255,.08);}
+.sugg-item:last-child{border-bottom:none;}
+.sugg-item:hover{background:rgba(255,122,41,.1);}
+.sugg-sub{font-size:.72rem;color:var(--muted);}
+.search-wrap{position:relative;}
+
+.saved-chips{display:none;gap:8px;overflow-x:auto;margin-top:12px;padding-bottom:2px;}
+.chip-pill{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:7px 8px 7px 14px;border-radius:20px;font-size:.82rem;font-weight:500;cursor:pointer;white-space:nowrap;}
+.chip-pill.active{border-color:var(--accent);color:var(--accent-deep);}
+.chip-pill-x{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted);}
+.chip-pill-x:hover{background:rgba(0,0,0,.08);color:#D64545;}
+
+#status{text-align:center;font-size:.86rem;min-height:20px;margin:12px 0;color:var(--muted);}
+#status.error{color:#D64545;font-weight:500;}
+
+main{display:none;opacity:0;transform:translateY(10px);transition:opacity .5s ease, transform .5s ease;}
+main.show{display:block;}
+main.visible{opacity:1;transform:translateY(0);}
+
+.scene-card{border-radius:22px;margin-top:16px;overflow:hidden;}
+.scene{position:relative;height:200px;overflow:hidden;background:linear-gradient(180deg,#7DBCF2 0%,#BFE0FA 55%,#DCEEFB 100%);transition:transform .15s ease;}
+.scene.shake{animation:sceneShake .5s ease;}
+@keyframes sceneShake{10%{transform:translate(-2px,1px);}30%{transform:translate(2px,-1px);}50%{transform:translate(-1px,1px);}70%{transform:translate(1px,-1px);}100%{transform:translate(0,0);}}
+.scene.night-sky{background:linear-gradient(180deg,#0A1226 0%,#1B274A 60%,#2B3A63 100%);}
+.scene.rain-sky{background:linear-gradient(180deg,#54697E 0%,#7C90A2 55%,#9DAEBC 100%);}
+.scene.rain-sky.night-sky{background:linear-gradient(180deg,#0D131C 0%,#202B3B 60%,#2C3A4D 100%);}
+.scene.storm-sky{background:linear-gradient(180deg,#3B3450 0%,#564C6E 55%,#6C6285 100%);}
+.scene.storm-sky.night-sky{background:linear-gradient(180deg,#0C0A17 0%,#221D33 55%,#332B4A 100%);}
+.scene.fog-sky{background:linear-gradient(180deg,#9EA6AE 0%,#C4CAD1 60%,#DADFE4 100%);}
+.scene.snow-sky{background:linear-gradient(180deg,#A9C9E7 0%,#D2E5F5 60%,#EAF3FB 100%);}
+
+.badge-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0;position:relative;z-index:5;}
+.settlement-badge{font-size:.72rem;font-weight:600;color:var(--accent-deep);background:rgba(255,255,255,.78);padding:4px 10px;border-radius:20px;backdrop-filter:blur(6px);}
+.temp-row{display:flex;align-items:flex-end;justify-content:space-between;padding:14px 16px 16px;}
+.temp-big{font-family:'Poppins',sans-serif;font-size:2.6rem;font-weight:700;line-height:1;}
+.cond-label{font-size:.9rem;color:var(--muted);margin-top:4px;}
+.updated-label{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.loc-col{display:flex;align-items:center;gap:8px;}
+.loc-label{font-size:.95rem;font-weight:600;text-align:right;}
+.star-btn{border:none;background:none;font-size:1.35rem;cursor:pointer;color:#C7CBD4;transition:transform .15s;line-height:1;}
+.star-btn.active{color:var(--accent);}
+.star-btn:active{transform:scale(1.25);}
+
+/* scene actors */
+.ground{position:absolute;left:0;right:0;bottom:0;height:34%;}
+.hut{position:absolute;bottom:0;}
+.hut-roof{width:0;height:0;border-left:26px solid transparent;border-right:26px solid transparent;border-bottom:20px solid #8B5A2B;}
+.hut-wall{width:44px;height:32px;background:#E8C99B;margin-left:4px;border-radius:1px;position:relative;}
+.hut-door{position:absolute;bottom:0;left:16px;width:12px;height:20px;background:#5A3A1E;border-radius:2px 2px 0 0;}
+.tree{position:absolute;bottom:0;transform-origin:bottom center;animation:sway 4.5s ease-in-out infinite;}
+.tree-trunk{width:6px;height:26px;background:#6E4A28;margin:0 auto;}
+.tree-leaves{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:34px;height:34px;border-radius:50%;background:#3C7A45;}
+@keyframes sway{0%,100%{transform:rotate(-3deg);}50%{transform:rotate(3deg);}}
+.building{position:absolute;bottom:0;background:#5A6578;border-radius:2px 2px 0 0;}
+.building.alt{background:#495267;}
+.window{position:absolute;width:6px;height:6px;background:#FFD873;opacity:.85;animation:flicker 5s ease-in-out infinite;}
+.window.off{background:rgba(255,255,255,.16);animation:none;}
+@keyframes flicker{0%,94%,100%{opacity:.85;}96%{opacity:.3;}}
+.lamp-pole{position:absolute;bottom:0;width:3px;background:#3a3f4a;}
+.lamp-glow{position:absolute;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle,#FFE9A8,rgba(255,233,168,0));box-shadow:0 0 14px 7px rgba(255,220,140,.55);animation:lampPulse 3s ease-in-out infinite;}
+@keyframes lampPulse{0%,100%{opacity:.85;}50%{opacity:1;}}
+.walker{position:absolute;bottom:2px;font-size:16px;animation:walk linear infinite;}
+@keyframes walk{from{transform:translateX(-30px);}to{transform:translateX(var(--walkEnd,300px));}}
+
+/* weather fx */
+.sun{position:absolute;border-radius:50%;background:radial-gradient(circle,#fff6cf,#ffd24d 60%,#ffb300);box-shadow:0 0 26px 10px rgba(255,200,60,.55);animation:pulseGlow 3.5s ease-in-out infinite;}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 22px 8px rgba(255,200,60,.5);transform:scale(1);}50%{box-shadow:0 0 38px 16px rgba(255,200,60,.85);transform:scale(1.04);}}
+.rays-wrap{position:absolute;animation:rayspin 26s linear infinite;}
+@keyframes rayspin{to{transform:rotate(360deg);}}
+.ray{position:absolute;width:2px;height:14px;background:rgba(255,236,180,.8);border-radius:2px;}
+.moon{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fdf6e3,#cfd6e0 70%);box-shadow:0 0 18px 6px rgba(230,230,255,.45);animation:moonGlow 5s ease-in-out infinite;}
+@keyframes moonGlow{0%,100%{box-shadow:0 0 16px 5px rgba(230,230,255,.4);}50%{box-shadow:0 0 24px 9px rgba(230,230,255,.6);}}
+.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 2.2s ease-in-out infinite;}
+@keyframes twinkle{0%,100%{opacity:.15;}50%{opacity:1;}}
+.cloud{position:absolute;background:rgba(255,255,255,.92);border-radius:50px;animation-name:driftScene, cloudBob;animation-timing-function:linear, ease-in-out;animation-iteration-count:infinite, infinite;}
+.cloud:before,.cloud:after{content:'';position:absolute;background:inherit;border-radius:50%;}
+@keyframes cloudBob{0%,100%{margin-top:0px;}50%{margin-top:4px;}}
+.drop{position:absolute;top:-14px;width:2px;background:linear-gradient(#fff,rgba(255,255,255,0));opacity:.85;animation-name:fall;animation-timing-function:linear;animation-iteration-count:infinite;}
+@keyframes fall{to{transform:translateY(230px);}}
+.splash-ring{position:absolute;width:10px;height:5px;border:1px solid rgba(255,255,255,.7);border-radius:50%;pointer-events:none;}
+.splash-drop{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(255,255,255,.9);pointer-events:none;}
+.flake{position:absolute;top:-10px;color:#fff;animation-name:snowfall,snowSway;animation-timing-function:linear,ease-in-out;animation-iteration-count:infinite,infinite;opacity:.9;}
+@keyframes snowfall{to{transform:translateY(220px);}}
+@keyframes snowSway{0%,100%{margin-left:0;}50%{margin-left:14px;}}
+.bolt-flash{position:absolute;inset:0;background:#fff;opacity:0;}
+.bolt-svg{position:absolute;top:0;opacity:0;}
+.mist{position:absolute;height:24px;background:rgba(255,255,255,.55);filter:blur(3px);border-radius:50%;animation:mistdrift ease-in-out infinite alternate;}
+@keyframes mistdrift{from{transform:translateX(-16px);}to{transform:translateX(16px);}}
+
+/* ---- chips ---- */
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px;}
+.chip{border-radius:16px;padding:12px 6px;text-align:center;}
+.chip-icon{font-size:1.1rem;}
+.chip-val{font-weight:700;font-size:.88rem;margin-top:3px;}
+.chip-label{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+
+.section-title{font-family:'Poppins',sans-serif;font-weight:600;font-size:1rem;margin:20px 0 10px;}
+.hourly-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;}
+.hour-card{min-width:62px;border-radius:14px;padding:10px 6px;text-align:center;flex:0 0 auto;}
+.hour-time{font-size:.68rem;color:var(--muted);}
+.hour-icon{font-size:1.25rem;margin:4px 0;}
+.hour-temp{font-weight:600;font-size:.86rem;}
+
+.daily-list{display:flex;flex-direction:column;gap:8px;}
+.day-row{display:flex;align-items:center;gap:10px;border-radius:14px;padding:10px 14px;}
+.day-name{flex:1;font-weight:500;font-size:.87rem;}
+.day-icon{font-size:1.15rem;width:26px;text-align:center;}
+.day-rain{font-size:.7rem;color:var(--muted);width:42px;}
+.day-temps{font-size:.85rem;font-weight:600;width:76px;text-align:right;}
+.day-temps .lo{color:var(--muted);font-weight:400;}
+
+footer{text-align:center;font-size:.7rem;color:var(--muted);margin-top:22px;line-height:1.6;position:relative;z-index:1;}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;}}
+</style>
+</head>
+<body>
+<div id="bg-blobs"><div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div><div class="blob blob4"></div></div>
+
+<div class="wrap">
+  <header>
+    <div class="brand-block">
+      <div class="brand">MNWe<span>THNXT</span></div>
+      <div class="brand-sub">by Slike Systems</div>
+    </div>
+    <div class="header-ctrls">
+      <button class="pill-btn glass" id="unitBtn">°C</button>
+      <button class="pill-btn glass" id="refreshBtn">⟳</button>
+    </div>
+  </header>
+
+  <div class="search-wrap">
+    <div class="search-card glass">
+      <input type="text" id="searchInput" placeholder="Search village, town or city…" autocomplete="off">
+      <button class="icon-btn" id="locateBtn" title="Use my precise location">📍</button>
+    </div>
+    <div id="suggestions"></div>
+  </div>
+
+  <div class="saved-chips" id="savedChips"></div>
+
+  <div id="status">Requesting your precise location…</div>
+
+  <main id="weatherMain">
+    <div class="scene-card glass">
+      <div class="scene" id="scene">
+        <div class="badge-row">
+          <span class="settlement-badge" id="settlementBadge">—</span>
+        </div>
+      </div>
+      <div class="temp-row">
+        <div>
+          <div class="temp-big" id="tempBig">--°</div>
+          <div class="cond-label" id="condLabel">—</div>
+          <div class="updated-label" id="updatedLabel"></div>
+        </div>
+        <div class="loc-col">
+          <div class="loc-label" id="locLabel">—</div>
+          <button class="star-btn" id="starBtn" title="Save this place">☆</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chips" id="detailsGrid"></div>
+
+    <div class="section-title">Today's hours</div>
+    <div class="hourly-strip" id="hourlyStrip"></div>
+
+    <div class="section-title">7-day forecast</div>
+    <div class="daily-list" id="dailyList"></div>
+  </main>
+
+  <footer>Data based on 1T Basic Transfic Formate · live feed via Open‑Meteo &amp; BigDataCloud · saved places stay on this device.</footer>
+</div>
+
+<script>
+const statusEl = document.getElementById('status');
+const mainEl = document.getElementById('weatherMain');
+const searchInput = document.getElementById('searchInput');
+const suggestionsEl = document.getElementById('suggestions');
+const locateBtn = document.getElementById('locateBtn');
+const refreshBtn = document.getElementById('refreshBtn');
+const unitBtn = document.getElementById('unitBtn');
+const scene = document.getElementById('scene');
+const tempBig = document.getElementById('tempBig');
+const condLabel = document.getElementById('condLabel');
+const updatedLabel = document.getElementById('updatedLabel');
+const locLabel = document.getElementById('locLabel');
+const starBtn = document.getElementById('starBtn');
+const savedChipsEl = document.getElementById('savedChips');
+const detailsGrid = document.getElementById('detailsGrid');
+const hourlyStrip = document.getElementById('hourlyStrip');
+const dailyList = document.getElementById('dailyList');
+
+const WMAP = {
+  0:['Clear sky','☀️','clear'], 1:['Mainly clear','🌤️','clear'], 2:['Partly cloudy','⛅','cloudy'],
+  3:['Overcast','☁️','cloudy'], 45:['Fog','🌫️','fog'], 48:['Depositing fog','🌫️','fog'],
+  51:['Light drizzle','🌦️','rain'], 53:['Drizzle','🌦️','rain'], 55:['Dense drizzle','🌦️','rain'],
+  56:['Freezing drizzle','🌦️','rain'], 57:['Freezing drizzle','🌦️','rain'],
+  61:['Light rain','🌧️','rain'], 63:['Rain','🌧️','rain'], 65:['Heavy rain','🌧️','rain'],
+  66:['Freezing rain','🌧️','rain'], 67:['Freezing rain','🌧️','rain'],
+  71:['Light snow','🌨️','snow'], 73:['Snow','🌨️','snow'], 75:['Heavy snow','❄️','snow'],
+  77:['Snow grains','❄️','snow'],
+  80:['Rain showers','🌦️','rain'], 81:['Rain showers','🌧️','rain'], 82:['Violent showers','⛈️','storm'],
+  85:['Snow showers','🌨️','snow'], 86:['Heavy snow showers','❄️','snow'],
+  95:['Thunderstorm','⛈️','storm'], 96:['Thunderstorm w/ hail','⛈️','storm'], 99:['Severe thunderstorm','⛈️','storm']
+};
+function wInfo(code){ return WMAP[code] || ['Unknown','🌡️','clear']; }
+const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+// ================= local persistent storage (works standalone AND inside Claude) =================
+async function sGet(key){
+  try{
+    if(window.storage && typeof window.storage.get === 'function'){
+      const r = await window.storage.get(key, false);
+      return r ? r.value : null;
+    }
+  }catch(e){}
+  try{ return localStorage.getItem(key); }catch(e){ return null; }
+}
+async function sSet(key, value){
+  try{
+    if(window.storage && typeof window.storage.set === 'function'){
+      await window.storage.set(key, value, false);
+      return;
+    }
+  }catch(e){}
+  try{ localStorage.setItem(key, value); }catch(e){}
+}
+
+// ================= settlement classification =================
+function classifySettlement(population, featureCode){
+  if(typeof population === 'number' && population > 0){
+    if(population >= 100000) return 'city';
+    if(population >= 5000) return 'town';
+    return 'village';
+  }
+  if(featureCode){
+    if(['PPLC','PPLA','PPLA2'].includes(featureCode)) return 'city';
+    if(['PPLA3','PPLA4'].includes(featureCode)) return 'town';
+  }
+  return 'town';
+}
+const badgeText = { village:'🏡 Village', town:'🏘️ Town', city:'🏙️ City' };
+
+// ================= scene builder =================
+function el(cls, style){ const d=document.createElement('div'); d.className=cls; if(style) d.setAttribute('style', style); return d; }
+
+function buildSettlementLayer(type){
+  const layer = document.createElement('div');
+  layer.style.position='absolute'; layer.style.inset='0';
+  const w = scene.clientWidth || 320;
+
+  if(type==='village'){
+    const ground = el('ground'); ground.style.background='linear-gradient(180deg,#6fae55,#4f8a3d)'; layer.appendChild(ground);
+    [w*0.18, w*0.42, w*0.7].forEach((x)=>{
+      const hut = el('hut'); hut.style.left=x+'px'; hut.style.bottom='6px';
+      const roof = el('hut-roof'); const wall = el('hut-wall'); const door = el('hut-door');
+      wall.appendChild(door); hut.appendChild(roof); hut.appendChild(wall);
+      layer.appendChild(hut);
+    });
+    const tree = el('tree'); tree.style.left=(w*0.86-17)+'px'; tree.style.animationDelay='-1s';
+    tree.appendChild(el('tree-trunk')); tree.appendChild(el('tree-
