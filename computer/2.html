@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xperts Document Generator</title>
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --paper-bg: #ffffff;
+            --text-color: #1a1a1a;
+            --secondary-text: #5f6368;
+            --border-color: #dadce0;
+            --primary-color: #1a73e8;
+            --hover-color: #f1f3f4;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --code-bg: #f5f5f5;
+            --quote-border: #1a73e8;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #202124;
+            --paper-bg: #2d2e31;
+            --text-color: #e8eaed;
+            --secondary-text: #9aa0a6;
+            --border-color: #3c4043;
+            --primary-color: #8ab4f8;
+            --hover-color: #3c4043;
+            --shadow: 0 1px 3px rgba(0,0,0,0.3);
+            --code-bg: #1e1e1e;
+            --quote-border: #8ab4f8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color);
+            transition: background 0.3s ease;
+            line-height: 1.6;
+        }
+
+        /* Toolbar */
+        header {
+            position: sticky;
+            top: 0;
+            background: var(--paper-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+
+        .brand { font-weight: 600; font-size: 1.1rem; color: var(--primary-color); display: flex; align-items: center; gap: 8px; }
+        .toolbar-actions { display: flex; gap: 8px; }
+        
+        button {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        button:hover { background: var(--hover-color); }
+        button.primary { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        /* Document Styling */
+        main { padding: 40px 20px; display: flex; justify-content: center; }
+        
+        #document-container {
+            width: 210mm; /* A4 Width */
+            min-height: 297mm;
+            background: var(--paper-bg);
+            padding: 25mm;
+            box-shadow: var(--shadow);
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .doc-header { margin-bottom: 40px; border-bottom: 2px solid var(--border-color); padding-bottom: 20px; }
+        .doc-title { font-size: 2.5rem; font-weight: 700; margin-bottom: 8px; line-height: 1.2; }
+        .doc-author { color: var(--secondary-text); font-size: 1rem; }
+
+        /* Content Components */
+        .section-h1 { font-size: 2rem; margin: 1.5rem 0 1rem; font-weight: 700; }
+        .section-h2 { font-size: 1.5rem; margin: 1.2rem 0 0.8rem; font-weight: 600; }
+        .section-h3 { font-size: 1.25rem; margin: 1rem 0 0.5rem; font-weight: 600; }
+        .section-paragraph { margin-bottom: 1rem; text-align: justify; }
+        
+        .section-list { margin: 1rem 0 1rem 2rem; }
+        .section-list.bullet { list-style-type: disc; }
+        .section-list.number { list-style-type: decimal; }
+        .section-list li { margin-bottom: 0.5rem; }
+
+        .section-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+        .section-table th, .section-table td { border: 1px solid var(--border-color); padding: 12px; text-align: left; }
+        .section-table th { background: var(--hover-color); font-weight: 600; }
+
+        .section-image { max-width: 100%; height: auto; border-radius: 4px; margin: 1.5rem 0; display: block; margin-left: auto; margin-right: auto; }
+        
+        .section-quote { 
+            border-left: 4px solid var(--quote-border); 
+            padding: 1rem 1.5rem; 
+            margin: 1.5rem 0; 
+            background: var(--hover-color);
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+
+        .section-code {
+            background: var(--code-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            white-space: pre-wrap;
+        }
+
+        .section-chart { margin: 2rem 0; width: 100%; max-height: 400px; }
+        .section-divider { border: 0; border-top: 1px solid var(--border-color); margin: 2rem 0; }
+        .page-break { page-break-after: always; height: 0; margin: 0; }
+
+        /* Status States */
+        #loader { position: fixed; inset: 0; background: var(--bg-color); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border-color); border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        #error-screen { display: none; text-align: center; padding: 40px; }
+        .error-icon { font-size: 3rem; margin-bottom: 1rem; color: #d93025; }
+
+        @media print {
+            header { display: none; }
+            main { padding: 0; }
+            #document-container { box-shadow: none; border: none; width: 100%; padding: 0; }
+            body { background: white; }
+        }
+
+        @media (max-width: 850px) {
+            #document-container { width: 95vw; padding: 20px; }
+            .doc-title { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>Loading document...</p>
+    </div>
+
+    <header>
+        <div class="brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Xperts Docs
+        </div>
+        <div class="toolbar-actions">
+            <button onclick="toggleTheme()" id="theme-btn" title="Toggle Theme">
+                <span id="theme-icon">🌙</span> Dark Mode
+            </button>
+            <button onclick="window.location.reload()" title="Reload Data">🔄 Reload</button>
+            <button onclick="window.print()" title="Print Page">🖨️ Print</button>
+            <button onclick="exportPDF()" class="primary">📥 Download PDF</button>
+        </div>
+    </header>
+
+    <div id="error-screen">
+        <div class="error-icon">⚠️</div>
+        <h2 id="error-title">Document Not Found</h2>
+        <p id="error-msg">The requested document ID is missing or invalid.</p>
+        <button onclick="window.location.reload()" style="margin-top: 20px; display: inline-block;">Try Again</button>
+    </div>
+
+    <main id="main-content">
+        <article id="document-container">
+            <div id="render-target">
+                <!-- Content injected here -->
+            </div>
+        </article>
+    </main>
+
+    <!-- Firebase SDK Modular -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_0q4Evwirxr4loAZ2ZzGVfKP-51oSi14",
+            authDomain: "xperts-ed-tech.firebaseapp.com",
+            projectId: "xperts-ed-tech",
+            storageBucket: "xperts-ed-tech.firebasestorage.app",
+            messagingSenderId: "960602403596",
+            appId: "1:960602403596:web:fdf87f7b9a6181b6db4f29",
+            measurementId: "G-000SED73EW"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Core App Logic
+        async function init() {
+            const params = new URLSearchParams(window.location.search);
+            const docId = params.get('id');
+            const theme = params.get('theme');
+            const autoDownload = params.get('download') === 'true';
+
+            // Apply Theme
+            if (theme === 'dark' || (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                updateThemeButton(true);
+            }
+
+            if (!docId) {
+                showError("Missing ID", "Please provide a ?id= parameter in the URL.");
+                return;
+            }
+
+            try {
+                const docRef = doc(db, "documents", docId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    let data = docSnap.data();
+                    
+                    // Handle stringified JSON field if it exists (as seen in screenshot)
+                    if (data.JSON && typeof data.JSON === 'string') {
+                        try {
+                            data = JSON.parse(data.JSON);
+                        } catch (e) {
+                            console.error("JSON field parsing failed", e);
+                        }
+                    }
+
+                    renderDocument(data);
+                    
+                    if (autoDownload) {
+                        setTimeout(exportPDF, 2000);
+                    }
+                } else {
+                    showError("404 Not Found", "The document with ID: " + docId + " does not exist in the 'documents' collection.");
+                }
+            } catch (error) {
+                console.error(error);
+                showError("Network Error", "Failed to fetch document. Check your connection and Firebase rules.");
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        function renderDocument(doc) {
+            const target = document.getElementById('render-target');
+            let html = `
+                <div class="doc-header">
+                    <h1 class="doc-title">${doc.title || 'Untitled Document'}</h1>
+                    <div class="doc-author">By ${doc.author || 'Anonymous'}</div>
+                </div>
+            `;
+
+            if (doc.sections && Array.isArray(doc.sections)) {
+                doc.sections.forEach((section, index) => {
+                    html += buildSection(section, index);
+                });
+            }
+
+            target.innerHTML = html;
+
+            // Initialize Charts after HTML is injected
+            if (doc.sections) {
+                doc.sections.forEach((section, index) => {
+                    if (section.type === 'chart') {
+                        initChart(section, index);
+                    }
+                });
+            }
+        }
+
+        function buildSection(s, idx) {
+            switch (s.type) {
+                case 'heading':
+                    const level = s.level || 1;
+                    return `<h${level} class="section-h${level}">${s.text}</h${level}>`;
+                case 'paragraph':
+                    return `<p class="section-paragraph">${s.text}</p>`;
+                case 'list':
+                    const tag = s.style === 'number' ? 'ol' : 'ul';
+                    const listItems = s.items.map(item => `<li>${item}</li>`).join('');
+                    return `<${tag} class="section-list ${s.style || 'bullet'}">${listItems}</${tag}>`;
+                case 'table':
+                    const headers = s.columns.map(c => `<th>${c}</th>`).join('');
+                    const rows = s.rows.map(r => `<tr>${r.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('');
+                    return `<table class="section-table"><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+                case 'image':
+                    return `<img src="${s.url}" alt="${s.alt || ''}" class="section-image">`;
+                case 'quote':
+                    return `<blockquote class="section-quote">${s.text}</blockquote>`;
+                case 'code':
+                    return `<pre class="section-code"><code>${s.text}</code></pre>`;
+                case 'chart':
+                    return `<div class="section-chart"><canvas id="chart-${idx}"></canvas></div>`;
+                case 'divider':
+                    return `<hr class="section-divider">`;
+                case 'page-break':
+                    return `<div class="page-break"></div>`;
+                default:
+                    return '';
+            }
+        }
+
+        function initChart(s, idx) {
+            const ctx = document.getElementById(`chart-${idx}`).getContext('2d');
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const color = isDark ? '#e8eaed' : '#1a1a1a';
+
+            new Chart(ctx, {
+                type: s.chartType || 'bar',
+                data: {
+                    labels: s.labels,
+                    datasets: [{
+                        label: s.title || 'Data',
+                        data: s.values,
+                        backgroundColor: [
+                            'rgba(26, 115, 232, 0.7)',
+                            'rgba(52, 168, 83, 0.7)',
+                            'rgba(251, 188, 4, 0.7)',
+                            'rgba(234, 67, 53, 0.7)',
+                            'rgba(154, 160, 166, 0.7)'
+                        ],
+                        borderColor: isDark ? '#3c4043' : '#ffffff',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: color } }
+                    },
+                    scales: (s.chartType === 'pie' || s.chartType === 'doughnut') ? {} : {
+                        y: { ticks: { color: color }, grid: { color: isDark ? '#3c4043' : '#e0e0e0' } },
+                        x: { ticks: { color: color }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function showError(title, msg) {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('main-content').style.display = 'none';
+            const errorScreen = document.getElementById('error-screen');
+            errorScreen.style.display = 'block';
+            document.getElementById('error-title').innerText = title;
+            document.getElementById('error-msg').innerText = msg;
+        }
+
+        // Global functions for buttons
+        window.toggleTheme = function() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.documentElement.removeAttribute('data-theme');
+                updateThemeButton(false);
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                updateThemeButton(true);
+            }
+            // Re-render is needed if charts are present to update colors
+            init(); 
+        };
+
+        function updateThemeButton(isDark) {
+            const btn = document.getElementById('theme-btn');
+            btn.innerHTML = isDark ? '<span>☀️</span> Light Mode' : '<span>🌙</span> Dark Mode';
+        }
+
+        window.exportPDF = function() {
+            const element = document.getElementById('document-container');
+            const title = document.querySelector('.doc-title').innerText || 'document';
+            const opt = {
+                margin: [10, 0, 10, 0],
+                filename: `${title.replace(/\s+/g, '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+            html2pdf().set(opt).from(element).save();
+        };
+
+        // Start App
+        init();
+
+    </script>
+</body>
+  </html>
