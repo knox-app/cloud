@@ -3,17 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xperts Data Editor & Excel Generator</title>
+    <title>Xperts Spreadsheets Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; transition: all 0.3s ease; }
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
+        .sheet-container { height: calc(100vh - 120px); overflow: auto; }
+        .editable-cell:focus { outline: 2px solid #2563eb; background: #eff6ff; }
+        .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700; }
         .dark { background-color: #0f172a; color: #f8fafc; }
+        .dark .bg-white { background-color: #1e293b; }
+        .dark border-slate-200 { border-color: #334155; }
         .loader {
-            border: 3px solid #e2e8f0;
+            border: 3px solid #f3f3f3;
             border-top: 3px solid #3b82f6;
             border-radius: 50%;
             width: 24px;
@@ -21,69 +26,81 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .editable-cell:focus { outline: 2px solid #3b82f6; background: rgba(59, 130, 246, 0.05); }
-        .dark .editable-cell:focus { background: rgba(59, 130, 246, 0.2); }
-        .table-container { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .dark .table-container { border-color: #1e293b; }
-        th { background: #f8fafc; text-align: left; padding: 12px; font-weight: 600; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; }
-        .dark th { background: #1e293b; border-bottom-color: #334155; }
-        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; min-width: 120px; }
-        .dark td { border-bottom-color: #1e293b; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+<body class="bg-slate-100 text-slate-900 transition-colors duration-300">
 
-    <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-3">
-        <div class="max-w-[1600px] mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <div class="bg-blue-600 p-2 rounded-lg text-white"><i data-lucide="table-2"></i></div>
-                <div>
-                    <h1 id="main-title" class="font-bold text-lg leading-none">Excel Editor</h1>
-                    <p class="text-[10px] uppercase tracking-widest text-slate-500 mt-1 font-bold">Cloud Firestore Sync</p>
-                </div>
+    <!-- Top Navigation Bar -->
+    <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 flex justify-between items-center z-50">
+        <div class="flex items-center gap-4">
+            <div class="bg-blue-600 p-2 rounded-lg text-white"><i data-lucide="layout-grid"></i></div>
+            <div>
+                <h1 id="doc-title" class="font-bold text-sm md:text-base">Loading Spreadsheet...</h1>
+                <p id="doc-id-display" class="text-[10px] text-slate-500 font-mono"></p>
             </div>
+        </div>
 
-            <div class="flex items-center gap-2">
-                <button id="editBtn" onclick="toggleEditMode()" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition font-semibold">
-                    <i data-lucide="edit-3" class="w-4 h-4"></i>
-                    <span>Edit Data</span>
-                </button>
-                <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
-                <button onclick="toggleDarkMode()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition"><i data-lucide="moon" id="theme-icon"></i></button>
-                <button onclick="location.reload()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition"><i data-lucide="refresh-cw"></i></button>
-                <button id="downloadBtn" onclick="generateExcel()" disabled class="ml-2 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-bold transition disabled:opacity-30">
-                    <i data-lucide="download" class="w-4 h-4"></i>
-                    Export Excel
-                </button>
+        <div class="flex items-center gap-2">
+            <div id="save-status" class="hidden text-xs font-medium text-green-600 flex items-center gap-1 mr-4">
+                <i data-lucide="check-circle" class="w-3 h-3"></i> Saved to Cloud
             </div>
+            
+            <button id="edit-toggle" onclick="toggleEditMode()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-4 py-2 rounded-lg text-sm font-semibold transition">
+                <i data-lucide="edit-3" class="w-4 h-4"></i> <span id="edit-text">Edit Spreadsheet</span>
+            </button>
+
+            <button id="save-btn" onclick="saveToFirestore()" disabled class="hidden flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-green-500/20 transition">
+                <i data-lucide="cloud-upload" class="w-4 h-4"></i> Save Changes
+            </button>
+
+            <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+
+            <button onclick="generateExcel()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-blue-500/20 transition">
+                <i data-lucide="download" class="w-4 h-4"></i> Download
+            </button>
+            
+            <button onclick="toggleDarkMode()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                <i data-lucide="moon" id="theme-icon"></i>
+            </button>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 max-w-[1600px] w-full mx-auto p-6">
-        <div id="loader" class="flex flex-col items-center justify-center py-32 space-y-4">
-            <div class="loader"></div>
-            <p class="text-slate-500 font-medium animate-pulse">Fetching document from Computers collection...</p>
+    <!-- Sheet Tabs -->
+    <div id="tabs-container" class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 flex gap-6 overflow-x-auto whitespace-nowrap scrollbar-hide">
+        <!-- Tabs injected here -->
+    </div>
+
+    <!-- Spreadsheet Main UI -->
+    <main class="relative">
+        <!-- Loading -->
+        <div id="loading-overlay" class="absolute inset-0 bg-white/80 dark:bg-slate-900/80 z-40 flex flex-col items-center justify-center">
+            <div class="loader mb-4"></div>
+            <p class="text-slate-500 font-medium">Fetching Data from Computers Collection...</p>
         </div>
 
-        <div id="error-screen" class="hidden py-20 flex flex-col items-center text-center">
-            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4"><i data-lucide="alert-circle"></i></div>
-            <h2 class="text-xl font-bold mb-2">Sync Failed</h2>
-            <p id="error-text" class="text-slate-500 max-w-md mb-6"></p>
-            <button onclick="location.reload()" class="px-6 py-2 bg-slate-200 rounded-lg font-bold">Try Again</button>
+        <!-- Empty/Error State -->
+        <div id="error-box" class="hidden absolute inset-0 bg-white dark:bg-slate-950 z-40 flex flex-col items-center justify-center p-6 text-center">
+            <div class="text-red-500 mb-4"><i data-lucide="alert-circle" class="w-12 h-12"></i></div>
+            <h2 class="text-xl font-bold mb-2">Operation Failed</h2>
+            <p id="error-msg" class="text-slate-500 max-w-sm mb-6"></p>
+            <button onclick="location.reload()" class="bg-slate-800 text-white px-6 py-2 rounded-xl">Reload</button>
         </div>
 
-        <!-- Sheet Display -->
-        <div id="sheet-container" class="hidden space-y-10 animate-in fade-in duration-500">
-            <!-- Tabs for multiple sheets if necessary, or scroll sequence -->
-            <div id="sheets-wrapper" class="space-y-12"></div>
+        <div id="grid-wrapper" class="sheet-container custom-scrollbar">
+            <table class="w-full border-collapse bg-white dark:bg-slate-900 table-fixed min-w-[1000px]">
+                <thead id="sheet-header" class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-10">
+                    <!-- Headers injected here -->
+                </thead>
+                <tbody id="sheet-body">
+                    <!-- Rows injected here -->
+                </tbody>
+            </table>
         </div>
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA_0q4Evwirxr4loAZ2ZzGVfKP-51oSi14",
@@ -91,16 +108,18 @@
             projectId: "xperts-ed-tech",
             storageBucket: "xperts-ed-tech.firebasestorage.app",
             messagingSenderId: "960602403596",
-            appId: "1:960602403596:web:fdf87f7b9a6181b6db4f29",
-            measurementId: "G-000SED73EW"
+            appId: "1:960602403596:web:fdf87f7b9a6181b6db4f29"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let activeData = null;
-        let isEditing = false;
+        let fullData = null;
+        let currentSheetIdx = 0;
+        let isEditMode = false;
+        let docId = "";
 
+        // UI Toggles
         window.toggleDarkMode = () => {
             document.documentElement.classList.toggle('dark');
             const isDark = document.documentElement.classList.contains('dark');
@@ -109,147 +128,191 @@
         };
 
         window.toggleEditMode = () => {
-            isEditing = !isEditing;
-            const btn = document.getElementById('editBtn');
-            const cells = document.querySelectorAll('.editable-cell');
+            isEditMode = !isEditMode;
+            const editBtn = document.getElementById('edit-toggle');
+            const saveBtn = document.getElementById('save-btn');
             
-            if (isEditing) {
-                btn.classList.add('bg-blue-50', 'border-blue-300', 'text-blue-600', 'dark:bg-blue-900/30');
-                btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>Finish Editing</span>`;
-                cells.forEach(c => c.contentEditable = "true");
+            if (isEditMode) {
+                editBtn.classList.add('bg-blue-600', 'text-white');
+                editBtn.classList.remove('bg-slate-100', 'dark:bg-slate-800');
+                document.getElementById('edit-text').innerText = "Finish Editing";
+                saveBtn.classList.remove('hidden');
+                saveBtn.disabled = false;
             } else {
-                btn.classList.remove('bg-blue-50', 'border-blue-300', 'text-blue-600', 'dark:bg-blue-900/30');
-                btn.innerHTML = `<i data-lucide="edit-3" class="w-4 h-4"></i><span>Edit Data</span>`;
-                cells.forEach(c => c.contentEditable = "false");
-                syncDataFromTable();
+                editBtn.classList.remove('bg-blue-600', 'text-white');
+                editBtn.classList.add('bg-slate-100', 'dark:bg-slate-800');
+                document.getElementById('edit-text').innerText = "Edit Spreadsheet";
+                saveBtn.classList.add('hidden');
             }
-            lucide.createIcons();
+            renderSheet();
         };
 
         async function init() {
-            const id = new URLSearchParams(window.location.search).get('id');
-            const autoDownload = new URLSearchParams(window.location.search).get('download') === 'true';
+            const params = new URLSearchParams(window.location.search);
+            docId = params.get('id');
 
-            if (!id) {
-                showError("No document ID provided in the URL.");
+            if (!docId) {
+                showError("Missing Document ID in URL. Example: ?id=2fyoXWLfp68qjM3idCzr");
                 return;
             }
 
             try {
-                const docSnap = await getDoc(doc(db, "Computers", id));
+                const docRef = doc(db, "Computers", docId);
+                const docSnap = await getDoc(docRef);
+
                 if (docSnap.exists()) {
-                    const raw = docSnap.data().JSON;
-                    activeData = typeof raw === 'string' ? JSON.parse(raw) : raw;
-                    renderSheets(activeData);
-                    if (autoDownload) generateExcel();
+                    const content = docSnap.data();
+                    const rawJson = content.JSON || content.json_data;
+                    fullData = typeof rawJson === 'string' ? JSON.parse(rawJson) : rawJson;
+
+                    if (!fullData || (!fullData.worksheets && !fullData.dataset)) {
+                        showError("Document found, but valid spreadsheet JSON structure is missing.");
+                        return;
+                    }
+
+                    // Format dataset into worksheets format if needed
+                    if (fullData.dataset && !fullData.worksheets) {
+                        fullData.worksheets = [{
+                            name: "Main Data",
+                            columns: Object.keys(fullData.dataset[0] || {}),
+                            rows: fullData.dataset.map(o => Object.values(o))
+                        }];
+                    }
+
+                    document.getElementById('doc-title').innerText = fullData.title || "Untitled Spreadsheet";
+                    document.getElementById('doc-id-display').innerText = docId;
+                    renderTabs();
+                    renderSheet();
+                    document.getElementById('loading-overlay').classList.add('hidden');
+                    
+                    if (params.get('download') === 'true') generateExcel();
                 } else {
-                    showError(`Document [${id}] not found in collection 'Computers'.`);
+                    showError(`Document [${docId}] not found in Computers collection.`);
                 }
-            } catch (err) {
-                showError(err.message);
+            } catch (e) {
+                console.error(e);
+                showError("Firebase Connection Error: " + e.message);
             }
         }
 
-        function renderSheets(data) {
-            document.getElementById('loader').classList.add('hidden');
-            document.getElementById('sheet-container').classList.remove('hidden');
-            document.getElementById('downloadBtn').disabled = false;
-            document.getElementById('main-title').innerText = data.title || "Excel Report";
-
-            const wrapper = document.getElementById('sheets-wrapper');
-            wrapper.innerHTML = "";
-
-            if (data.worksheets) {
-                data.worksheets.forEach((ws, idx) => {
-                    const section = document.createElement('div');
-                    section.innerHTML = `
-                        <div class="flex items-center gap-2 mb-4">
-                            <span class="bg-slate-200 dark:bg-slate-700 px-3 py-1 rounded-md text-xs font-bold">${idx + 1}</span>
-                            <h2 class="font-bold text-lg">${ws.name}</h2>
-                        </div>
-                        <div class="table-container shadow-sm bg-white dark:bg-slate-800">
-                            <table class="w-full border-collapse" data-sheet-index="${idx}">
-                                <thead><tr>${ws.columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
-                                <tbody>
-                                    ${ws.rows.map(row => `
-                                        <tr>${row.map(cell => `<td class="editable-cell text-sm" contenteditable="false">${cell}</td>`).join('')}</tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `;
-                    wrapper.appendChild(section);
-                });
-            }
-            lucide.createIcons();
-        }
-
-        function syncDataFromTable() {
-            const tables = document.querySelectorAll('table[data-sheet-index]');
-            tables.forEach(table => {
-                const idx = table.getAttribute('data-sheet-index');
-                const rows = [];
-                const tbodyRows = table.querySelectorAll('tbody tr');
-                
-                tbodyRows.forEach(tr => {
-                    const rowData = [];
-                    tr.querySelectorAll('td').forEach(td => rowData.push(td.innerText));
-                    rows.push(rowData);
-                });
-                activeData.worksheets[idx].rows = rows;
+        function renderTabs() {
+            const container = document.getElementById('tabs-container');
+            container.innerHTML = "";
+            fullData.worksheets.forEach((sheet, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `py-3 px-1 text-sm font-medium transition-all ${idx === currentSheetIdx ? 'tab-active' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'}`;
+                btn.innerText = sheet.name;
+                btn.onclick = () => {
+                    currentSheetIdx = idx;
+                    renderTabs();
+                    renderSheet();
+                };
+                container.appendChild(btn);
             });
         }
 
+        function renderSheet() {
+            const sheet = fullData.worksheets[currentSheetIdx];
+            const header = document.getElementById('sheet-header');
+            const body = document.getElementById('sheet-body');
+
+            // Header
+            header.innerHTML = `<tr><th class="w-12 p-2 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-400">#</th>` + 
+                sheet.columns.map(c => `<th class="p-3 border border-slate-200 dark:border-slate-700 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">${c}</th>`).join('') + `</tr>`;
+
+            // Body
+            body.innerHTML = "";
+            sheet.rows.forEach((row, rowIdx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-slate-800/50 transition";
+                
+                let rowHtml = `<td class="p-2 border border-slate-200 dark:border-slate-700 text-center text-[10px] text-slate-400 bg-slate-50/50 dark:bg-slate-800/30">${rowIdx + 1}</td>`;
+                
+                row.forEach((cell, cellIdx) => {
+                    const isEditable = isEditMode ? 'contenteditable="true"' : '';
+                    rowHtml += `<td ${isEditable} 
+                                    onblur="updateLocalData(${rowIdx}, ${cellIdx}, this.innerText)" 
+                                    class="p-3 border border-slate-200 dark:border-slate-700 text-sm outline-none ${isEditMode ? 'editable-cell' : ''}">${cell}</td>`;
+                });
+                
+                tr.innerHTML = rowHtml;
+                body.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        window.updateLocalData = (r, c, val) => {
+            fullData.worksheets[currentSheetIdx].rows[r][c] = isNaN(val) || val === "" ? val : Number(val);
+        };
+
+        window.saveToFirestore = async () => {
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<div class="loader w-4 h-4 border-2"></div> Saving...';
+
+            try {
+                const docRef = doc(db, "Computers", docId);
+                // Update the JSON field with the new local data
+                await updateDoc(docRef, {
+                    JSON: JSON.stringify(fullData)
+                });
+                
+                const status = document.getElementById('save-status');
+                status.classList.remove('hidden');
+                setTimeout(() => status.classList.add('hidden'), 3000);
+            } catch (e) {
+                alert("Error saving: " + e.message);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i data-lucide="cloud-upload" class="w-4 h-4"></i> Save Changes';
+                lucide.createIcons();
+            }
+        };
+
         window.generateExcel = async () => {
-            if (isEditing) toggleEditMode(); // Ensure data is synced
-            
             const workbook = new ExcelJS.Workbook();
-            workbook.creator = activeData.author || "Xperts System";
-            
-            activeData.worksheets.forEach(ws => {
+            fullData.worksheets.forEach(ws => {
                 const sheet = workbook.addWorksheet(ws.name);
-                const headerRow = sheet.addRow(ws.columns);
+                const header = sheet.addRow(ws.columns);
                 
                 // Style Header
-                headerRow.eachCell(cell => {
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } };
-                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                    cell.alignment = { vertical: 'middle', horizontal: 'left' };
+                header.height = 25;
+                header.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                header.eachCell(c => {
+                    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } };
+                    c.alignment = { vertical: 'middle', horizontal: 'left' };
                 });
 
-                // Add Data
-                ws.rows.forEach((r, i) => {
-                    const row = sheet.addRow(r);
-                    if (i % 2 !== 0) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
-                    row.eachCell(cell => {
-                        cell.border = { 
-                            top: {style:'thin', color: {argb:'FFE2E8F0'}},
-                            left: {style:'thin', color: {argb:'FFE2E8F0'}},
-                            bottom: {style:'thin', color: {argb:'FFE2E8F0'}},
-                            right: {style:'thin', color: {argb:'FFE2E8F0'}}
-                        };
-                        if (!isNaN(cell.value) && cell.value !== "") cell.numFmt = '#,##0';
+                sheet.addRows(ws.rows);
+
+                // Grid lines & formatting
+                sheet.eachRow((row, i) => {
+                    if (i > 1 && i % 2 === 0) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9FAFB' } };
+                    row.eachCell(c => {
+                        c.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+                        if(typeof c.value === 'number') c.numFmt = '#,##0.00';
                     });
                 });
 
                 sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: ws.columns.length } };
                 sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1 }];
-                sheet.columns.forEach(col => col.width = 18);
+                sheet.columns.forEach(col => col.width = 20);
             });
 
             const buffer = await workbook.xlsx.writeBuffer();
-            saveAs(new Blob([buffer]), `${activeData.title.replace(/\s+/g, '_')}.xlsx`);
+            saveAs(new Blob([buffer]), `${fullData.title || 'export'}.xlsx`);
         };
 
         function showError(msg) {
-            document.getElementById('loader').classList.add('hidden');
-            document.getElementById('error-screen').classList.remove('hidden');
-            document.getElementById('error-text').innerText = msg;
+            document.getElementById('loading-overlay').classList.add('hidden');
+            const box = document.getElementById('error-box');
+            box.classList.remove('hidden');
+            document.getElementById('error-msg').innerText = msg;
             lucide.createIcons();
         }
 
-        lucide.createIcons();
         init();
+        lucide.createIcons();
     </script>
 </body>
     </html>
