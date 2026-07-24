@@ -3,122 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSON to Excel Pro Generator</title>
+    <title>Xperts Data Engine - JSON to Excel</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Using ExcelJS for production-ready styling (borders, colors, etc.) which standard SheetJS community doesn't support -->
+    <!-- ExcelJS for production-grade Excel generation with styles -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s; }
-        .dark { background-color: #0f172a; color: #f8fafc; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.3s ease; }
+        .dark { background-color: #020617; color: #f8fafc; }
+        .dark .card { background-color: #0f172a; border-color: #1e293b; }
         .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3b82f6;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #2563eb;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
 
-    <!-- Navbar -->
-    <nav class="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex justify-between items-center shadow-sm">
-        <div class="flex items-center gap-3">
-            <div class="bg-indigo-600 p-2 rounded-lg text-white">
-                <i data-lucide="file-spreadsheet"></i>
+    <!-- Header Toolbar -->
+    <header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20 text-white">
+                    <i data-lucide="database" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-tight">Xperts Engine</h1>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Live Firestore Connector</p>
+                    </div>
+                </div>
             </div>
-            <div>
-                <h1 class="font-bold text-lg leading-none">Excel Generator</h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Firestore JSON Processor</p>
-            </div>
-        </div>
 
-        <div class="flex items-center gap-2">
-            <button onclick="location.reload()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition" title="Reload">
-                <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-            </button>
-            <button onclick="toggleDarkMode()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition" title="Toggle Theme">
-                <i data-lucide="moon" id="theme-icon" class="w-5 h-5"></i>
-            </button>
-            <button id="downloadBtn" onclick="generateExcel()" disabled class="ml-4 flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-200 dark:shadow-none">
-                <i data-lucide="download" class="w-4 h-4"></i>
-                Download Excel
-            </button>
-        </div>
-    </nav>
-
-    <!-- Content Area -->
-    <main class="flex-1 container mx-auto p-6 max-w-5xl">
-        <!-- Status Notification -->
-        <div id="status-box" class="mb-6">
-            <div id="loading-state" class="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-xl border border-blue-100 dark:border-blue-800">
-                <div class="loader"></div>
-                <span class="font-medium">Initializing connection to Firestore...</span>
+            <div class="flex items-center gap-3">
+                <button onclick="window.location.reload()" class="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition" title="Reload Data">
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                </button>
+                <button onclick="toggleDarkMode()" class="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition" title="Toggle Theme">
+                    <i data-lucide="moon" id="theme-icon" class="w-5 h-5"></i>
+                </button>
+                <div class="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
+                <button id="downloadBtn" onclick="generateExcel()" disabled class="flex items-center gap-2 bg-slate-900 dark:bg-blue-600 hover:scale-[1.02] active:scale-[0.98] text-white px-6 py-2.5 rounded-xl font-semibold transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-xl shadow-slate-900/10">
+                    <i data-lucide="file-down" class="w-4 h-4"></i>
+                    Export to Excel
+                </button>
             </div>
         </div>
+    </header>
 
-        <!-- Dashboard Layout -->
-        <div id="main-content" class="hidden space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Document ID</p>
-                    <p id="stat-id" class="font-mono text-sm truncate font-medium">-</p>
+    <main class="flex-1 container mx-auto p-6 max-w-7xl">
+        <!-- Loading State -->
+        <div id="loading-overlay" class="py-20 flex flex-col items-center justify-center space-y-4">
+            <div class="loader w-12 h-12 border-4"></div>
+            <p class="text-slate-500 font-medium animate-pulse">Establishing secure connection to Firestore...</p>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="dashboard" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <!-- Summary Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="card bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Collection</p>
+                    <p class="font-bold text-blue-600 dark:text-blue-400">Computers</p>
                 </div>
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Report Title</p>
-                    <p id="stat-title" class="font-bold text-indigo-600 dark:text-indigo-400">-</p>
+                <div class="card bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Document ID</p>
+                    <p id="ui-doc-id" class="font-mono text-xs truncate">-</p>
                 </div>
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Worksheets</p>
-                    <p id="stat-sheets" class="font-bold text-xl">-</p>
+                <div class="card bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Report Author</p>
+                    <p id="ui-author" class="font-bold">-</p>
                 </div>
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Author</p>
-                    <p id="stat-author" class="font-medium">-</p>
+                <div class="card bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Total Sheets</p>
+                    <p id="ui-sheets" class="font-bold text-xl">-</p>
                 </div>
             </div>
 
             <!-- JSON Preview -->
-            <div class="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
-                <div class="px-6 py-3 bg-slate-800 flex justify-between items-center">
-                    <div class="flex items-center gap-2">
-                        <div class="flex gap-1.5">
-                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                            <div class="w-3 h-3 rounded-full bg-amber-500"></div>
-                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                        </div>
-                        <span class="text-xs font-mono text-slate-400 ml-2">source_data.json</span>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+                <div class="px-8 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="code-2" class="w-5 h-5 text-blue-500"></i>
+                        <h2 class="font-bold text-slate-700 dark:text-slate-200" id="ui-title">Raw Document Data</h2>
                     </div>
-                    <button onclick="copyJson()" class="text-slate-400 hover:text-white transition">
-                        <i data-lucide="copy" class="w-4 h-4"></i>
-                    </button>
+                    <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-bold rounded-full uppercase tracking-tighter">Verified JSON</span>
                 </div>
-                <pre id="json-display" class="p-6 text-sm text-blue-300 font-mono overflow-auto max-h-[500px] custom-scrollbar"></pre>
+                <div class="p-8">
+                    <pre id="json-viewer" class="text-sm font-mono text-slate-600 dark:text-slate-400 overflow-auto max-h-[600px] custom-scrollbar leading-relaxed"></pre>
+                </div>
             </div>
         </div>
 
-        <!-- Error State -->
-        <div id="error-state" class="hidden py-20 flex flex-col items-center text-center">
-            <div class="w-20 h-20 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-6">
-                <i data-lucide="alert-triangle" class="w-10 h-10"></i>
+        <!-- Error Container -->
+        <div id="error-box" class="hidden py-24 flex flex-col items-center text-center max-w-lg mx-auto">
+            <div class="w-24 h-24 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-8 border border-red-100 dark:border-red-800">
+                <i data-lucide="shield-alert" class="w-12 h-12"></i>
             </div>
-            <h2 class="text-2xl font-bold mb-2">Operation Failed</h2>
-            <p id="error-text" class="text-slate-500 max-w-md mx-auto mb-8"></p>
-            <button onclick="location.reload()" class="px-6 py-2 bg-slate-200 dark:bg-slate-800 rounded-lg font-semibold">Try Again</button>
+            <h2 class="text-2xl font-black mb-3 text-slate-800 dark:text-white">Access Failed</h2>
+            <p id="error-msg" class="text-slate-500 dark:text-slate-400 mb-8 leading-relaxed"></p>
+            <button onclick="window.location.reload()" class="px-8 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-bold transition">Retry Connection</button>
         </div>
     </main>
 
-    <footer class="p-8 text-center text-xs text-slate-400 uppercase tracking-widest">
-        Firebase Excel Engine v2.0 &bull; Production Ready
+    <footer class="p-10 text-center">
+        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-[0.3em]">Xperts Cloud Infrastructure &bull; Production Ready</p>
     </footer>
 
     <script type="module">
@@ -138,10 +138,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let jsonData = null;
-        let currentId = "";
+        let activeData = null;
+        let documentId = "";
 
-        // UI Handlers
+        // UI Utility Functions
         window.toggleDarkMode = () => {
             document.documentElement.classList.toggle('dark');
             const isDark = document.documentElement.classList.contains('dark');
@@ -149,192 +149,193 @@
             lucide.createIcons();
         };
 
-        window.copyJson = () => {
-            navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
-            alert("JSON copied to clipboard!");
-        };
+        function showError(msg) {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+            const errorBox = document.getElementById('error-box');
+            errorBox.classList.remove('hidden');
+            document.getElementById('error-msg').innerText = msg;
+            lucide.createIcons();
+        }
 
-        async function init() {
+        async function initializeConnector() {
             const params = new URLSearchParams(window.location.search);
-            currentId = params.get('id');
+            documentId = params.get('id');
             const autoDownload = params.get('download') === 'true';
 
-            if (!currentId) {
-                showError("No Document ID provided. Usage: ?id=your_id_here");
+            if (!documentId) {
+                showError("No valid Document ID found in the URL. Please ensure your link ends with ?id=DOCUMENT_ID");
                 return;
             }
 
             try {
-                // Fetch from 'documents' collection as per requirements
-                const docRef = doc(db, "documents", currentId);
+                // As per screenshot, collection name is 'Computers'
+                const docRef = doc(db, "Computers", documentId);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
-                    const rawData = docSnap.data();
+                    const docData = docSnap.data();
                     
-                    // The field is likely named 'JSON' based on the screenshot provided
-                    const rawJson = rawData.JSON || rawData.json_data || rawData;
-                    
-                    jsonData = typeof rawJson === 'string' ? JSON.parse(rawJson) : rawJson;
-                    
-                    renderUI(jsonData);
-                    
+                    // Parse the JSON field (which is a string according to the image)
+                    let parsedJson;
+                    try {
+                        parsedJson = typeof docData.JSON === 'string' ? JSON.parse(docData.JSON) : docData.JSON;
+                    } catch (e) {
+                        showError("The document was found, but the 'JSON' field contains invalid formatting.");
+                        return;
+                    }
+
+                    if (!parsedJson) {
+                        showError("The document exists, but the 'JSON' field is empty.");
+                        return;
+                    }
+
+                    activeData = parsedJson;
+                    renderDashboard(parsedJson);
+
                     if (autoDownload) {
                         generateExcel();
                     }
                 } else {
-                    showError(`Document [${currentId}] was not found in 'documents' collection.`);
+                    showError(`The document ID [${documentId}] does not exist in the 'Computers' collection. Check your Firestore database.`);
                 }
             } catch (err) {
                 console.error(err);
-                showError("Firebase Connection Error: " + err.message);
+                showError(`Firebase Error: ${err.message}`);
             }
         }
 
-        function renderUI(data) {
-            document.getElementById('loading-state').classList.add('hidden');
-            document.getElementById('main-content').classList.remove('hidden');
+        function renderDashboard(data) {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
             document.getElementById('downloadBtn').disabled = false;
 
-            document.getElementById('stat-id').innerText = currentId;
-            document.getElementById('stat-title').innerText = data.title || "Standard Report";
-            document.getElementById('stat-author').innerText = data.author || "System Gen";
+            document.getElementById('ui-doc-id').innerText = documentId;
+            document.getElementById('ui-title').innerText = data.title || "Report Preview";
+            document.getElementById('ui-author').innerText = data.author || "Anonymous";
             
             let sheetCount = 0;
             if (data.worksheets) sheetCount += data.worksheets.length;
             if (data.dataset) sheetCount += 1;
-            if (data.statistics || data.metadata) sheetCount += 1;
+            if (data.chart) sheetCount += 1;
+            if (data.metadata || data.statistics) sheetCount += 1;
             
-            document.getElementById('stat-sheets').innerText = sheetCount;
-            document.getElementById('json-display').innerText = JSON.stringify(data, null, 2);
-            lucide.createIcons();
-        }
-
-        function showError(msg) {
-            document.getElementById('loading-state').classList.add('hidden');
-            document.getElementById('error-state').classList.remove('hidden');
-            document.getElementById('error-text').innerText = msg;
+            document.getElementById('ui-sheets').innerText = sheetCount;
+            document.getElementById('json-viewer').innerText = JSON.stringify(data, null, 4);
             lucide.createIcons();
         }
 
         window.generateExcel = async () => {
-            if (!jsonData) return;
+            if (!activeData) return;
 
             const workbook = new ExcelJS.Workbook();
-            workbook.creator = jsonData.author || 'Xperts Generator';
+            workbook.creator = activeData.author || 'Xperts Engine';
             workbook.created = new Date();
 
-            // 1. Handle Multiple Worksheets (Tables)
-            if (jsonData.worksheets && Array.isArray(jsonData.worksheets)) {
-                jsonData.worksheets.forEach(ws => {
-                    addSheetToWorkbook(workbook, ws.name || "Table", ws.columns, ws.rows);
+            // Support: Worksheets Array (Format from Screenshot)
+            if (activeData.worksheets && Array.isArray(activeData.worksheets)) {
+                activeData.worksheets.forEach(ws => {
+                    createStyledSheet(workbook, ws.name || "Data Sheet", ws.columns, ws.rows);
                 });
             }
 
-            // 2. Handle Dataset (Single objects array)
-            if (jsonData.dataset && Array.isArray(jsonData.dataset) && jsonData.dataset.length > 0) {
-                const columns = Object.keys(jsonData.dataset[0]);
-                const rows = jsonData.dataset.map(obj => Object.values(obj));
-                addSheetToWorkbook(workbook, "Dataset", columns, rows);
+            // Support: Direct Dataset
+            if (activeData.dataset && Array.isArray(activeData.dataset) && activeData.dataset.length > 0) {
+                const cols = Object.keys(activeData.dataset[0]);
+                const rows = activeData.dataset.map(obj => Object.values(obj));
+                createStyledSheet(workbook, "Dataset Export", cols, rows);
             }
 
-            // 3. Handle Charts / Data backup
-            if (jsonData.chart) {
-                const chartName = jsonData.chart.title || "Chart Data";
-                const cols = jsonData.chart.labels || ["Category", "Value"];
-                const rows = jsonData.chart.data?.map((val, idx) => [cols[idx] || `Item ${idx+1}`, val]) || [];
-                addSheetToWorkbook(workbook, "Chart Data", ["Label", "Value"], rows);
+            // Support: Charts (Export underlying data)
+            if (activeData.chart) {
+                const chartData = activeData.chart.data || [];
+                const labels = activeData.chart.labels || [];
+                const rows = labels.map((l, i) => [l, chartData[i] || 0]);
+                createStyledSheet(workbook, "Chart Analytics", ["Category", "Value"], rows);
             }
 
-            // 4. Handle Statistics / Metadata (Summary Sheet)
-            if (jsonData.statistics || jsonData.metadata || jsonData.title) {
-                const summary = workbook.addWorksheet('Report Summary');
-                summary.columns = [
-                    { header: 'Property', key: 'prop', width: 25 },
+            // Support: Metadata/Statistics Sheet
+            if (activeData.metadata || activeData.statistics || activeData.title) {
+                const info = workbook.addWorksheet('Summary & Metadata');
+                info.columns = [
+                    { header: 'Attribute', key: 'attr', width: 25 },
                     { header: 'Value', key: 'val', width: 50 }
                 ];
-
-                if (jsonData.title) summary.addRow(['Report Name', jsonData.title]);
-                if (jsonData.author) summary.addRow(['Generated By', jsonData.author]);
-                summary.addRow(['Generated On', new Date().toLocaleString()]);
                 
-                const stats = jsonData.statistics || jsonData.metadata || {};
-                Object.entries(stats).forEach(([k, v]) => {
-                    summary.addRow([k.charAt(0).toUpperCase() + k.slice(1), v]);
+                if (activeData.title) info.addRow(['Report Title', activeData.title]);
+                if (activeData.author) info.addRow(['Document Author', activeData.author]);
+                info.addRow(['Export Date', new Date().toLocaleString()]);
+                
+                const meta = activeData.metadata || activeData.statistics || {};
+                Object.entries(meta).forEach(([k, v]) => {
+                    info.addRow([k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '), v]);
                 });
 
-                styleHeader(summary.getRow(1));
+                applyHeaderStyles(info.getRow(1));
             }
 
-            // Finalizing and Exporting
             const buffer = await workbook.xlsx.writeBuffer();
-            const filename = `${(jsonData.title || 'report').toLowerCase().replace(/\s+/g, '_')}_${currentId.substring(0,6)}.xlsx`;
-            saveAs(new Blob([buffer]), filename);
+            const fileName = `${(activeData.title || 'report').toLowerCase().replace(/\s+/g, '_')}_${new Date().getTime()}.xlsx`;
+            saveAs(new Blob([buffer]), fileName);
         };
 
-        function addSheetToWorkbook(workbook, name, cols, rows) {
+        function createStyledSheet(workbook, name, headers, rows) {
             const sheet = workbook.addWorksheet(name);
             
-            // Define columns
-            sheet.columns = cols.map(c => ({ header: c, key: c }));
+            // Add Headers
+            const headerRow = sheet.addRow(headers);
+            applyHeaderStyles(headerRow);
 
-            // Add rows
-            sheet.addRows(rows);
-
-            // Styling: Header
-            const headerRow = sheet.getRow(1);
-            styleHeader(headerRow);
-
-            // Styling: Data Rows (Alternate colors + Borders)
-            sheet.eachRow((row, rowNumber) => {
-                if (rowNumber > 1) {
-                    // Alternate row background
-                    if (rowNumber % 2 === 0) {
-                        row.fill = {
-                            type: 'pattern',
-                            pattern: 'solid',
-                            fgColor: { argb: 'FFF8FAFC' }
-                        };
-                    }
-
-                    row.eachCell({ includeEmpty: true }, (cell) => {
-                        cell.border = {
-                            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                            right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
-                        };
-
-                        // Formatting for numbers
-                        if (typeof cell.value === 'number') {
-                            cell.numFmt = '#,##0.00';
-                        }
-                    });
+            // Add Data Rows
+            rows.forEach((rowData, index) => {
+                const row = sheet.addRow(rowData);
+                
+                // Alternate Row Background Color
+                if (index % 2 !== 0) {
+                    row.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFF8FAFC' } // Very light slate
+                    };
                 }
+
+                // Cell Borders and Auto-Formatting
+                row.eachCell({ includeEmpty: true }, (cell) => {
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+                    };
+                    
+                    if (typeof cell.value === 'number') {
+                        cell.numFmt = '#,##0.00';
+                    }
+                });
             });
 
             // Freeze first row
             sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1 }];
 
-            // Auto-filter
+            // Add Auto-filters
             sheet.autoFilter = {
                 from: { row: 1, column: 1 },
-                to: { row: 1, column: cols.length }
+                to: { row: 1, column: headers.length }
             };
 
-            // Auto-fit columns
-            sheet.columns.forEach(column => {
-                let maxColumnLength = column.header.length;
-                sheet.getColumn(column.key).eachCell({ includeEmpty: true }, (cell) => {
-                    const columnLength = cell.value ? cell.value.toString().length : 0;
-                    if (columnLength > maxColumnLength) maxColumnLength = columnLength;
+            // Auto-calculate column widths
+            sheet.columns.forEach((column, i) => {
+                let maxLen = headers[i].toString().length;
+                rows.forEach(row => {
+                    const val = row[i] ? row[i].toString().length : 0;
+                    if (val > maxLen) maxLen = val;
                 });
-                column.width = maxColumnLength < 12 ? 12 : maxColumnLength + 4;
+                column.width = maxLen < 12 ? 14 : maxLen + 4;
             });
         }
 
-        function styleHeader(row) {
-            row.height = 30;
+        function applyHeaderStyles(row) {
+            row.height = 32;
             row.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
             row.alignment = { vertical: 'middle', horizontal: 'left' };
             
@@ -342,18 +343,17 @@
                 cell.fill = {
                     type: 'pattern',
                     pattern: 'solid',
-                    fgColor: { argb: 'FF4F46E5' } // Indigo-600
+                    fgColor: { argb: 'FF1E293B' } // Slate-800
                 };
                 cell.border = {
-                    bottom: { style: 'medium', color: { argb: 'FF312E81' } }
+                    bottom: { style: 'medium', color: { argb: 'FF0F172A' } }
                 };
             });
         }
 
-        // Run on load
         lucide.createIcons();
-        init();
+        initializeConnector();
 
     </script>
 </body>
-</html>
+                                                                                                 </html>
