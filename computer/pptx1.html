@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise PPTX & PDF Engine</title>
-    <!-- Core Libraries -->
+    <title>Enterprise Slide Engine</title>
+    <!-- Dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -12,80 +12,95 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #0f172a; }
-        .slide-preview { 
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; overflow-x: hidden; }
+        
+        /* Fixed Aspect Ratio for Previews */
+        .slide-preview-container {
             width: 100%;
             max-width: 960px;
+            margin: 0 auto 3rem auto;
+        }
+
+        .slide-preview { 
+            width: 100%;
             aspect-ratio: 16 / 9; 
             background: white; 
-            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.1); 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); 
             border-radius: 12px; 
             overflow: hidden; 
-            margin: 0 auto 3rem auto; 
             position: relative;
             border: 1px solid #e2e8f0;
+            /* Ensure children use this coordinate space */
+            transform-origin: top left;
         }
-        .slide-inner { padding: 3.5rem; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; box-sizing: border-box; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #2563eb; border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; }
+
+        .slide-inner { 
+            padding: 5%; 
+            height: 100%; 
+            width: 100%;
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            z-index: 10; 
+            box-sizing: border-box; 
+        }
+
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .btn { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.7rem 1.3rem; border-radius: 0.6rem; font-weight: 700; transition: all 0.2s; cursor: pointer; border: none; font-size: 0.9rem; }
-        .btn-pptx { background: #d97706; color: white; }
-        .btn-pptx:hover { background: #b45309; transform: translateY(-1px); }
-        .btn-pdf { background: #be123c; color: white; }
-        .btn-pdf:hover { background: #9f1239; transform: translateY(-1px); }
-        .btn-secondary { background: white; border: 1px solid #cbd5e1; color: #475569; }
-        .btn-secondary:hover { background: #f8fafc; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; border-radius: 8px; overflow: hidden; background: white; }
-        th { text-align: left; padding: 14px; font-weight: 800; border-bottom: 2px solid #e2e8f0; }
-        td { padding: 14px; border-bottom: 1px solid #f1f5f9; font-weight: 500; }
-        .shape-blob { position: absolute; border-radius: 50%; filter: blur(50px); opacity: 0.35; z-index: 1; }
+
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; border-radius: 0.6rem; font-weight: 700; transition: all 0.2s; cursor: pointer; border: none; font-size: 0.85rem; }
+        .btn-pptx { background: #ea580c; color: white; }
+        .btn-pptx:hover { background: #c2410c; }
+        .btn-pdf { background: #e11d48; color: white; }
+        .btn-pdf:hover { background: #be123c; }
+        .btn-secondary { background: white; border: 1px solid #e2e8f0; color: #64748b; }
+
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th { text-align: left; padding: 12px; font-weight: 800; border-bottom: 2px solid #e2e8f0; font-size: 1.1rem; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 1rem; font-weight: 500; }
+
+        .shape-blob { position: absolute; border-radius: 50%; filter: blur(50px); opacity: 0.4; z-index: 1; }
+        
+        /* Capture-specific class to prevent responsive shrinking during export */
+        .capturing { width: 960px !important; height: 540px !important; position: absolute !important; left: -9999px !important; top: 0 !important; aspect-ratio: auto !important; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex justify-between items-center shadow-sm">
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm">
         <div class="flex items-center gap-3">
-            <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg">
-                <i class="fas fa-layer-group text-xl"></i>
-            </div>
+            <div class="bg-blue-600 text-white p-2 rounded-lg shadow-lg"><i class="fas fa-layer-group"></i></div>
             <div>
-                <h1 class="text-lg font-black leading-none tracking-tight">SlideGen <span class="text-blue-600">Pro</span></h1>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Export v3.0 • Premium</p>
+                <h1 class="text-base font-black leading-none">SlideGen <span class="text-blue-600">Enterprise</span></h1>
+                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Multi-Format Export Engine</p>
             </div>
         </div>
-        <div id="toolbar" class="hidden flex gap-3">
+        <div id="toolbar" class="hidden flex gap-2">
             <button onclick="location.reload()" class="btn btn-secondary"><i class="fas fa-sync"></i></button>
             <button id="downloadPPTX" class="btn btn-pptx"><i class="fas fa-file-powerpoint"></i> PPTX</button>
             <button id="downloadPDF" class="btn btn-pdf"><i class="fas fa-file-pdf"></i> PDF</button>
         </div>
     </nav>
 
-    <main class="flex-1 max-w-5xl mx-auto w-full p-8">
+    <main class="flex-1 max-w-5xl mx-auto w-full p-6">
         <div id="status">
-            <div id="loading" class="flex flex-col items-center justify-center py-40">
-                <div class="loader mb-6"></div>
-                <p class="text-slate-500 font-bold text-lg tracking-wide">Syncing Firestore Document Stream...</p>
+            <div id="loading" class="flex flex-col items-center justify-center py-32">
+                <div class="loader mb-4"></div>
+                <p class="text-slate-500 font-bold">Synchronizing Firestore Streams...</p>
             </div>
-            <div id="error" class="hidden bg-red-50 border-l-4 border-red-500 p-8 rounded-r-xl shadow-sm">
-                <div class="flex items-center gap-5">
-                    <i class="fas fa-circle-exclamation text-red-500 text-3xl"></i>
-                    <div>
-                        <h3 class="text-red-900 font-black text-xl">Synchronization Error</h3>
-                        <p id="errorMessage" class="text-red-700 font-medium mt-1"></p>
-                    </div>
+            <div id="error" class="hidden bg-red-50 border-l-4 border-red-500 p-6 rounded shadow-sm">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-exclamation-circle text-red-500 text-2xl"></i>
+                    <p id="errorMessage" class="text-red-700 font-bold"></p>
                 </div>
             </div>
         </div>
 
         <div id="content" class="hidden">
-            <div class="mb-14 border-b border-slate-200 pb-8 flex justify-between items-end">
-                <div>
-                    <span class="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-3">Live Document Preview</span>
-                    <h2 id="docTitle" class="text-5xl font-black text-slate-900 tracking-tighter"></h2>
-                </div>
-                <div class="text-right text-slate-400 font-bold uppercase text-[11px] tracking-widest">
-                    Layout Engine: 16:9 HD
-                </div>
+            <div class="mb-8 flex justify-between items-end border-b pb-6">
+                <h2 id="docTitle" class="text-3xl font-black text-slate-900 tracking-tight"></h2>
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Master Layout: 16:9</div>
             </div>
             <div id="previewContainer"></div>
         </div>
@@ -108,28 +123,23 @@
         const db = getFirestore(app);
         let presentation = null;
 
-        const cleanHex = (h) => h ? h.replace('#', '') : '000000';
+        const clean = (c) => c ? c.replace('#', '') : '000000';
 
         async function init() {
-            const params = new URLSearchParams(window.location.search);
-            const docId = params.get('id');
-            if (!docId) return showError("Document ID is required in URL (?id=...)");
+            const id = new URLSearchParams(window.location.search).get('id');
+            if (!id) return showError("Append ?id=YOUR_DOCUMENT_ID to the URL.");
 
             try {
-                let snap = await getDoc(doc(db, "Computers", docId));
-                if (!snap.exists()) snap = await getDoc(doc(db, "documents", docId));
+                let snap = await getDoc(doc(db, "Computers", id));
+                if (!snap.exists()) snap = await getDoc(doc(db, "documents", id));
 
                 if (snap.exists()) {
-                    const data = snap.data();
-                    presentation = (typeof data.JSON === 'string') ? JSON.parse(data.JSON) : (data.JSON || data);
+                    const raw = snap.data();
+                    presentation = (typeof raw.JSON === 'string') ? JSON.parse(raw.JSON) : (raw.JSON || raw);
                     render();
-                    if (params.get('download') === 'true') generatePPTX();
-                } else {
-                    showError(`No document found with ID: ${docId}`);
-                }
-            } catch (e) {
-                showError(`System Fault: ${e.message}`);
-            }
+                    if (new URLSearchParams(window.location.search).get('download') === 'true') generatePPTX();
+                } else showError("Document not found in Firestore.");
+            } catch (e) { showError(e.message); }
         }
 
         function showError(m) {
@@ -142,64 +152,65 @@
             document.getElementById('loading').style.display = 'none';
             document.getElementById('content').classList.remove('hidden');
             document.getElementById('toolbar').classList.remove('hidden');
-            document.getElementById('docTitle').innerText = presentation.title || "Document Stream";
+            document.getElementById('docTitle').innerText = presentation.title || "Document View";
 
-            const theme = presentation.theme || {};
             const container = document.getElementById('previewContainer');
+            const theme = presentation.theme || {};
             container.innerHTML = '';
 
             presentation.slides.forEach((s) => {
-                const el = document.createElement('div');
-                el.className = 'slide-preview';
-                el.style.backgroundColor = s.background || theme.background || '#FFFFFF';
+                const wrapper = document.createElement('div');
+                wrapper.className = 'slide-preview-container';
                 
-                let inner = '<div class="slide-inner">';
+                const slide = document.createElement('div');
+                slide.className = 'slide-preview';
+                slide.style.backgroundColor = s.background || theme.background || '#FFFFFF';
                 
-                // Shapes
+                let inner = `<div class="slide-inner">`;
+
                 (s.elements || []).forEach(item => {
                     if (item.type === 'blob') {
-                        const style = item.position === 'top-right' ? 'top:-60px; right:-60px;' : 'bottom:-60px; left:-60px;';
-                        inner += `<div class="shape-blob" style="width:350px; height:350px; background:${item.color}; ${style}"></div>`;
+                        const pos = item.position === 'top-right' ? 'top:-60px; right:-60px;' : 'bottom:-60px; left:-60px;';
+                        inner += `<div class="shape-blob" style="width:350px; height:350px; background:${item.color}; ${pos}"></div>`;
                     }
                     if (item.type === 'circle') {
-                        const style = item.position === 'bottom-left' ? 'bottom:-40px; left:-40px;' : 'top:-40px; right:-40px;';
-                        inner += `<div class="shape-blob" style="width:200px; height:200px; background:${item.color}; ${style}"></div>`;
+                        inner += `<div class="shape-blob" style="width:150px; height:150px; background:${item.color}; bottom:-20px; left:-20px;"></div>`;
                     }
                 });
 
                 if (s.layout === 'title') {
                     inner += `<div class="flex flex-col items-center justify-center h-full text-center">
-                                <h3 class="font-black text-slate-900 mb-4 tracking-tighter" style="font-size:${s.title.fontSize*1.6}px">${s.title.text}</h3>
-                                <p class="text-slate-500 font-bold tracking-tight" style="font-size:${s.subtitle.fontSize*1.2}px">${s.subtitle.text}</p>
-                              </div>`;
+                        <h3 class="font-black text-slate-900 mb-4" style="font-size:3rem">${s.title.text}</h3>
+                        <p class="text-slate-500 font-bold text-xl">${s.subtitle.text}</p>
+                    </div>`;
                 } else if (s.layout === 'content' || s.layout === 'list') {
-                    inner += `<h3 class="text-4xl font-black mb-8 text-slate-900 flex items-center gap-3"><span class="w-2 h-10 rounded-full" style="background:${theme.primaryColor}"></span>${s.heading}</h3>`;
-                    if (s.paragraphs) s.paragraphs.forEach(p => inner += `<p class="text-2xl text-slate-600 mb-6 leading-relaxed font-medium">${p}</p>`);
-                    if (s.bullets) inner += `<ul class="space-y-4">${s.bullets.map(b => `<li class="flex items-center gap-4 text-xl font-bold text-slate-700"><i class="fas fa-arrow-right text-sm" style="color:${theme.primaryColor}"></i>${b}</li>`).join('')}</ul>`;
+                    inner += `<h3 class="text-4xl font-black mb-8 text-slate-900 border-l-8 pl-4" style="border-color:${theme.primaryColor}">${s.heading}</h3>`;
+                    if (s.paragraphs) s.paragraphs.forEach(p => inner += `<p class="text-2xl text-slate-600 mb-6 font-medium">${p}</p>`);
+                    if (s.bullets) inner += `<ul class="space-y-4">${s.bullets.map(b => `<li class="flex items-center gap-4 text-xl font-bold text-slate-700"><i class="fas fa-chevron-right text-xs" style="color:${theme.primaryColor}"></i>${b}</li>`).join('')}</ul>`;
                 } else if (s.layout === 'table') {
-                    inner += `<h3 class="text-4xl font-black mb-10 text-slate-900">${s.heading}</h3>`;
-                    inner += `<table><thead style="background:${theme.primaryColor}; color:white"><tr>${s.table.columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
-                              <tbody>${s.table.rows.map(r => `<tr>${r.map(v => `<td>${v}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+                    inner += `<h3 class="text-4xl font-black mb-8 text-slate-900">${s.heading}</h3>
+                    <table><thead style="background:${theme.primaryColor}; color:white"><tr>${s.table.columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+                    <tbody>${s.table.rows.map(r => `<tr>${r.map(v => `<td>${v}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
                 } else if (s.layout === 'chart') {
                     inner += `<h3 class="text-4xl font-black mb-12 text-slate-900">${s.heading}</h3>
-                              <div class="flex items-end gap-10 h-56 mt-auto">
-                                ${s.chart.values.map((v, i) => `<div class="flex-1 flex flex-col items-center gap-4">
-                                    <div class="w-full rounded-xl transition-all duration-500" style="height:${v*12}px; background:${theme.primaryColor}"></div>
-                                    <span class="text-sm font-black text-slate-400 uppercase tracking-widest">${s.chart.labels[i]}</span>
-                                </div>`).join('')}
-                              </div>`;
+                    <div class="flex items-end gap-10 h-64 px-10">
+                        ${s.chart.values.map((v, i) => `<div class="flex-1 flex flex-col items-center gap-4">
+                            <div class="w-full rounded-t-lg" style="height:${v*15}px; background:${theme.primaryColor}"></div>
+                            <span class="text-xs font-black text-slate-400 uppercase tracking-widest">${s.chart.labels[i]}</span>
+                        </div>`).join('')}
+                    </div>`;
                 } else if (s.layout === 'quote') {
-                    inner += `<div class="flex flex-col items-center justify-center h-full text-center px-16">
-                                <i class="fas fa-quote-left text-6xl mb-10 opacity-10" style="color:${theme.primaryColor}"></i>
-                                <h3 class="text-5xl font-black italic text-slate-900 leading-[1.2] mb-8">"${s.quote}"</h3>
-                                <div class="h-1 w-20 bg-slate-200 mb-6"></div>
-                                <p class="text-xl font-black uppercase tracking-[0.3em]" style="color:${theme.primaryColor}">${s.author}</p>
-                              </div>`;
+                    inner += `<div class="flex flex-col items-center justify-center h-full text-center px-12">
+                        <i class="fas fa-quote-left text-6xl mb-8 opacity-10" style="color:${theme.primaryColor}"></i>
+                        <h3 class="text-4xl font-black italic text-slate-800 leading-tight mb-6">"${s.quote}"</h3>
+                        <p class="text-xl font-bold uppercase tracking-widest" style="color:${theme.primaryColor}">— ${s.author}</p>
+                    </div>`;
                 }
 
-                inner += '</div>';
-                el.innerHTML = inner;
-                container.appendChild(el);
+                inner += `</div>`;
+                slide.innerHTML = inner;
+                wrapper.appendChild(slide);
+                container.appendChild(wrapper);
             });
         }
 
@@ -207,38 +218,30 @@
             if (!presentation) return;
             const pptx = new PptxGenJS();
             const theme = presentation.theme || {};
-            const primary = cleanHex(theme.primaryColor || '#2563EB');
-            const font = theme.font || "Arial";
+            const primary = clean(theme.primaryColor || '#2563EB');
 
             presentation.slides.forEach(s => {
                 const slide = pptx.addSlide();
-                slide.background = { color: cleanHex(s.background || theme.background || '#FFFFFF') };
-
-                (s.elements || []).forEach(item => {
-                    if (item.type === 'blob' || item.type === 'circle') {
-                        const opts = item.position.includes('right') ? { x: 8, y: -0.5, w: 3, h: 3 } : { x: -0.5, y: 4, w: 3, h: 3 };
-                        slide.addShape(pptx.ShapeType.ellipse, { ...opts, fill: { color: cleanHex(item.color), transparency: 60 } });
-                    }
-                });
-
+                slide.background = { color: clean(s.background || theme.background || '#FFFFFF') };
+                
                 if (s.layout === 'title') {
-                    slide.addText(s.title.text, { x: 0, y: '40%', w: '100%', align: 'center', fontSize: s.title.fontSize*1.2, bold: true, fontFace: font, color: '1E293B' });
-                    slide.addText(s.subtitle.text, { x: 0, y: '55%', w: '100%', align: 'center', fontSize: s.subtitle.fontSize*1.1, color: '64748B', fontFace: font });
+                    slide.addText(s.title.text, { x: 0, y: '40%', w: '100%', align: 'center', fontSize: 44, bold: true, color: '1E293B' });
+                    slide.addText(s.subtitle.text, { x: 0, y: '55%', w: '100%', align: 'center', fontSize: 20, color: '64748B' });
                 } else if (s.layout === 'content' || s.layout === 'list') {
-                    slide.addText(s.heading, { x: 0.5, y: 0.5, w: '90%', fontSize: 32, bold: true, color: primary, fontFace: font });
-                    let y = 1.3;
-                    if (s.paragraphs) s.paragraphs.forEach(p => { slide.addText(p, { x: 0.6, y: y, w: '85%', fontSize: 18, fontFace: font }); y += 0.8; });
-                    if (s.bullets) slide.addText(s.bullets, { x: 0.6, y: y, w: '85%', fontSize: 18, bullet: { type: 'bullet', color: primary }, fontFace: font });
+                    slide.addText(s.heading, { x: 0.5, y: 0.5, w: '90%', fontSize: 32, bold: true, color: primary });
+                    let y = 1.4;
+                    if (s.paragraphs) s.paragraphs.forEach(p => { slide.addText(p, { x: 0.6, y: y, w: '85%', fontSize: 18 }); y += 0.8; });
+                    if (s.bullets) slide.addText(s.bullets, { x: 0.6, y: y, w: '85%', fontSize: 18, bullet: { type: 'bullet', color: primary } });
                 } else if (s.layout === 'table') {
-                    slide.addText(s.heading, { x: 0.5, y: 0.5, w: '90%', fontSize: 32, bold: true, color: primary, fontFace: font });
+                    slide.addText(s.heading, { x: 0.5, y: 0.5, w: '90%', fontSize: 32, bold: true, color: primary });
                     const rows = [s.table.columns.map(c => ({ text: c, options: { bold: true, fill: primary, color: 'FFFFFF' } })), ...s.table.rows];
-                    slide.addTable(rows, { x: 0.5, y: 1.5, w: 9, border: { pt: 1, color: 'E2E8F0' }, fontSize: 14, fontFace: font });
+                    slide.addTable(rows, { x: 0.5, y: 1.5, w: 9, border: { pt: 1, color: 'E2E8F0' }, fontSize: 14 });
                 } else if (s.layout === 'chart') {
-                    slide.addText(s.heading, { x: 0.5, y: 0.5, w: '90%', fontSize: 32, bold: true, color: primary, fontFace: font });
-                    slide.addChart(pptx.ChartType.bar, [{ name: 'Growth', labels: s.chart.labels, values: s.chart.values }], { x: 1, y: 1.8, w: 8, h: 3.5, barDir: 'col', chartColors: [primary] });
+                    slide.addText(s.heading, { x: 0.5, y: 0.5, w: '90%', fontSize: 32, bold: true, color: primary });
+                    slide.addChart(pptx.ChartType.bar, [{ name: 'Val', labels: s.chart.labels, values: s.chart.values }], { x: 1, y: 1.8, w: 8, h: 3.5, chartColors: [primary] });
                 } else if (s.layout === 'quote') {
-                    slide.addText(`"${s.quote}"`, { x: 1, y: 2, w: 8, align: 'center', fontSize: 38, italic: true, bold: true, fontFace: font, color: '1E293B' });
-                    slide.addText(`— ${s.author}`, { x: 1, y: 3.8, w: 8, align: 'center', fontSize: 20, bold: true, fontFace: font, color: primary });
+                    slide.addText(`"${s.quote}"`, { x: 1, y: 2.2, w: 8, align: 'center', fontSize: 36, italic: true, bold: true, color: '1E293B' });
+                    slide.addText(`— ${s.author}`, { x: 1, y: 3.8, w: 8, align: 'center', fontSize: 18, bold: true, color: primary });
                 }
             });
             pptx.writeFile({ fileName: `${presentation.title.replace(/\s+/g, '_')}.pptx` });
@@ -246,21 +249,39 @@
 
         async function generatePDF() {
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('l', 'px', [960, 540]);
-            const slides = document.querySelectorAll('.slide-preview');
+            // 16:9 Aspect Ratio in Points (approx 720pt x 405pt)
+            const pdf = new jsPDF('l', 'pt', [720, 405]);
+            const originalSlides = document.querySelectorAll('.slide-preview');
             
-            for (let i = 0; i < slides.length; i++) {
-                const canvas = await html2canvas(slides[i], { scale: 2, useCORS: true, backgroundColor: null });
-                const imgData = canvas.toDataURL('image/png');
-                if (i > 0) pdf.addPage([960, 540], 'l');
-                pdf.addImage(imgData, 'PNG', 0, 0, 960, 540);
+            for (let i = 0; i < originalSlides.length; i++) {
+                const slide = originalSlides[i];
+                
+                // Temporarily force fixed dimensions for capture to avoid "zoom" on small screens
+                const originalStyle = slide.style.cssText;
+                slide.style.width = '960px';
+                slide.style.height = '540px';
+                slide.style.aspectRatio = 'auto';
+
+                const canvas = await html2canvas(slide, {
+                    scale: 2, // High resolution
+                    useCORS: true,
+                    width: 960,
+                    height: 540,
+                    backgroundColor: slide.style.backgroundColor
+                });
+
+                // Reset slide style
+                slide.style.cssText = originalStyle;
+
+                if (i > 0) pdf.addPage([720, 405], 'l');
+                // Fitting the 960x540 canvas perfectly into 720x405 points
+                pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 720, 405);
             }
             pdf.save(`${presentation.title.replace(/\s+/g, '_')}.pdf`);
         }
 
         document.getElementById('downloadPPTX').onclick = generatePPTX;
         document.getElementById('downloadPDF').onclick = generatePDF;
-        
         init();
     </script>
 </body>
