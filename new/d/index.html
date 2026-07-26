@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PerplexTea Workspace</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #FAF9F5;
+      color: #2D2D2C;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Left Sidebar */
+    .sidebar {
+      width: 50px;
+      background-color: #FAF9F5;
+      border-right: 1px solid #EAE8E1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      justify-content: space-between;
+    }
+
+    .sidebar-icons {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #666;
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    .icon-btn:hover {
+      background-color: #EBE8DF;
+    }
+
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background-color: #1A1A1A;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* Main Container */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      width: 100%;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: center;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .plan-badge {
+      background: #EBE8DF;
+      padding: 4px 12px;
+      border-radius: 12px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .upgrade-link {
+      color: #666;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* Main Area */
+    .content-center {
+      max-width: 680px;
+      width: 100%;
+      margin-top: auto;
+      margin-bottom: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 20px;
+    }
+
+    /* Dynamic Title */
+    .main-title {
+      font-family: 'Georgia', serif;
+      font-size: 38px;
+      font-weight: 400;
+      color: #2B2A27;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .title-star {
+      color: #D97757;
+    }
+
+    /* Prompt Box Container */
+    .prompt-box {
+      width: 100%;
+      background: #FFFFFF;
+      border: 1px solid #E3E1D9;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .prompt-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      resize: none;
+      min-height: 48px;
+      background: transparent;
+      color: #2B2A27;
+    }
+
+    .prompt-input::placeholder {
+      color: #8C8A84;
+    }
+
+    .prompt-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .attach-btn {
+      font-size: 18px;
+      color: #666;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .model-selector {
+      font-size: 13px;
+      color: #666;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    .model-selector strong {
+      color: #2D2D2C;
+    }
+
+    .icon-action {
+      cursor: pointer;
+      color: #666;
+      font-size: 16px;
+    }
+
+    /* Action Pills */
+    .pills-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .pill-btn {
+      background: #FFFFFF;
+      border: 1px solid #E3E1D9;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      color: #4A4945;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .pill-btn:hover {
+      background: #F3F1EA;
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 12px;
+      right: 20px;
+      font-size: 12px;
+      color: #888;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-icons">
+      <div class="icon-btn">⚙️</div>
+      <div class="icon-btn">+</div>
+      <div class="icon-btn">💬</div>
+      <div class="icon-btn">📁</div>
+      <div class="icon-btn">&lt;/&gt;</div>
+    </div>
+    <div class="user-avatar" id="user-avatar" onclick="logout()" title="Click to Logout">VN</div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <button class="logout-btn" onclick="logout()">Logout</button>
+
+    <div class="top-bar">
+      <div class="plan-badge">
+        <span>Free plan</span> · <span class="upgrade-link">Upgrade</span>
+      </div>
+    </div>
+
+    <div class="content-center">
+      <!-- Dynamic Title -->
+      <h1 class="main-title" id="dynamic-title">
+        <span class="title-star">✴</span> <span id="title-text">Let's noodle</span>
+      </h1>
+
+      <!-- Input Box -->
+      <div class="prompt-box">
+        <textarea 
+          id="prompt-input" 
+          class="prompt-input" 
+          placeholder="How can I help you today?" 
+          rows="2"
+          onkeydown="handleKeyDown(event)"
+        ></textarea>
+        
+        <div class="prompt-footer">
+          <button class="attach-btn">+</button>
+          
+          <div class="controls-right">
+            <button class="model-selector">
+              <strong>Sonnet 5</strong> Medium <span>˅</span>
+            </button>
+            <span class="icon-action">🎙️</span>
+            <span class="icon-action">📶</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Quick Pills -->
+      <div class="pills-container">
+        <button class="pill-btn" onclick="quickPrompt('Write ')">✏️ Write</button>
+        <button class="pill-btn" onclick="quickPrompt('Learn about ')">🎓 Learn</button>
+        <button class="pill-btn" onclick="quickPrompt('Code ')">&lt;/&gt; Code</button>
+        <button class="pill-btn" onclick="quickPrompt('Life stuff: ')">☕ Life stuff</button>
+        <button class="pill-btn" onclick="quickPrompt('From Gmail: ')">✉️ From Gmail</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Session & Auto Login Check
+    let firstName = localStorage.getItem('firstName') || "Tapasya";
+
+    window.onload = function() {
+      if (localStorage.getItem('isLoggedIn') !== 'true') {
+        window.location.href = '1.html'; // Protect page if not logged in
+      }
+
+      // Avatar Initial
+      document.getElementById('user-avatar').innerText = firstName.substring(0, 2).toUpperCase();
+
+      // Set Dynamic Greeting
+      setDynamicGreeting();
+    };
+
+    // 2. Dynamic Greeting logic as requested:
+    // Options: "Tea With PerplexTea", "Afternoon, <Name>", "Night Owl, <Name>", "Let's noodle", "Let's GOOOO <First Name>"
+    function setDynamicGreeting() {
+      const currentHour = new Date().getHours();
+      let greetings = [
+        "Tea With PerplexTea",
+        "Let's noodle",
+        `Let's GOOOO ${firstName}`
+      ];
+
+      if (currentHour >= 12 && currentHour < 18) {
+        greetings.push(`Afternoon, ${firstName}`);
+      } else if (currentHour >= 21 || currentHour < 5) {
+        greetings.push(`Night Owl, ${firstName}`);
+      }
+
+      // Pick a random greeting from options
+      const chosenGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+      document.getElementById('title-text').innerText = chosenGreeting;
+    }
+
+    // 3. Handle Prompt Submit (Enter key) -> Redirects to 3.html?prompt=
+    function handleKeyDown(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        submitPrompt();
+      }
+    }
+
+    function quickPrompt(prefix) {
+      const input = document.getElementById('prompt-input');
+      input.value = prefix;
+      input.focus();
+    }
+
+    function submitPrompt() {
+      const promptText = document.getElementById('prompt-input').value.trim();
+      if (promptText !== '') {
+        const encodedPrompt = encodeURIComponent(promptText);
+        window.location.href = `3.html?prompt=${encodedPrompt}`;
+      }
+    }
+
+    // Logout Functionality
+    function logout() {
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('firstName');
+      window.location.href = '1.html';
+    }
+  </script>
+</body>
+</html>
