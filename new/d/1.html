@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - PerplexTea</title>
+
+  <!-- Firebase v9 Compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://knox-app.github.io/cloud/keys/xprtfb.js"></script>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: #131314; color: #e3e3e3; display: flex; align-items: center; justify-content: center; height: 100vh; }
@@ -21,6 +23,7 @@
     input:focus { border-color: #8ab4f8; }
     .btn { width: 100%; padding: 12px; background: #8ab4f8; color: #131314; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
     .btn:hover { background: #aecbfa; }
+    .btn:disabled { background: #3c4043; color: #80868b; cursor: not-allowed; }
     .error-msg { color: #f28b82; font-size: 0.85rem; margin-top: 0.5rem; display: none; }
     .hidden { display: none; }
   </style>
@@ -33,16 +36,16 @@
       PerplexTea
     </div>
     
-    <!-- STEP 1: IDENTIFIER -->
+    <!-- STEP 1: EMAIL OR PHONE -->
     <div id="step-1">
       <h2>Sign in</h2>
       <p>Enter your Email or Mobile Number</p>
       <div class="input-group">
         <label>Email or Phone</label>
-        <input type="text" id="identifierInput" placeholder="email@domain.com or phone">
+        <input type="text" id="identifierInput" placeholder="e.g. tapasya@perplexity.com or 8005811475">
       </div>
-      <button class="btn" onclick="handleCheckIdentifier()">Next</button>
-      <div id="error-1" class="error-msg">Account not found. Please try again.</div>
+      <button class="btn" id="nextBtn" onclick="handleCheckIdentifier()">Next</button>
+      <div id="error-1" class="error-msg">Account not found. Please check and try again.</div>
     </div>
 
     <!-- STEP 2: PASSWORD -->
@@ -54,12 +57,30 @@
         <input type="password" id="passwordInput" placeholder="Enter password">
       </div>
       <button class="btn" onclick="handleLogin()">Login</button>
-      <div id="error-2" class="error-msg">Incorrect password.</div>
+      <div id="error-2" class="error-msg">Incorrect password. Please try again.</div>
     </div>
   </div>
 
   <script>
-    // Auto Redirect if logged in
+    // Initialize Firebase directly with provided configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+      authDomain: "question-metabase.firebaseapp.com",
+      databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "question-metabase",
+      storageBucket: "question-metabase.firebasestorage.app",
+      messagingSenderId: "770698198753",
+      appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+      measurementId: "G-6ZP1FPMKSJ"
+    };
+
+    // Initialize Firebase App & Firestore
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // Check Auto Login
     if (localStorage.getItem("isLoggedIn") === "true") {
       window.location.href = "2.html";
     }
@@ -67,17 +88,20 @@
     let foundUserData = null;
 
     async function fetchAccount(identifier) {
-      if (typeof db === 'undefined') return null;
       try {
+        // Query by Email
         let snapshot = await db.collection("UARM").where("Email", "==", identifier).get();
+        
+        // Query by Phone Number if Email not found
         if (snapshot.empty) {
           snapshot = await db.collection("UARM").where("Phone Number", "==", identifier).get();
         }
+
         if (!snapshot.empty) {
           return snapshot.docs[0].data();
         }
       } catch (err) {
-        console.error("Firestore Auth error:", err);
+        console.error("Firestore error querying UARM collection:", err);
       }
       return null;
     }
@@ -85,16 +109,23 @@
     async function handleCheckIdentifier() {
       const idVal = document.getElementById("identifierInput").value.trim();
       const err = document.getElementById("error-1");
+      const nextBtn = document.getElementById("nextBtn");
+      
       err.style.display = "none";
-
       if (!idVal) return;
 
+      nextBtn.innerText = "Searching...";
+      nextBtn.disabled = true;
+
       foundUserData = await fetchAccount(idVal);
+
+      nextBtn.innerText = "Next";
+      nextBtn.disabled = false;
 
       if (foundUserData) {
         document.getElementById("step-1").classList.add("hidden");
         document.getElementById("step-2").classList.remove("hidden");
-        document.getElementById("user-display-id").innerText = foundUserData.Email || idVal;
+        document.getElementById("user-display-id").innerText = foundUserData.Email || foundUserData["Phone Number"] || idVal;
       } else {
         err.style.display = "block";
       }
