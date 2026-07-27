@@ -4,183 +4,112 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - PerplexTea</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://knox-app.github.io/cloud/keys/xprtfb.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    body {
-      background-color: #f7f7f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-
-    .login-card {
-      background: #ffffff;
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-      width: 100%;
-      max-width: 400px;
-      border: 1px solid #e5e5e0;
-    }
-
-    .login-card h2 {
-      font-family: 'Georgia', serif;
-      font-size: 28px;
-      margin-bottom: 8px;
-      color: #1a1a1a;
-      text-align: center;
-    }
-
-    .login-card p {
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 24px;
-      text-align: center;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: #444;
-      margin-bottom: 6px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 15px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    input:focus {
-      border-color: #da7756;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 12px;
-      background-color: #da7756;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .btn:hover {
-      background-color: #c46243;
-    }
-
-    .error-msg {
-      color: #d93025;
-      font-size: 13px;
-      margin-top: 10px;
-      text-align: center;
-      display: none;
-    }
-
-    .hidden {
-      display: none;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #131314; color: #e3e3e3; display: flex; align-items: center; justify-content: center; height: 100vh; }
+    .login-card { background: #1e1f20; padding: 2.5rem; border-radius: 16px; border: 1px solid #2e2f31; width: 100%; max-width: 400px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+    .logo-title { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 600; color: #8ab4f8; }
+    .logo-title svg { fill: #8ab4f8; width: 32px; height: 32px; }
+    h2 { font-size: 1.25rem; font-weight: 500; margin-bottom: 0.5rem; color: #f1f3f4; }
+    p { font-size: 0.875rem; color: #9aa0a6; margin-bottom: 1.5rem; }
+    .input-group { margin-bottom: 1.25rem; }
+    label { display: block; font-size: 0.75rem; color: #9aa0a6; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    input { width: 100%; padding: 12px 14px; background: #131314; border: 1px solid #3c4043; border-radius: 8px; color: #fff; font-size: 1rem; outline: none; transition: border 0.2s; }
+    input:focus { border-color: #8ab4f8; }
+    .btn { width: 100%; padding: 12px; background: #8ab4f8; color: #131314; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+    .btn:hover { background: #aecbfa; }
+    .error-msg { color: #f28b82; font-size: 0.85rem; margin-top: 0.5rem; display: none; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
 
   <div class="login-card">
-    <h2>PerplexTea</h2>
-    <p id="sub-title">Enter your details to get started</p>
-
-    <!-- Step 1: Mobile or Email -->
+    <div class="logo-title">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      PerplexTea
+    </div>
+    
+    <!-- STEP 1: IDENTIFIER -->
     <div id="step-1">
-      <div class="form-group">
-        <label for="identifier">Email or Phone Number</label>
-        <input type="text" id="identifier" placeholder="e.g. tapasya@perplexity.com or 8005811475">
+      <h2>Sign in</h2>
+      <p>Enter your Email or Mobile Number</p>
+      <div class="input-group">
+        <label>Email or Phone</label>
+        <input type="text" id="identifierInput" placeholder="email@domain.com or phone">
       </div>
-      <button class="btn" onclick="verifyIdentifier()">Continue</button>
+      <button class="btn" onclick="handleCheckIdentifier()">Next</button>
+      <div id="error-1" class="error-msg">Account not found. Please try again.</div>
     </div>
 
-    <!-- Step 2: Password -->
+    <!-- STEP 2: PASSWORD -->
     <div id="step-2" class="hidden">
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Enter your password">
+      <h2>Welcome back</h2>
+      <p id="user-display-id"></p>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" id="passwordInput" placeholder="Enter password">
       </div>
-      <button class="btn" onclick="verifyPassword()">Sign In</button>
+      <button class="btn" onclick="handleLogin()">Login</button>
+      <div id="error-2" class="error-msg">Incorrect password.</div>
     </div>
-
-    <div id="error-msg" class="error-msg"></div>
   </div>
 
   <script>
-    // Database Mock (Matching Firebase Screenshot data)
-    const validUser = {
-      email: "tapasya@perplexity.com",
-      phone: "8005811475",
-      password: "Tapasya@2010",
-      firstName: "Tapasya"
-    };
+    // Auto Redirect if logged in
+    if (localStorage.getItem("isLoggedIn") === "true") {
+      window.location.href = "2.html";
+    }
 
-    // Auto-login check
-    window.onload = function() {
-      if (localStorage.getItem('isLoggedIn') === 'true') {
-        window.location.href = '2.html';
+    let foundUserData = null;
+
+    async function fetchAccount(identifier) {
+      if (typeof db === 'undefined') return null;
+      try {
+        let snapshot = await db.collection("UARM").where("Email", "==", identifier).get();
+        if (snapshot.empty) {
+          snapshot = await db.collection("UARM").where("Phone Number", "==", identifier).get();
+        }
+        if (!snapshot.empty) {
+          return snapshot.docs[0].data();
+        }
+      } catch (err) {
+        console.error("Firestore Auth error:", err);
       }
-    };
-
-    function showError(message) {
-      const errDiv = document.getElementById('error-msg');
-      errDiv.innerText = message;
-      errDiv.style.display = 'block';
+      return null;
     }
 
-    function hideError() {
-      const errDiv = document.getElementById('error-msg');
-      errDiv.style.display = 'none';
-    }
+    async function handleCheckIdentifier() {
+      const idVal = document.getElementById("identifierInput").value.trim();
+      const err = document.getElementById("error-1");
+      err.style.display = "none";
 
-    function verifyIdentifier() {
-      const input = document.getElementById('identifier').value.trim();
-      hideError();
+      if (!idVal) return;
 
-      if (input === validUser.email || input === validUser.phone) {
-        document.getElementById('step-1').classList.add('hidden');
-        document.getElementById('step-2').classList.remove('hidden');
-        document.getElementById('sub-title').innerText = "Enter password for " + input;
+      foundUserData = await fetchAccount(idVal);
+
+      if (foundUserData) {
+        document.getElementById("step-1").classList.add("hidden");
+        document.getElementById("step-2").classList.remove("hidden");
+        document.getElementById("user-display-id").innerText = foundUserData.Email || idVal;
       } else {
-        showError("Email or Mobile Number not found!");
+        err.style.display = "block";
       }
     }
 
-    function verifyPassword() {
-      const passInput = document.getElementById('password').value;
-      hideError();
+    function handleLogin() {
+      const passVal = document.getElementById("passwordInput").value;
+      const err = document.getElementById("error-2");
 
-      if (passInput === validUser.password) {
-        // Save session
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('firstName', validUser.firstName);
-        
-        // Redirect to 2.html
-        window.location.href = '2.html';
+      if (foundUserData && foundUserData.Password === passVal) {
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("userData", JSON.stringify(foundUserData));
+        window.location.href = "2.html";
       } else {
-        showError("Incorrect password. Please try again.");
+        err.style.display = "block";
       }
     }
   </script>
