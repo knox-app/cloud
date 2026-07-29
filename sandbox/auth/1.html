@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Portal</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #333;
+        }
+
+        .login-card h2 {
+            margin-bottom: 8px;
+            font-size: 24px;
+            color: #fff;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background-color: #2a2a2a;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: #3b82f6;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        .status-msg {
+            margin-top: 15px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .error { color: #ef4444; }
+        .success { color: #10b981; }
+
+        .hidden { display: none; }
+
+        .spinner {
+            border: 3px solid #333;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2 id="service-title">Authentication</h2>
+        <p class="subtitle" id="service-subtitle">Loading parameters...</p>
+
+        <div id="loader" class="spinner"></div>
+
+        <!-- FORM 1: OTP FLOW - STEP 1 (Email Input) -->
+        <form id="otp-step1-form" class="hidden">
+            <div class="form-group">
+                <label for="otp-email">Email Address</label>
+                <input type="email" id="otp-email" placeholder="Enter your email" required>
+            </div>
+            <button type="submit" id="send-otp-btn">Send OTP</button>
+        </form>
+
+        <!-- FORM 2: OTP FLOW - STEP 2 (OTP & Password) -->
+        <form id="otp-step2-form" class="hidden">
+            <div class="form-group">
+                <label for="input-otp">Enter OTP</label>
+                <input type="text" id="input-otp" placeholder="6-digit OTP" required maxlength="6">
+            </div>
+            <div class="form-group">
+                <label for="otp-password">Enter Password</label>
+                <input type="password" id="otp-password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit">Verify & Login</button>
+        </form>
+
+        <!-- FORM 3: USERNAME FLOW -->
+        <form id="username-form" class="hidden">
+            <div class="form-group">
+                <label for="username-input">Username / Mobile / Email</label>
+                <input type="text" id="username-input" placeholder="Enter Username, Mobile, or Email" required>
+            </div>
+            <div class="form-group">
+                <label for="user-password">Password</label>
+                <input type="password" id="user-password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit">Sign In</button>
+        </form>
+
+        <div id="status-message" class="status-msg"></div>
+    </div>
+
+    <script>
+        // 1. Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
+            authDomain: "cloud-computer-4891a.firebaseapp.com",
+            projectId: "cloud-computer-4891a",
+            storageBucket: "cloud-computer-4891a.firebasestorage.app",
+            messagingSenderId: "744203234287",
+            appId: "1:744203234287:web:81d943ae9b75fd77dce41a",
+            measurementId: "G-QE17C33TMN"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Initialize EmailJS
+        const EMAILJS_PUBLIC_KEY = "Yr9MutUoHOEONnFgn";
+        const EMAILJS_SERVICE_ID = "service_63mnm5a";
+        const EMAILJS_TEMPLATE_ID = "template_gtaplnh";
+        
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+
+        // State Variables
+        let generatedOTP = null;
+        let targetEmail = "";
+
+        // UI Elements
+        const loader = document.getElementById('loader');
+        const statusMsg = document.getElementById('status-message');
+        const titleEl = document.getElementById('service-title');
+        const subtitleEl = document.getElementById('service-subtitle');
+
+        const otpStep1Form = document.getElementById('otp-step1-form');
+        const otpStep2Form = document.getElementById('otp-step2-form');
+        const usernameForm = document.getElementById('username-form');
+
+        // Helper: Get URL Parameter
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // 2. Fetch Document from Firestore
+        async function init() {
+            const docId = getUrlParameter('id');
+
+            if (!docId) {
+                showStatus("Missing URL Parameter '?id=<doc_id>'", "error");
+                loader.classList.add('hidden');
+                subtitleEl.textContent = "Error";
+                return;
+            }
+
+            try {
+                const docRef = db.collection("Cloud Services").doc(docId);
+                const docSnap = await docRef.get();
+
+                loader.classList.add('hidden');
+
+                if (docSnap.exists) {
+                    const data = docSnap.data();
+                    titleEl.textContent = data.Service || "Authentication Portal";
+
+                    if (data.Login === "OTP") {
+                        subtitleEl.textContent = "Please enter your email to receive an OTP";
+                        otpStep1Form.classList.remove('hidden');
+                    } else if (data.Login === "Username") {
+                        subtitleEl.textContent = "Sign in with your credentials";
+                        usernameForm.classList.remove('hidden');
+                    } else {
+                        showStatus("Unsupported Login Type in Firestore.", "error");
+                    }
+                } else {
+                    showStatus("Document not found in Firestore.", "error");
+                    subtitleEl.textContent = "Invalid Document ID";
+                }
+            } catch (err) {
+                console.error(err);
+                loader.classList.add('hidden');
+                showStatus("Error fetching document data: " + err.message, "error");
+            }
+        }
+
+        // 3. Handle OTP Request (Step 1)
+        otpStep1Form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            targetEmail = document.getElementById('otp-email').value;
+            const btn = document.getElementById('send-otp-btn');
+
+            btn.disabled = true;
+            btn.textContent = "Sending OTP...";
+            showStatus("", "");
+
+            // Generate 6 Digit OTP
+            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+            // Send Email via EmailJS
+            const templateParams = {
+                to_email: targetEmail,
+                otp: generatedOTP
+            };
+
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+                .then(function() {
+                    showStatus("OTP sent successfully to " + targetEmail, "success");
+                    otpStep1Form.classList.add('hidden');
+                    otpStep2Form.classList.remove('hidden');
+                    subtitleEl.textContent = "Enter the OTP sent to your email and your password";
+                }, function(error) {
+                    btn.disabled = false;
+                    btn.textContent = "Send OTP";
+                    showStatus("Failed to send OTP: " + JSON.stringify(error), "error");
+                });
+        });
+
+        // 4. Handle OTP + Password Submission (Step 2)
+        otpStep2Form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const userEnteredOTP = document.getElementById('input-otp').value.trim();
+            const password = document.getElementById('otp-password').value;
+
+            if (userEnteredOTP !== generatedOTP) {
+                showStatus("Invalid OTP code. Please check and try again.", "error");
+                return;
+            }
+
+            // Authentication Successful
+            showStatus("Authentication Successful! Logging in...", "success");
+            console.log("Logged In User:", targetEmail, "Password:", password);
+            // Add your redirect or logic here upon successful login
+        });
+
+        // 5. Handle Standard Username Flow
+        usernameForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username-input').value;
+            const password = document.getElementById('user-password').value;
+
+            showStatus("Authentication Successful!", "success");
+            console.log("Logged In Username/Mobile/Email:", username, "Password:", password);
+            // Add your redirect or logic here upon successful login
+        });
+
+        function showStatus(msg, type) {
+            statusMsg.textContent = msg;
+            statusMsg.className = "status-msg " + type;
+        }
+
+        // Initialize script
+        init();
+    </script>
+</body>
+  </html>
