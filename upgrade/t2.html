@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upgrade - Billing Page</title>
+  <!-- Tailwind CSS CDN for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase Compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <!-- jsPDF & AutoTable for PDF Invoice Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    .loader {
+      border-top-color: #3b82f6;
+      -webkit-animation: spinner 1.5s linear infinite;
+      animation: spinner 1.5s linear infinite;
+    }
+    @-webkit-keyframes spinner {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+    @keyframes spinner {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen flex flex-col justify-between">
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
+    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
+    <p class="text-gray-600 font-medium">Loading checkout options...</p>
+  </div>
+
+  <!-- Dynamic Header Area -->
+  <header class="bg-white border-b border-gray-200 py-4">
+    <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <img id="partnerLogo" src="" alt="Brand Logo" class="h-8 object-contain hidden" />
+        <span class="text-gray-300 text-xl font-light hidden" id="logoSeparator">|</span>
+        <span class="text-xl font-bold tracking-tight text-gray-900">Paymintly</span>
+      </div>
+      <div id="companyHeaderName" class="text-xs text-gray-500 font-medium hidden sm:block"></div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-6xl mx-auto px-4 py-8 md:py-16 w-full flex-grow">
+    <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Left Column: Form Info -->
+      <div class="lg:col-span-7 space-y-8">
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight text-gray-900">Configure your plan</h1>
+          <p class="mt-2 text-sm text-gray-500">Please verify your details and enter a promo or referral activation code below.</p>
+        </div>
+
+        <form id="billingForm" class="space-y-6">
+          <!-- Billing Information -->
+          <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+            <h2 class="text-lg font-semibold text-gray-900 border-b pb-3 border-gray-100">Billing Information</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="firstName" class="block text-xs font-semibold uppercase text-gray-500 mb-1">First Name</label>
+                <input type="text" id="firstName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm">
+              </div>
+              <div>
+                <label for="lastName" class="block text-xs font-semibold uppercase text-gray-500 mb-1">Last Name</label>
+                <input type="text" id="lastName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm">
+              </div>
+            </div>
+
+            <div>
+              <label for="teamEmail" class="block text-xs font-semibold uppercase text-gray-500 mb-1">Team Email</label>
+              <input type="email" id="teamEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm">
+            </div>
+
+            <div>
+              <label for="phoneNumber" class="block text-xs font-semibold uppercase text-gray-500 mb-1">Phone Number</label>
+              <input type="tel" id="phoneNumber" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm">
+            </div>
+          </div>
+
+          <!-- Referral / Promo Code Section -->
+          <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+            <div class="flex items-start justify-between border-b pb-3 border-gray-100">
+              <h2 class="text-lg font-semibold text-gray-900">Activation & Payment</h2>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                Promo Code Required
+              </span>
+            </div>
+            
+            <p class="text-xs text-gray-500 leading-relaxed">
+              * Active card channels are offline under regulatory RBI guideline standards for pending NBFC authorization. Please apply an authorized partner code below to register your subscription setup.
+            </p>
+
+            <div>
+              <label for="promoCode" class="block text-xs font-semibold uppercase text-gray-500 mb-1">Referral / Promo Code</label>
+              <input type="text" id="promoCode" placeholder="Enter your active activation code" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm placeholder-gray-400">
+              <p id="promoFeedback" class="mt-1.5 text-xs hidden"></p>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="submitBtn" class="w-full py-3 px-4 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50">
+            Activate Subscription
+          </button>
+        </form>
+      </div>
+
+      <!-- Right Column: Order Summary Card -->
+      <div class="lg:col-span-5 bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
+        <h2 class="text-lg font-semibold text-gray-900 border-b pb-3 border-gray-100" id="planName">Loading Plan...</h2>
+        
+        <div class="space-y-3">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500" id="planDurationLabel">Subscription Duration</span>
+            <span class="font-medium text-gray-900" id="planDuration">--</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">Base Cost</span>
+            <span class="font-medium text-gray-900" id="basePrice">--</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">Tax (18% GST)</span>
+            <span class="font-medium text-gray-900" id="taxPrice">--</span>
+          </div>
+          <div class="border-t border-gray-100 pt-3 flex justify-between">
+            <span class="font-semibold text-gray-900">Total Amount</span>
+            <span class="font-bold text-gray-900 text-lg" id="totalPrice">--</span>
+          </div>
+        </div>
+
+        <!-- Plan Features List -->
+        <div class="border-t border-gray-100 pt-4 space-y-3">
+          <h3 class="text-xs font-semibold uppercase text-gray-400 tracking-wider">Features Included:</h3>
+          <ul class="space-y-2" id="bulletPointsList">
+            <li class="text-sm text-gray-400">Loading plan specifications...</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="bg-gray-100 py-6 border-t border-gray-200">
+    <div class="max-w-6xl mx-auto px-4 text-center text-xs text-gray-500">
+      &copy; 2026 Paymintly. All rights reserved. Managed under RBI digital framework compliances.
+    </div>
+  </footer>
+
+  <script>
+    // Firebase Configuration Setup
+    const firebaseConfig = {
+      apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+      authDomain: "question-metabase.firebaseapp.com",
+      databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "question-metabase",
+      storageBucket: "question-metabase.firebasestorage.app",
+      messagingSenderId: "770698198753",
+      appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+      measurementId: "G-6ZP1FPMKSJ"
+    };
+
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // Initialize EmailJS
+    const emailJsPublicKey = "Yr9MutUoHOEONnFgn";
+    const emailJsServiceId = "service_63mnm5a"; 
+    const emailJsTemplateId = "template_mfkmx1r";
+    emailjs.init(emailJsPublicKey);
+
+    // Global states
+    let loadedPlan = null;
+    let allowedCodes = [];
+    let redirectSuccessUrl = "https://question-metabase.firebaseapp.com";
+    let companyName = "Paymintly Partner";
+    let logoUrl = "";
+    let userNearestLocation = "India";
+    let planId = "";
+    let sessionId = "";
+    let userDocRef = null;
+    let computedPrices = { base: 0, tax: 0, total: 0, currency: "INR" };
+
+    function showError(message) {
+      const errBox = document.getElementById("errorMessage");
+      errBox.innerText = message;
+      errBox.classList.remove("hidden");
+      document.getElementById("loadingOverlay").classList.add("hidden");
+    }
+
+    function formatCurrency(val, currency = 'INR') {
+      if (val === undefined || val === null) return '--';
+      const cleanVal = parseFloat(val.toString().replace(/,/g, ''));
+      if (isNaN(cleanVal)) return val;
+      return currency === 'INR' 
+        ? `₹${cleanVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+        : `$${cleanVal.toFixed(2)}`;
+    }
+
+    async function fetchApproximateLocation() {
+      try {
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+        if (data && data.city) {
+          userNearestLocation = `${data.city}, ${data.region_name || data.region || ""}, ${data.country_name}`;
+        }
+      } catch (err) {
+        try {
+          userNearestLocation = Intl.DateTimeFormat().resolvedOptions().timeZone || "India";
+        } catch (e) {
+          userNearestLocation = "India";
+        }
+      }
+    }
+
+    // Fetch Data from Firestore & Parse URL Parameters
+    async function initCheckout() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        sessionId = urlParams.get('session') || urlParams.get('lotus') || urlParams.get('uid') || urlParams.get('user');
+        const apiKeyParam = urlParams.get('api') || urlParams.get('key');
+        planId = urlParams.get('type') || urlParams.get('plan') || urlParams.get('planId'); 
+
+        if (!sessionId || !apiKeyParam || !planId) {
+          showError("Initialization parameters are incomplete. Required: (session/lotus, api, type/plan).");
+          return;
+        }
+
+        fetchApproximateLocation();
+
+        // 1. Fetch organization document matching 'api'
+        const paymintlyQuery = await db.collection("Paymintly")
+                                       .where("API Keys", "==", apiKeyParam)
+                                       .limit(1)
+                                       .get();
+
+        if (paymintlyQuery.empty) {
+          showError("Security validation error: Invalid API Key provided.");
+          return;
+        }
+
+        const orgDoc = paymintlyQuery.docs[0];
+        const orgData = orgDoc.data();
+
+        allowedCodes = orgData["Codes"] || [];
+        redirectSuccessUrl = orgData["Redirect"] || redirectSuccessUrl;
+        companyName = orgData["Name"] || companyName;
+        logoUrl = orgData["Logo"] || "";
+
+        if (logoUrl) {
+          const logoImg = document.getElementById("partnerLogo");
+          logoImg.src = logoUrl;
+          logoImg.classList.remove("hidden");
+          document.getElementById("logoSeparator").classList.remove("hidden");
+        }
+        if (companyName) {
+          document.getElementById("companyHeaderName").innerText = companyName;
+          document.getElementById("companyHeaderName").classList.remove("hidden");
+        }
+
+        // 2. Locate User document in UARM (Direct doc ID or Lotus lookup)
+        const directUserDoc = await db.collection("UARM").doc(sessionId).get();
+        if (directUserDoc.exists) {
+          userDocRef = directUserDoc.ref;
+          populateUserData(directUserDoc.data());
+        } else {
+          const lotusQuery = await db.collection("UARM").where("Lotus", "==", sessionId).limit(1).get();
+          if (!lotusQuery.empty) {
+            userDocRef = lotusQuery.docs[0].ref;
+            populateUserData(lotusQuery.docs[0].data());
+          } else {
+            // Check ASPX Keys
+            const aspxDoc = await db.collection("ASPX Keys").doc(sessionId).get();
+            if (aspxDoc.exists) {
+              document.getElementById("teamEmail").value = aspxDoc.data()["Team Email"] || "";
+            }
+          }
+        }
+
+        // 3. Fetch plan details using planId
+        const planDoc = await db.collection("Plans & Subscriptions").doc(planId).get();
+        if (!planDoc.exists) {
+          showError(`The selected subscription plan (${planId}) is not available.`);
+          return;
+        }
+
+        loadedPlan = planDoc.data();
+        renderPlanSummary(loadedPlan);
+
+        document.getElementById("loadingOverlay").classList.add("hidden");
+
+      } catch (error) {
+        console.error("Configuration Error:", error);
+        showError("An error occurred during verification. Please try again.");
+      }
+    }
+
+    function populateUserData(userData) {
+      if (!userData) return;
+      document.getElementById("firstName").value = userData["First Name"] || "";
+      document.getElementById("lastName").value = userData["Last Name"] || "";
+      document.getElementById("teamEmail").value = userData["Email"] || userData["Team Email"] || "";
+      document.getElementById("phoneNumber").value = userData["Phone Number"] || "";
+    }
+
+    function renderPlanSummary(plan) {
+      document.getElementById("planName").innerText = plan["Name"] || "Premium Plan";
+      
+      const duration = plan["Duration (Days)"] || "365";
+      document.getElementById("planDuration").innerText = `${duration} Days`;
+
+      const isUsd = !!plan["Price (USD)"] && (!plan["Price (INR)"] || plan["Type"] === "International");
+      const currencyCode = isUsd ? "USD" : "INR";
+      const rawPrice = isUsd ? plan["Price (USD)"] : plan["Price (INR)"];
+      
+      const numericPrice = parseFloat(rawPrice.toString().replace(/[^0-9.]/g, '')) || 0;
+      const taxRate = 0.18; // 18% GST
+      const taxAmount = numericPrice * taxRate;
+      const totalCost = numericPrice + taxAmount;
+
+      computedPrices = {
+        base: numericPrice,
+        tax: taxAmount,
+        total: totalCost,
+        currency: currencyCode
+      };
+
+      document.getElementById("basePrice").innerText = formatCurrency(numericPrice, currencyCode);
+      document.getElementById("taxPrice").innerText = formatCurrency(taxAmount, currencyCode);
+      document.getElementById("totalPrice").innerText = formatCurrency(totalCost, currencyCode);
+
+      const bulletContainer = document.getElementById("bulletPointsList");
+      bulletContainer.innerHTML = "";
+      
+      const bulletPoints = plan["Bullet Points"] || [];
+      if (Array.isArray(bulletPoints) && bulletPoints.length > 0) {
+        bulletPoints.forEach(point => {
+          const li = document.createElement("li");
+          li.className = "text-sm text-gray-600 flex items-start space-x-2";
+          li.innerHTML = `
+            <svg class="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>${point}</span>
+          `;
+          bulletContainer.appendChild(li);
+        });
+      } else {
+        bulletContainer.innerHTML = `<li class="text-sm text-gray-500 italic">Standard Platform Features Included</li>`;
+      }
+    }
+
+    // Generate and download PDF Invoice
+    function generateInvoicePDF(invoiceData) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFillColor(17, 24, 39);
+      doc.rect(0, 0, 210, 24, 'F');
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.setTextColor(255, 255, 255);
+      doc.text("PAYMINTLY | TAX INVOICE", 14, 16);
+      
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Issued by: ${invoiceData.companyName}`, 196, 16, { align: "right" });
+
+      doc.setTextColor(33, 33, 33);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("INVOICE DETAILS", 14, 36);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(`Invoice Number: INV-${Date.now().toString().slice(-7)}`, 14, 43);
+      doc.text(`Date of Issue: ${invoiceData.date}`, 14, 49);
+      doc.text(`Status: COMPLETED (Promo Verified)`, 14, 55);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text("BILLED TO", 120, 36);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(`Customer: ${invoiceData.customerName}`, 120, 43);
+      doc.text(`Email: ${invoiceData.email}`, 120, 49);
+      doc.text(`Phone: ${invoiceData.phone}`, 120, 55);
+      doc.text(`Location: ${invoiceData.location}`, 120, 61);
+
+      const tableColumn = ["Description", "Duration", "Tax (GST 18%)", "Total Amount"];
+      const tableRows = [
+        [
+          invoiceData.planName,
+          `${invoiceData.duration} Days`,
+          formatCurrency(computedPrices.tax, computedPrices.currency),
+          formatCurrency(computedPrices.total, computedPrices.currency)
+        ]
+      ];
+
+      doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 70,
+        theme: 'striped',
+        headStyles: { fillColor: [31, 41, 55], textColor: [255, 255, 255], fontStyle: 'bold' },
+        styles: { fontSize: 9, cellPadding: 4 }
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(9);
+      doc.text(`Base Price:`, 140, finalY);
+      doc.text(`${formatCurrency(computedPrices.base, computedPrices.currency)}`, 196, finalY, { align: "right" });
+
+      doc.text(`Tax (18% GST):`, 140, finalY + 6);
+      doc.text(`${formatCurrency(computedPrices.tax, computedPrices.currency)}`, 196, finalY + 6, { align: "right" });
+
+      doc.setFont("helvetica", "bold");
+      doc.text(`Grand Total:`, 140, finalY + 13);
+      doc.text(`${formatCurrency(computedPrices.total, computedPrices.currency)}`, 196, finalY + 13, { align: "right" });
+
+      doc.setDrawColor(34, 197, 94);
+      doc.setFillColor(240, 253, 244);
+      doc.roundedRect(14, finalY, 70, 16, 2, 2, 'FD');
+      doc.setTextColor(22, 101, 52);
+      doc.setFontSize(9);
+      doc.text("✓ PAYMENT & PROMO ACTIVATED", 18, finalY + 10);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text("This is a computer-generated invoice and requires no physical signature.", 105, 280, { align: "center" });
+      doc.text("Managed under RBI Digital Framework Compliances • Paymintly Billing System", 105, 285, { align: "center" });
+
+      doc.save(`Invoice_${invoiceData.planName.replace(/\s+/g, '_')}.pdf`);
+    }
+
+    // Submit handler with robust background account update
+    document.getElementById("billingForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const promoInput = document.getElementById("promoCode").value.trim();
+      const promoFeedback = document.getElementById("promoFeedback");
+      const submitBtn = document.getElementById("submitBtn");
+
+      promoFeedback.classList.add("hidden");
+
+      if (allowedCodes.length > 0 && !allowedCodes.includes(promoInput)) {
+        promoFeedback.innerText = "Invalid Activation Code. Please input an authorized code.";
+        promoFeedback.className = "mt-1.5 text-xs text-red-600";
+        promoFeedback.classList.remove("hidden");
+        return;
+      }
+
+      promoFeedback.innerText = "Activation Code Applied Successfully!";
+      promoFeedback.className = "mt-1.5 text-xs text-green-600";
+      promoFeedback.classList.remove("hidden");
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Activating subscription & updating account...";
+
+      const firstName = document.getElementById("firstName").value.trim();
+      const lastName = document.getElementById("lastName").value.trim();
+      const teamEmail = document.getElementById("teamEmail").value.trim();
+      const phoneNumber = document.getElementById("phoneNumber").value.trim();
+
+      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      const currentFormattedDate = new Date().toLocaleDateString("en-US", options);
+      const planTitle = loadedPlan ? loadedPlan["Name"] : "Premium Subscription";
+      const planDuration = loadedPlan ? (loadedPlan["Duration (Days)"] || "365") : "365";
+
+      try {
+        // --- 1. BACKGROUND TASK: Add plan to User in UARM ---
+        let targetRef = userDocRef;
+        
+        // If not found yet, try finding by Email or fallback to sessionId document
+        if (!targetRef) {
+          const emailCheck = await db.collection("UARM").where("Email", "==", teamEmail).limit(1).get();
+          if (!emailCheck.empty) {
+            targetRef = emailCheck.docs[0].ref;
+          } else {
+            targetRef = db.collection("UARM").doc(sessionId);
+          }
+        }
+
+        // Use .set with { merge: true } so it adds to 'Plans' array reliably
+        await targetRef.set({
+          "Plans": firebase.firestore.FieldValue.arrayUnion(planId),
+          "First Name": firstName,
+          "Last Name": lastName,
+          "Email": teamEmail,
+          "Team Email": teamEmail,
+          "Phone Number": phoneNumber,
+          "lastUpdated": new Date().toISOString()
+        }, { merge: true });
+
+        console.log("Successfully added plan:", planId, "to user doc:", targetRef.id);
+
+        // --- 2. GENERATE & DOWNLOAD PDF INVOICE ---
+        try {
+          generateInvoicePDF({
+            customerName: `${firstName} ${lastName}`,
+            email: teamEmail,
+            phone: phoneNumber,
+            companyName: companyName,
+            planName: planTitle,
+            duration: planDuration,
+            date: currentFormattedDate,
+            location: userNearestLocation
+          });
+        } catch (pdfErr) {
+          console.error("PDF generation note:", pdfErr);
+        }
+
+        // --- 3. DISPATCH EMAIL VIA EMAILJS ---
+        try {
+          const emailParams = {
+            to_email: teamEmail,
+            first_name: firstName,
+            last_name: lastName,
+            subscription_name: planTitle,
+            company_name: companyName,
+            date: currentFormattedDate,
+            nearest_location: userNearestLocation,
+            logo_url: logoUrl || "https://img.icons8.com/color/96/shield.png"
+          };
+          await emailjs.send(emailJsServiceId, emailJsTemplateId, emailParams);
+        } catch (emailErr) {
+          console.warn("Email dispatch note:", emailErr);
+        }
+        
+        submitBtn.className = "w-full py-3 px-4 bg-green-600 text-white font-medium rounded-lg";
+        submitBtn.innerText = "Plan Activated & Invoice Downloaded! Redirecting...";
+        
+        setTimeout(() => {
+          window.location.href = redirectSuccessUrl;
+        }, 2200);
+
+      } catch (err) {
+        console.error("Critical Activation Error:", err);
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Activate Subscription";
+        promoFeedback.innerText = "Error updating account: " + err.message;
+        promoFeedback.className = "mt-1.5 text-xs text-red-600";
+        promoFeedback.classList.remove("hidden");
+      }
+    });
+
+    window.addEventListener("DOMContentLoaded", initCheckout);
+  </script>
+</body>
+</html>
