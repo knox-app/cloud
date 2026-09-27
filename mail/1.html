@@ -3,155 +3,347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mail - Inbox</title>
+    <title>Messages</title>
     <style>
         :root {
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-sub: #64748b;
-            --border: #e2e8f0;
-            --accent: #2563eb;
-            --accent-hover: #1d4ed8;
+            --bg-page: #fbfbfd;
+            --surface: rgba(255, 255, 255, 0.85);
+            --surface-card: #ffffff;
+            --border: rgba(0, 0, 0, 0.08);
+            --border-hover: rgba(0, 0, 0, 0.16);
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --text-tertiary: #a1a1a6;
+            --accent: #0071e3;
+            --accent-hover: #0077ed;
+            --danger: #ff3b30;
+            --danger-hover: #d70015;
+            --badge-inbox: #e8f2ff;
+            --badge-inbox-text: #0066cc;
+            --badge-sent: #f2f2f7;
+            --badge-sent-text: #636366;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-page: #000000;
+                --surface: rgba(28, 28, 30, 0.75);
+                --surface-card: #1c1c1e;
+                --border: rgba(255, 255, 255, 0.1);
+                --border-hover: rgba(255, 255, 255, 0.2);
+                --text-primary: #f5f5f7;
+                --text-secondary: #86868b;
+                --text-tertiary: #636366;
+                --accent: #2997ff;
+                --accent-hover: #47a6ff;
+                --danger: #ff453a;
+                --danger-hover: #ff6961;
+                --badge-inbox: #1c2738;
+                --badge-inbox-text: #58a6ff;
+                --badge-sent: #2c2c2e;
+                --badge-sent-text: #aeaeb2;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
-            margin: 0;
-            padding: 24px;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px 20px;
             display: flex;
             justify-content: center;
         }
 
-        .container {
+        .shell {
             width: 100%;
-            max-width: 800px;
+            max-width: 860px;
         }
 
-        .header {
+        /* Header & Action Bar */
+        .top-nav {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
             margin-bottom: 24px;
         }
 
-        .user-info {
-            font-size: 14px;
-            color: var(--text-sub);
+        .title-group h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
         }
-        .user-info strong {
-            color: var(--text-main);
+
+        .user-tag {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
         }
 
         .btn-compose {
-            background-color: var(--accent);
-            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: var(--text-primary);
+            color: var(--bg-page);
             padding: 10px 18px;
-            border-radius: 8px;
-            text-decoration: none;
+            border-radius: 980px;
             font-size: 14px;
             font-weight: 500;
-            transition: background-color 0.2s;
-        }
-        .btn-compose:hover {
-            background-color: var(--accent-hover);
+            text-decoration: none;
+            transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s ease;
         }
 
-        .tabs {
+        .btn-compose:hover {
+            opacity: 0.85;
+            transform: scale(0.98);
+        }
+
+        /* Controls: Search & Tabs */
+        .controls-card {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 12px 16px;
+            margin-bottom: 24px;
             display: flex;
+            flex-direction: column;
             gap: 12px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 16px;
+        }
+
+        .search-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            width: 16px;
+            height: 16px;
+            stroke: var(--text-tertiary);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .search-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 10px 14px 10px 38px;
+            font-size: 15px;
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .tabs-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
         }
 
         .tab-btn {
             background: none;
             border: none;
-            padding: 10px 16px;
-            font-size: 15px;
+            padding: 6px 14px;
+            font-size: 13px;
             font-weight: 500;
-            color: var(--text-sub);
+            border-radius: 980px;
+            color: var(--text-secondary);
             cursor: pointer;
-            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
         }
 
         .tab-btn.active {
-            color: var(--accent);
-            border-color: var(--accent);
+            background: var(--text-primary);
+            color: var(--bg-page);
         }
 
-        .mail-list {
+        /* Mail Feed */
+        .mail-feed {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
-        .mail-card {
-            background: var(--card-bg);
+        .mail-row {
+            background: var(--surface-card);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 16px;
-            transition: box-shadow 0.2s;
-        }
-        .mail-card:hover {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border-radius: var(--radius-lg);
+            padding: 18px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s ease;
+            position: relative;
         }
 
-        .mail-header {
+        .mail-row:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .mail-meta {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+        }
+
+        .contact-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             font-size: 13px;
-            color: var(--text-sub);
-            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .badge {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 3px 7px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+        }
+
+        .badge.inbox {
+            background: var(--badge-inbox);
+            color: var(--badge-inbox-text);
+        }
+
+        .badge.sent {
+            background: var(--badge-sent);
+            color: var(--badge-sent-text);
+        }
+
+        .timestamp {
+            font-size: 12px;
+            color: var(--text-tertiary);
         }
 
         .mail-subject {
             font-size: 16px;
             font-weight: 600;
-            margin-bottom: 8px;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
         }
 
-        .mail-body {
+        .mail-preview {
             font-size: 14px;
-            color: #334155;
-            white-space: pre-wrap;
-            line-height: 1.5;
+            color: var(--text-secondary);
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .empty-state {
+        .mail-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 4px;
+        }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: color 0.15s, background-color 0.15s;
+        }
+
+        .btn-delete:hover {
+            color: var(--danger);
+            background: rgba(255, 59, 48, 0.08);
+        }
+
+        /* Sentinel & Load State */
+        .sentinel {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .empty-view {
             text-align: center;
-            padding: 40px 0;
-            color: var(--text-sub);
-            font-size: 14px;
+            padding: 80px 0;
+            color: var(--text-tertiary);
+            font-size: 15px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <div>
-            <h2>Mailbox</h2>
-            <div class="user-info">Logged in as: <strong id="userEmail">Loading...</strong></div>
+<div class="shell">
+    <div class="top-nav">
+        <div class="title-group">
+            <h1>Inbox</h1>
+            <div class="user-tag" id="userDisplay">Connecting...</div>
         </div>
-        <a href="2.html" class="btn-compose">+ Compose</a>
+        <a href="2.html" class="btn-compose">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Compose
+        </a>
     </div>
 
-    <div class="tabs">
-        <button class="tab-btn active" id="tabInbox">Inbox</button>
-        <button class="tab-btn" id="tabSent">Sent</button>
+    <div class="controls-card">
+        <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search by recipient, subject, or content...">
+        </div>
+        <div class="tabs-wrap">
+            <button class="tab-btn active" id="tabAll">All</button>
+            <button class="tab-btn" id="tabInbox">Received</button>
+            <button class="tab-btn" id="tabSent">Sent</button>
+        </div>
     </div>
 
-    <div class="mail-list" id="mailList">
-        <div class="empty-state">Loading emails...</div>
+    <div class="mail-feed" id="mailFeed">
+        <div class="empty-view">Listening for incoming mail...</div>
     </div>
+
+    <div id="sentinel" class="sentinel"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { 
+        getFirestore, 
+        collection, 
+        onSnapshot, 
+        doc, 
+        deleteDoc 
+    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
@@ -166,85 +358,186 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Get Active User
+    // Identify user
     const activeUser = JSON.parse(localStorage.getItem('active_user') || '{}');
-    const userEmail = activeUser.Email || activeUser.email;
+    const userEmail = (activeUser.Email || activeUser.email || '').toLowerCase().trim();
+    document.getElementById('userDisplay').innerText = userEmail ? `Live as ${userEmail}` : "Not logged in";
 
-    if (!userEmail) {
-        alert("Please log in first.");
-        // Redirect to login page if desired: window.location.href = "1.html";
-    } else {
-        document.getElementById('userEmail').innerText = userEmail;
-    }
+    let rawEmails = [];
+    let filteredEmails = [];
+    let currentFilter = 'all'; // 'all' | 'inbox' | 'sent'
+    let searchQuery = '';
+    
+    // Lazy Load config
+    const PAGE_SIZE = 10;
+    let visibleCount = PAGE_SIZE;
 
-    let currentTab = 'inbox';
-
-    async function loadEmails() {
-        const mailList = document.getElementById('mailList');
-        mailList.innerHTML = '<div class="empty-state">Loading emails...</div>';
-
-        try {
-            const emailCol = collection(db, "Email");
-            let q;
-            if (currentTab === 'inbox') {
-                q = query(emailCol, where("to", "==", userEmail));
-            } else {
-                q = query(emailCol, where("from", "==", userEmail));
-            }
-
-            const snapshot = await getDocs(q);
-            if (snapshot.empty) {
-                mailList.innerHTML = `<div class="empty-state">No ${currentTab} messages found.</div>`;
-                return;
-            }
-
-            let html = '';
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const contact = currentTab === 'inbox' ? `From: ${data.from}` : `To: ${data.to}`;
-                const dateStr = data.timestamp ? new Date(data.timestamp.toDate ? data.timestamp.toDate() : data.timestamp).toLocaleString() : '';
-
-                html += `
-                    <div class="mail-card">
-                        <div class="mail-header">
-                            <span>${contact}</span>
-                            <span>${dateStr}</span>
-                        </div>
-                        <div class="mail-subject">${escapeHtml(data.subject || "(No Subject)")}</div>
-                        <div class="mail-body">${escapeHtml(data.body || "")}</div>
-                    </div>
-                `;
-            });
-
-            mailList.innerHTML = html;
-        } catch (err) {
-            console.error(err);
-            mailList.innerHTML = '<div class="empty-state">Failed to load emails. Check Firestore rules/connection.</div>';
+    // Helper: Normalize doc keys (handles case variations like "To", "to", "Sender", "from")
+    function parseDoc(docSnap) {
+        const d = docSnap.data();
+        const to = (d.to || d.To || d.recipient || d.Recipient || '').trim();
+        const from = (d.from || d.From || d.sender || d.Sender || '').trim();
+        const subject = d.subject || d.Subject || '';
+        const body = d.body || d.Body || d.message || d.Message || '';
+        
+        let dateObj = new Date();
+        if (d.timestamp) {
+            dateObj = d.timestamp.toDate ? d.timestamp.toDate() : new Date(d.timestamp);
+        } else if (d.createdAt) {
+            dateObj = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
         }
+
+        return {
+            id: docSnap.id,
+            to,
+            from,
+            subject,
+            body,
+            date: dateObj
+        };
     }
 
-    function escapeHtml(text) {
-        return text.replace(/[&<>"']/g, function(m) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+    // 1. Real-time Snapshot Listener on entire "Email" collection
+    onSnapshot(collection(db, "Email"), (snapshot) => {
+        const docs = [];
+        snapshot.forEach((snap) => {
+            const item = parseDoc(snap);
+            // Include if current user is sender OR recipient (case-insensitive)
+            if (!userEmail || 
+                item.to.toLowerCase() === userEmail || 
+                item.from.toLowerCase() === userEmail) {
+                docs.push(item);
+            }
         });
+
+        // Sort descending by timestamp in memory (ensures live updates without index requirements)
+        docs.sort((a, b) => b.date - a.date);
+        rawEmails = docs;
+        applyFiltersAndRender();
+    }, (error) => {
+        console.error("Realtime listener error:", error);
+        document.getElementById('mailFeed').innerHTML = `<div class="empty-view">Database sync error. Check Firestore rules.</div>`;
+    });
+
+    // 2. Filter & Search Engine
+    function applyFiltersAndRender() {
+        filteredEmails = rawEmails.filter(mail => {
+            const isInbox = mail.to.toLowerCase() === userEmail;
+            const isSent = mail.from.toLowerCase() === userEmail;
+
+            if (currentFilter === 'inbox' && !isInbox) return false;
+            if (currentFilter === 'sent' && !isSent) return false;
+
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                const matchSubject = mail.subject.toLowerCase().includes(q);
+                const matchBody = mail.body.toLowerCase().includes(q);
+                const matchTo = mail.to.toLowerCase().includes(q);
+                const matchFrom = mail.from.toLowerCase().includes(q);
+                return matchSubject || matchBody || matchTo || matchFrom;
+            }
+            return true;
+        });
+
+        renderList();
     }
 
-    document.getElementById('tabInbox').addEventListener('click', () => {
-        currentTab = 'inbox';
-        document.getElementById('tabInbox').classList.add('active');
-        document.getElementById('tabSent').classList.remove('active');
-        loadEmails();
+    // 3. Render HTML with Lazy Load slicing
+    function renderList() {
+        const feed = document.getElementById('mailFeed');
+        const visibleSlice = filteredEmails.slice(0, visibleCount);
+
+        if (visibleSlice.length === 0) {
+            feed.innerHTML = `<div class="empty-view">No messages found.</div>`;
+            return;
+        }
+
+        feed.innerHTML = visibleSlice.map(mail => {
+            const isIncoming = mail.to.toLowerCase() === userEmail;
+            const badgeType = isIncoming ? 'inbox' : 'sent';
+            const badgeLabel = isIncoming ? 'Received' : 'Sent';
+            const contactLabel = isIncoming ? `From: ${escapeHtml(mail.from)}` : `To: ${escapeHtml(mail.to)}`;
+            const dateStr = formatRelativeTime(mail.date);
+
+            return `
+                <div class="mail-row" onclick="openEmail('${mail.id}')">
+                    <div class="mail-meta">
+                        <div class="contact-group">
+                            <span class="badge ${badgeType}">${badgeLabel}</span>
+                            <span>${contactLabel}</span>
+                        </div>
+                        <span class="timestamp">${dateStr}</span>
+                    </div>
+                    <div class="mail-subject">${escapeHtml(mail.subject || "(No Subject)")}</div>
+                    <div class="mail-preview">${escapeHtml(mail.body || "No content")}</div>
+                    <div class="mail-footer">
+                        <button class="btn-delete" onclick="event.stopPropagation(); deleteMail('${mail.id}')">Delete</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Lazy load intersection observer
+    const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && visibleCount < filteredEmails.length) {
+            visibleCount += PAGE_SIZE;
+            renderList();
+        }
+    }, { rootMargin: '200px' });
+
+    observer.observe(document.getElementById('sentinel'));
+
+    // Global navigation & delete handlers
+    window.openEmail = (id) => {
+        window.location.href = `3.html?id=${id}`;
+    };
+
+    window.deleteMail = async (id) => {
+        if (!confirm("Permanently delete this email?")) return;
+        try {
+            await deleteDoc(doc(db, "Email", id));
+            // Real-time listener handles the UI removal automatically
+        } catch (err) {
+            alert("Delete failed: " + err.message);
+        }
+    };
+
+    // UI Listeners
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchQuery = e.target.value.trim();
+        visibleCount = PAGE_SIZE;
+        applyFiltersAndRender();
     });
 
-    document.getElementById('tabSent').addEventListener('click', () => {
-        currentTab = 'sent';
-        document.getElementById('tabSent').classList.add('active');
-        document.getElementById('tabInbox').classList.remove('active');
-        loadEmails();
+    const tabs = [
+        { btn: document.getElementById('tabAll'), id: 'all' },
+        { btn: document.getElementById('tabInbox'), id: 'inbox' },
+        { btn: document.getElementById('tabSent'), id: 'sent' }
+    ];
+
+    tabs.forEach(({ btn, id }) => {
+        btn.addEventListener('click', () => {
+            tabs.forEach(t => t.btn.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = id;
+            visibleCount = PAGE_SIZE;
+            applyFiltersAndRender();
+        });
     });
 
-    if (userEmail) {
-        loadEmails();
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+
+    function formatRelativeTime(date) {
+        if (isNaN(date.getTime())) return '';
+        const now = new Date();
+        const diff = (now - date) / 1000;
+        if (diff < 60) return "Just now";
+        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+        return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     }
 </script>
 
