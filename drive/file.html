@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Cloud Drive — Media Viewer</title>
+  
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Firebase v10 Compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .glassmorphism {
+      background: rgba(18, 18, 20, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+  </style>
+</head>
+<body class="bg-black text-white h-screen w-screen overflow-hidden flex flex-col justify-between">
+
+  <!-- ================= TOP BAR ================= -->
+  <header class="fixed top-0 inset-x-0 z-30 flex items-center justify-between px-4 py-3 glassmorphism border-b border-white/10 transition-all duration-300">
+    <div class="flex items-center gap-3">
+      <button id="btn-back" class="p-2 rounded-full hover:bg-white/10 active:scale-95 transition">
+        <i data-lucide="arrow-left" class="w-5 h-5 text-white"></i>
+      </button>
+      <div>
+        <h1 id="doc-id-title" class="text-sm font-semibold tracking-wide truncate max-w-[180px] sm:max-w-xs">Loading...</h1>
+        <p id="doc-email" class="text-xs text-zinc-400 truncate max-w-[180px] sm:max-w-xs"></p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="btn-info" class="p-2 rounded-full hover:bg-white/10 active:scale-95 transition">
+        <i data-lucide="info" class="w-5 h-5"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN VIEWER ================= -->
+  <main class="relative flex-1 flex items-center justify-center p-2 sm:p-6 overflow-hidden">
+    <!-- Loading Spinner -->
+    <div id="loader" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 gap-3">
+      <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-xs text-zinc-400 font-medium">Fetching image...</p>
+    </div>
+
+    <!-- Main Image Display -->
+    <div id="image-container" class="relative max-h-full max-w-full flex items-center justify-center transition-transform duration-200 ease-out">
+      <img id="main-image" src="" alt="Viewer" class="max-h-[70vh] sm:max-h-[75vh] w-auto max-w-full object-contain rounded-xl shadow-2xl drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]" />
+    </div>
+  </main>
+
+  <!-- ================= BOTTOM ACTION BAR & SAMSUNG THUMBNAIL TRAY ================= -->
+  <footer class="fixed bottom-0 inset-x-0 z-30 flex flex-col glassmorphism border-t border-white/10">
+    <!-- Samsung Style Horizontal Thumbnail Carousel -->
+    <div class="px-3 pt-2 pb-1 border-b border-white/5">
+      <div id="thumbnails-container" class="flex gap-2 overflow-x-auto hide-scrollbar py-1 items-center">
+        <!-- Thumbnails injected via JS -->
+      </div>
+    </div>
+
+    <!-- Actions (Heart, Edit, Share, Delete) -->
+    <div class="flex items-center justify-around py-3 px-6 max-w-lg mx-auto w-full">
+      <!-- Favorite / Heart -->
+      <button id="btn-heart" class="flex flex-col items-center gap-1 group active:scale-90 transition">
+        <i id="heart-icon" data-lucide="heart" class="w-6 h-6 text-zinc-400 group-hover:text-rose-500 transition"></i>
+        <span class="text-[10px] text-zinc-400 group-hover:text-white">Favorite</span>
+      </button>
+
+      <!-- Edit -->
+      <button id="btn-edit" class="flex flex-col items-center gap-1 group active:scale-90 transition">
+        <div class="p-2 rounded-full bg-white/10 group-hover:bg-indigo-600 transition">
+          <i data-lucide="pen-tool" class="w-5 h-5 text-white"></i>
+        </div>
+        <span class="text-[10px] text-zinc-300">Edit</span>
+      </button>
+
+      <!-- Share -->
+      <button id="btn-share" class="flex flex-col items-center gap-1 group active:scale-90 transition">
+        <i data-lucide="share-2" class="w-6 h-6 text-zinc-400 group-hover:text-blue-400 transition"></i>
+        <span class="text-[10px] text-zinc-400 group-hover:text-white">Share</span>
+      </button>
+
+      <!-- Delete -->
+      <button id="btn-delete" class="flex flex-col items-center gap-1 group active:scale-90 transition">
+        <i data-lucide="trash-2" class="w-6 h-6 text-zinc-400 group-hover:text-red-500 transition"></i>
+        <span class="text-[10px] text-zinc-400 group-hover:text-white">Delete</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- ================= EDIT MODAL / STUDIO ================= -->
+  <div id="edit-modal" class="fixed inset-0 z-50 bg-black/95 flex flex-col justify-between hidden">
+    <!-- Edit Header -->
+    <div class="flex items-center justify-between p-4 glassmorphism border-b border-white/10">
+      <button id="btn-cancel-edit" class="text-sm font-medium text-zinc-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10">Cancel</button>
+      <div class="flex items-center gap-3">
+        <button id="btn-undo" class="p-2 text-zinc-400 hover:text-white active:scale-90"><i data-lucide="undo" class="w-5 h-5"></i></button>
+        <button id="btn-save-edit" class="text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-full shadow-lg active:scale-95 transition">Save</button>
+      </div>
+    </div>
+
+    <!-- Editor Canvas Area -->
+    <div class="relative flex-1 flex items-center justify-center p-3 overflow-hidden">
+      <canvas id="editor-canvas" class="max-h-[60vh] max-w-full rounded-lg shadow-2xl bg-zinc-900 border border-white/10 touch-none"></canvas>
+    </div>
+
+    <!-- Edit Tools Controls Tray -->
+    <div class="glassmorphism border-t border-white/10 p-4 flex flex-col gap-3">
+      <!-- Dynamic Sub-tool toolbar (Brush colors/sizes, Text inputs, Emojis) -->
+      <div id="sub-tool-bar" class="flex items-center justify-center gap-3 overflow-x-auto hide-scrollbar min-h-[40px]">
+        <!-- Brush Sub-options (Default) -->
+        <div id="brush-options" class="flex items-center gap-2">
+          <input type="color" id="draw-color" value="#ef4444" class="w-8 h-8 rounded-full cursor-pointer bg-transparent border-none" />
+          <input type="range" id="draw-size" min="2" max="40" value="6" class="w-28 accent-indigo-500 cursor-pointer" />
+        </div>
+      </div>
+
+      <!-- Main Edit Tabs -->
+      <div class="flex items-center justify-around border-t border-white/5 pt-2">
+        <button class="edit-tab-btn flex flex-col items-center text-indigo-400 text-xs gap-1" data-tool="draw">
+          <i data-lucide="pencil" class="w-5 h-5"></i><span>Draw</span>
+        </button>
+        <button class="edit-tab-btn flex flex-col items-center text-zinc-400 hover:text-white text-xs gap-1" data-tool="text">
+          <i data-lucide="type" class="w-5 h-5"></i><span>Text</span>
+        </button>
+        <button class="edit-tab-btn flex flex-col items-center text-zinc-400 hover:text-white text-xs gap-1" data-tool="emoji">
+          <i data-lucide="smile" class="w-5 h-5"></i><span>Stickers</span>
+        </button>
+        <button class="edit-tab-btn flex flex-col items-center text-zinc-400 hover:text-white text-xs gap-1" data-tool="transform">
+          <i data-lucide="rotate-cw" class="w-5 h-5"></i><span>Rotate</span>
+        </button>
+        <button class="edit-tab-btn flex flex-col items-center text-zinc-400 hover:text-white text-xs gap-1" data-tool="filters">
+          <i data-lucide="sparkles" class="w-5 h-5"></i><span>Filter</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FIREBASE & APP SCRIPT ================= -->
+  <script>
+    // 1. Firebase Initialization
+    const firebaseConfig = {
+      apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
+      authDomain: "cloud-computer-4891a.firebaseapp.com",
+      projectId: "cloud-computer-4891a",
+      storageBucket: "cloud-computer-4891a.firebasestorage.app",
+      messagingSenderId: "744203234287",
+      appId: "1:744203234287:web:81d943ae9b75fd77dce41a",
+      measurementId: "G-QE17C33TMN"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const COLLECTION_NAME = "Cloud Drive";
+
+    // App State
+    let currentDocId = "";
+    let currentData = null;
+    let allDocuments = [];
+    let isFavorite = false;
+
+    // DOM Elements
+    const mainImg = document.getElementById("main-image");
+    const loader = document.getElementById("loader");
+    const docIdTitle = document.getElementById("doc-id-title");
+    const docEmail = document.getElementById("doc-email");
+    const thumbContainer = document.getElementById("thumbnails-container");
+    const heartBtn = document.getElementById("btn-heart");
+    const heartIcon = document.getElementById("heart-icon");
+
+    // Init Lucide Icons
+    lucide.createIcons();
+
+    // 2. Fetch Hash Doc ID & Listen to Hash Changes
+    function getDocIdFromURL() {
+      const hash = window.location.hash.replace("#", "").trim();
+      return hash || "p7543LtVQA49lB6L3mvO"; // fallback to default
+    }
+
+    async function loadAllDocuments() {
+      try {
+        const snapshot = await db.collection(COLLECTION_NAME).get();
+        allDocuments = [];
+        snapshot.forEach(doc => {
+          allDocuments.push({ id: doc.id, ...doc.data() });
+        });
+        renderThumbnails();
+      } catch (err) {
+        console.error("Error fetching library:", err);
+      }
+    }
+
+    async function loadDocument(id) {
+      loader.classList.remove("hidden");
+      currentDocId = id;
+      window.location.hash = id;
+
+      try {
+        const docRef = await db.collection(COLLECTION_NAME).doc(id).get();
+        if (docRef.exists) {
+          currentData = docRef.data();
+          docIdTitle.textContent = id;
+          docEmail.textContent = currentData.Email || "Cloud Storage";
+          
+          mainImg.src = currentData.File;
+          mainImg.onload = () => loader.classList.add("hidden");
+          mainImg.onerror = () => {
+            alert("Failed to load original image link. Check CORS or URL expiry.");
+            loader.classList.add("hidden");
+          };
+        } else {
+          alert("Document not found in database.");
+          loader.classList.add("hidden");
+        }
+      } catch (err) {
+        console.error(err);
+        loader.classList.add("hidden");
+      }
+      renderThumbnails();
+    }
+
+    function renderThumbnails() {
+      thumbContainer.innerHTML = "";
+      allDocuments.forEach(item => {
+        const activeClass = item.id === currentDocId ? "ring-2 ring-indigo-500 scale-105 opacity-100" : "opacity-60 hover:opacity-100";
+        const thumb = document.createElement("div");
+        thumb.className = `w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden cursor-pointer transition-all duration-200 border border-white/10 ${activeClass}`;
+        thumb.innerHTML = `<img src="${item.File}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/60?text=IMG'"/>`;
+        thumb.onclick = () => loadDocument(item.id);
+        thumbContainer.appendChild(thumb);
+      });
+    }
+
+    // Favorite Button Action
+    heartBtn.addEventListener("click", () => {
+      isFavorite = !isFavorite;
+      heartIcon.classList.toggle("text-rose-500", isFavorite);
+      heartIcon.classList.toggle("fill-rose-500", isFavorite);
+    });
+
+    // Share Button Action
+    document.getElementById("btn-share").addEventListener("click", async () => {
+      if (navigator.share && currentData) {
+        try {
+          await navigator.share({
+            title: `Cloud Image (${currentDocId})`,
+            text: `Uploaded by ${currentData.Email}`,
+            url: window.location.href,
+          });
+        } catch (e) { console.log(e); }
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert("Link copied to clipboard!");
+      }
+    });
+
+    // Delete Button Action
+    document.getElementById("btn-delete").addEventListener("click", async () => {
+      if (confirm(`Are you sure you want to delete ${currentDocId}?`)) {
+        try {
+          await db.collection(COLLECTION_NAME).doc(currentDocId).delete();
+          alert("Document deleted successfully.");
+          location.reload();
+        } catch (e) {
+          alert("Error deleting document: " + e.message);
+        }
+      }
+    });
+
+    // ==========================================
+    // 3. FULL CANVAS IMAGE EDITOR
+    // ==========================================
+    const editModal = document.getElementById("edit-modal");
+    const canvas = document.getElementById("editor-canvas");
+    const ctx = canvas.getContext("2d");
+    const subToolBar = document.getElementById("sub-tool-bar");
+
+    let isDrawing = false;
+    let currentTool = "draw";
+    let canvasHistory = [];
+    let editorImg = new Image();
+    let rotationAngle = 0;
+
+    document.getElementById("btn-edit").onclick = () => {
+      if (!currentData || !currentData.File) return;
+      editModal.classList.remove("hidden");
+      
+      editorImg.crossOrigin = "anonymous";
+      editorImg.src = currentData.File;
+      editorImg.onload = () => {
+        canvas.width = editorImg.naturalWidth;
+        canvas.height = editorImg.naturalHeight;
+        ctx.drawImage(editorImg, 0, 0);
+        saveState();
+        switchTool("draw");
+      };
+    };
+
+    document.getElementById("btn-cancel-edit").onclick = () => editModal.classList.add("hidden");
+
+    function saveState() {
+      canvasHistory.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      if (canvasHistory.length > 10) canvasHistory.shift();
+    }
+
+    document.getElementById("btn-undo").onclick = () => {
+      if (canvasHistory.length > 1) {
+        canvasHistory.pop();
+        const prev = canvasHistory[canvasHistory.length - 1];
+        ctx.putImageData(prev, 0, 0);
+      }
+    };
+
+    // Tool switching
+    document.querySelectorAll(".edit-tab-btn").forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll(".edit-tab-btn").forEach(b => {
+          b.classList.remove("text-indigo-400");
+          b.classList.add("text-zinc-400");
+        });
+        btn.classList.remove("text-zinc-400");
+        btn.classList.add("text-indigo-400");
+        switchTool(btn.dataset.tool);
+      };
+    });
+
+    function switchTool(tool) {
+      currentTool = tool;
+      subToolBar.innerHTML = "";
+
+      if (tool === "draw") {
+        subToolBar.innerHTML = `
+          <div class="flex items-center gap-3">
+            <input type="color" id="draw-color" value="#ff3b30" class="w-8 h-8 rounded-full border-none cursor-pointer bg-transparent" />
+            <input type="range" id="draw-size" min="2" max="50" value="8" class="w-32 accent-indigo-500 cursor-pointer" />
+          </div>
+        `;
+      } else if (tool === "text") {
+        subToolBar.innerHTML = `
+          <div class="flex items-center gap-2">
+            <input type="text" id="text-input" placeholder="Type text..." class="px-3 py-1 text-sm bg-white/10 rounded-lg text-white border border-white/20 outline-none" />
+            <button id="btn-add-text" class="px-3 py-1 bg-indigo-600 rounded-lg text-xs font-semibold">Place</button>
+          </div>
+        `;
+        document.getElementById("btn-add-text").onclick = () => {
+          const txt = document.getElementById("text-input").value;
+          if (txt) {
+            ctx.font = "bold 60px 'Plus Jakarta Sans', sans-serif";
+            ctx.fillStyle = "#ffffff";
+            ctx.shadowColor = "rgba(0,0,0,0.8)";
+            ctx.shadowBlur = 8;
+            ctx.fillText(txt, canvas.width / 4, canvas.height / 2);
+            saveState();
+          }
+        };
+      } else if (tool === "emoji") {
+        const emojis = ["🔥", "❤️", "✨", "🎉", "👑", "🚀", "🕶️", "💯", "⭐"];
+        subToolBar.innerHTML = emojis.map(e => `<button class="text-2xl p-1 hover:scale-125 transition emoji-btn">${e}</button>`).join("");
+        document.querySelectorAll(".emoji-btn").forEach(btn => {
+          btn.onclick = () => {
+            ctx.font = "80px sans-serif";
+            ctx.fillText(btn.innerText, canvas.width / 2 - 40, canvas.height / 2);
+            saveState();
+          };
+        });
+      } else if (tool === "transform") {
+        subToolBar.innerHTML = `
+          <div class="flex items-center gap-4">
+            <button id="btn-rot" class="px-3 py-1.5 bg-white/10 rounded-lg text-xs flex items-center gap-1.5"><i data-lucide="rotate-cw" class="w-4 h-4"></i> Rotate 90°</button>
+          </div>
+        `;
+        lucide.createIcons();
+        document.getElementById("btn-rot").onclick = () => rotateCanvas();
+      } else if (tool === "filters") {
+        subToolBar.innerHTML = `
+          <div class="flex items-center gap-2">
+            <button onclick="applyFilter('none')" class="px-2.5 py-1 bg-white/10 rounded-lg text-xs">Normal</button>
+            <button onclick="applyFilter('grayscale')" class="px-2.5 py-1 bg-white/10 rounded-lg text-xs">B&W</button>
+            <button onclick="applyFilter('sepia')" class="px-2.5 py-1 bg-white/10 rounded-lg text-xs">Sepia</button>
+            <button onclick="applyFilter('invert')" class="px-2.5 py-1 bg-white/10 rounded-lg text-xs">Invert</button>
+          </div>
+        `;
+      }
+    }
+
+    function rotateCanvas() {
+      const temp = document.createElement("canvas");
+      temp.width = canvas.height;
+      temp.height = canvas.width;
+      const tCtx = temp.getContext("2d");
+
+      tCtx.translate(temp.width / 2, temp.height / 2);
+      tCtx.rotate((90 * Math.PI) / 180);
+      tCtx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+
+      canvas.width = temp.width;
+      canvas.height = temp.height;
+      ctx.drawImage(temp, 0, 0);
+      saveState();
+    }
+
+    window.applyFilter = function(type) {
+      ctx.drawImage(editorImg, 0, 0, canvas.width, canvas.height);
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const d = imgData.data;
+
+      for (let i = 0; i < d.length; i += 4) {
+        if (type === "grayscale") {
+          let v = 0.2126 * d[i] + 0.7152 * d[i+1] + 0.0722 * d[i+2];
+          d[i] = d[i+1] = d[i+2] = v;
+        } else if (type === "sepia") {
+          let r = d[i], g = d[i+1], b = d[i+2];
+          d[i] = r * 0.393 + g * 0.769 + b * 0.189;
+          d[i+1] = r * 0.349 + g * 0.686 + b * 0.168;
+          d[i+2] = r * 0.272 + g * 0.534 + b * 0.131;
+        } else if (type === "invert") {
+          d[i] = 255 - d[i];
+          d[i+1] = 255 - d[i+1];
+          d[i+2] = 255 - d[i+2];
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+      saveState();
+    };
+
+    // Canvas Drawing Listeners
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    function startDraw(e) {
+      if (currentTool !== "draw") return;
+      isDrawing = true;
+      const { x, y } = getCanvasCoords(e);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    }
+
+    function draw(e) {
+      if (!isDrawing || currentTool !== "draw") return;
+      const { x, y } = getCanvasCoords(e);
+      const color = document.getElementById("draw-color")?.value || "#ef4444";
+      const size = document.getElementById("draw-size")?.value || 6;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = size;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+
+    function stopDraw() {
+      if (isDrawing) {
+        isDrawing = false;
+        saveState();
+      }
+    }
+
+    canvas.addEventListener("mousedown", startDraw);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDraw);
+
+    canvas.addEventListener("touchstart", startDraw);
+    canvas.addEventListener("touchmove", draw);
+    canvas.addEventListener("touchend", stopDraw);
+
+    // Save Edited Image back to Firestore
+    document.getElementById("btn-save-edit").onclick = async () => {
+      try {
+        const base64Image = canvas.toDataURL("image/jpeg", 0.9);
+        await db.collection(COLLECTION_NAME).doc(currentDocId).update({
+          File: base64Image
+        });
+        mainImg.src = base64Image;
+        editModal.classList.add("hidden");
+        alert("Image successfully saved & updated in Firebase!");
+      } catch (err) {
+        alert("Error updating document: " + err.message);
+      }
+    };
+
+    // 4. Initial Run
+    window.addEventListener("hashchange", () => loadDocument(getDocIdFromURL()));
+    window.addEventListener("DOMContentLoaded", () => {
+      loadAllDocuments();
+      loadDocument(getDocIdFromURL());
+    });
+  </script>
+</body>
+</html>
