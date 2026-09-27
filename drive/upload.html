@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Drive - Upload</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-primary: #000000;
+            --text-secondary: #555555;
+            --border-color: #dddddd;
+            --card-bg: #f9f9f9;
+            --btn-bg: #111111;
+            --btn-text: #ffffff;
+            --btn-hover: #333333;
+            --accent: #0066cc;
+        }
+
+        body.dark {
+            --bg-color: #000000;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --border-color: #3a3a3a;
+            --card-bg: #121212;
+            --btn-bg: #ffffff;
+            --btn-text: #000000;
+            --btn-hover: #e0e0e0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 480px;
+            width: 90%;
+            padding: 30px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        p.user-status {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 30px 20px;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .drop-zone.dragover {
+            border-color: var(--accent);
+            background-color: rgba(0, 102, 204, 0.05);
+        }
+
+        .drop-zone p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .file-info {
+            font-size: 13px;
+            margin-top: 10px;
+            font-weight: 500;
+            color: var(--accent);
+            word-break: break-all;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, opacity 0.2s;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            margin-top: 15px;
+            font-size: 13px;
+            min-height: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Upload to Cloud Drive</h1>
+    <p class="user-status" id="userEmailDisplay">Loading account...</p>
+
+    <div class="drop-zone" id="dropZone">
+        <p>Click or drag & drop files here</p>
+        <p style="font-size: 12px; margin-top: 5px; opacity: 0.8;">(Images, Videos, PDFs, Docs — Max 50MB)</p>
+        <div class="file-info" id="selectedFileInfo"></div>
+    </div>
+    
+    <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.zip">
+
+    <button class="btn" id="uploadBtn" disabled>Upload File</button>
+    <div class="status-message" id="statusMessage"></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // 1. Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
+        authDomain: "cloud-computer-4891a.firebaseapp.com",
+        projectId: "cloud-computer-4891a",
+        storageBucket: "cloud-computer-4891a.firebasestorage.app",
+        messagingSenderId: "744203234287",
+        appId: "1:744203234287:web:81d943ae9b75fd77dce41a",
+        measurementId: "G-QE17C33TMN"
+    };
+
+    const IMGBB_API_KEY = "80c452b9a4b80f240ada316f23078d2c";
+    const UPLOADCARE_PUBLIC_KEY = "demopublickey"; // Replace with your Uploadcare public key if required
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 2. Load User Context
+    let userEmail = "anonymous@perplexity.com";
+    try {
+        const activeUser = JSON.parse(localStorage.getItem('active_user'));
+        if (activeUser && activeUser.Email) {
+            userEmail = activeUser.Email;
+        }
+    } catch (e) {
+        console.warn("Could not load active user:", e);
+    }
+    document.getElementById('userEmailDisplay').innerText = `Logged in as: ${userEmail}`;
+
+    // Theme setup based on preferences
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        document.body.classList.add("dark");
+    }
+
+    // 3. UI and File Selection Handling
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const selectedFileInfo = document.getElementById('selectedFileInfo');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let selectedFile = null;
+    const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+            handleFileSelection(e.dataTransfer.files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelection(e.target.files[0]);
+        }
+    });
+
+    function handleFileSelection(file) {
+        if (file.size > MAX_SIZE_BYTES) {
+            alert("File size exceeds 50 MB limit.");
+            selectedFile = null;
+            selectedFileInfo.innerText = "";
+            uploadBtn.disabled = true;
+            return;
+        }
+
+        selectedFile = file;
+        selectedFileInfo.innerText = `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+        uploadBtn.disabled = false;
+        statusMessage.innerText = "";
+    }
+
+    // 4. API Upload Handlers
+    async function uploadToImgBB(file) {
+        const formData = new FormData();
+        formData.append("image", file);
+
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            method: "POST",
+            body: formData
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            return result.data.url;
+        } else {
+            throw new Error(result.error ? result.error.message : "ImgBB upload failed.");
+        }
+    }
+
+    async function uploadToUploadcare(file) {
+        const formData = new FormData();
+        formData.append("UPLOADCARE_PUB_KEY", UPLOADCARE_PUBLIC_KEY);
+        formData.append("UPLOADCARE_STORE", "1");
+        formData.append("file", file);
+
+        const response = await fetch("https://upload.uploadcare.com/base/", {
+            method: "POST",
+            body: formData
+        });
+
+        const result = await response.json();
+        if (result.file) {
+            return `https://ucarecdn.com/${result.file}/${encodeURIComponent(file.name)}`;
+        } else {
+            throw new Error("Uploadcare upload failed.");
+        }
+    }
+
+    // 5. Submit Handler
+    uploadBtn.addEventListener('click', async () => {
+        if (!selectedFile) return;
+
+        uploadBtn.disabled = true;
+        statusMessage.style.color = "var(--text-secondary)";
+        statusMessage.innerText = "Uploading file to storage...";
+
+        try {
+            let fileUrl = "";
+            let fileTypeTag = "";
+            const isImage = selectedFile.type.startsWith("image/");
+
+            // Route upload based on file type
+            if (isImage) {
+                fileUrl = await uploadToImgBB(selectedFile);
+                fileTypeTag = ".img";
+            } else {
+                fileUrl = await uploadToUploadcare(selectedFile);
+                const ext = selectedFile.name.split('.').pop();
+                fileTypeTag = ext ? `.${ext.toLowerCase()}` : ".file";
+            }
+
+            statusMessage.innerText = "Saving record to database...";
+
+            // Save to Firestore matching the exact schema in screenshot
+            await addDoc(collection(db, "Cloud Drive"), {
+                Email: userEmail,
+                File: fileUrl,
+                Type: fileTypeTag
+            });
+
+            statusMessage.style.color = "green";
+            statusMessage.innerText = "File uploaded and registered successfully!";
+            
+            // Reset input
+            selectedFile = null;
+            selectedFileInfo.innerText = "";
+            fileInput.value = "";
+        } catch (error) {
+            console.error("Upload error:", error);
+            statusMessage.style.color = "red";
+            statusMessage.innerText = error.message || "An error occurred during upload.";
+            uploadBtn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
