@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Message View</title>
+    <title>Message - Reader</title>
     <style>
         :root {
             --bg-page: #ffffff;
@@ -11,11 +11,10 @@
             --border: rgba(0, 0, 0, 0.08);
             --text-primary: #1d1d1f;
             --text-secondary: #6e6e73;
-            --text-tertiary: #a1a1a6;
             --accent: #0071e3;
             --danger: #ff3b30;
-            --avatar-bg: #f2f2f7;
-            --radius-lg: 16px;
+            --card-bg: #f5f5f7;
+            --radius: 12px;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -25,22 +24,13 @@
                 --border: rgba(255, 255, 255, 0.12);
                 --text-primary: #f5f5f7;
                 --text-secondary: #a1a1a6;
-                --text-tertiary: #636366;
-                --accent: #2997ff;
-                --danger: #ff453a;
-                --avatar-bg: #2c2c2e;
+                --card-bg: #2c2c2e;
             }
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-font-smoothing: antialiased;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
             background-color: var(--bg-page);
             color: var(--text-primary);
             min-height: 100vh;
@@ -50,39 +40,25 @@
 
         .viewport {
             width: 100%;
-            max-width: 760px;
+            max-width: 800px;
             padding: 40px 24px 80px 24px;
-            display: flex;
-            flex-direction: column;
         }
 
-        /* Top Action Bar */
-        .action-bar {
+        .top-nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         .btn-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
             text-decoration: none;
             color: var(--text-secondary);
             font-size: 14px;
             font-weight: 500;
-            transition: color 0.15s;
         }
 
-        .btn-back:hover {
-            color: var(--text-primary);
-        }
-
-        .right-actions {
-            display: flex;
-            gap: 8px;
-        }
+        .btn-group { display: flex; gap: 8px; }
 
         .btn-action {
             background: var(--surface);
@@ -94,107 +70,137 @@
             border-radius: 980px;
             cursor: pointer;
             text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: background 0.15s, border-color 0.15s;
         }
 
-        .btn-action:hover {
-            border-color: rgba(0, 0, 0, 0.2);
+        .btn-action.pdf {
+            background: var(--accent);
+            color: #ffffff;
+            border: none;
         }
 
-        .btn-action.delete {
-            color: var(--danger);
+        /* Printable Area */
+        #emailPrintContainer {
+            background: var(--bg-page);
+            padding: 10px;
         }
 
-        /* Email Card Layout */
         .subject-title {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
-            letter-spacing: -0.02em;
-            line-height: 1.25;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .sender-card {
             display: flex;
+            gap: 12px;
             align-items: center;
-            gap: 14px;
-            padding-bottom: 24px;
+            padding-bottom: 20px;
             border-bottom: 1px solid var(--border);
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         .avatar {
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background-color: var(--avatar-bg);
-            color: var(--text-secondary);
+            background: var(--card-bg);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            font-size: 16px;
-            text-transform: uppercase;
+            font-size: 18px;
         }
 
-        .sender-meta {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            flex: 1;
-        }
-
-        .sender-name {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .recipient-line {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .date-line {
-            font-size: 12px;
-            color: var(--text-tertiary);
-        }
+        .meta-info { flex: 1; }
+        .meta-from { font-weight: 600; font-size: 15px; }
+        .meta-to { font-size: 13px; color: var(--text-secondary); }
+        .meta-date { font-size: 12px; color: var(--text-secondary); }
 
         .email-body {
-            font-size: 16px;
-            line-height: 1.7;
-            color: var(--text-primary);
-            white-space: pre-wrap;
-            word-break: break-word;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 30px;
         }
 
-        .loading-state {
-            text-align: center;
-            padding: 80px 0;
-            color: var(--text-secondary);
-            font-size: 15px;
+        /* Smart Media Embed Styles */
+        .attachment-container {
+            margin: 16px 0;
+        }
+
+        .embed-img {
+            max-width: 100%;
+            max-height: 480px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            display: block;
+        }
+
+        .embed-video {
+            width: 100%;
+            max-height: 420px;
+            border-radius: var(--radius);
+            background: #000;
+        }
+
+        .embed-audio {
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        .file-card {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 18px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            transition: transform 0.15s ease;
+        }
+        .file-card:hover { transform: translateY(-1px); }
+
+        .file-badge {
+            background: var(--accent);
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
         }
     </style>
+    <!-- PDF Generation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
 <div class="viewport">
-    <div class="action-bar">
-        <a href="1.html" class="btn-back">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            Back
-        </a>
-        <div class="right-actions" id="actionButtons" style="display: none;">
-            <button class="btn-action delete" id="deleteBtn">Delete</button>
-            <a href="2.html" class="btn-action" id="replyBtn">Reply</a>
+    <div class="top-nav">
+        <a href="1.html" class="btn-back">&larr; Back to Inbox</a>
+        <div class="btn-group" id="actions" style="display: none;">
+            <button class="btn-action pdf" id="pdfBtn">Export as PDF</button>
+            <button class="btn-action" id="deleteBtn" style="color:var(--danger)">Delete</button>
         </div>
     </div>
 
-    <div id="contentArea">
-        <div class="loading-state">Loading message...</div>
+    <div id="emailPrintContainer">
+        <div id="loading" style="text-align:center; padding: 40px; color:var(--text-secondary);">Loading message...</div>
+        <div id="emailContent" style="display: none;">
+            <h1 class="subject-title" id="subjectDisplay"></h1>
+            <div class="sender-card">
+                <div class="avatar" id="avatarDisplay">U</div>
+                <div class="meta-info">
+                    <div class="meta-from" id="fromDisplay"></div>
+                    <div class="meta-to" id="toDisplay"></div>
+                    <div class="meta-date" id="dateDisplay"></div>
+                </div>
+            </div>
+            <div class="email-body" id="bodyDisplay"></div>
+        </div>
     </div>
 </div>
 
@@ -208,85 +214,122 @@
         projectId: "cloud-computer-4891a",
         storageBucket: "cloud-computer-4891a.firebasestorage.app",
         messagingSenderId: "744203234287",
-        appId: "1:744203234287:web:81d943ae9b75fd77dce41a",
-        measurementId: "G-QE17C33TMN"
+        appId: "1:744203234287:web:81d943ae9b75fd77dce41a"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const emailId = urlParams.get('id');
+    const emailId = new URLSearchParams(window.location.search).get('id');
+
+    // Smart Attachment Parser: Replaces {\.file=URL} with rich media tags
+    function parseAttachments(content) {
+        const regex = /\{\\\.file=(https?:\/\/[^\s}]+)\}/gi;
+        return content.replace(regex, (match, url) => {
+            const cleanUrl = url.trim();
+            const ext = cleanUrl.split('?')[0].split('.').pop().toLowerCase();
+
+            // 1. Image formats
+            if (['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif'].includes(ext)) {
+                return `
+                    <div class="attachment-container">
+                        <img src="${cleanUrl}" class="embed-img" alt="Attached Image" loading="lazy" />
+                    </div>`;
+            }
+
+            // 2. Video formats
+            if (['mp4', 'webm', 'mkv', 'm3u8'].includes(ext)) {
+                return `
+                    <div class="attachment-container">
+                        <video controls class="embed-video" src="${cleanUrl}">
+                            Your browser doesn't support video playback.
+                        </video>
+                    </div>`;
+            }
+
+            // 3. Audio formats
+            if (['mp3', 'wav', 'ogg', 'aac'].includes(ext)) {
+                return `
+                    <div class="attachment-container">
+                        <audio controls class="embed-audio" src="${cleanUrl}"></audio>
+                    </div>`;
+            }
+
+            // 4. Documents & General Files (.pdf, .docx, .pptx, .exe, etc.)
+            const fileName = cleanUrl.split('/').pop() || 'Download File';
+            return `
+                <div class="attachment-container">
+                    <a href="${cleanUrl}" target="_blank" download class="file-card">
+                        <span class="file-badge">${ext || 'FILE'}</span>
+                        <span>${fileName}</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    </a>
+                </div>`;
+        });
+    }
 
     async function loadEmail() {
-        if (!emailId) {
-            document.getElementById('contentArea').innerHTML = `<div class="loading-state">No email ID specified.</div>`;
-            return;
-        }
-
+        if (!emailId) return;
         try {
-            const docRef = doc(db, "Email", emailId);
-            const snap = await getDoc(docRef);
-
+            const snap = await getDoc(doc(db, "Email", emailId));
             if (!snap.exists()) {
-                document.getElementById('contentArea').innerHTML = `<div class="loading-state">Message not found or deleted.</div>`;
+                document.getElementById('loading').innerText = "Message not found.";
                 return;
             }
 
             const data = snap.data();
-            const from = data.from || data.From || data.sender || data.Sender || 'Unknown';
-            const to = data.to || data.To || data.recipient || data.Recipient || 'Unknown';
+            const from = data.from || data.From || 'Unknown';
+            const to = data.to || data.To || 'Unknown';
             const subject = data.subject || data.Subject || '(No Subject)';
-            const body = data.body || data.Body || data.message || data.Message || '';
-            
+            let rawBody = data.body || data.Body || '';
+
+            // Render details
+            document.getElementById('subjectDisplay').innerText = subject;
+            document.getElementById('avatarDisplay').innerText = from[0].toUpperCase();
+            document.getElementById('fromDisplay').innerText = from;
+            document.getElementById('toDisplay').innerText = `To: ${to}`;
+
             let dateStr = 'Unknown date';
             if (data.timestamp) {
-                const d = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
-                dateStr = d.toLocaleString(undefined, { dateStyle: 'full', timeStyle: 'short' });
+                dateStr = (data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp)).toLocaleString();
             }
+            document.getElementById('dateDisplay').innerText = dateStr;
 
-            const initial = (from[0] || 'U').toUpperCase();
+            // Parse Smart Attachments & Body
+            document.getElementById('bodyDisplay').innerHTML = parseAttachments(rawBody);
 
-            document.getElementById('contentArea').innerHTML = `
-                <div class="subject-title">${escapeHtml(subject)}</div>
-                
-                <div class="sender-card">
-                    <div class="avatar">${initial}</div>
-                    <div class="sender-meta">
-                        <div class="sender-name">${escapeHtml(from)}</div>
-                        <div class="recipient-line">to ${escapeHtml(to)}</div>
-                        <div class="date-line">${dateStr}</div>
-                    </div>
-                </div>
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('emailContent').style.display = 'block';
+            document.getElementById('actions').style.display = 'flex';
 
-                <div class="email-body">${escapeHtml(body)}</div>
-            `;
+            // PDF Conversion logic
+            document.getElementById('pdfBtn').onclick = () => {
+                const element = document.getElementById('emailPrintContainer');
+                const opt = {
+                    margin: 12,
+                    filename: `${subject.replace(/[^a-z0-9]/gi, '_')}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save();
+            };
 
-            document.getElementById('actionButtons').style.display = 'flex';
-
-            // Delete action
+            // Delete logic
             document.getElementById('deleteBtn').onclick = async () => {
-                if (confirm("Permanently delete this email?")) {
-                    await deleteDoc(docRef);
+                if (confirm("Delete this email permanently?")) {
+                    await deleteDoc(doc(db, "Email", emailId));
                     window.location.href = "1.html";
                 }
             };
 
-            // Reply action
-            document.getElementById('replyBtn').href = `2.html?to=${encodeURIComponent(from)}&subject=${encodeURIComponent("Re: " + subject)}`;
-
         } catch (err) {
             console.error(err);
-            document.getElementById('contentArea').innerHTML = `<div class="loading-state">Failed to load message: ${err.message}</div>`;
+            document.getElementById('loading').innerText = "Error loading message.";
         }
-    }
-
-    function escapeHtml(str) {
-        return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
     }
 
     loadEmail();
 </script>
-
 </body>
 </html>
