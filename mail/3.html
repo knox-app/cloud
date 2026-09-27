@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Message - Reader</title>
+    <title>Message Reader</title>
     <style>
         :root {
             --bg-page: #ffffff;
@@ -13,8 +13,7 @@
             --text-secondary: #6e6e73;
             --accent: #0071e3;
             --danger: #ff3b30;
-            --card-bg: #f5f5f7;
-            --radius: 12px;
+            --card-radius: 12px;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -24,182 +23,88 @@
                 --border: rgba(255, 255, 255, 0.12);
                 --text-primary: #f5f5f7;
                 --text-secondary: #a1a1a6;
-                --card-bg: #2c2c2e;
+                --accent: #2997ff;
             }
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-            background-color: var(--bg-page);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            background-color: var(--bg-page); color: var(--text-primary);
+            min-height: 100vh; display: flex; justify-content: center;
         }
 
-        .viewport {
-            width: 100%;
-            max-width: 800px;
-            padding: 40px 24px 80px 24px;
-        }
-
-        .top-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .btn-back {
-            text-decoration: none;
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 500;
-        }
-
+        .viewport { width: 100%; max-width: 800px; padding: 40px 24px 80px 24px; }
+        
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+        .btn-link { text-decoration: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; }
+        
         .btn-group { display: flex; gap: 8px; }
-
         .btn-action {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 8px 14px;
-            font-size: 13px;
-            font-weight: 500;
-            border-radius: 980px;
-            cursor: pointer;
-            text-decoration: none;
+            background: var(--surface); border: 1px solid var(--border); color: var(--text-primary);
+            padding: 8px 14px; font-size: 13px; font-weight: 500; border-radius: 980px;
+            cursor: pointer; text-decoration: none; transition: all 0.15s;
         }
-
-        .btn-action.pdf {
-            background: var(--accent);
-            color: #ffffff;
-            border: none;
-        }
+        .btn-action:hover { border-color: rgba(0,0,0,0.3); }
 
         /* Printable Area */
-        #emailPrintContainer {
-            background: var(--bg-page);
-            padding: 10px;
-        }
+        #printableEmail { background: var(--bg-page); padding: 10px; }
+        .subject-title { font-size: 28px; font-weight: 700; margin-bottom: 20px; }
+        .sender-box { display: flex; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; background: #0071e3; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+        
+        .meta-info { display: flex; flex-direction: column; gap: 2px; }
+        .meta-info .sender { font-size: 15px; font-weight: 600; }
+        .meta-info .recipient { font-size: 13px; color: var(--text-secondary); }
+        .meta-info .date { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
 
-        .subject-title {
-            font-size: 26px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
+        .email-body { font-size: 16px; line-height: 1.7; word-break: break-word; }
 
-        .sender-card {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 24px;
+        /* Media & Attachment Renderers */
+        .attachment-container { margin-top: 32px; display: flex; flex-direction: column; gap: 16px; }
+        .media-preview-img { max-width: 100%; border-radius: var(--card-radius); border: 1px solid var(--border); }
+        .media-preview-video { width: 100%; max-height: 440px; border-radius: var(--card-radius); background: #000; }
+        
+        .doc-card {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 18px; border: 1px solid var(--border); border-radius: var(--card-radius);
+            background: var(--surface); text-decoration: none; color: var(--text-primary);
         }
-
-        .avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: var(--card-bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 18px;
-        }
-
-        .meta-info { flex: 1; }
-        .meta-from { font-weight: 600; font-size: 15px; }
-        .meta-to { font-size: 13px; color: var(--text-secondary); }
-        .meta-date { font-size: 12px; color: var(--text-secondary); }
-
-        .email-body {
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-
-        /* Smart Media Embed Styles */
-        .attachment-container {
-            margin: 16px 0;
-        }
-
-        .embed-img {
-            max-width: 100%;
-            max-height: 480px;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            display: block;
-        }
-
-        .embed-video {
-            width: 100%;
-            max-height: 420px;
-            border-radius: var(--radius);
-            background: #000;
-        }
-
-        .embed-audio {
-            width: 100%;
-            margin: 8px 0;
-        }
-
-        .file-card {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 18px;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            text-decoration: none;
-            color: var(--text-primary);
-            font-size: 14px;
-            font-weight: 500;
-            transition: transform 0.15s ease;
-        }
-        .file-card:hover { transform: translateY(-1px); }
-
-        .file-badge {
-            background: var(--accent);
-            color: #ffffff;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
+        .doc-card:hover { border-color: var(--accent); }
     </style>
-    <!-- PDF Generation Library -->
+
+    <!-- html2pdf for full-screen direct PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- HLS.js for .m3u8 video streaming support -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
 
 <div class="viewport">
-    <div class="top-nav">
-        <a href="1.html" class="btn-back">&larr; Back to Inbox</a>
-        <div class="btn-group" id="actions" style="display: none;">
-            <button class="btn-action pdf" id="pdfBtn">Export as PDF</button>
-            <button class="btn-action" id="deleteBtn" style="color:var(--danger)">Delete</button>
+    <div class="action-bar">
+        <a href="1.html" class="btn-link">&larr; Back to Inbox</a>
+        <div class="btn-group" id="actionGroup" style="display: none;">
+            <button class="btn-action" id="pdfBtn">Export PDF</button>
+            <a href="#" class="btn-action" id="replyBtn">Reply</a>
+            <button class="btn-action" style="color: var(--danger);" id="delBtn">Delete</button>
         </div>
     </div>
 
-    <div id="emailPrintContainer">
-        <div id="loading" style="text-align:center; padding: 40px; color:var(--text-secondary);">Loading message...</div>
+    <div id="printableEmail">
+        <div id="loading" style="text-align:center; padding: 60px 0; color: var(--text-secondary);">Loading message...</div>
         <div id="emailContent" style="display: none;">
-            <h1 class="subject-title" id="subjectDisplay"></h1>
-            <div class="sender-card">
-                <div class="avatar" id="avatarDisplay">U</div>
+            <h1 class="subject-title" id="subjectHeader"></h1>
+            <div class="sender-box">
+                <div class="avatar" id="avatarLetter">M</div>
                 <div class="meta-info">
-                    <div class="meta-from" id="fromDisplay"></div>
-                    <div class="meta-to" id="toDisplay"></div>
-                    <div class="meta-date" id="dateDisplay"></div>
+                    <div class="sender" id="fromHeader"></div>
+                    <div class="recipient" id="toHeader"></div>
+                    <div class="date" id="dateHeader"></div>
                 </div>
             </div>
-            <div class="email-body" id="bodyDisplay"></div>
+
+            <div class="email-body" id="bodyContent"></div>
+            <div class="attachment-container" id="attachmentsZone"></div>
         </div>
     </div>
 </div>
@@ -214,7 +119,8 @@
         projectId: "cloud-computer-4891a",
         storageBucket: "cloud-computer-4891a.firebasestorage.app",
         messagingSenderId: "744203234287",
-        appId: "1:744203234287:web:81d943ae9b75fd77dce41a"
+        appId: "1:744203234287:web:81d943ae9b75fd77dce41a",
+        measurementId: "G-QE17C33TMN"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -222,111 +128,104 @@
 
     const emailId = new URLSearchParams(window.location.search).get('id');
 
-    // Smart Attachment Parser: Replaces {\.file=URL} with rich media tags
-    function parseAttachments(content) {
-        const regex = /\{\\\.file=(https?:\/\/[^\s}]+)\}/gi;
-        return content.replace(regex, (match, url) => {
-            const cleanUrl = url.trim();
-            const ext = cleanUrl.split('?')[0].split('.').pop().toLowerCase();
-
-            // 1. Image formats
-            if (['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif'].includes(ext)) {
-                return `
-                    <div class="attachment-container">
-                        <img src="${cleanUrl}" class="embed-img" alt="Attached Image" loading="lazy" />
-                    </div>`;
-            }
-
-            // 2. Video formats
-            if (['mp4', 'webm', 'mkv', 'm3u8'].includes(ext)) {
-                return `
-                    <div class="attachment-container">
-                        <video controls class="embed-video" src="${cleanUrl}">
-                            Your browser doesn't support video playback.
-                        </video>
-                    </div>`;
-            }
-
-            // 3. Audio formats
-            if (['mp3', 'wav', 'ogg', 'aac'].includes(ext)) {
-                return `
-                    <div class="attachment-container">
-                        <audio controls class="embed-audio" src="${cleanUrl}"></audio>
-                    </div>`;
-            }
-
-            // 4. Documents & General Files (.pdf, .docx, .pptx, .exe, etc.)
-            const fileName = cleanUrl.split('/').pop() || 'Download File';
-            return `
-                <div class="attachment-container">
-                    <a href="${cleanUrl}" target="_blank" download class="file-card">
-                        <span class="file-badge">${ext || 'FILE'}</span>
-                        <span>${fileName}</span>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                    </a>
-                </div>`;
-        });
-    }
-
     async function loadEmail() {
         if (!emailId) return;
-        try {
-            const snap = await getDoc(doc(db, "Email", emailId));
-            if (!snap.exists()) {
-                document.getElementById('loading').innerText = "Message not found.";
-                return;
-            }
-
-            const data = snap.data();
-            const from = data.from || data.From || 'Unknown';
-            const to = data.to || data.To || 'Unknown';
-            const subject = data.subject || data.Subject || '(No Subject)';
-            let rawBody = data.body || data.Body || '';
-
-            // Render details
-            document.getElementById('subjectDisplay').innerText = subject;
-            document.getElementById('avatarDisplay').innerText = from[0].toUpperCase();
-            document.getElementById('fromDisplay').innerText = from;
-            document.getElementById('toDisplay').innerText = `To: ${to}`;
-
-            let dateStr = 'Unknown date';
-            if (data.timestamp) {
-                dateStr = (data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp)).toLocaleString();
-            }
-            document.getElementById('dateDisplay').innerText = dateStr;
-
-            // Parse Smart Attachments & Body
-            document.getElementById('bodyDisplay').innerHTML = parseAttachments(rawBody);
-
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('emailContent').style.display = 'block';
-            document.getElementById('actions').style.display = 'flex';
-
-            // PDF Conversion logic
-            document.getElementById('pdfBtn').onclick = () => {
-                const element = document.getElementById('emailPrintContainer');
-                const opt = {
-                    margin: 12,
-                    filename: `${subject.replace(/[^a-z0-9]/gi, '_')}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
-                html2pdf().set(opt).from(element).save();
-            };
-
-            // Delete logic
-            document.getElementById('deleteBtn').onclick = async () => {
-                if (confirm("Delete this email permanently?")) {
-                    await deleteDoc(doc(db, "Email", emailId));
-                    window.location.href = "1.html";
-                }
-            };
-
-        } catch (err) {
-            console.error(err);
-            document.getElementById('loading').innerText = "Error loading message.";
+        const snap = await getDoc(doc(db, "Email", emailId));
+        if (!snap.exists()) {
+            document.getElementById('loading').innerText = "Message not found.";
+            return;
         }
+
+        const data = snap.data();
+        const from = data.from || data.From || 'Unknown';
+        const to = data.to || data.To || 'Unknown';
+        const subject = data.subject || '(No Subject)';
+        let body = data.body || '';
+
+        document.getElementById('subjectHeader').innerText = subject;
+        document.getElementById('fromHeader').innerText = `From: ${from}`;
+        document.getElementById('toHeader').innerText = `To: ${to}`;
+        document.getElementById('avatarLetter').innerText = (from[0] || 'U').toUpperCase();
+
+        const timestamp = data.timestamp ? (data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp)) : new Date();
+        document.getElementById('dateHeader').innerText = timestamp.toLocaleString();
+
+        // Extract attachments formatted as {\.file=URL} or {\.file=URL}
+        const fileRegex = /\{\\?\.file=([^}]+)\}/gi;
+        const attachments = [];
+        let match;
+        while ((match = fileRegex.exec(body)) !== null) {
+            attachments.push(match[1].trim());
+        }
+
+        // Clean attachment markers from the rendered HTML view
+        const cleanHtml = body.replace(fileRegex, '');
+        document.getElementById('bodyContent').innerHTML = cleanHtml;
+
+        // Render Media Attachments
+        const attachZone = document.getElementById('attachmentsZone');
+        attachments.forEach((url, i) => {
+            const ext = url.split('?')[0].split('.').pop().toLowerCase();
+            
+            if (['jpg', 'jpeg', 'png', 'svg', 'gif', 'webp'].includes(ext)) {
+                attachZone.innerHTML += `<img src="${url}" class="media-preview-img" alt="Attachment">`;
+            } else if (['mp4', 'mkv', 'webm'].includes(ext)) {
+                attachZone.innerHTML += `<video controls class="media-preview-video"><source src="${url}" type="video/mp4"></video>`;
+            } else if (ext === 'm3u8') {
+                const vidId = `video-hls-${i}`;
+                attachZone.innerHTML += `<video id="${vidId}" controls class="media-preview-video"></video>`;
+                setTimeout(() => {
+                    const v = document.getElementById(vidId);
+                    if (Hls.isSupported()) {
+                        const hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
+                    } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
+                        v.src = url;
+                    }
+                }, 100);
+            } else if (['mp3', 'wav', 'ogg'].includes(ext)) {
+                attachZone.innerHTML += `<audio controls style="width:100%;"><source src="${url}"></audio>`;
+            } else {
+                // Documents & Binaries (.pptx, .docx, .exe, .zip, etc.)
+                const filename = url.split('/').pop().split('?')[0] || `Document.${ext}`;
+                attachZone.innerHTML += `
+                    <a href="${url}" target="_blank" download class="doc-card">
+                        <div>
+                            <strong>${filename}</strong>
+                            <div style="font-size:12px; color:var(--text-secondary);">Click to Download / View (${ext.toUpperCase()})</div>
+                        </div>
+                        <span style="font-size:14px; font-weight:600; color:var(--accent);">&#8595;</span>
+                    </a>
+                `;
+            }
+        });
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('emailContent').style.display = 'block';
+        document.getElementById('actionGroup').style.display = 'flex';
+
+        // Setup PDF Export
+        document.getElementById('pdfBtn').addEventListener('click', () => {
+            const element = document.getElementById('printableEmail');
+            const opt = {
+                margin: 15,
+                filename: `${subject.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        });
+
+        // Setup Reply
+        document.getElementById('replyBtn').href = `2.html?to=${encodeURIComponent(from)}&subject=${encodeURIComponent("Re: " + subject)}`;
+
+        // Setup Delete
+        document.getElementById('delBtn').onclick = async () => {
+            if (confirm("Delete this email permanently?")) {
+                await deleteDoc(doc(db, "Email", emailId));
+                window.location.href = "1.html";
+            }
+        };
     }
 
     loadEmail();
