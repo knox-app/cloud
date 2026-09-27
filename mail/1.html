@@ -3,282 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inbox - Webmail</title>
+    <title>Mail - Inbox</title>
     <style>
         :root {
-            --bg-color: #f6f8fc;
-            --surface-color: #ffffff;
-            --text-primary: #202124;
-            --text-secondary: #5f6368;
-            --border-color: #e0e0e0;
-            --accent-color: #1a73e8;
-            --hover-bg: #f1f3f4;
-            --active-bg: #e8f0fe;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --border: #e2e8f0;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
         }
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-color: #121212;
-                --surface-color: #1e1e1e;
-                --text-primary: #e8eaed;
-                --text-secondary: #9aa0a6;
-                --border-color: #333333;
-                --accent-color: #8ab4f8;
-                --hover-bg: #2d2e30;
-                --active-bg: #283347;
-            }
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 24px;
             display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            justify-content: center;
         }
 
-        header {
-            background-color: var(--surface-color);
-            border-bottom: 1px solid var(--border-color);
-            padding: 12px 24px;
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 24px;
         }
 
-        .logo-section { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; }
-        .user-info { display: flex; align-items: center; gap: 15px; font-size: 14px; }
-        
-        .compose-btn {
-            background-color: #c2e7ff;
-            color: #001d35;
+        .user-info {
+            font-size: 14px;
+            color: var(--text-sub);
+        }
+        .user-info strong {
+            color: var(--text-main);
+        }
+
+        .btn-compose {
+            background-color: var(--accent);
+            color: #ffffff;
+            padding: 10px 18px;
+            border-radius: 8px;
             text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 16px;
+            font-size: 14px;
             font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .btn-compose:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .tabs {
             display: flex;
-            align-items: center;
-            gap: 8px;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-sub);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .mail-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .mail-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
             transition: box-shadow 0.2s;
         }
-        .compose-btn:hover { box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-
-        .logout-btn {
-            background: none;
-            border: 1px solid var(--border-color);
-            padding: 6px 12px;
-            border-radius: 8px;
-            color: var(--text-secondary);
-            cursor: pointer;
+        .mail-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
-        .main-layout {
-            display: flex;
-            flex: 1;
-            height: calc(100vh - 65px);
-        }
-
-        /* Email List Sidebar */
-        .email-list-panel {
-            width: 380px;
-            border-right: 1px solid var(--border-color);
-            background-color: var(--surface-color);
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .list-header {
-            padding: 16px;
-            font-size: 16px;
-            font-weight: 600;
-            border-bottom: 1px solid var(--border-color);
+        .mail-header {
             display: flex;
             justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-bottom: 6px;
         }
 
-        .email-item {
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: background 0.15s;
+        .mail-subject {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
-        .email-item:hover { background-color: var(--hover-bg); }
-        .email-item.active { background-color: var(--active-bg); }
 
-        .email-sender { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-        .email-subject { font-size: 13px; color: var(--text-primary); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .email-snippet { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        /* Full Email Viewer */
-        .email-view-panel {
-            flex: 1;
-            background-color: var(--surface-color);
-            padding: 30px 40px;
-            overflow-y: auto;
+        .mail-body {
+            font-size: 14px;
+            color: #334155;
+            white-space: pre-wrap;
+            line-height: 1.5;
         }
 
         .empty-state {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            color: var(--text-secondary);
-            font-size: 15px;
-        }
-
-        .view-subject { font-size: 22px; font-weight: 600; margin-bottom: 20px; }
-        .view-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .view-from { font-size: 14px; }
-        .view-from span { font-weight: 600; }
-        .view-body {
-            font-size: 15px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            color: var(--text-primary);
+            text-align: center;
+            padding: 40px 0;
+            color: var(--text-sub);
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="logo-section">
-        <span>✉️ Perplexity Mail</span>
-        <a href="2.html" class="compose-btn">✏️ Compose</a>
-    </div>
-    <div class="user-info">
-        <span id="currentUserDisplay">Loading...</span>
-        <button class="logout-btn" id="logoutBtn">Logout</button>
-    </div>
-</header>
-
-<div class="main-layout">
-    <!-- Left Email List -->
-    <div class="email-list-panel">
-        <div class="list-header">
-            <span>Inbox</span>
-            <span id="mailCount" style="font-weight: normal; color: var(--text-secondary); font-size: 13px;"></span>
+<div class="container">
+    <div class="header">
+        <div>
+            <h2>Mailbox</h2>
+            <div class="user-info">Logged in as: <strong id="userEmail">Loading...</strong></div>
         </div>
-        <div id="emailListContainer">
-            <div style="padding: 20px; text-align: center; color: var(--text-secondary);">Loading emails...</div>
-        </div>
+        <a href="2.html" class="btn-compose">+ Compose</a>
     </div>
 
-    <!-- Right Email View -->
-    <div class="email-view-panel" id="emailViewPanel">
-        <div class="empty-state">Select an email to view its content</div>
+    <div class="tabs">
+        <button class="tab-btn active" id="tabInbox">Inbox</button>
+        <button class="tab-btn" id="tabSent">Sent</button>
+    </div>
+
+    <div class="mail-list" id="mailList">
+        <div class="empty-state">Loading emails...</div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
-        authDomain: "question-metabase.firebaseapp.com",
-        projectId: "question-metabase"
+        apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
+        authDomain: "cloud-computer-4891a.firebaseapp.com",
+        projectId: "cloud-computer-4891a",
+        storageBucket: "cloud-computer-4891a.firebasestorage.app",
+        messagingSenderId: "744203234287",
+        appId: "1:744203234287:web:81d943ae9b75fd77dce41a",
+        measurementId: "G-QE17C33TMN"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 1. Session check: Ensure user is logged in
-    const activeUser = JSON.parse(localStorage.getItem('active_user') || 'null');
-    if (!activeUser || !activeUser["Email"]) {
-        window.location.href = "login.html"; // Redirect to login if unauthenticated
+    // Get Active User
+    const activeUser = JSON.parse(localStorage.getItem('active_user') || '{}');
+    const userEmail = activeUser.Email || activeUser.email;
+
+    if (!userEmail) {
+        alert("Please log in first.");
+        // Redirect to login page if desired: window.location.href = "1.html";
     } else {
-        document.getElementById('currentUserDisplay').innerText = activeUser["Email"];
+        document.getElementById('userEmail').innerText = userEmail;
     }
 
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-        localStorage.removeItem('active_user');
-        window.location.href = "login.html";
-    });
+    let currentTab = 'inbox';
 
-    let currentEmails = [];
-
-    // 2. Fetch Received Emails
     async function loadEmails() {
-        const container = document.getElementById('emailListContainer');
-        try {
-            const userEmail = activeUser["Email"];
-            // Matches 'Reciver' schema in Firestore screenshot
-            const q = query(collection(db, "Email"), where("Reciver", "==", userEmail));
-            const snapshot = await getDocs(q);
+        const mailList = document.getElementById('mailList');
+        mailList.innerHTML = '<div class="empty-state">Loading emails...</div>';
 
+        try {
+            const emailCol = collection(db, "Email");
+            let q;
+            if (currentTab === 'inbox') {
+                q = query(emailCol, where("to", "==", userEmail));
+            } else {
+                q = query(emailCol, where("from", "==", userEmail));
+            }
+
+            const snapshot = await getDocs(q);
             if (snapshot.empty) {
-                container.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-secondary);">No emails found.</div>`;
-                document.getElementById('mailCount').innerText = '0';
+                mailList.innerHTML = `<div class="empty-state">No ${currentTab} messages found.</div>`;
                 return;
             }
 
-            currentEmails = [];
-            container.innerHTML = "";
-            document.getElementById('mailCount').innerText = `${snapshot.docs.length}`;
-
-            snapshot.forEach((doc) => {
+            let html = '';
+            snapshot.forEach(doc => {
                 const data = doc.data();
-                data.id = doc.id;
-                currentEmails.push(data);
+                const contact = currentTab === 'inbox' ? `From: ${data.from}` : `To: ${data.to}`;
+                const dateStr = data.timestamp ? new Date(data.timestamp.toDate ? data.timestamp.toDate() : data.timestamp).toLocaleString() : '';
 
-                const item = document.createElement('div');
-                item.className = 'email-item';
-                item.id = `item-${data.id}`;
-                item.innerHTML = `
-                    <div class="email-sender">${escapeHtml(data.Sender || 'Unknown')}</div>
-                    <div class="email-subject">${escapeHtml(data.Subjct || '(No Subject)')}</div>
-                    <div class="email-snippet">${escapeHtml(data.Body || '')}</div>
+                html += `
+                    <div class="mail-card">
+                        <div class="mail-header">
+                            <span>${contact}</span>
+                            <span>${dateStr}</span>
+                        </div>
+                        <div class="mail-subject">${escapeHtml(data.subject || "(No Subject)")}</div>
+                        <div class="mail-body">${escapeHtml(data.body || "")}</div>
+                    </div>
                 `;
-
-                item.addEventListener('click', () => {
-                    document.querySelectorAll('.email-item').forEach(el => el.classList.remove('active'));
-                    item.classList.add('active');
-                    displayFullEmail(data);
-                });
-
-                container.appendChild(item);
             });
 
+            mailList.innerHTML = html;
         } catch (err) {
             console.error(err);
-            container.innerHTML = `<div style="padding: 20px; text-align: center; color: red;">Failed to load emails.</div>`;
+            mailList.innerHTML = '<div class="empty-state">Failed to load emails. Check Firestore rules/connection.</div>';
         }
     }
 
-    // 3. Full Email Renderer
-    function displayFullEmail(data) {
-        const viewPanel = document.getElementById('emailViewPanel');
-        viewPanel.innerHTML = `
-            <div class="view-subject">${escapeHtml(data.Subjct || '(No Subject)')}</div>
-            <div class="view-meta">
-                <div class="view-from">
-                    From: <span>${escapeHtml(data.Sender || 'Unknown')}</span><br>
-                    To: <span>${escapeHtml(data.Reciver || '')}</span>
-                </div>
-            </div>
-            <div class="view-body">${escapeHtml(data.Body || 'No message content.')}</div>
-        `;
-    }
-
     function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.innerText = text;
-        return div.innerHTML;
+        return text.replace(/[&<>"']/g, function(m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+        });
     }
 
-    loadEmails();
+    document.getElementById('tabInbox').addEventListener('click', () => {
+        currentTab = 'inbox';
+        document.getElementById('tabInbox').classList.add('active');
+        document.getElementById('tabSent').classList.remove('active');
+        loadEmails();
+    });
+
+    document.getElementById('tabSent').addEventListener('click', () => {
+        currentTab = 'sent';
+        document.getElementById('tabSent').classList.add('active');
+        document.getElementById('tabInbox').classList.remove('active');
+        loadEmails();
+    });
+
+    if (userEmail) {
+        loadEmails();
+    }
 </script>
+
 </body>
 </html>
