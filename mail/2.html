@@ -3,123 +3,334 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compose</title>
+    <title>New Message</title>
     <style>
         :root {
-            --bg: #fbfbfd;
-            --card-bg: #ffffff;
-            --text-main: #1d1d1f;
-            --text-sub: #86868b;
-            --border: #d2d2d7;
+            --bg-page: #fbfbfd;
+            --surface: #ffffff;
+            --sidebar-bg: #f5f5f7;
+            --border: rgba(0, 0, 0, 0.08);
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
             --accent: #0071e3;
-            --accent-hover: #0077ed;
+            --danger: #ff3b30;
+            --radius-lg: 16px;
+            --radius-md: 10px;
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg: #000000;
-                --card-bg: #1c1c1e;
-                --text-main: #f5f5f7;
-                --text-sub: #86868b;
-                --border: #38383a;
+                --bg-page: #000000;
+                --surface: #1c1c1e;
+                --sidebar-bg: #151516;
+                --border: rgba(255, 255, 255, 0.12);
+                --text-primary: #f5f5f7;
+                --text-secondary: #86868b;
                 --accent: #2997ff;
             }
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-            background-color: var(--bg); color: var(--text-main);
-            padding: 40px 20px; display: flex; justify-content: center;
+            background-color: var(--bg-page);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
         }
 
-        .container {
-            width: 100%; max-width: 680px; background: var(--card-bg);
-            border: 1px solid var(--border); border-radius: 18px; padding: 28px;
+        .layout-shell {
+            width: 100%;
+            max-width: 1080px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.04);
         }
 
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .back-link { text-decoration: none; color: var(--accent); font-size: 14px; font-weight: 500; }
-
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-sub); margin-bottom: 6px; }
-
-        input, textarea {
-            width: 100%; padding: 12px 14px; font-size: 15px; border: 1px solid var(--border);
-            border-radius: 10px; background: transparent; color: var(--text-main);
-            outline: none; font-family: inherit;
+        @media (max-width: 860px) {
+            .layout-shell { grid-template-columns: 1fr; }
         }
-        input:focus, textarea:focus { border-color: var(--accent); }
-        textarea { min-height: 180px; resize: vertical; }
 
-        .attachment-bar {
-            display: flex; gap: 8px; margin-bottom: 12px; background: rgba(0,0,0,0.03);
-            padding: 8px 12px; border-radius: 8px; align-items: center;
+        /* Left Composer */
+        .composer-main {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
-        .attachment-input { flex: 1; padding: 6px 10px; font-size: 13px; border-radius: 6px; }
+
+        .comp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .field-group { display: flex; flex-direction: column; gap: 6px; }
+        .field-group label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+
+        /* Attachment Bar */
+        .attachment-strip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--sidebar-bg);
+            border-radius: var(--radius-md);
+        }
+
         .btn-attach {
-            background: var(--text-main); color: var(--bg); border: none; padding: 7px 14px;
-            font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 980px;
+            font-size: 13px;
+            cursor: pointer;
+            color: var(--text-primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .attached-files-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .file-chip {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* Body & HTML Mode */
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 6px;
+        }
+
+        .editor-modes {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .mode-toggle {
+            cursor: pointer;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 240px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            resize: vertical;
+        }
+
+        /* Right Sidebar */
+        .composer-sidebar {
+            background: var(--sidebar-bg);
+            border-left: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .sidebar-section h4 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .feature-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .feature-toggle span { font-size: 14px; font-weight: 500; }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: .3s; border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+            background-color: white; transition: .3s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .sidebar-input {
+            width: 100%;
+            padding: 8px 10px;
+            font-size: 13px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text-primary);
+            margin-top: 6px;
+        }
+
+        .btn-send-group {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .btn-send {
-            background-color: var(--accent); color: #fff; border: none; padding: 14px;
-            font-size: 15px; font-weight: 600; border-radius: 980px; cursor: pointer; width: 100%;
+            background: var(--text-primary);
+            color: var(--bg-page);
+            border: none;
+            padding: 14px;
+            border-radius: 980px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
         }
-        .btn-send:hover { background-color: var(--accent-hover); }
-        .btn-send:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-send:hover { opacity: 0.9; }
     </style>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <h2>New Message</h2>
-        <a href="1.html" class="back-link">&larr; Inbox</a>
+<div class="layout-shell">
+    <!-- Main Composer -->
+    <div class="composer-main">
+        <div class="comp-header">
+            <h2>Compose</h2>
+            <a href="1.html" class="back-link">&larr; Inbox</a>
+        </div>
+
+        <div class="attachment-strip">
+            <label class="btn-attach">
+                📎 Add Attachments
+                <input type="file" id="fileInput" multiple style="display: none;">
+            </label>
+            <div class="attached-files-list" id="fileListPreview">No files attached</div>
+        </div>
+
+        <div class="field-group">
+            <label>From</label>
+            <input type="text" id="senderDisplay" readonly>
+        </div>
+
+        <div class="field-group">
+            <label>To</label>
+            <input type="email" id="toEmail" placeholder="user@perplexity.com or external@gmail.com" required>
+        </div>
+
+        <div class="field-group">
+            <label>Subject</label>
+            <input type="text" id="subject" placeholder="Write a subject...">
+        </div>
+
+        <div class="editor-container">
+            <div class="editor-modes">
+                <span class="mode-toggle" id="modeIndicator">HTML Supported</span>
+            </div>
+            <textarea id="body" placeholder="Write message or paste complete HTML code here..."></textarea>
+        </div>
     </div>
 
-    <form id="composeForm">
-        <div class="form-group">
-            <label>Sender</label>
-            <input type="text" id="senderDisplay" readonly style="opacity: 0.75;">
-        </div>
+    <!-- Right Sidebar Controls -->
+    <div class="composer-sidebar">
+        <div class="sidebar-section">
+            <h4>Security & Privacy</h4>
+            
+            <div class="feature-toggle">
+                <span>1-Time View (Self Destruct)</span>
+                <label class="switch">
+                    <input type="checkbox" id="oneTimeToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
 
-        <div class="form-group">
-            <label>To</label>
-            <input type="email" id="toEmail" placeholder="user@perplexity.com or any email..." required>
-        </div>
-
-        <div class="form-group">
-            <label>Subject</label>
-            <input type="text" id="subject" placeholder="Subject line" required>
-        </div>
-
-        <div class="form-group">
-            <label>Schedule Delivery (Optional)</label>
-            <input type="datetime-local" id="scheduleTime">
-        </div>
-
-        <div class="form-group">
-            <label>Quick Attach Media / Document (URL)</label>
-            <div class="attachment-bar">
-                <input type="url" id="attachUrl" class="attachment-input" placeholder="Paste image, video (.mp4, .m3u8), or doc (.pptx, .docx, .exe) URL">
-                <button type="button" class="btn-attach" id="insertAttachBtn">+ Embed</button>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">
+                Email automatically deletes after recipient opens and reads it.
             </div>
         </div>
 
-        <div class="form-group">
-            <label>Message Content (Supports Rich HTML & {\.file=URL})</label>
-            <textarea id="body" placeholder="Write your message here... You can use HTML tags (e.g. <b>bold</b>, <h1>) or insert media with {\.file=https://...}" required></textarea>
+        <div class="sidebar-section">
+            <h4>Delivery Options</h4>
+            <div class="field-group">
+                <label>Schedule Delivery</label>
+                <input type="datetime-local" id="scheduleTime" class="sidebar-input">
+            </div>
         </div>
 
-        <button type="submit" class="btn-send" id="sendBtn">Send</button>
-    </form>
+        <div class="sidebar-section">
+            <h4>Organization</h4>
+            <div class="field-group">
+                <label>Add Label</label>
+                <input type="text" id="labelInput" placeholder="Work, Important, etc." class="sidebar-input">
+            </div>
+        </div>
+
+        <div class="btn-send-group">
+            <button class="btn-send" id="sendBtn">Send Message</button>
+        </div>
+    </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
@@ -127,81 +338,101 @@
         projectId: "cloud-computer-4891a",
         storageBucket: "cloud-computer-4891a.firebasestorage.app",
         messagingSenderId: "744203234287",
-        appId: "1:744203234287:web:81d943ae9b75fd77dce41a",
-        measurementId: "G-QE17C33TMN"
+        appId: "1:744203234287:web:81d943ae9b75fd77dce41a"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const EMAILJS_PUBLIC_KEY = "Yr9MutUoHOEONnFgn";
-    const EMAILJS_SERVICE_ID = "service_63mnm5a";
-    const EMAILJS_TEMPLATE_ID = "template_drkhsx5";
-    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+    // EmailJS Init
+    emailjs.init({ publicKey: "Yr9MutUoHOEONnFgn" });
 
     const activeUser = JSON.parse(localStorage.getItem('active_user') || '{}');
     const senderEmail = activeUser.Email || activeUser.email || "user@perplexity.com";
     document.getElementById('senderDisplay').value = senderEmail;
 
-    // Helper: Insert file syntax into textarea
-    document.getElementById('insertAttachBtn').addEventListener('click', () => {
-        const url = document.getElementById('attachUrl').value.trim();
-        if (!url) return alert("Please enter a valid file URL.");
-        const tag = `{\\.file=${url}}\n`;
-        const bodyInput = document.getElementById('body');
-        bodyInput.value += (bodyInput.value ? '\n' : '') + tag;
-        document.getElementById('attachUrl').value = '';
+    // Attachments Handling
+    let attachedFiles = [];
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files);
+        for (const file of files) {
+            const base64 = await fileToBase64(file);
+            attachedFiles.push({ name: file.name, size: file.size, type: file.type, data: base64 });
+        }
+        renderAttachedFiles();
     });
 
-    document.getElementById('composeForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    function renderAttachedFiles() {
+        const preview = document.getElementById('fileListPreview');
+        if (!attachedFiles.length) {
+            preview.innerText = 'No files attached';
+            return;
+        }
+        preview.innerHTML = attachedFiles.map(f => `<span class="file-chip">📎 ${f.name}</span>`).join(' ');
+    }
+
+    // Submit Handling
+    document.getElementById('sendBtn').addEventListener('click', async () => {
         const to = document.getElementById('toEmail').value.trim();
         const subject = document.getElementById('subject').value.trim();
         const body = document.getElementById('body').value.trim();
-        const scheduleVal = document.getElementById('scheduleTime').value;
-        const sendBtn = document.getElementById('sendBtn');
+        const oneTimeView = document.getElementById('oneTimeToggle').checked;
+        const scheduleTime = document.getElementById('scheduleTime').value;
+        const label = document.getElementById('labelInput').value.trim();
 
+        if (!to || !body) return alert("Recipient and Message body are required.");
+
+        const sendBtn = document.getElementById('sendBtn');
         sendBtn.disabled = true;
-        sendBtn.innerText = "Dispatching...";
+        sendBtn.innerText = "Processing...";
 
         try {
-            const scheduledTimestamp = scheduleVal ? Timestamp.fromDate(new Date(scheduleVal)) : null;
             const isInternal = to.toLowerCase().endsWith('@perplexity.com');
 
             const payload = {
                 from: senderEmail,
                 to: to,
-                subject: subject,
-                body: body,
-                timestamp: serverTimestamp(),
-                scheduledFor: scheduledTimestamp
+                subject: subject || '(No Subject)',
+                body: body, // Raw text or HTML
+                attachments: attachedFiles,
+                oneTimeView: oneTimeView,
+                scheduledFor: scheduleTime ? new Date(scheduleTime).toISOString() : null,
+                label: label,
+                timestamp: serverTimestamp()
             };
 
             if (isInternal) {
                 await addDoc(collection(db, "Email"), payload);
             } else {
-                // If not scheduled for later, send immediately via EmailJS
-                if (!scheduledTimestamp || new Date(scheduleVal) <= new Date()) {
-                    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-                        to_email: to,
-                        from_email: senderEmail,
-                        subject: subject,
-                        message: body.replace(/<[^>]*>/g, '') // strip html for raw email text
-                    });
-                }
-                // Save copy to Firestore
-                payload.provider = 'emailjs';
+                // Send external email via EmailJS
+                await emailjs.send("service_63mnm5a", "template_drkhsx5", {
+                    to_email: to,
+                    from_email: senderEmail,
+                    subject: subject,
+                    message: body
+                });
+                // Save record for Sent box
                 await addDoc(collection(db, "Email"), payload);
             }
 
-            alert("Message saved and scheduled successfully.");
+            alert("Message sent successfully!");
             window.location.href = "1.html";
         } catch (err) {
             alert("Error: " + err.message);
             sendBtn.disabled = false;
-            sendBtn.innerText = "Send";
+            sendBtn.innerText = "Send Message";
         }
     });
 </script>
+
 </body>
 </html>
