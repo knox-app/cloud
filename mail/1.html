@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages</title>
+    <title>Mailbox</title>
     <style>
         :root {
             --bg-page: #fbfbfd;
@@ -15,22 +15,17 @@
             --text-secondary: #86868b;
             --text-tertiary: #a1a1a6;
             --accent: #0071e3;
-            --accent-hover: #0077ed;
             --danger: #ff3b30;
-            --danger-hover: #d70015;
-            --badge-inbox: #e8f2ff;
-            --badge-inbox-text: #0066cc;
-            --badge-sent: #f2f2f7;
-            --badge-sent-text: #636366;
+            --badge-schedule: #fff4e5;
+            --badge-schedule-text: #b25e00;
             --radius-lg: 16px;
-            --radius-md: 10px;
             --radius-sm: 6px;
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg-page: #000000;
-                --surface: rgba(28, 28, 30, 0.75);
+                --surface: rgba(28, 28, 30, 0.8);
                 --surface-card: #1c1c1e;
                 --border: rgba(255, 255, 255, 0.1);
                 --border-hover: rgba(255, 255, 255, 0.2);
@@ -38,25 +33,14 @@
                 --text-secondary: #86868b;
                 --text-tertiary: #636366;
                 --accent: #2997ff;
-                --accent-hover: #47a6ff;
-                --danger: #ff453a;
-                --danger-hover: #ff6961;
-                --badge-inbox: #1c2738;
-                --badge-inbox-text: #58a6ff;
-                --badge-sent: #2c2c2e;
-                --badge-sent-text: #aeaeb2;
+                --badge-schedule: #382710;
+                --badge-schedule-text: #ffaa40;
             }
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-font-smoothing: antialiased;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-page);
             color: var(--text-primary);
             min-height: 100vh;
@@ -65,241 +49,73 @@
             justify-content: center;
         }
 
-        .shell {
-            width: 100%;
-            max-width: 860px;
-        }
-
-        /* Header & Action Bar */
-        .top-nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-        }
-
-        .title-group h1 {
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        .user-tag {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
+        .shell { width: 100%; max-width: 860px; }
+        .top-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .title-group h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }
+        .user-tag { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
 
         .btn-compose {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background-color: var(--text-primary);
-            color: var(--bg-page);
-            padding: 10px 18px;
-            border-radius: 980px;
-            font-size: 14px;
-            font-weight: 500;
-            text-decoration: none;
-            transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s ease;
+            display: inline-flex; align-items: center; gap: 6px;
+            background-color: var(--text-primary); color: var(--bg-page);
+            padding: 10px 18px; border-radius: 980px; font-size: 14px;
+            font-weight: 500; text-decoration: none; transition: opacity 0.2s;
         }
+        .btn-compose:hover { opacity: 0.85; }
 
-        .btn-compose:hover {
-            opacity: 0.85;
-            transform: scale(0.98);
-        }
-
-        /* Controls: Search & Tabs */
         .controls-card {
-            background: var(--surface);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 12px 16px;
-            margin-bottom: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            background: var(--surface); backdrop-filter: blur(20px);
+            border: 1px solid var(--border); border-radius: var(--radius-lg);
+            padding: 12px 16px; margin-bottom: 24px; display: flex;
+            flex-direction: column; gap: 12px;
         }
 
-        .search-wrap {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 14px;
-            width: 16px;
-            height: 16px;
-            stroke: var(--text-tertiary);
-            stroke-width: 2;
-            fill: none;
-        }
-
+        .search-wrap { position: relative; display: flex; align-items: center; }
         .search-input {
-            width: 100%;
-            background: transparent;
-            border: none;
-            outline: none;
-            padding: 10px 14px 10px 38px;
-            font-size: 15px;
-            color: var(--text-primary);
-            font-family: inherit;
+            width: 100%; background: transparent; border: none; outline: none;
+            padding: 10px 14px; font-size: 15px; color: var(--text-primary);
         }
 
-        .search-input::placeholder {
-            color: var(--text-tertiary);
-        }
-
-        .tabs-wrap {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border-top: 1px solid var(--border);
-            padding-top: 10px;
-        }
-
+        .tabs-wrap { display: flex; gap: 8px; border-top: 1px solid var(--border); padding-top: 10px; }
         .tab-btn {
-            background: none;
-            border: none;
-            padding: 6px 14px;
-            font-size: 13px;
-            font-weight: 500;
-            border-radius: 980px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s ease;
+            background: none; border: none; padding: 6px 14px; font-size: 13px;
+            font-weight: 500; border-radius: 980px; color: var(--text-secondary);
+            cursor: pointer; transition: all 0.2s;
         }
+        .tab-btn.active { background: var(--text-primary); color: var(--bg-page); }
 
-        .tab-btn.active {
-            background: var(--text-primary);
-            color: var(--bg-page);
-        }
-
-        /* Mail Feed */
-        .mail-feed {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
+        .mail-feed { display: flex; flex-direction: column; gap: 12px; }
         .mail-row {
-            background: var(--surface-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 18px 22px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            cursor: pointer;
-            transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s ease;
-            position: relative;
+            background: var(--surface-card); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 18px 22px;
+            display: flex; flex-direction: column; gap: 8px;
+            cursor: pointer; transition: transform 0.15s, border-color 0.2s;
         }
+        .mail-row:hover { border-color: var(--border-hover); transform: translateY(-1px); }
 
-        .mail-row:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-        }
-
-        .mail-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .contact-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
+        .mail-meta { display: flex; justify-content: space-between; align-items: center; }
         .badge {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            padding: 3px 7px;
-            border-radius: var(--radius-sm);
-            font-weight: 600;
+            font-size: 11px; text-transform: uppercase; padding: 3px 8px;
+            border-radius: var(--radius-sm); font-weight: 600;
         }
+        .badge.scheduled { background: var(--badge-schedule); color: var(--badge-schedule-text); }
+        .badge.attach { background: rgba(0, 113, 227, 0.1); color: var(--accent); }
 
-        .badge.inbox {
-            background: var(--badge-inbox);
-            color: var(--badge-inbox-text);
-        }
-
-        .badge.sent {
-            background: var(--badge-sent);
-            color: var(--badge-sent-text);
-        }
-
-        .timestamp {
-            font-size: 12px;
-            color: var(--text-tertiary);
-        }
-
-        .mail-subject {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-            letter-spacing: -0.01em;
-        }
-
+        .mail-subject { font-size: 16px; font-weight: 600; }
         .mail-preview {
-            font-size: 14px;
-            color: var(--text-secondary);
-            line-height: 1.45;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+            font-size: 14px; color: var(--text-secondary);
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
             overflow: hidden;
-            text-overflow: ellipsis;
         }
 
-        .mail-footer {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 4px;
-        }
-
+        .mail-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
         .btn-delete {
-            background: none;
-            border: none;
-            color: var(--text-tertiary);
-            padding: 4px 8px;
-            font-size: 12px;
-            font-weight: 500;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: color 0.15s, background-color 0.15s;
+            background: none; border: none; color: var(--text-tertiary);
+            padding: 4px 8px; font-size: 12px; cursor: pointer; border-radius: var(--radius-sm);
         }
+        .btn-delete:hover { color: var(--danger); background: rgba(255, 59, 48, 0.08); }
 
-        .btn-delete:hover {
-            color: var(--danger);
-            background: rgba(255, 59, 48, 0.08);
-        }
-
-        /* Sentinel & Load State */
-        .sentinel {
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            color: var(--text-tertiary);
-        }
-
-        .empty-view {
-            text-align: center;
-            padding: 80px 0;
-            color: var(--text-tertiary);
-            font-size: 15px;
-        }
+        .sentinel { height: 40px; }
+        .empty-view { text-align: center; padding: 80px 0; color: var(--text-tertiary); }
     </style>
 </head>
 <body>
@@ -310,16 +126,12 @@
             <h1>Inbox</h1>
             <div class="user-tag" id="userDisplay">Connecting...</div>
         </div>
-        <a href="2.html" class="btn-compose">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-            Compose
-        </a>
+        <a href="2.html" class="btn-compose">+ Compose</a>
     </div>
 
     <div class="controls-card">
         <div class="search-wrap">
-            <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search by recipient, subject, or content...">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search sender, subject, or message content...">
         </div>
         <div class="tabs-wrap">
             <button class="tab-btn active" id="tabAll">All</button>
@@ -329,7 +141,7 @@
     </div>
 
     <div class="mail-feed" id="mailFeed">
-        <div class="empty-view">Listening for incoming mail...</div>
+        <div class="empty-view">Listening for live updates...</div>
     </div>
 
     <div id="sentinel" class="sentinel"></div>
@@ -337,13 +149,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { 
-        getFirestore, 
-        collection, 
-        onSnapshot, 
-        doc, 
-        deleteDoc 
-    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
@@ -358,69 +164,64 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Identify user
     const activeUser = JSON.parse(localStorage.getItem('active_user') || '{}');
     const userEmail = (activeUser.Email || activeUser.email || '').toLowerCase().trim();
-    document.getElementById('userDisplay').innerText = userEmail ? `Live as ${userEmail}` : "Not logged in";
+    document.getElementById('userDisplay').innerText = userEmail ? `Live as ${userEmail}` : "Guest Session";
 
     let rawEmails = [];
     let filteredEmails = [];
-    let currentFilter = 'all'; // 'all' | 'inbox' | 'sent'
+    let currentFilter = 'all';
     let searchQuery = '';
-    
-    // Lazy Load config
     const PAGE_SIZE = 10;
     let visibleCount = PAGE_SIZE;
 
-    // Helper: Normalize doc keys (handles case variations like "To", "to", "Sender", "from")
-    function parseDoc(docSnap) {
-        const d = docSnap.data();
-        const to = (d.to || d.To || d.recipient || d.Recipient || '').trim();
-        const from = (d.from || d.From || d.sender || d.Sender || '').trim();
+    function parseEmailDoc(snap) {
+        const d = snap.data();
+        const to = (d.to || d.To || '').trim();
+        const from = (d.from || d.From || '').trim();
         const subject = d.subject || d.Subject || '';
-        const body = d.body || d.Body || d.message || d.Message || '';
+        const body = d.body || d.Body || '';
         
         let dateObj = new Date();
-        if (d.timestamp) {
-            dateObj = d.timestamp.toDate ? d.timestamp.toDate() : new Date(d.timestamp);
-        } else if (d.createdAt) {
-            dateObj = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
+        if (d.timestamp) dateObj = d.timestamp.toDate ? d.timestamp.toDate() : new Date(d.timestamp);
+
+        let scheduledDate = null;
+        if (d.scheduledFor) {
+            scheduledDate = d.scheduledFor.toDate ? d.scheduledFor.toDate() : new Date(d.scheduledFor);
         }
 
-        return {
-            id: docSnap.id,
-            to,
-            from,
-            subject,
-            body,
-            date: dateObj
-        };
+        const hasAttachment = /\{\\\.file=(.*?)\}/i.test(body) || /\{\.file=(.*?)\}/i.test(body);
+
+        return { id: snap.id, to, from, subject, body, date: dateObj, scheduledFor: scheduledDate, hasAttachment };
     }
 
-    // 1. Real-time Snapshot Listener on entire "Email" collection
     onSnapshot(collection(db, "Email"), (snapshot) => {
+        const now = new Date();
         const docs = [];
+
         snapshot.forEach((snap) => {
-            const item = parseDoc(snap);
-            // Include if current user is sender OR recipient (case-insensitive)
-            if (!userEmail || 
-                item.to.toLowerCase() === userEmail || 
-                item.from.toLowerCase() === userEmail) {
-                docs.push(item);
+            const item = parseEmailDoc(snap);
+            const isToMe = item.to.toLowerCase() === userEmail;
+            const isFromMe = item.from.toLowerCase() === userEmail;
+
+            if (userEmail && !isToMe && !isFromMe) return;
+
+            // SCHEDULE FILTER: Recipients do NOT see emails until scheduled time is reached
+            if (isToMe && !isFromMe && item.scheduledFor && item.scheduledFor > now) {
+                return;
             }
+
+            docs.push(item);
         });
 
-        // Sort descending by timestamp in memory (ensures live updates without index requirements)
         docs.sort((a, b) => b.date - a.date);
         rawEmails = docs;
         applyFiltersAndRender();
-    }, (error) => {
-        console.error("Realtime listener error:", error);
-        document.getElementById('mailFeed').innerHTML = `<div class="empty-view">Database sync error. Check Firestore rules.</div>`;
     });
 
-    // 2. Filter & Search Engine
     function applyFiltersAndRender() {
+        const now = new Date();
+
         filteredEmails = rawEmails.filter(mail => {
             const isInbox = mail.to.toLowerCase() === userEmail;
             const isSent = mail.from.toLowerCase() === userEmail;
@@ -430,11 +231,8 @@
 
             if (searchQuery) {
                 const q = searchQuery.toLowerCase();
-                const matchSubject = mail.subject.toLowerCase().includes(q);
-                const matchBody = mail.body.toLowerCase().includes(q);
-                const matchTo = mail.to.toLowerCase().includes(q);
-                const matchFrom = mail.from.toLowerCase().includes(q);
-                return matchSubject || matchBody || matchTo || matchFrom;
+                const plainBody = mail.body.replace(/<[^>]*>/g, '').toLowerCase();
+                return mail.subject.toLowerCase().includes(q) || plainBody.includes(q) || mail.to.toLowerCase().includes(q) || mail.from.toLowerCase().includes(q);
             }
             return true;
         });
@@ -442,10 +240,10 @@
         renderList();
     }
 
-    // 3. Render HTML with Lazy Load slicing
     function renderList() {
         const feed = document.getElementById('mailFeed');
         const visibleSlice = filteredEmails.slice(0, visibleCount);
+        const now = new Date();
 
         if (visibleSlice.length === 0) {
             feed.innerHTML = `<div class="empty-view">No messages found.</div>`;
@@ -454,23 +252,24 @@
 
         feed.innerHTML = visibleSlice.map(mail => {
             const isIncoming = mail.to.toLowerCase() === userEmail;
-            const badgeType = isIncoming ? 'inbox' : 'sent';
-            const badgeLabel = isIncoming ? 'Received' : 'Sent';
-            const contactLabel = isIncoming ? `From: ${escapeHtml(mail.from)}` : `To: ${escapeHtml(mail.to)}`;
-            const dateStr = formatRelativeTime(mail.date);
+            const isScheduledFuture = mail.scheduledFor && mail.scheduledFor > now;
+            const contact = isIncoming ? `From: ${escapeHtml(mail.from)}` : `To: ${escapeHtml(mail.to)}`;
+            const plainPreview = mail.body.replace(/<[^>]*>/g, '').replace(/\{\\?\.file=[^}]+\}/gi, '[Attachment]').trim();
 
             return `
-                <div class="mail-row" onclick="openEmail('${mail.id}')">
+                <div class="mail-row" onclick="window.location.href='3.html?id=${mail.id}'">
                     <div class="mail-meta">
-                        <div class="contact-group">
-                            <span class="badge ${badgeType}">${badgeLabel}</span>
-                            <span>${contactLabel}</span>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <span style="font-size:13px; font-weight:600;">${contact}</span>
+                            ${isScheduledFuture ? `<span class="badge scheduled">Scheduled: ${mail.scheduledFor.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>` : ''}
+                            ${mail.hasAttachment ? `<span class="badge attach">Attachment</span>` : ''}
                         </div>
-                        <span class="timestamp">${dateStr}</span>
+                        <span style="font-size:12px; color:var(--text-tertiary);">${mail.date.toLocaleDateString([], {month:'short', day:'numeric'})}</span>
                     </div>
                     <div class="mail-subject">${escapeHtml(mail.subject || "(No Subject)")}</div>
-                    <div class="mail-preview">${escapeHtml(mail.body || "No content")}</div>
+                    <div class="mail-preview">${escapeHtml(plainPreview || "No preview text")}</div>
                     <div class="mail-footer">
+                        <span></span>
                         <button class="btn-delete" onclick="event.stopPropagation(); deleteMail('${mail.id}')">Delete</button>
                     </div>
                 </div>
@@ -478,68 +277,38 @@
         }).join('');
     }
 
-    // Lazy load intersection observer
     const observer = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && visibleCount < filteredEmails.length) {
             visibleCount += PAGE_SIZE;
             renderList();
         }
-    }, { rootMargin: '200px' });
-
+    });
     observer.observe(document.getElementById('sentinel'));
 
-    // Global navigation & delete handlers
-    window.openEmail = (id) => {
-        window.location.href = `3.html?id=${id}`;
-    };
-
     window.deleteMail = async (id) => {
-        if (!confirm("Permanently delete this email?")) return;
-        try {
-            await deleteDoc(doc(db, "Email", id));
-            // Real-time listener handles the UI removal automatically
-        } catch (err) {
-            alert("Delete failed: " + err.message);
-        }
+        if (!confirm("Delete this message?")) return;
+        await deleteDoc(doc(db, "Email", id));
     };
 
-    // UI Listeners
     document.getElementById('searchInput').addEventListener('input', (e) => {
         searchQuery = e.target.value.trim();
         visibleCount = PAGE_SIZE;
         applyFiltersAndRender();
     });
 
-    const tabs = [
-        { btn: document.getElementById('tabAll'), id: 'all' },
-        { btn: document.getElementById('tabInbox'), id: 'inbox' },
-        { btn: document.getElementById('tabSent'), id: 'sent' }
-    ];
-
-    tabs.forEach(({ btn, id }) => {
-        btn.addEventListener('click', () => {
-            tabs.forEach(t => t.btn.classList.remove('active'));
-            btn.classList.add('active');
-            currentFilter = id;
+    ['tabAll', 'tabInbox', 'tabSent'].forEach(tabId => {
+        document.getElementById(tabId).addEventListener('click', (e) => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            currentFilter = tabId.replace('tab', '').toLowerCase();
             visibleCount = PAGE_SIZE;
             applyFiltersAndRender();
         });
     });
 
     function escapeHtml(str) {
-        return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
-    }
-
-    function formatRelativeTime(date) {
-        if (isNaN(date.getTime())) return '';
-        const now = new Date();
-        const diff = (now - date) / 1000;
-        if (diff < 60) return "Just now";
-        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-        return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        return (str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
     }
 </script>
-
 </body>
 </html>
