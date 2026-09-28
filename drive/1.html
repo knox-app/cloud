@@ -3,447 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Drive - My Files</title>
+    <title>Cloud Drive</title>
     <style>
         :root {
-            --bg-color: #ffffff;
-            --surface-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-primary: #111111;
-            --text-secondary: #666666;
-            --border-color: #e5e7eb;
-            --btn-bg: #111111;
+            --bg-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --btn-bg: #0f172a;
             --btn-text: #ffffff;
-            --btn-hover: #333333;
-            --danger: #ef4444;
-            --badge-bg: #f3f4f6;
-            --badge-text: #374151;
+            --btn-hover: #334155;
             --accent: #2563eb;
-            --accent-light: #eff6ff;
+            --card-bg: #ffffff;
+            --danger: #ef4444;
+            --badge-bg: #f1f5f9;
         }
 
         body.dark {
-            --bg-color: #000000;
-            --surface-color: #121212;
-            --card-bg: #18181b;
-            --text-primary: #ffffff;
-            --text-secondary: #9ca3af;
+            --bg-color: #09090b;
+            --surface-color: #121214;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
             --border-color: #27272a;
-            --btn-bg: #ffffff;
-            --btn-text: #000000;
-            --btn-hover: #e4e4e7;
+            --btn-bg: #f8fafc;
+            --btn-text: #09090b;
+            --btn-hover: #e2e8f0;
+            --accent: #3b82f6;
+            --card-bg: #18181b;
             --danger: #f87171;
             --badge-bg: #27272a;
-            --badge-text: #d4d4d8;
-            --accent: #3b82f6;
-            --accent-light: #1e293b;
         }
 
         * { box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
             margin: 0;
             padding: 0;
-            transition: background-color 0.2s, color 0.2s;
+            transition: background 0.2s, color 0.2s;
         }
 
-        /* Top Bar */
+        /* Top Header */
         header {
+            background: var(--surface-color);
             border-bottom: 1px solid var(--border-color);
             padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--surface-color);
-            flex-wrap: wrap;
-            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
         }
 
-        .header-left { display: flex; align-items: center; gap: 10px; }
-        .header-left h1 { font-size: 18px; margin: 0; font-weight: 700; }
-        .header-right { display: flex; align-items: center; gap: 10px; }
+        .header-left { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        .user-email { font-size: 13px; color: var(--text-secondary); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .user-pill {
-            font-size: 12px;
-            background: var(--badge-bg);
-            color: var(--badge-text);
-            padding: 5px 12px;
-            border-radius: 20px;
-            max-width: 180px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .btn-header {
-            background-color: var(--btn-bg);
+        .btn-ui {
+            background: var(--btn-bg);
             color: var(--btn-text);
             border: none;
             padding: 8px 14px;
             border-radius: 8px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 20px;
         }
 
-        /* Breadcrumb / Navigation Toolbar */
-        .toolbar {
+        /* Controls Bar */
+        .controls-bar {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
             gap: 12px;
             margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-color);
         }
 
-        .breadcrumb {
+        .breadcrumbs {
+            font-size: 16px;
+            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 16px;
-            font-weight: 600;
         }
 
-        .breadcrumb span { cursor: pointer; }
-        .breadcrumb span.active { color: var(--accent); }
+        .breadcrumb-item {
+            cursor: pointer;
+            color: var(--accent);
+        }
 
-        .view-controls {
+        .view-toggles {
             display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .icon-btn {
             background: var(--surface-color);
             border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 7px 12px;
             border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            padding: 6px 12px;
+            color: var(--text-secondary);
             cursor: pointer;
             font-size: 13px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .icon-btn.active {
-            background: var(--accent);
-            color: #ffffff;
-            border-color: var(--accent);
-        }
-
-        /* Section Headings */
-        .section-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin: 20px 0 10px 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Folder Grid */
-        .folders-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-
-        .folder-card {
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: transform 0.15s, border-color 0.15s;
-        }
-
-        .folder-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        .folder-info {
             display: flex;
             align-items: center;
-            gap: 8px;
-            overflow: hidden;
+            gap: 4px;
         }
 
-        .folder-icon { font-size: 20px; }
-        .folder-name {
-            font-size: 14px;
+        .toggle-btn.active {
+            background: var(--badge-bg);
+            color: var(--text-primary);
             font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
-        /* View Mode: Grid View */
-        .file-grid {
+        /* Grid View Layout */
+        .items-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 16px;
         }
 
-        .file-card {
+        /* Linear / List View Layout */
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Card Styles */
+        .drive-item {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s;
+            transition: transform 0.15s, box-shadow 0.15s;
+            position: relative;
         }
 
-        .file-card:hover { transform: translateY(-2px); }
+        .items-grid .drive-item {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
 
-        .preview-area {
-            width: 100%;
-            height: 130px;
-            background: var(--surface-color);
+        .items-list .drive-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            justify-content: space-between;
+        }
+
+        .item-preview {
+            height: 120px;
+            background: var(--badge-bg);
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            cursor: pointer;
         }
 
-        .preview-area img { width: 100%; height: 100%; object-fit: cover; }
-        .file-icon-box { font-size: 30px; font-weight: 700; color: var(--text-secondary); }
+        .items-list .item-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            flex-shrink: 0;
+            margin-right: 14px;
+        }
 
-        .file-details {
+        .item-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-body {
             padding: 12px;
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            flex-grow: 1;
         }
 
-        .file-meta {
-            display: flex;
-            justify-content: space-between;
+        .items-list .item-body {
+            padding: 0;
+            flex-direction: row;
             align-items: center;
-            margin-bottom: 8px;
+            justify-content: space-between;
         }
 
-        .badge {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            background: var(--badge-bg);
-            color: var(--badge-text);
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-
-        .file-link {
-            font-size: 12px;
-            color: var(--accent);
-            text-decoration: none;
+        .item-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 12px;
         }
 
-        .card-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .item-badge {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: var(--badge-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 8px;
+            width: fit-content;
+        }
+
+        .item-actions {
+            display: flex;
             gap: 6px;
             margin-top: auto;
         }
 
-        .card-actions button, .card-actions a {
-            padding: 6px 0;
-            font-size: 11px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
+        .action-btn {
             background: transparent;
+            border: 1px solid var(--border-color);
             color: var(--text-primary);
-            text-align: center;
-            text-decoration: none;
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 12px;
             cursor: pointer;
-            font-weight: 500;
+            text-decoration: none;
         }
 
-        .card-actions button:hover, .card-actions a:hover {
-            background: var(--badge-bg);
-        }
+        .action-btn.delete { color: var(--danger); border-color: var(--danger); }
+        .action-btn:hover { background: var(--badge-bg); }
 
-        .card-actions .btn-delete-file {
-            color: var(--danger);
-            border-color: var(--danger);
-        }
-
-        /* View Mode: Linear (List) View */
-        .file-grid.linear-view {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .file-grid.linear-view .file-card {
-            flex-direction: row;
-            align-items: center;
-            padding: 8px 14px;
-            height: auto;
-        }
-
-        .file-grid.linear-view .preview-area {
-            width: 44px;
-            height: 44px;
-            border-radius: 8px;
-            margin-right: 12px;
-            flex-shrink: 0;
-        }
-
-        .file-grid.linear-view .file-details {
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0;
-            gap: 15px;
-            width: 100%;
-        }
-
-        .file-grid.linear-view .file-meta {
-            margin-bottom: 0;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .file-grid.linear-view .file-link {
-            margin-bottom: 0;
-            max-width: 250px;
-        }
-
-        .file-grid.linear-view .card-actions {
-            display: flex;
-            gap: 6px;
-        }
-
-        .file-grid.linear-view .card-actions button,
-        .file-grid.linear-view .card-actions a {
-            padding: 5px 10px;
-        }
-
-        /* Custom Modal / Dialog Styles */
+        /* Custom In-App Modal Dialogs */
         .modal-overlay {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            display: none;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 100;
             padding: 16px;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s;
         }
 
-        .modal-box {
-            background: var(--card-bg);
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal {
+            background: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 24px;
             width: 100%;
             max-width: 380px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            animation: fadeIn 0.15s ease-out;
         }
 
-        @keyframes fadeIn {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .modal-box h3 { margin-top: 0; margin-bottom: 8px; font-size: 18px; }
-        .modal-box p { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
-
+        .modal h3 { margin: 0 0 16px 0; font-size: 18px; }
         .modal-input {
             width: 100%;
-            padding: 10px 12px;
-            border-radius: 8px;
+            padding: 12px;
             border: 1px solid var(--border-color);
-            background: var(--surface-color);
+            border-radius: 8px;
+            background: var(--bg-color);
             color: var(--text-primary);
-            font-size: 14px;
             margin-bottom: 16px;
-            outline: none;
+            font-size: 14px;
         }
 
-        .modal-actions {
+        .modal-footer {
             display: flex;
-            gap: 8px;
             justify-content: flex-end;
+            gap: 8px;
         }
 
-        .modal-btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: transparent;
-            color: var(--text-primary);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .modal-btn.primary {
-            background: var(--btn-bg);
-            color: var(--btn-text);
-            border: none;
-        }
-
-        .modal-btn.danger {
-            background: var(--danger);
-            color: #ffffff;
-            border: none;
-        }
-
-        /* Toast Notifications */
-        #toast {
+        /* In-App Toast */
+        .toast {
             position: fixed;
             bottom: 20px;
-            right: 20px;
-            background: var(--btn-bg);
-            color: var(--btn-text);
-            padding: 10px 18px;
-            border-radius: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
             font-size: 13px;
-            font-weight: 500;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.2s, transform 0.2s;
-            z-index: 2000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        #toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        @media (max-width: 600px) {
-            .file-grid.linear-view .file-link { max-width: 120px; }
-            .file-grid.linear-view .card-actions button, 
-            .file-grid.linear-view .card-actions a { padding: 4px 6px; font-size: 10px; }
+            display: none;
+            z-index: 200;
         }
     </style>
 </head>
@@ -451,61 +314,67 @@
 
 <header>
     <div class="header-left">
-        <h1>Cloud Drive</h1>
+        <span>☁️</span> Cloud Drive
     </div>
     <div class="header-right">
-        <span class="user-pill" id="userEmailDisplay">Loading...</span>
-        <button class="btn-header" id="logoutBtn">Sign Out</button>
+        <span class="user-email" id="userDisplay">Loading...</span>
+        <button class="btn-ui" id="logoutBtn">Sign Out</button>
     </div>
 </header>
 
 <div class="container">
-    <div class="toolbar">
-        <div class="breadcrumb" id="breadcrumb">
-            <span id="navRoot" class="active">All Files</span>
-            <span id="navFolderSep" style="display:none;">/</span>
-            <span id="navFolderActive" style="display:none;" class="active"></span>
+    <div class="controls-bar">
+        <div class="breadcrumbs" id="breadcrumbs">
+            <span class="breadcrumb-item" id="navRoot">Drive</span>
         </div>
 
-        <div class="view-controls">
-            <button class="icon-btn" id="newFolderBtn">+ Folder</button>
-            <a href="upload.html" class="btn-header">+ Upload</a>
-            <button class="icon-btn active" id="viewGridBtn" title="Grid View">▦</button>
-            <button class="icon-btn" id="viewLinearBtn" title="Linear View">☰</button>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <div class="view-toggles">
+                <button class="toggle-btn active" id="gridToggle">⊞ Grid</button>
+                <button class="toggle-btn" id="listToggle">☰ List</button>
+            </div>
+            <button class="btn-ui" id="newFolderBtn">+ New Folder</button>
+            <a href="upload.html" class="btn-ui" style="background: var(--accent); color: #fff;">↑ Upload</a>
         </div>
     </div>
 
-    <!-- Folders Section -->
-    <div id="foldersWrapper">
-        <div class="section-title">Folders</div>
-        <div class="folders-grid" id="foldersGrid"></div>
-    </div>
-
-    <!-- Files Section -->
-    <div class="section-title" id="filesSectionTitle">Files</div>
-    <div class="file-grid" id="fileGrid"></div>
-
-    <div id="emptyState" style="display: none; text-align: center; padding: 40px; color: var(--text-secondary);">
-        <p>No items found here.</p>
+    <!-- Items Container -->
+    <div class="items-grid" id="itemsContainer">
+        <!-- Folders and Files render here -->
     </div>
 </div>
 
-<!-- Custom Modals UI -->
-<div class="modal-overlay" id="customModal">
-    <div class="modal-box">
-        <h3 id="modalTitle">Title</h3>
-        <p id="modalDesc">Description message goes here.</p>
-        <div id="modalBody"></div>
-        <div class="modal-actions" id="modalActions"></div>
+<!-- Custom Create Folder Modal -->
+<div class="modal-overlay" id="folderModal">
+    <div class="modal">
+        <h3>Create New Folder</h3>
+        <input type="text" id="folderNameInput" class="modal-input" placeholder="Folder Name...">
+        <div class="modal-footer">
+            <button class="action-btn" id="closeFolderModal">Cancel</button>
+            <button class="btn-ui" id="submitCreateFolder">Create</button>
+        </div>
     </div>
 </div>
 
-<div id="toast">Message</div>
+<!-- Custom Move to Folder Modal -->
+<div class="modal-overlay" id="moveModal">
+    <div class="modal">
+        <h3>Move to Folder</h3>
+        <select id="moveFolderSelect" class="modal-input"></select>
+        <div class="modal-footer">
+            <button class="action-btn" id="closeMoveModal">Cancel</button>
+            <button class="btn-ui" id="submitMoveFile">Save</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { 
-        getFirestore, collection, query, where, getDocs, doc, deleteDoc, updateDoc 
+        getFirestore, collection, query, where, getDocs, 
+        doc, getDoc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove 
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -514,355 +383,319 @@
         projectId: "cloud-computer-4891a",
         storageBucket: "cloud-computer-4891a.firebasestorage.app",
         messagingSenderId: "744203234287",
-        appId: "1:744203234287:web:81d943ae9b75fd77dce41a",
-        measurementId: "G-QE17C33TMN"
+        appId: "1:744203234287:web:81d943ae9b75fd77dce41a"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Theme Detection
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    function applyTheme() {
-        if (mediaQuery.matches) document.body.classList.add("dark");
-        else document.body.classList.remove("dark");
+    // Dark Mode Theme Setup
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        document.body.classList.add("dark");
     }
-    applyTheme();
-    mediaQuery.addEventListener("change", applyTheme);
 
-    // Auth verification
+    // In-App Toast
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.innerText = msg;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+
+    // Authentication
     let currentUser = null;
     try {
         currentUser = JSON.parse(localStorage.getItem('active_user'));
-    } catch (e) { currentUser = null; }
+    } catch(e) {}
 
     if (!currentUser || !currentUser.Email) {
-        window.location.href = '1.html';
+        window.location.href = "1.html"; // Replace with your login filename
     }
-
     const userEmail = currentUser.Email;
-    document.getElementById('userEmailDisplay').innerText = userEmail;
+    document.getElementById('userDisplay').innerText = userEmail;
+
     document.getElementById('logoutBtn').addEventListener('click', () => {
         localStorage.removeItem('active_user');
         window.location.reload();
     });
 
-    // Custom Toast
-    function showToast(msg) {
-        const toast = document.getElementById('toast');
-        toast.innerText = msg;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2500);
+    // State
+    let currentFolderId = null; // null = Root
+    let currentFolderName = "";
+    let currentLayout = localStorage.getItem('drive_layout') || 'grid';
+    let allUserFolders = [];
+    let movingFileId = null;
+
+    // View Toggles (Grid vs Linear)
+    const itemsContainer = document.getElementById('itemsContainer');
+    const gridToggle = document.getElementById('gridToggle');
+    const listToggle = document.getElementById('listToggle');
+
+    function applyLayout(layout) {
+        currentLayout = layout;
+        localStorage.setItem('drive_layout', layout);
+        if (layout === 'list') {
+            itemsContainer.className = 'items-list';
+            listToggle.classList.add('active');
+            gridToggle.classList.remove('active');
+        } else {
+            itemsContainer.className = 'items-grid';
+            gridToggle.classList.add('active');
+            listToggle.classList.remove('active');
+        }
+    }
+    applyLayout(currentLayout);
+
+    gridToggle.addEventListener('click', () => applyLayout('grid'));
+    listToggle.addEventListener('click', () => applyLayout('list'));
+
+    // Navigation Breadcrumbs
+    const breadcrumbs = document.getElementById('breadcrumbs');
+    function updateBreadcrumbs() {
+        if (!currentFolderId) {
+            breadcrumbs.innerHTML = `<span>Drive</span>`;
+        } else {
+            breadcrumbs.innerHTML = `
+                <span class="breadcrumb-item" id="navRoot">Drive</span>
+                <span>/</span>
+                <span>📁 ${currentFolderName}</span>
+            `;
+            document.getElementById('navRoot').addEventListener('click', () => {
+                currentFolderId = null;
+                currentFolderName = "";
+                loadDrive();
+            });
+        }
     }
 
-    // Custom Modal System (No Chrome Alerts)
-    const modalOverlay = document.getElementById('customModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalDesc = document.getElementById('modalDesc');
-    const modalBody = document.getElementById('modalBody');
-    const modalActions = document.getElementById('modalActions');
+    // Main Load Function
+    async function loadDrive() {
+        updateBreadcrumbs();
+        itemsContainer.innerHTML = '<p style="color:var(--text-secondary)">Loading contents...</p>';
 
-    function closeModal() {
-        modalOverlay.style.display = 'none';
-        modalBody.innerHTML = '';
-        modalActions.innerHTML = '';
-    }
+        try {
+            // Fetch all entries for user
+            const q = query(collection(db, "Cloud Drive"), where("Email", "==", userEmail));
+            const snapshot = await getDocs(q);
 
-    function showPromptModal({ title, desc, placeholder = '', onConfirm }) {
-        modalTitle.innerText = title;
-        modalDesc.innerText = desc;
-        modalBody.innerHTML = `<input type="text" id="modalInput" class="modal-input" placeholder="${placeholder}">`;
-        modalActions.innerHTML = `
-            <button class="modal-btn" id="modalCancel">Cancel</button>
-            <button class="modal-btn primary" id="modalSubmit">Create</button>
-        `;
-        modalOverlay.style.display = 'flex';
-        const input = document.getElementById('modalInput');
-        input.focus();
+            const folders = [];
+            const files = [];
 
-        document.getElementById('modalCancel').onclick = closeModal;
-        document.getElementById('modalSubmit').onclick = () => {
-            const val = input.value.trim();
-            if (val) {
-                closeModal();
-                onConfirm(val);
-            }
-        };
-    }
-
-    function showConfirmModal({ title, desc, isDanger = false, onConfirm }) {
-        modalTitle.innerText = title;
-        modalDesc.innerText = desc;
-        modalBody.innerHTML = '';
-        modalActions.innerHTML = `
-            <button class="modal-btn" id="modalCancel">Cancel</button>
-            <button class="modal-btn ${isDanger ? 'danger' : 'primary'}" id="modalSubmit">Confirm</button>
-        `;
-        modalOverlay.style.display = 'flex';
-
-        document.getElementById('modalCancel').onclick = closeModal;
-        document.getElementById('modalSubmit').onclick = () => {
-            closeModal();
-            onConfirm();
-        };
-    }
-
-    function showSelectModal({ title, desc, options, onSelect }) {
-        modalTitle.innerText = title;
-        modalDesc.innerText = desc;
-        let selectHtml = `<select id="modalSelect" class="modal-input">`;
-        options.forEach(opt => {
-            selectHtml += `<option value="${opt.value}">${opt.label}</option>`;
-        });
-        selectHtml += `</select>`;
-        modalBody.innerHTML = selectHtml;
-
-        modalActions.innerHTML = `
-            <button class="modal-btn" id="modalCancel">Cancel</button>
-            <button class="modal-btn primary" id="modalSubmit">Move</button>
-        `;
-        modalOverlay.style.display = 'flex';
-
-        document.getElementById('modalCancel').onclick = closeModal;
-        document.getElementById('modalSubmit').onclick = () => {
-            const val = document.getElementById('modalSelect').value;
-            closeModal();
-            onSelect(val);
-        };
-    }
-
-    // State Variables
-    let currentFolder = "root"; // 'root' or folder name
-    let userFolders = JSON.parse(localStorage.getItem(`folders_${userEmail}`) || '[]');
-    let allFiles = [];
-
-    // Folder Management
-    function saveFolders() {
-        localStorage.setItem(`folders_${userEmail}`, JSON.stringify(userFolders));
-    }
-
-    document.getElementById('newFolderBtn').addEventListener('click', () => {
-        showPromptModal({
-            title: "New Folder",
-            desc: "Enter a name for your new folder:",
-            placeholder: "e.g. Work, Videos",
-            onConfirm: (folderName) => {
-                if (!userFolders.includes(folderName)) {
-                    userFolders.push(folderName);
-                    saveFolders();
-                    renderFolders();
-                    showToast(`Folder "${folderName}" created`);
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                if (data.Folder === "True") {
+                    folders.push({ id: docSnap.id, ...data });
                 } else {
-                    showToast("Folder already exists.");
+                    files.push({ id: docSnap.id, ...data });
+                }
+            });
+
+            allUserFolders = folders;
+            itemsContainer.innerHTML = '';
+
+            if (currentFolderId === null) {
+                // Root view: Render all folders
+                folders.forEach(f => renderFolderCard(f));
+
+                // Find files that are assigned to ANY folder
+                const folderFileIds = new Set();
+                folders.forEach(f => {
+                    if (Array.isArray(f.Files)) {
+                        f.Files.forEach(id => folderFileIds.add(id));
+                    }
+                });
+
+                // Render standalone (root) files
+                const rootFiles = files.filter(file => !folderFileIds.has(file.id));
+                rootFiles.forEach(file => renderFileCard(file, false));
+
+                if (folders.length === 0 && rootFiles.length === 0) {
+                    itemsContainer.innerHTML = '<p style="color:var(--text-secondary)">No items in your Cloud Drive.</p>';
+                }
+            } else {
+                // Subfolder View
+                const activeFolder = folders.find(f => f.id === currentFolderId);
+                const fileIdsInFolder = (activeFolder && Array.isArray(activeFolder.Files)) ? activeFolder.Files : [];
+                const folderFiles = files.filter(f => fileIdsInFolder.includes(f.id));
+
+                folderFiles.forEach(file => renderFileCard(file, true));
+
+                if (folderFiles.length === 0) {
+                    itemsContainer.innerHTML = '<p style="color:var(--text-secondary)">This folder is empty.</p>';
                 }
             }
-        });
-    });
-
-    // View Switching (Grid vs Linear)
-    const fileGrid = document.getElementById('fileGrid');
-    const viewGridBtn = document.getElementById('viewGridBtn');
-    const viewLinearBtn = document.getElementById('viewLinearBtn');
-
-    function setViewMode(mode) {
-        if (mode === 'linear') {
-            fileGrid.classList.add('linear-view');
-            viewLinearBtn.classList.add('active');
-            viewGridBtn.classList.remove('active');
-            localStorage.setItem('drive_view', 'linear');
-        } else {
-            fileGrid.classList.remove('linear-view');
-            viewGridBtn.classList.add('active');
-            viewLinearBtn.classList.remove('active');
-            localStorage.setItem('drive_view', 'grid');
+        } catch(err) {
+            console.error("Load drive failed:", err);
+            itemsContainer.innerHTML = '<p style="color:var(--danger)">Failed to load data.</p>';
         }
     }
 
-    viewGridBtn.addEventListener('click', () => setViewMode('grid'));
-    viewLinearBtn.addEventListener('click', () => setViewMode('linear'));
-    setViewMode(localStorage.getItem('drive_view') || 'grid');
+    // Render Folder
+    function renderFolderCard(folder) {
+        const fileCount = Array.isArray(folder.Files) ? folder.Files.length : 0;
+        const div = document.createElement('div');
+        div.className = 'drive-item';
+        div.innerHTML = `
+            <div class="item-preview" style="background: var(--badge-bg); font-size: 38px;">📁</div>
+            <div class="item-body">
+                <div class="item-title">${folder.Name || 'Untitled'}</div>
+                <div class="item-badge">${fileCount} item${fileCount === 1 ? '' : 's'}</div>
+                <div class="item-actions">
+                    <button class="action-btn open-folder">Open</button>
+                    <button class="action-btn delete delete-folder">Delete</button>
+                </div>
+            </div>
+        `;
 
-    // Breadcrumb Navigation
-    const navRoot = document.getElementById('navRoot');
-    const navFolderSep = document.getElementById('navFolderSep');
-    const navFolderActive = document.getElementById('navFolderActive');
-    const foldersWrapper = document.getElementById('foldersWrapper');
+        div.querySelector('.open-folder').addEventListener('click', () => {
+            currentFolderId = folder.id;
+            currentFolderName = folder.Name;
+            loadDrive();
+        });
 
-    navRoot.addEventListener('click', () => {
-        currentFolder = "root";
-        navFolderSep.style.display = 'none';
-        navFolderActive.style.display = 'none';
-        foldersWrapper.style.display = 'block';
-        renderFolders();
-        renderFiles();
-    });
+        div.querySelector('.item-preview').addEventListener('click', () => {
+            currentFolderId = folder.id;
+            currentFolderName = folder.Name;
+            loadDrive();
+        });
 
-    function openFolder(name) {
-        currentFolder = name;
-        navFolderSep.style.display = 'inline';
-        navFolderActive.style.display = 'inline';
-        navFolderActive.innerText = name;
-        foldersWrapper.style.display = 'none';
-        renderFiles();
+        div.querySelector('.delete-folder').addEventListener('click', async () => {
+            if (confirm(`Delete folder "${folder.Name}"? Files inside will move to root.`)) {
+                await deleteDoc(doc(db, "Cloud Drive", folder.id));
+                showToast("Folder deleted");
+                loadDrive();
+            }
+        });
+
+        itemsContainer.appendChild(div);
     }
 
-    // Render Folders
-    const foldersGrid = document.getElementById('foldersGrid');
-    function renderFolders() {
-        foldersGrid.innerHTML = '';
-        if (userFolders.length === 0) {
-            foldersGrid.innerHTML = '<span style="font-size:13px; color:var(--text-secondary);">No folders created.</span>';
+    // Render File
+    function renderFileCard(file, insideFolder) {
+        const fileUrl = file.File || '#';
+        const type = (file.Type || '.file').toLowerCase();
+        const isImg = type === '.img' || ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(type);
+
+        const div = document.createElement('div');
+        div.className = 'drive-item';
+
+        const previewContent = isImg 
+            ? `<img src="${fileUrl}" alt="Preview" loading="lazy">`
+            : `<span style="font-weight: bold; font-size: 16px;">${type.replace('.', '').toUpperCase()}</span>`;
+
+        div.innerHTML = `
+            <div class="item-preview">${previewContent}</div>
+            <div class="item-body">
+                <span class="item-badge">${type}</span>
+                <div class="item-title" title="${fileUrl}">${fileUrl.split('/').pop() || fileUrl}</div>
+                <div class="item-actions">
+                    <a href="${fileUrl}" target="_blank" class="action-btn">View</a>
+                    <button class="action-btn move-btn">${insideFolder ? 'Remove from Folder' : 'Move to Folder'}</button>
+                    <button class="action-btn delete delete-file">Delete</button>
+                </div>
+            </div>
+        `;
+
+        // Move/Folder handling
+        div.querySelector('.move-btn').addEventListener('click', async () => {
+            if (insideFolder) {
+                // Remove file from current folder
+                await updateDoc(doc(db, "Cloud Drive", currentFolderId), {
+                    Files: arrayRemove(file.id)
+                });
+                showToast("Removed from folder");
+                loadDrive();
+            } else {
+                // Open Move Modal
+                openMoveModal(file.id);
+            }
+        });
+
+        // Delete File
+        div.querySelector('.delete-file').addEventListener('click', async () => {
+            if (confirm("Delete this file permanently?")) {
+                await deleteDoc(doc(db, "Cloud Drive", file.id));
+                // Remove references from any folders containing it
+                for (const f of allUserFolders) {
+                    if (f.Files && f.Files.includes(file.id)) {
+                        await updateDoc(doc(db, "Cloud Drive", f.id), {
+                            Files: arrayRemove(file.id)
+                        });
+                    }
+                }
+                showToast("File deleted");
+                loadDrive();
+            }
+        });
+
+        itemsContainer.appendChild(div);
+    }
+
+    // Create Folder Modal Logic
+    const folderModal = document.getElementById('folderModal');
+    const folderNameInput = document.getElementById('folderNameInput');
+
+    document.getElementById('newFolderBtn').addEventListener('click', () => {
+        folderNameInput.value = "";
+        folderModal.classList.add('active');
+    });
+
+    document.getElementById('closeFolderModal').addEventListener('click', () => {
+        folderModal.classList.remove('active');
+    });
+
+    document.getElementById('submitCreateFolder').addEventListener('click', async () => {
+        const name = folderNameInput.value.trim();
+        if (!name) return;
+        await addDoc(collection(db, "Cloud Drive"), {
+            Email: userEmail,
+            Folder: "True",
+            Name: name,
+            Files: []
+        });
+        folderModal.classList.remove('active');
+        showToast(`Folder "${name}" created`);
+        loadDrive();
+    });
+
+    // Move File Modal Logic
+    const moveModal = document.getElementById('moveModal');
+    const moveFolderSelect = document.getElementById('moveFolderSelect');
+
+    function openMoveModal(fileId) {
+        movingFileId = fileId;
+        moveFolderSelect.innerHTML = "";
+        if (allUserFolders.length === 0) {
+            showToast("Please create a folder first.");
             return;
         }
-
-        userFolders.forEach(folder => {
-            const el = document.createElement('div');
-            el.className = 'folder-card';
-            el.innerHTML = `
-                <div class="folder-info">
-                    <span class="folder-icon">📁</span>
-                    <span class="folder-name">${folder}</span>
-                </div>
-                <button class="icon-btn" style="padding: 2px 6px; font-size:10px; color:var(--danger);" title="Delete Folder">✕</button>
-            `;
-            el.querySelector('.folder-info').onclick = () => openFolder(folder);
-            el.querySelector('button').onclick = (e) => {
-                e.stopPropagation();
-                showConfirmModal({
-                    title: "Delete Folder?",
-                    desc: `Are you sure you want to delete folder "${folder}"? Files will be moved back to All Files.`,
-                    isDanger: true,
-                    onConfirm: async () => {
-                        userFolders = userFolders.filter(f => f !== folder);
-                        saveFolders();
-                        renderFolders();
-                        // Reset files in this folder to root in Firestore
-                        for (let f of allFiles.filter(item => item.Folder === folder)) {
-                            await updateDoc(doc(db, "Cloud Drive", f.id), { Folder: "root" });
-                        }
-                        await loadFiles();
-                        showToast(`Folder "${folder}" deleted.`);
-                    }
-                });
-            };
-            foldersGrid.appendChild(el);
+        allUserFolders.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.id;
+            opt.innerText = f.Name;
+            moveFolderSelect.appendChild(opt);
         });
+        moveModal.classList.add('active');
     }
 
-    // Load & Render Files
-    async function loadFiles() {
-        try {
-            const q = query(collection(db, "Cloud Drive"), where("Email", "==", userEmail));
-            const snap = await getDocs(q);
-            allFiles = [];
-            snap.forEach(d => {
-                allFiles.push({ id: d.id, ...d.data() });
+    document.getElementById('closeMoveModal').addEventListener('click', () => {
+        moveModal.classList.remove('active');
+    });
+
+    document.getElementById('submitMoveFile').addEventListener('click', async () => {
+        const targetFolderId = moveFolderSelect.value;
+        if (targetFolderId && movingFileId) {
+            await updateDoc(doc(db, "Cloud Drive", targetFolderId), {
+                Files: arrayUnion(movingFileId)
             });
-            renderFiles();
-        } catch (e) {
-            console.error(e);
-            showToast("Failed to fetch files.");
+            moveModal.classList.remove('active');
+            showToast("File moved to folder");
+            loadDrive();
         }
-    }
-
-    function renderFiles() {
-        fileGrid.innerHTML = '';
-        const emptyState = document.getElementById('emptyState');
-        
-        const filtered = allFiles.filter(f => {
-            const fFolder = f.Folder || "root";
-            return fFolder === currentFolder;
-        });
-
-        if (filtered.length === 0) {
-            emptyState.style.display = 'block';
-            return;
-        }
-        emptyState.style.display = 'none';
-
-        filtered.forEach(file => {
-            const fileUrl = file.File || '#';
-            const fileType = (file.Type || '.file').toLowerCase();
-            const isImage = fileType === '.img' || ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(fileType);
-
-            const card = document.createElement('div');
-            card.className = 'file-card';
-            
-            const previewHtml = isImage
-                ? `<img src="${fileUrl}" alt="Preview" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'file-icon-box\\'>IMG</div>';">`
-                : `<div class="file-icon-box">${fileType.replace('.', '').toUpperCase()}</div>`;
-
-            card.innerHTML = `
-                <div class="preview-area">${previewHtml}</div>
-                <div class="file-details">
-                    <div class="file-meta">
-                        <span class="badge">${fileType}</span>
-                    </div>
-                    <a href="${fileUrl}" target="_blank" class="file-link" title="${fileUrl}">${fileUrl}</a>
-                    <div class="card-actions">
-                        <a href="${fileUrl}" target="_blank">Open</a>
-                        <button class="btn-copy">Copy</button>
-                        <button class="btn-move">Move</button>
-                        <button class="btn-delete-file">Delete</button>
-                    </div>
-                </div>
-            `;
-
-            // Copy Link
-            card.querySelector('.btn-copy').onclick = () => {
-                navigator.clipboard.writeText(fileUrl);
-                showToast("Link copied to clipboard!");
-            };
-
-            // Move File to Folder
-            card.querySelector('.btn-move').onclick = () => {
-                const options = [{ value: "root", label: "Root (All Files)" }];
-                userFolders.forEach(f => options.push({ value: f, label: `Folder: ${f}` }));
-
-                showSelectModal({
-                    title: "Move File",
-                    desc: "Select destination folder:",
-                    options: options,
-                    onSelect: async (destFolder) => {
-                        try {
-                            await updateDoc(doc(db, "Cloud Drive", file.id), { Folder: destFolder });
-                            file.Folder = destFolder;
-                            renderFiles();
-                            showToast(`Moved to ${destFolder === 'root' ? 'All Files' : destFolder}`);
-                        } catch (err) {
-                            showToast("Failed to move file.");
-                        }
-                    }
-                });
-            };
-
-            // Delete File
-            card.querySelector('.btn-delete-file').onclick = () => {
-                showConfirmModal({
-                    title: "Delete File?",
-                    desc: "This will permanently delete this record from your drive.",
-                    isDanger: true,
-                    onConfirm: async () => {
-                        try {
-                            await deleteDoc(doc(db, "Cloud Drive", file.id));
-                            allFiles = allFiles.filter(item => item.id !== file.id);
-                            renderFiles();
-                            showToast("File deleted successfully.");
-                        } catch (err) {
-                            showToast("Error deleting file.");
-                        }
-                    }
-                });
-            };
-
-            fileGrid.appendChild(card);
-        });
-    }
+    });
 
     // Initialize
-    renderFolders();
-    loadFiles();
+    loadDrive();
 </script>
-
 </body>
 </html>
