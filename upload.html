@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Drive - Upload</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-primary: #000000;
+            --text-secondary: #555555;
+            --border-color: #dddddd;
+            --card-bg: #f9f9f9;
+            --btn-bg: #111111;
+            --btn-text: #ffffff;
+            --btn-hover: #333333;
+            --accent: #2563eb;
+        }
+
+        body.dark {
+            --bg-color: #000000;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --border-color: #3a3a3a;
+            --card-bg: #121212;
+            --btn-bg: #ffffff;
+            --btn-text: #000000;
+            --btn-hover: #e0e0e0;
+            --accent: #3b82f6;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 460px;
+            width: 100%;
+            padding: 28px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        h1 { font-size: 22px; margin-bottom: 6px; }
+        p.user-status { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 26px 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 16px;
+        }
+
+        .drop-zone.dragover { border-color: var(--accent); background: rgba(37, 99, 235, 0.05); }
+        .drop-zone p { margin: 0; font-size: 14px; color: var(--text-secondary); }
+
+        .file-info {
+            font-size: 13px;
+            margin-top: 8px;
+            font-weight: 600;
+            color: var(--accent);
+            word-break: break-all;
+        }
+
+        input[type="file"] { display: none; }
+
+        /* Folder Selection Section */
+        .folder-section {
+            text-align: left;
+            margin-bottom: 18px;
+            display: none;
+        }
+
+        .folder-section label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .folder-select, .new-folder-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 8px;
+        }
+
+        .btn {
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-link {
+            display: inline-block;
+            margin-top: 14px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        .status-message {
+            margin-top: 14px;
+            font-size: 13px;
+            min-height: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Upload to Cloud Drive</h1>
+    <p class="user-status" id="userEmailDisplay">Checking login...</p>
+
+    <div class="drop-zone" id="dropZone">
+        <p>Click or drag files here</p>
+        <p style="font-size: 12px; margin-top: 4px; opacity: 0.7;">Images, Videos, PDFs, Docs (Max 50MB)</p>
+        <div class="file-info" id="selectedFileInfo"></div>
+    </div>
+    
+    <input type="file" id="fileInput">
+
+    <div class="folder-section" id="folderSection">
+        <label>Save to Folder</label>
+        <select class="folder-select" id="folderSelect">
+            <option value="root">No (Root / All Files)</option>
+            <option value="__new__">+ Create New Folder...</option>
+        </select>
+        <input type="text" id="newFolderInput" class="new-folder-input" placeholder="Enter new folder name" style="display: none;">
+    </div>
+
+    <button class="btn" id="uploadBtn" disabled>Upload File</button>
+    <div class="status-message" id="statusMessage"></div>
+
+    <a href="1.html" class="btn-link">← Back to Files</a>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
+        authDomain: "cloud-computer-4891a.firebaseapp.com",
+        projectId: "cloud-computer-4891a",
+        storageBucket: "cloud-computer-4891a.firebasestorage.app",
+        messagingSenderId: "744203234287",
+        appId: "1:744203234287:web:81d943ae9b75fd77dce41a",
+        measurementId: "G-QE17C33TMN"
+    };
+
+    const IMGBB_API_KEY = "80c452b9a4b80f240ada316f23078d2c";
+    const UPLOADCARE_PUBLIC_KEY = "demopublickey";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Load User
+    let userEmail = "anonymous@perplexity.com";
+    try {
+        const activeUser = JSON.parse(localStorage.getItem('active_user'));
+        if (activeUser && activeUser.Email) userEmail = activeUser.Email;
+    } catch (e) {}
+    document.getElementById('userEmailDisplay').innerText = `Logged in: ${userEmail}`;
+
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        document.body.classList.add("dark");
+    }
+
+    // Folders dropdown population
+    const folderSelect = document.getElementById('folderSelect');
+    const newFolderInput = document.getElementById('newFolderInput');
+    const folderSection = document.getElementById('folderSection');
+    let userFolders = JSON.parse(localStorage.getItem(`folders_${userEmail}`) || '[]');
+
+    function populateFolders() {
+        folderSelect.innerHTML = `<option value="root">No (Root / All Files)</option>`;
+        userFolders.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f;
+            opt.innerText = f;
+            folderSelect.appendChild(opt);
+        });
+        const newOpt = document.createElement('option');
+        newOpt.value = '__new__';
+        newOpt.innerText = '+ Create New Folder...';
+        folderSelect.appendChild(newOpt);
+    }
+    populateFolders();
+
+    folderSelect.addEventListener('change', () => {
+        if (folderSelect.value === '__new__') {
+            newFolderInput.style.display = 'block';
+            newFolderInput.focus();
+        } else {
+            newFolderInput.style.display = 'none';
+        }
+    });
+
+    // File Selection Logic
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const selectedFileInfo = document.getElementById('selectedFileInfo');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let selectedFile = null;
+    const MAX_SIZE_BYTES = 50 * 1024 * 1024;
+
+    dropZone.onclick = () => fileInput.click();
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('dragover'); };
+    dropZone.ondragleave = () => dropZone.classList.remove('dragover');
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) handleSelection(e.dataTransfer.files[0]);
+    };
+    fileInput.onchange = (e) => {
+        if (e.target.files.length) handleSelection(e.target.files[0]);
+    };
+
+    function handleSelection(file) {
+        if (file.size > MAX_SIZE_BYTES) {
+            statusMessage.style.color = "red";
+            statusMessage.innerText = "File exceeds 50 MB limit.";
+            selectedFile = null;
+            selectedFileInfo.innerText = "";
+            folderSection.style.display = "none";
+            uploadBtn.disabled = true;
+            return;
+        }
+        selectedFile = file;
+        selectedFileInfo.innerText = `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+        folderSection.style.display = "block";
+        uploadBtn.disabled = false;
+        statusMessage.innerText = "";
+    }
+
+    // Upload Execution
+    uploadBtn.onclick = async () => {
+        if (!selectedFile) return;
+
+        uploadBtn.disabled = true;
+        statusMessage.style.color = "var(--text-secondary)";
+        statusMessage.innerText = "Uploading file...";
+
+        // Determine destination folder
+        let destinationFolder = folderSelect.value;
+        if (destinationFolder === '__new__') {
+            const newName = newFolderInput.value.trim();
+            if (!newName) {
+                statusMessage.style.color = "red";
+                statusMessage.innerText = "Please enter a folder name.";
+                uploadBtn.disabled = false;
+                return;
+            }
+            if (!userFolders.includes(newName)) {
+                userFolders.push(newName);
+                localStorage.setItem(`folders_${userEmail}`, JSON.stringify(userFolders));
+            }
+            destinationFolder = newName;
+        }
+
+        try {
+            let fileUrl = "";
+            let fileTypeTag = "";
+            const isImage = selectedFile.type.startsWith("image/");
+
+            if (isImage) {
+                const fd = new FormData();
+                fd.append("image", selectedFile);
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
+                const json = await res.json();
+                if (json.success) fileUrl = json.data.url;
+                else throw new Error("Image upload failed.");
+                fileTypeTag = ".img";
+            } else {
+                const fd = new FormData();
+                fd.append("UPLOADCARE_PUB_KEY", UPLOADCARE_PUBLIC_KEY);
+                fd.append("UPLOADCARE_STORE", "1");
+                fd.append("file", selectedFile);
+                const res = await fetch("https://upload.uploadcare.com/base/", { method: "POST", body: fd });
+                const json = await res.json();
+                if (json.file) fileUrl = `https://ucarecdn.com/${json.file}/${encodeURIComponent(selectedFile.name)}`;
+                else throw new Error("Document upload failed.");
+                const ext = selectedFile.name.split('.').pop();
+                fileTypeTag = ext ? `.${ext.toLowerCase()}` : ".file";
+            }
+
+            statusMessage.innerText = "Saving to database...";
+
+            // Save record with Folder schema
+            await addDoc(collection(db, "Cloud Drive"), {
+                Email: userEmail,
+                File: fileUrl,
+                Type: fileTypeTag,
+                Folder: destinationFolder
+            });
+
+            statusMessage.style.color = "green";
+            statusMessage.innerText = "Uploaded successfully!";
+            setTimeout(() => window.location.href = '1.html', 1000);
+        } catch (err) {
+            console.error(err);
+            statusMessage.style.color = "red";
+            statusMessage.innerText = err.message || "Upload error.";
+            uploadBtn.disabled = false;
+        }
+    };
+</script>
+
+</body>
+</html>
