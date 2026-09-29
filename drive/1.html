@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cloud Drive - Knowledge Base</title>
+    <!-- jsPDF for instant client-side Image to PDF conversion -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --bg-color: #f9fafb;
@@ -139,7 +141,7 @@
 
         .table-header {
             display: grid;
-            grid-template-columns: 3fr 1.2fr 1.2fr 1fr 40px;
+            grid-template-columns: 3fr 1.3fr 1fr 1fr 40px;
             padding: 14px 20px;
             border-bottom: 1px solid var(--border-color);
             font-size: 12px;
@@ -150,7 +152,7 @@
 
         .file-row {
             display: grid;
-            grid-template-columns: 3fr 1.2fr 1.2fr 1fr 40px;
+            grid-template-columns: 3fr 1.3fr 1fr 1fr 40px;
             align-items: center;
             padding: 14px 20px;
             border-bottom: 1px solid var(--border-color);
@@ -233,7 +235,7 @@
             border: 1px solid var(--border-color);
             border-radius: 12px;
             box-shadow: var(--shadow-modal);
-            width: 170px;
+            width: 180px;
             z-index: 100;
             display: none;
             padding: 6px 0;
@@ -256,12 +258,12 @@
         .dropdown-item:hover { background: var(--hover-color); }
         .dropdown-item.danger { color: var(--danger); }
 
-        /* Modern Bottom/Floating Modal */
+        /* Unified Dual-Tab Share & Access Modal */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(5px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -280,11 +282,40 @@
             border-radius: 20px;
             padding: 24px;
             width: 100%;
-            max-width: 440px;
+            max-width: 480px;
             box-shadow: var(--shadow-modal);
         }
 
-        .modal-card h3 { margin: 0 0 16px 0; font-size: 18px; }
+        .tab-switcher {
+            display: flex;
+            background: var(--bg-color);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--surface-color);
+            color: var(--text-primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
         .form-group { margin-bottom: 16px; }
         .form-group label {
@@ -307,27 +338,25 @@
             outline: none;
         }
 
-        .viewers-list {
+        .user-access-item {
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 8px;
-            max-height: 80px;
-            overflow-y: auto;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--bg-color);
+            border-radius: 10px;
+            margin-top: 6px;
+            font-size: 13px;
         }
 
-        .viewer-tag {
+        .role-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
             background: var(--badge-blue-bg);
             color: var(--badge-blue-text);
-            padding: 3px 8px;
-            border-radius: 8px;
-            font-size: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
         }
-
-        .viewer-tag span { cursor: pointer; font-weight: bold; }
 
         .toast {
             position: fixed;
@@ -389,35 +418,59 @@
     </div>
 </div>
 
-<!-- Modal: Share & Access Management -->
-<div class="modal-overlay" id="shareModal">
+<!-- Unified Dual Tab Modal: Share & Access Control -->
+<div class="modal-overlay" id="unifiedModal">
     <div class="modal-card">
-        <h3>Share & Access Management</h3>
-        
-        <div class="form-group">
-            <label>File Format</label>
-            <div id="shareFileFormat" style="font-weight: 600; font-size: 14px;">Image</div>
+        <div class="tab-switcher">
+            <button class="tab-btn active" id="tabBtnShare">🔗 Share & Export</button>
+            <button class="tab-btn" id="tabBtnAccess">👥 Access Rights</button>
         </div>
 
-        <div class="form-group">
-            <label>Access Password</label>
-            <input type="text" id="sharePasswordInput" class="modal-input" placeholder="No Password set (optional)">
-        </div>
-
-        <div class="form-group">
-            <label>Add Viewer (Email)</label>
-            <div style="display: flex; gap: 6px;">
-                <input type="email" id="shareEmailInput" class="modal-input" placeholder="user@perplexity.com" style="margin-bottom: 0;">
-                <button class="btn-ui" id="addViewerBtn" style="flex-shrink: 0;">+ Add</button>
+        <!-- Tab 1: Share & Export -->
+        <div class="tab-content active" id="tabContentShare">
+            <div class="form-group">
+                <label>Export / Share Format</label>
+                <select id="shareFormatSelect" class="modal-input">
+                    <option value="original">Original Format</option>
+                    <option value="pdf">Convert to PDF (.pdf)</option>
+                </select>
             </div>
-            <div class="viewers-list" id="viewersList"></div>
+
+            <div class="form-group">
+                <label>Security Password</label>
+                <input type="text" id="sharePasswordInput" class="modal-input" placeholder="Set protection password (optional)">
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 24px;">
+                <button class="btn-ui" id="btnDeviceShare" style="flex: 1; background: var(--accent); color: #fff;">📲 Device Native Share</button>
+                <button class="btn-ui" id="btnCopyLink" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Copy Link</button>
+            </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-            <button class="btn-ui" id="copyShareLinkBtn" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">🔗 Copy Link</button>
-            <div style="display: flex; gap: 8px;">
-                <button class="btn-ui" id="closeShareModal" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Cancel</button>
-                <button class="btn-ui" id="saveShareSettings">Save</button>
+        <!-- Tab 2: Access Management -->
+        <div class="tab-content" id="tabContentAccess">
+            <div class="form-group">
+                <label>Invite User</label>
+                <div style="display: flex; gap: 6px;">
+                    <input type="email" id="accessEmailInput" class="modal-input" placeholder="email@perplexity.com" style="margin-bottom: 0;">
+                    <select id="accessRoleSelect" class="modal-input" style="width: 140px; margin-bottom: 0;">
+                        <option value="Viewer">Viewer</option>
+                        <option value="Commentator">Commentator</option>
+                        <option value="Editor">Editor</option>
+                        <option value="passon">Pass Ownership</option>
+                    </select>
+                    <button class="btn-ui" id="btnAddAccess" style="flex-shrink: 0;">Add</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>People with Access</label>
+                <div id="accessMembersList" style="max-height: 140px; overflow-y: auto;"></div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+                <button class="btn-ui" id="closeUnifiedModal" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Close</button>
+                <button class="btn-ui" id="saveAccessChanges">Save Permissions</button>
             </div>
         </div>
     </div>
@@ -464,7 +517,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { 
-        getFirestore, collection, query, where, getDocs, 
+        getFirestore, collection, query, where, getDocs, or,
         doc, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove 
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -491,7 +544,6 @@
         setTimeout(() => toast.style.display = 'none', 2500);
     }
 
-    // Helper: Map extension/Type to Format Name
     function getFriendlyFormat(typeStr, isFolder) {
         if (isFolder) return "Folder";
         const t = (typeStr || "").toLowerCase();
@@ -504,7 +556,7 @@
         return "Document";
     }
 
-    // Auth verification
+    // User authentication
     let currentUser = null;
     try {
         currentUser = JSON.parse(localStorage.getItem('active_user'));
@@ -548,14 +600,23 @@
         }
     }
 
+    // Load user's own items AND shared items
     async function loadDrive() {
         updateBreadcrumbs();
         const tableBody = document.getElementById('tableBody');
         tableBody.innerHTML = `<div style="padding: 20px; color: var(--text-secondary);">Loading records...</div>`;
 
         try {
-            // Load items owned by or accessible to user
-            const q = query(collection(db, "Cloud Drive"), where("Email", "==", userEmail));
+            // Multi-Role & Ownership Query
+            const q = query(
+                collection(db, "Cloud Drive"),
+                or(
+                    where("Email", "==", userEmail),
+                    where("Access.Viewer", "array-contains", userEmail),
+                    where("Access.Commentator", "array-contains", userEmail),
+                    where("Access.Editor", "array-contains", userEmail)
+                )
+            );
             const snapshot = await getDocs(q);
 
             const folders = [];
@@ -610,11 +671,15 @@
         const formatLabel = getFriendlyFormat(item.Type, isFolder);
         const isImg = formatLabel === "Image";
 
-        // Calculate Access badge
+        // Access Badge Calculations
         const viewers = (item.Access && Array.isArray(item.Access.Viewer)) ? item.Access.Viewer : [];
+        const commenters = (item.Access && Array.isArray(item.Access.Commentator)) ? item.Access.Commentator : [];
+        const editors = (item.Access && Array.isArray(item.Access.Editor)) ? item.Access.Editor : [];
+        const totalOtherMembers = viewers.length + commenters.length + editors.length;
+
         let accessBadgeHtml = `<span class="badge-pill badge-personal">Personal</span>`;
-        if (viewers.length > 0) {
-            accessBadgeHtml = `<span class="badge-pill badge-shared">You & ${viewers.length} other${viewers.length > 1 ? 's' : ''}</span>`;
+        if (totalOtherMembers > 0) {
+            accessBadgeHtml = `<span class="badge-pill badge-shared">You & ${totalOtherMembers} other${totalOtherMembers > 1 ? 's' : ''}</span>`;
         }
 
         const iconHtml = isFolder ? '📁' : (isImg ? `<img src="${item.File}" alt="thumb">` : '📄');
@@ -683,7 +748,7 @@
             });
         }
 
-        row.querySelector('.opt-share').addEventListener('click', () => openShareModal(item));
+        row.querySelector('.opt-share').addEventListener('click', () => openUnifiedModal(item));
 
         row.querySelector('.opt-delete').addEventListener('click', async () => {
             if (confirm(`Delete permanently?`)) {
@@ -696,68 +761,168 @@
         tableBody.appendChild(row);
     }
 
-    // Modal: Share & Access
-    let activeShareItem = null;
-    let localViewers = [];
-    const shareModal = document.getElementById('shareModal');
-    const shareFileFormat = document.getElementById('shareFileFormat');
-    const sharePasswordInput = document.getElementById('sharePasswordInput');
-    const shareEmailInput = document.getElementById('shareEmailInput');
-    const viewersList = document.getElementById('viewersList');
+    // Unified Modal Logic (Share & Access Switcher)
+    let activeItem = null;
+    let accessListState = { Viewer: [], Commentator: [], Editor: [] };
 
-    function openShareModal(item) {
-        activeShareItem = item;
-        shareFileFormat.innerText = getFriendlyFormat(item.Type, item.isFolder);
-        sharePasswordInput.value = item.Password || "";
-        localViewers = (item.Access && Array.isArray(item.Access.Viewer)) ? [...item.Access.Viewer] : [];
-        renderViewers();
-        shareModal.classList.add('active');
+    const unifiedModal = document.getElementById('unifiedModal');
+    const tabBtnShare = document.getElementById('tabBtnShare');
+    const tabBtnAccess = document.getElementById('tabBtnAccess');
+    const tabContentShare = document.getElementById('tabContentShare');
+    const tabContentAccess = document.getElementById('tabContentAccess');
+
+    function switchTab(isShare) {
+        tabBtnShare.classList.toggle('active', isShare);
+        tabBtnAccess.classList.toggle('active', !isShare);
+        tabContentShare.classList.toggle('active', isShare);
+        tabContentAccess.classList.toggle('active', !isShare);
     }
 
-    function renderViewers() {
-        viewersList.innerHTML = '';
-        localViewers.forEach((email, idx) => {
-            const tag = document.createElement('div');
-            tag.className = 'viewer-tag';
-            tag.innerHTML = `${email} <span data-idx="${idx}">&times;</span>`;
-            tag.querySelector('span').addEventListener('click', () => {
-                localViewers.splice(idx, 1);
-                renderViewers();
+    tabBtnShare.addEventListener('click', () => switchTab(true));
+    tabBtnAccess.addEventListener('click', () => switchTab(false));
+
+    function openUnifiedModal(item) {
+        activeItem = item;
+        document.getElementById('sharePasswordInput').value = item.Password || "";
+        
+        // Populate access state
+        accessListState = {
+            Viewer: (item.Access && Array.isArray(item.Access.Viewer)) ? [...item.Access.Viewer] : [],
+            Commentator: (item.Access && Array.isArray(item.Access.Commentator)) ? [...item.Access.Commentator] : [],
+            Editor: (item.Access && Array.isArray(item.Access.Editor)) ? [...item.Access.Editor] : []
+        };
+
+        renderAccessMembers();
+        switchTab(true);
+        unifiedModal.classList.add('active');
+    }
+
+    document.getElementById('closeUnifiedModal').addEventListener('click', () => unifiedModal.classList.remove('active'));
+
+    function renderAccessMembers() {
+        const container = document.getElementById('accessMembersList');
+        container.innerHTML = `
+            <div class="user-access-item">
+                <span>${activeItem.Email} <strong>(Owner)</strong></span>
+                <span class="role-badge" style="background: #dcfce7; color: #15803d;">Owner</span>
+            </div>
+        `;
+
+        ['Editor', 'Commentator', 'Viewer'].forEach(role => {
+            accessListState[role].forEach((email, idx) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'user-access-item';
+                itemDiv.innerHTML = `
+                    <span>${email}</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="role-badge">${role}</span>
+                        <span style="cursor:pointer; color:var(--danger);" data-role="${role}" data-idx="${idx}">&times;</span>
+                    </div>
+                `;
+                itemDiv.querySelector('span[data-role]').addEventListener('click', () => {
+                    accessListState[role].splice(idx, 1);
+                    renderAccessMembers();
+                });
+                container.appendChild(itemDiv);
             });
-            viewersList.appendChild(tag);
         });
     }
 
-    document.getElementById('addViewerBtn').addEventListener('click', () => {
-        const val = shareEmailInput.value.trim();
-        if (val && !localViewers.includes(val)) {
-            localViewers.push(val);
-            shareEmailInput.value = '';
-            renderViewers();
+    // Add / Transfer Permissions
+    document.getElementById('btnAddAccess').addEventListener('click', async () => {
+        const email = document.getElementById('accessEmailInput').value.trim();
+        const role = document.getElementById('accessRoleSelect').value;
+        if (!email) return;
+
+        if (role === 'passon') {
+            if (confirm(`Pass full ownership to ${email}? You will become an Editor.`)) {
+                await updateDoc(doc(db, "Cloud Drive", activeItem.id), {
+                    Email: email,
+                    "Access.Editor": arrayUnion(userEmail)
+                });
+                showToast("Ownership transferred!");
+                unifiedModal.classList.remove('active');
+                loadDrive();
+            }
+            return;
         }
-    });
 
-    document.getElementById('copyShareLinkBtn').addEventListener('click', () => {
-        if (activeShareItem && activeShareItem.File) {
-            navigator.clipboard.writeText(activeShareItem.File).then(() => showToast("File link copied!"));
-        }
-    });
-
-    document.getElementById('closeShareModal').addEventListener('click', () => shareModal.classList.remove('active'));
-
-    document.getElementById('saveShareSettings').addEventListener('click', async () => {
-        if (!activeShareItem) return;
-        const newPassword = sharePasswordInput.value.trim();
-        await updateDoc(doc(db, "Cloud Drive", activeShareItem.id), {
-            Password: newPassword,
-            Access: { Viewer: localViewers }
+        // Clean from other roles first
+        ['Viewer', 'Commentator', 'Editor'].forEach(r => {
+            accessListState[r] = accessListState[r].filter(e => e !== email);
         });
-        shareModal.classList.remove('active');
-        showToast("Access settings updated!");
+
+        accessListState[role].push(email);
+        document.getElementById('accessEmailInput').value = '';
+        renderAccessMembers();
+    });
+
+    // Save Access Rights
+    document.getElementById('saveAccessChanges').addEventListener('click', async () => {
+        if (!activeItem) return;
+        await updateDoc(doc(db, "Cloud Drive", activeItem.id), {
+            Access: accessListState
+        });
+        showToast("Permissions updated!");
+        unifiedModal.classList.remove('active');
         loadDrive();
     });
 
-    // Rename Modal
+    // Native Device Share / Format Conversion
+    document.getElementById('btnDeviceShare').addEventListener('click', async () => {
+        if (!activeItem) return;
+        const format = document.getElementById('shareFormatSelect').value;
+        const newPass = document.getElementById('sharePasswordInput').value.trim();
+
+        // Update password if changed
+        if (newPass !== (activeItem.Password || '')) {
+            await updateDoc(doc(db, "Cloud Drive", activeItem.id), { Password: newPass });
+        }
+
+        if (format === 'pdf' && getFriendlyFormat(activeItem.Type) === 'Image') {
+            showToast("Converting Image to PDF...");
+            const { jsPDF } = window.jspdf;
+            const docPdf = new jsPDF();
+            
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = activeItem.File;
+            img.onload = async () => {
+                docPdf.addImage(img, 'JPEG', 15, 40, 180, 160);
+                const pdfBlob = docPdf.output('blob');
+                const file = new File([pdfBlob], `${activeItem.Name || 'export'}.pdf`, { type: 'application/pdf' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: activeItem.Name,
+                        files: [file]
+                    });
+                } else {
+                    docPdf.save(`${activeItem.Name || 'export'}.pdf`);
+                    showToast("PDF downloaded!");
+                }
+            };
+        } else {
+            // Default Native Share
+            if (navigator.share) {
+                await navigator.share({
+                    title: activeItem.Name || "Shared File",
+                    text: `Access file: ${activeItem.Name}`,
+                    url: activeItem.File
+                });
+            } else {
+                navigator.clipboard.writeText(activeItem.File).then(() => showToast("Link copied to clipboard!"));
+            }
+        }
+    });
+
+    document.getElementById('btnCopyLink').addEventListener('click', () => {
+        if (activeItem && activeItem.File) {
+            navigator.clipboard.writeText(activeItem.File).then(() => showToast("Link copied!"));
+        }
+    });
+
+    // Rename Modal Logic
     let activeRenameItem = null;
     const renameModal = document.getElementById('renameModal');
     const renameInput = document.getElementById('renameInput');
@@ -778,7 +943,7 @@
         }
     });
 
-    // Shift Modal
+    // Shift Folder Logic
     let activeShiftFileId = null;
     const shiftModal = document.getElementById('shiftModal');
     const shiftFolderSelect = document.getElementById('shiftFolderSelect');
@@ -805,7 +970,7 @@
         }
     });
 
-    // Create Folder Modal
+    // Create Folder Modal Logic
     const folderModal = document.getElementById('folderModal');
     const newFolderNameInput = document.getElementById('newFolderNameInput');
 
@@ -822,7 +987,7 @@
                 Folder: "True",
                 Name: name,
                 Files: [],
-                Access: { Viewer: [] },
+                Access: { Viewer: [], Commentator: [], Editor: [] },
                 Password: ""
             });
             folderModal.classList.remove('active');
@@ -831,7 +996,7 @@
         }
     });
 
-    // Search
+    // Search filter
     document.getElementById('searchInput').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
         document.querySelectorAll('.file-row').forEach(row => {
