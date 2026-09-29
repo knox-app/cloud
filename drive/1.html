@@ -3,124 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Drive - Knowledge Base</title>
+    <title>Cloud Workspace - Drive</title>
     <!-- jsPDF for instant client-side Image to PDF conversion -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
-            --bg-color: #f9fafb;
+            --bg-color: #f8fafc;
             --surface-color: #ffffff;
-            --text-primary: #111827;
-            --text-secondary: #6b7280;
-            --border-color: #e5e7eb;
-            --hover-color: #f3f4f6;
-            --btn-bg: #111827;
+            --surface-subtle: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --hover-color: #f8fafc;
+            --btn-bg: #0f172a;
             --btn-text: #ffffff;
+            --btn-hover: #1e293b;
             --accent: #2563eb;
-            --badge-gray-bg: #f3f4f6;
-            --badge-gray-text: #4b5563;
+            --accent-light: #eff6ff;
+            --badge-gray-bg: #f1f5f9;
+            --badge-gray-text: #475569;
             --badge-blue-bg: #eff6ff;
             --badge-blue-text: #1d4ed8;
             --danger: #ef4444;
-            --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --danger-light: #fef2f2;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
         body.dark {
             --bg-color: #09090b;
             --surface-color: #121214;
-            --text-primary: #f9fafb;
-            --text-secondary: #9ca3af;
+            --surface-subtle: #1c1c20;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
             --border-color: #27272a;
-            --hover-color: #18181b;
-            --btn-bg: #fafafa;
+            --hover-color: #1a1a1e;
+            --btn-bg: #f8fafc;
             --btn-text: #09090b;
+            --btn-hover: #e2e8f0;
             --accent: #3b82f6;
+            --accent-light: #1e293b;
             --badge-gray-bg: #27272a;
-            --badge-gray-text: #d4d4d8;
+            --badge-gray-text: #cbd5e1;
             --badge-blue-bg: #1e293b;
             --badge-blue-text: #93c5fd;
             --danger: #f87171;
-            --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+            --danger-light: #450a0a;
+            --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
 
         * { box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
             margin: 0;
             padding: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Header */
+        .svg-icon {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2;
+            stroke: currentColor;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            display: inline-block;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+
+        /* App Header */
         header {
             background: var(--surface-color);
             border-bottom: 1px solid var(--border-color);
-            padding: 14px 24px;
+            padding: 12px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 40;
         }
 
-        .header-title { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; }
-        .user-info { font-size: 13px; color: var(--text-secondary); }
+        .header-title {
+            font-weight: 700;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.01em;
+        }
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-email {
+            font-size: 13px;
+            color: var(--text-secondary);
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
         .btn-ui {
             background: var(--btn-bg);
             color: var(--btn-text);
-            border: none;
+            border: 1px solid transparent;
             padding: 8px 16px;
-            border-radius: 20px;
+            border-radius: 10px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-ui:hover {
+            background: var(--btn-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--surface-color);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--surface-subtle);
         }
 
         .container {
-            max-width: 1050px;
-            margin: 24px auto;
-            padding: 0 16px;
+            max-width: 1100px;
+            margin: 28px auto;
+            padding: 0 20px;
         }
 
-        /* Nav & Search */
+        /* Navigation Bar & Controls */
+        .controls-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
         .nav-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
             flex-wrap: wrap;
             gap: 12px;
         }
 
         .breadcrumbs {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
-        .breadcrumb-link { cursor: pointer; color: var(--text-secondary); }
-        .breadcrumb-link:hover { color: var(--text-primary); }
+        .breadcrumb-item {
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.15s;
+        }
+
+        .breadcrumb-item:hover { color: var(--text-primary); }
 
         .search-box {
             position: relative;
-            margin-bottom: 20px;
+            width: 100%;
         }
 
         .search-box input {
             width: 100%;
-            padding: 12px 16px 12px 40px;
+            padding: 12px 16px 12px 42px;
             border-radius: 12px;
             border: 1px solid var(--border-color);
             background: var(--surface-color);
             color: var(--text-primary);
             font-size: 14px;
             outline: none;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
         .search-icon {
@@ -129,32 +214,35 @@
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-secondary);
+            pointer-events: none;
         }
 
-        /* Table */
+        /* Files Table */
         .files-table-container {
             background: var(--surface-color);
             border: 1px solid var(--border-color);
             border-radius: 16px;
+            box-shadow: var(--shadow-sm);
             overflow: visible;
         }
 
         .table-header {
             display: grid;
-            grid-template-columns: 3fr 1.3fr 1fr 1fr 40px;
+            grid-template-columns: 3.2fr 1.4fr 1.2fr 0.8fr 44px;
             padding: 14px 20px;
             border-bottom: 1px solid var(--border-color);
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--text-secondary);
             text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .file-row {
             display: grid;
-            grid-template-columns: 3fr 1.3fr 1fr 1fr 40px;
+            grid-template-columns: 3.2fr 1.4fr 1.2fr 0.8fr 44px;
             align-items: center;
-            padding: 14px 20px;
+            padding: 12px 20px;
             border-bottom: 1px solid var(--border-color);
             position: relative;
             transition: background 0.15s;
@@ -166,26 +254,31 @@
         .col-name {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             overflow: hidden;
             font-weight: 500;
             font-size: 14px;
         }
 
-        .file-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            background: var(--bg-color);
+        .file-icon-box {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--surface-subtle);
+            border: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            font-size: 18px;
+            color: var(--text-secondary);
             overflow: hidden;
         }
 
-        .file-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .file-icon-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
         .name-text {
             overflow: hidden;
@@ -197,9 +290,9 @@
         .badge-pill {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             padding: 4px 10px;
-            border-radius: 12px;
+            border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
             width: fit-content;
@@ -210,35 +303,67 @@
 
         .col-format {
             font-size: 13px;
-            font-weight: 500;
             color: var(--text-secondary);
+            font-weight: 500;
         }
 
-        /* 3-Dots Dropdown */
+        .lock-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+        }
+
+        .lock-indicator.active {
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .lock-indicator.inactive {
+            color: var(--text-secondary);
+            opacity: 0.35;
+        }
+
+        /* 3-Dots Action Menu */
         .col-actions { position: relative; text-align: right; }
         .dots-btn {
             background: none;
             border: none;
-            font-size: 18px;
-            cursor: pointer;
             color: var(--text-secondary);
-            padding: 4px 8px;
-            border-radius: 6px;
+            padding: 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
         }
-        .dots-btn:hover { background: var(--border-color); color: var(--text-primary); }
+
+        .dots-btn:hover {
+            background: var(--surface-subtle);
+            color: var(--text-primary);
+        }
 
         .dropdown-menu {
             position: absolute;
             right: 0;
-            top: 32px;
+            top: 36px;
             background: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 14px;
             box-shadow: var(--shadow-modal);
-            width: 180px;
+            width: 200px;
             z-index: 100;
             display: none;
-            padding: 6px 0;
+            padding: 6px;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .dropdown-menu.active { display: block; }
@@ -247,23 +372,24 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 9px 14px;
+            padding: 9px 12px;
             font-size: 13px;
             color: var(--text-primary);
-            text-decoration: none;
+            border-radius: 8px;
             cursor: pointer;
             transition: background 0.15s;
         }
 
-        .dropdown-item:hover { background: var(--hover-color); }
+        .dropdown-item:hover { background: var(--surface-subtle); }
         .dropdown-item.danger { color: var(--danger); }
+        .dropdown-item.danger:hover { background: var(--danger-light); }
 
-        /* Unified Dual-Tab Share & Access Modal */
+        /* Enhanced Modal Window */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.45);
-            backdrop-filter: blur(5px);
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -271,25 +397,34 @@
             padding: 16px;
             visibility: hidden;
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: all 0.2s ease-in-out;
         }
 
-        .modal-overlay.active { visibility: visible; opacity: 1; }
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
 
         .modal-card {
             background: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 24px;
             width: 100%;
             max-width: 480px;
             box-shadow: var(--shadow-modal);
+            transform: scale(0.96);
+            transition: transform 0.2s ease-in-out;
         }
 
-        .tab-switcher {
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header-nav {
             display: flex;
-            background: var(--bg-color);
-            border-radius: 10px;
+            background: var(--surface-subtle);
+            border-radius: 12px;
             padding: 4px;
             margin-bottom: 20px;
             border: 1px solid var(--border-color);
@@ -297,7 +432,7 @@
 
         .tab-btn {
             flex: 1;
-            padding: 8px;
+            padding: 9px;
             border: none;
             background: none;
             font-size: 13px;
@@ -305,171 +440,223 @@
             color: var(--text-secondary);
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.15s;
         }
 
         .tab-btn.active {
             background: var(--surface-color);
             color: var(--text-primary);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: var(--shadow-sm);
         }
 
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        .form-group { margin-bottom: 16px; }
+        .form-group { margin-bottom: 18px; }
         .form-group label {
             display: block;
             font-size: 12px;
             font-weight: 600;
             color: var(--text-secondary);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
         .modal-input {
             width: 100%;
-            padding: 10px 12px;
+            padding: 11px 14px;
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            background: var(--bg-color);
+            border-radius: 12px;
+            background: var(--surface-subtle);
             color: var(--text-primary);
             font-size: 14px;
             outline: none;
+            transition: all 0.15s;
+        }
+
+        .modal-input:focus {
+            border-color: var(--accent);
+            background: var(--surface-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
         .user-access-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 12px;
-            background: var(--bg-color);
-            border-radius: 10px;
-            margin-top: 6px;
+            padding: 10px 14px;
+            background: var(--surface-subtle);
+            border-radius: 12px;
+            margin-top: 8px;
             font-size: 13px;
         }
 
         .role-badge {
             font-size: 11px;
             font-weight: 600;
-            padding: 2px 8px;
+            padding: 3px 8px;
             border-radius: 6px;
             background: var(--badge-blue-bg);
             color: var(--badge-blue-text);
         }
 
+        /* In-App Notification Toast */
         .toast {
             position: fixed;
             bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
-            background: #1f2937;
+            background: #0f172a;
             color: #ffffff;
             padding: 10px 20px;
             border-radius: 30px;
             font-size: 13px;
+            font-weight: 500;
             display: none;
+            box-shadow: var(--shadow-modal);
             z-index: 300;
         }
 
-        @media (max-width: 640px) {
+        /* Responsive Mobile/Tablet Breakpoints */
+        @media (max-width: 768px) {
             .table-header { display: none; }
-            .file-row { grid-template-columns: 1fr auto 40px; gap: 8px; }
+            .file-row {
+                grid-template-columns: 1fr auto 44px;
+                gap: 12px;
+                padding: 14px;
+            }
             .col-format { display: none; }
+            .user-email { display: none; }
+            .container { padding: 0 14px; margin: 16px auto; }
         }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="header-title"><span>⚙️</span> Knowledge Base</div>
-    <div style="display: flex; align-items: center; gap: 12px;">
-        <span class="user-info" id="userDisplay">Loading...</span>
-        <button class="btn-ui" id="logoutBtn" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Sign Out</button>
+    <div class="header-title">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+        Cloud Drive
+    </div>
+    <div class="header-user">
+        <span class="user-email" id="userDisplay">Loading...</span>
+        <button class="btn-ui btn-secondary" id="logoutBtn">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sign Out
+        </button>
     </div>
 </header>
 
 <div class="container">
-    <div class="nav-bar">
-        <div class="breadcrumbs" id="breadcrumbs">
-            <span class="breadcrumb-link" id="navHome">Knowledge base</span>
+    <div class="controls-wrapper">
+        <div class="nav-bar">
+            <div class="breadcrumbs" id="breadcrumbs">
+                <span class="breadcrumb-item" id="navHome">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    All Files
+                </span>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-ui btn-secondary" id="newFolderBtn">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
+                    New Folder
+                </button>
+                <a href="upload.html" class="btn-ui">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Upload
+                </a>
+            </div>
         </div>
 
-        <div style="display: flex; gap: 8px;">
-            <button class="btn-ui" id="newFolderBtn" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">+ New Folder</button>
-            <a href="upload.html" class="btn-ui">↑ Upload</a>
+        <div class="search-box">
+            <svg class="svg-icon search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="searchInput" placeholder="Search files and folders...">
         </div>
     </div>
 
-    <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Search files...">
-    </div>
-
+    <!-- Main Files Table -->
     <div class="files-table-container">
         <div class="table-header">
             <div>Name</div>
             <div>Access</div>
             <div>Format</div>
-            <div>Password</div>
+            <div style="text-align: center;">Security</div>
             <div></div>
         </div>
         <div id="tableBody"></div>
     </div>
 </div>
 
-<!-- Unified Dual Tab Modal: Share & Access Control -->
+<!-- Modal: Unified Share & Access Rights -->
 <div class="modal-overlay" id="unifiedModal">
     <div class="modal-card">
-        <div class="tab-switcher">
-            <button class="tab-btn active" id="tabBtnShare">🔗 Share & Export</button>
-            <button class="tab-btn" id="tabBtnAccess">👥 Access Rights</button>
+        <div class="modal-header-nav">
+            <button class="tab-btn active" id="tabBtnShare">
+                <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Share & Export
+            </button>
+            <button class="tab-btn" id="tabBtnAccess">
+                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Access
+            </button>
         </div>
 
-        <!-- Tab 1: Share & Export -->
+        <!-- Share Tab -->
         <div class="tab-content active" id="tabContentShare">
             <div class="form-group">
-                <label>Export / Share Format</label>
+                <label>Export Format</label>
                 <select id="shareFormatSelect" class="modal-input">
                     <option value="original">Original Format</option>
-                    <option value="pdf">Convert to PDF (.pdf)</option>
+                    <option value="pdf">Convert to PDF Document (.pdf)</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label>Security Password</label>
-                <input type="text" id="sharePasswordInput" class="modal-input" placeholder="Set protection password (optional)">
+                <label>Protection Password</label>
+                <input type="text" id="sharePasswordInput" class="modal-input" placeholder="Enter password (optional)">
             </div>
 
             <div style="display: flex; gap: 8px; margin-top: 24px;">
-                <button class="btn-ui" id="btnDeviceShare" style="flex: 1; background: var(--accent); color: #fff;">📲 Device Native Share</button>
-                <button class="btn-ui" id="btnCopyLink" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Copy Link</button>
+                <button class="btn-ui" id="btnDeviceShare" style="flex: 1;">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    Device Share
+                </button>
+                <button class="btn-ui btn-secondary" id="btnCopyLink">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    Copy Link
+                </button>
             </div>
         </div>
 
-        <!-- Tab 2: Access Management -->
+        <!-- Access Tab -->
         <div class="tab-content" id="tabContentAccess">
             <div class="form-group">
-                <label>Invite User</label>
-                <div style="display: flex; gap: 6px;">
-                    <input type="email" id="accessEmailInput" class="modal-input" placeholder="email@perplexity.com" style="margin-bottom: 0;">
-                    <select id="accessRoleSelect" class="modal-input" style="width: 140px; margin-bottom: 0;">
+                <label>Add Collaborator</label>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <input type="email" id="accessEmailInput" class="modal-input" placeholder="colleague@domain.com" style="flex: 1; min-width: 150px;">
+                    <select id="accessRoleSelect" class="modal-input" style="width: auto;">
                         <option value="Viewer">Viewer</option>
                         <option value="Commentator">Commentator</option>
                         <option value="Editor">Editor</option>
                         <option value="passon">Pass Ownership</option>
                     </select>
-                    <button class="btn-ui" id="btnAddAccess" style="flex-shrink: 0;">Add</button>
+                    <button class="btn-ui" id="btnAddAccess">Add</button>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>People with Access</label>
-                <div id="accessMembersList" style="max-height: 140px; overflow-y: auto;"></div>
+                <label>Users with Access</label>
+                <div id="accessMembersList" style="max-height: 160px; overflow-y: auto;"></div>
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
-                <button class="btn-ui" id="closeUnifiedModal" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Close</button>
+                <button class="btn-ui btn-secondary" id="closeUnifiedModal">Close</button>
                 <button class="btn-ui" id="saveAccessChanges">Save Permissions</button>
             </div>
         </div>
@@ -479,10 +666,10 @@
 <!-- Modal: Rename -->
 <div class="modal-overlay" id="renameModal">
     <div class="modal-card">
-        <h3>Rename</h3>
-        <input type="text" id="renameInput" class="modal-input">
+        <h3 style="margin-top: 0; margin-bottom: 16px;">Rename Item</h3>
+        <input type="text" id="renameInput" class="modal-input" style="margin-bottom: 16px;">
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
-            <button class="btn-ui" id="closeRenameModal" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Cancel</button>
+            <button class="btn-ui btn-secondary" id="closeRenameModal">Cancel</button>
             <button class="btn-ui" id="submitRename">Save</button>
         </div>
     </div>
@@ -491,22 +678,22 @@
 <!-- Modal: Shift Folder -->
 <div class="modal-overlay" id="shiftModal">
     <div class="modal-card">
-        <h3>Shift to Folder</h3>
-        <select id="shiftFolderSelect" class="modal-input"></select>
+        <h3 style="margin-top: 0; margin-bottom: 16px;">Move to Folder</h3>
+        <select id="shiftFolderSelect" class="modal-input" style="margin-bottom: 16px;"></select>
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
-            <button class="btn-ui" id="closeShiftModal" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Cancel</button>
-            <button class="btn-ui" id="submitShift">Shift</button>
+            <button class="btn-ui btn-secondary" id="closeShiftModal">Cancel</button>
+            <button class="btn-ui" id="submitShift">Move</button>
         </div>
     </div>
 </div>
 
-<!-- Modal: New Folder -->
+<!-- Modal: Create New Folder -->
 <div class="modal-overlay" id="folderModal">
     <div class="modal-card">
-        <h3>Create New Folder</h3>
-        <input type="text" id="newFolderNameInput" class="modal-input" placeholder="Folder Name...">
+        <h3 style="margin-top: 0; margin-bottom: 16px;">New Folder</h3>
+        <input type="text" id="newFolderNameInput" class="modal-input" placeholder="Enter folder name..." style="margin-bottom: 16px;">
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
-            <button class="btn-ui" id="closeFolderModal" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Cancel</button>
+            <button class="btn-ui btn-secondary" id="closeFolderModal">Cancel</button>
             <button class="btn-ui" id="submitNewFolder">Create</button>
         </div>
     </div>
@@ -533,9 +720,30 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // Dark Mode Theme Init
     if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
         document.body.classList.add("dark");
     }
+
+    // Professional SVG Library
+    const ICONS = {
+        folder: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>`,
+        image: `<svg class="svg-icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>`,
+        pdf: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13v-1h6v1"/><path d="M12 12v6"/></svg>`,
+        video: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2"/></svg>`,
+        sheet: `<svg class="svg-icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>`,
+        ppt: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 3h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>`,
+        document: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>`,
+        lock: `<svg class="svg-icon" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+        unlock: `<svg class="svg-icon" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`,
+        download: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+        edit: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>`,
+        shift: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>`,
+        share: `<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`,
+        trash: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`,
+        user: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+        users: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+    };
 
     function showToast(msg) {
         const toast = document.getElementById('toast');
@@ -544,19 +752,18 @@
         setTimeout(() => toast.style.display = 'none', 2500);
     }
 
-    function getFriendlyFormat(typeStr, isFolder) {
-        if (isFolder) return "Folder";
+    function getFormatDetails(typeStr, isFolder) {
+        if (isFolder) return { label: "Folder", icon: ICONS.folder };
         const t = (typeStr || "").toLowerCase();
-        if (t.includes("img") || t.includes("png") || t.includes("jpg") || t.includes("jpeg")) return "Image";
-        if (t.includes("pdf")) return "PDF";
-        if (t.includes("mp4") || t.includes("mkv") || t.includes("video")) return "Video";
-        if (t.includes("xls") || t.includes("csv") || t.includes("sheet")) return "Sheets";
-        if (t.includes("ppt") || t.includes("pptx")) return "PPT";
-        if (t.includes("doc") || t.includes("docx") || t.includes("txt")) return "Document";
-        return "Document";
+        if (t.includes("img") || t.includes("png") || t.includes("jpg") || t.includes("jpeg")) return { label: "Image", icon: ICONS.image };
+        if (t.includes("pdf")) return { label: "PDF", icon: ICONS.pdf };
+        if (t.includes("mp4") || t.includes("mkv") || t.includes("video")) return { label: "Video", icon: ICONS.video };
+        if (t.includes("xls") || t.includes("csv") || t.includes("sheet")) return { label: "Sheets", icon: ICONS.sheet };
+        if (t.includes("ppt") || t.includes("pptx")) return { label: "PPT", icon: ICONS.ppt };
+        return { label: "Document", icon: ICONS.document };
     }
 
-    // User authentication
+    // Authenticated User
     let currentUser = null;
     try {
         currentUser = JSON.parse(localStorage.getItem('active_user'));
@@ -574,7 +781,7 @@
     });
 
     window.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('dots-btn')) {
+        if (!e.target.closest('.dots-btn')) {
             document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
         }
     });
@@ -585,12 +792,17 @@
 
     function updateBreadcrumbs() {
         if (!currentFolderId) {
-            breadcrumbs.innerHTML = `<span>Knowledge base</span>`;
+            breadcrumbs.innerHTML = `
+                <span class="breadcrumb-item">
+                    ${ICONS.folder}
+                    All Files
+                </span>
+            `;
         } else {
             breadcrumbs.innerHTML = `
-                <span class="breadcrumb-link" id="navHome">Knowledge base</span>
+                <span class="breadcrumb-item" id="navHome">${ICONS.folder} All Files</span>
                 <span style="color: var(--text-secondary)">/</span>
-                <span>${currentFolderName}</span>
+                <span style="display: flex; align-items: center; gap: 6px;">${ICONS.folder} ${currentFolderName}</span>
             `;
             document.getElementById('navHome').addEventListener('click', () => {
                 currentFolderId = null;
@@ -600,14 +812,12 @@
         }
     }
 
-    // Load user's own items AND shared items
     async function loadDrive() {
         updateBreadcrumbs();
         const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = `<div style="padding: 20px; color: var(--text-secondary);">Loading records...</div>`;
+        tableBody.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-secondary);">Loading files...</div>`;
 
         try {
-            // Multi-Role & Ownership Query
             const q = query(
                 collection(db, "Cloud Drive"),
                 or(
@@ -653,14 +863,14 @@
             }
 
             if (itemsToRender.length === 0) {
-                tableBody.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-secondary);">No items available</div>`;
+                tableBody.innerHTML = `<div style="padding: 32px; text-align: center; color: var(--text-secondary);">No items located in this view.</div>`;
                 return;
             }
 
             itemsToRender.forEach(item => renderRow(item));
         } catch (err) {
             console.error(err);
-            tableBody.innerHTML = `<div style="padding: 20px; color: var(--danger);">Failed to load data</div>`;
+            tableBody.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--danger);">Failed to query database.</div>`;
         }
     }
 
@@ -668,40 +878,48 @@
         const tableBody = document.getElementById('tableBody');
         const isFolder = item.isFolder;
         const displayName = item.Name || (item.File ? item.File.split('/').pop() : "Untitled");
-        const formatLabel = getFriendlyFormat(item.Type, isFolder);
+        const { label: formatLabel, icon: formatIcon } = getFormatDetails(item.Type, isFolder);
         const isImg = formatLabel === "Image";
 
-        // Access Badge Calculations
+        // Access Badge
         const viewers = (item.Access && Array.isArray(item.Access.Viewer)) ? item.Access.Viewer : [];
         const commenters = (item.Access && Array.isArray(item.Access.Commentator)) ? item.Access.Commentator : [];
         const editors = (item.Access && Array.isArray(item.Access.Editor)) ? item.Access.Editor : [];
         const totalOtherMembers = viewers.length + commenters.length + editors.length;
 
-        let accessBadgeHtml = `<span class="badge-pill badge-personal">Personal</span>`;
+        let accessBadgeHtml = `<span class="badge-pill badge-personal">${ICONS.user} Personal</span>`;
         if (totalOtherMembers > 0) {
-            accessBadgeHtml = `<span class="badge-pill badge-shared">You & ${totalOtherMembers} other${totalOtherMembers > 1 ? 's' : ''}</span>`;
+            accessBadgeHtml = `<span class="badge-pill badge-shared">${ICONS.users} You & ${totalOtherMembers} other${totalOtherMembers > 1 ? 's' : ''}</span>`;
         }
 
-        const iconHtml = isFolder ? '📁' : (isImg ? `<img src="${item.File}" alt="thumb">` : '📄');
+        // Lock Icon
+        const hasPassword = Boolean(item.Password && item.Password.trim().length > 0);
+        const lockIconHtml = hasPassword 
+            ? `<div class="lock-indicator active" title="Password Protected">${ICONS.lock}</div>` 
+            : `<div class="lock-indicator inactive" title="Unprotected">${ICONS.unlock}</div>`;
 
         const row = document.createElement('div');
         row.className = 'file-row';
         row.innerHTML = `
             <div class="col-name">
-                <div class="file-icon">${iconHtml}</div>
+                <div class="file-icon-box">
+                    ${isImg ? `<img src="${item.File}" alt="preview">` : formatIcon}
+                </div>
                 <div class="name-text" title="${displayName}">${displayName}</div>
             </div>
             <div class="col-access">${accessBadgeHtml}</div>
             <div class="col-format">${formatLabel}</div>
-            <div class="col-password" style="font-size: 13px; color: var(--text-secondary);">${item.Password ? '🔒 Protected' : 'None'}</div>
+            <div style="display: flex; justify-content: center;">${lockIconHtml}</div>
             <div class="col-actions">
-                <button class="dots-btn">···</button>
+                <button class="dots-btn">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </button>
                 <div class="dropdown-menu">
-                    ${!isFolder ? `<div class="dropdown-item opt-download">📥 Download</div>` : ''}
-                    <div class="dropdown-item opt-rename">✏️ Rename</div>
-                    ${!isFolder ? `<div class="dropdown-item opt-shift">📁 ${item.insideFolder ? 'Remove from Folder' : 'Shift to folder'}</div>` : ''}
-                    <div class="dropdown-item opt-share">🔗 Share & Access</div>
-                    <div class="dropdown-item danger opt-delete">🗑️ Delete</div>
+                    ${!isFolder ? `<div class="dropdown-item opt-download">${ICONS.download} Download</div>` : ''}
+                    <div class="dropdown-item opt-rename">${ICONS.edit} Rename</div>
+                    ${!isFolder ? `<div class="dropdown-item opt-shift">${ICONS.shift} ${item.insideFolder ? 'Remove from Folder' : 'Shift to Folder'}</div>` : ''}
+                    <div class="dropdown-item opt-share">${ICONS.share} Share & Access</div>
+                    <div class="dropdown-item danger opt-delete">${ICONS.trash} Delete</div>
                 </div>
             </div>
         `;
@@ -723,12 +941,11 @@
             });
         }
 
-        // Action Handlers
         if (!isFolder) {
             row.querySelector('.opt-download').addEventListener('click', () => {
                 if (item.Password) {
                     const passPrompt = prompt("Enter Password to Download:");
-                    if (passPrompt !== item.Password) return showToast("Incorrect Password!");
+                    if (passPrompt !== item.Password) return showToast("Incorrect password provided");
                 }
                 window.open(item.File, '_blank');
             });
@@ -751,7 +968,7 @@
         row.querySelector('.opt-share').addEventListener('click', () => openUnifiedModal(item));
 
         row.querySelector('.opt-delete').addEventListener('click', async () => {
-            if (confirm(`Delete permanently?`)) {
+            if (confirm(`Permanently remove "${displayName}"?`)) {
                 await deleteDoc(doc(db, "Cloud Drive", item.id));
                 showToast("Deleted");
                 loadDrive();
@@ -761,7 +978,7 @@
         tableBody.appendChild(row);
     }
 
-    // Unified Modal Logic (Share & Access Switcher)
+    // Modal Control: Share & Access Rights
     let activeItem = null;
     let accessListState = { Viewer: [], Commentator: [], Editor: [] };
 
@@ -785,7 +1002,6 @@
         activeItem = item;
         document.getElementById('sharePasswordInput').value = item.Password || "";
         
-        // Populate access state
         accessListState = {
             Viewer: (item.Access && Array.isArray(item.Access.Viewer)) ? [...item.Access.Viewer] : [],
             Commentator: (item.Access && Array.isArray(item.Access.Commentator)) ? [...item.Access.Commentator] : [],
@@ -803,7 +1019,7 @@
         const container = document.getElementById('accessMembersList');
         container.innerHTML = `
             <div class="user-access-item">
-                <span>${activeItem.Email} <strong>(Owner)</strong></span>
+                <span style="font-weight: 500;">${activeItem.Email} <span style="color: var(--text-secondary);">(Owner)</span></span>
                 <span class="role-badge" style="background: #dcfce7; color: #15803d;">Owner</span>
             </div>
         `;
@@ -814,9 +1030,9 @@
                 itemDiv.className = 'user-access-item';
                 itemDiv.innerHTML = `
                     <span>${email}</span>
-                    <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="role-badge">${role}</span>
-                        <span style="cursor:pointer; color:var(--danger);" data-role="${role}" data-idx="${idx}">&times;</span>
+                        <span style="cursor: pointer; color: var(--danger); font-size: 16px;" data-role="${role}" data-idx="${idx}">&times;</span>
                     </div>
                 `;
                 itemDiv.querySelector('span[data-role]').addEventListener('click', () => {
@@ -828,7 +1044,6 @@
         });
     }
 
-    // Add / Transfer Permissions
     document.getElementById('btnAddAccess').addEventListener('click', async () => {
         const email = document.getElementById('accessEmailInput').value.trim();
         const role = document.getElementById('accessRoleSelect').value;
@@ -840,14 +1055,13 @@
                     Email: email,
                     "Access.Editor": arrayUnion(userEmail)
                 });
-                showToast("Ownership transferred!");
+                showToast("Ownership transferred");
                 unifiedModal.classList.remove('active');
                 loadDrive();
             }
             return;
         }
 
-        // Clean from other roles first
         ['Viewer', 'Commentator', 'Editor'].forEach(r => {
             accessListState[r] = accessListState[r].filter(e => e !== email);
         });
@@ -857,30 +1071,30 @@
         renderAccessMembers();
     });
 
-    // Save Access Rights
     document.getElementById('saveAccessChanges').addEventListener('click', async () => {
         if (!activeItem) return;
         await updateDoc(doc(db, "Cloud Drive", activeItem.id), {
             Access: accessListState
         });
-        showToast("Permissions updated!");
+        showToast("Access permissions updated");
         unifiedModal.classList.remove('active');
         loadDrive();
     });
 
-    // Native Device Share / Format Conversion
+    // Native Device Share & PDF Conversion
     document.getElementById('btnDeviceShare').addEventListener('click', async () => {
         if (!activeItem) return;
         const format = document.getElementById('shareFormatSelect').value;
         const newPass = document.getElementById('sharePasswordInput').value.trim();
 
-        // Update password if changed
         if (newPass !== (activeItem.Password || '')) {
             await updateDoc(doc(db, "Cloud Drive", activeItem.id), { Password: newPass });
         }
 
-        if (format === 'pdf' && getFriendlyFormat(activeItem.Type) === 'Image') {
-            showToast("Converting Image to PDF...");
+        const { label: formatLabel } = getFormatDetails(activeItem.Type);
+
+        if (format === 'pdf' && formatLabel === 'Image') {
+            showToast("Converting image to PDF...");
             const { jsPDF } = window.jspdf;
             const docPdf = new jsPDF();
             
@@ -894,31 +1108,30 @@
 
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({
-                        title: activeItem.Name,
+                        title: activeItem.Name || "Shared PDF",
                         files: [file]
                     });
                 } else {
                     docPdf.save(`${activeItem.Name || 'export'}.pdf`);
-                    showToast("PDF downloaded!");
+                    showToast("PDF downloaded");
                 }
             };
         } else {
-            // Default Native Share
             if (navigator.share) {
                 await navigator.share({
                     title: activeItem.Name || "Shared File",
-                    text: `Access file: ${activeItem.Name}`,
+                    text: `Access file: ${activeItem.Name || ''}`,
                     url: activeItem.File
                 });
             } else {
-                navigator.clipboard.writeText(activeItem.File).then(() => showToast("Link copied to clipboard!"));
+                navigator.clipboard.writeText(activeItem.File).then(() => showToast("Link copied to clipboard"));
             }
         }
     });
 
     document.getElementById('btnCopyLink').addEventListener('click', () => {
         if (activeItem && activeItem.File) {
-            navigator.clipboard.writeText(activeItem.File).then(() => showToast("Link copied!"));
+            navigator.clipboard.writeText(activeItem.File).then(() => showToast("Link copied to clipboard"));
         }
     });
 
@@ -943,7 +1156,7 @@
         }
     });
 
-    // Shift Folder Logic
+    // Shift Folder Modal Logic
     let activeShiftFileId = null;
     const shiftModal = document.getElementById('shiftModal');
     const shiftFolderSelect = document.getElementById('shiftFolderSelect');
@@ -965,12 +1178,12 @@
         if (targetId && activeShiftFileId) {
             await updateDoc(doc(db, "Cloud Drive", targetId), { Files: arrayUnion(activeShiftFileId) });
             shiftModal.classList.remove('active');
-            showToast("Shifted to folder");
+            showToast("Item moved");
             loadDrive();
         }
     });
 
-    // Create Folder Modal Logic
+    // Create New Folder Modal Logic
     const folderModal = document.getElementById('folderModal');
     const newFolderNameInput = document.getElementById('newFolderNameInput');
 
@@ -991,12 +1204,12 @@
                 Password: ""
             });
             folderModal.classList.remove('active');
-            showToast(`Folder created: ${name}`);
+            showToast(`Folder created`);
             loadDrive();
         }
     });
 
-    // Search filter
+    // Search Filter
     document.getElementById('searchInput').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
         document.querySelectorAll('.file-row').forEach(row => {
