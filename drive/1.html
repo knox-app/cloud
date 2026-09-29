@@ -15,10 +15,12 @@
             --btn-bg: #111827;
             --btn-text: #ffffff;
             --accent: #2563eb;
-            --badge-green-bg: #ecfdf5;
-            --badge-green-text: #059669;
+            --badge-gray-bg: #f3f4f6;
+            --badge-gray-text: #4b5563;
+            --badge-blue-bg: #eff6ff;
+            --badge-blue-text: #1d4ed8;
             --danger: #ef4444;
-            --shadow-popup: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
 
         body.dark {
@@ -31,10 +33,12 @@
             --btn-bg: #fafafa;
             --btn-text: #09090b;
             --accent: #3b82f6;
-            --badge-green-bg: #064e3b;
-            --badge-green-text: #34d399;
+            --badge-gray-bg: #27272a;
+            --badge-gray-text: #d4d4d8;
+            --badge-blue-bg: #1e293b;
+            --badge-blue-text: #93c5fd;
             --danger: #f87171;
-            --shadow-popup: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
         }
 
         * { box-sizing: border-box; }
@@ -46,7 +50,7 @@
             padding: 0;
         }
 
-        /* Top Header */
+        /* Header */
         header {
             background: var(--surface-color);
             border-bottom: 1px solid var(--border-color);
@@ -75,12 +79,12 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1050px;
             margin: 24px auto;
             padding: 0 16px;
         }
 
-        /* Navigation & Action Bar */
+        /* Nav & Search */
         .nav-bar {
             display: flex;
             justify-content: space-between;
@@ -98,7 +102,7 @@
             gap: 6px;
         }
 
-        .breadcrumb-link { cursor: pointer; color: var(--text-secondary); text-decoration: none; }
+        .breadcrumb-link { cursor: pointer; color: var(--text-secondary); }
         .breadcrumb-link:hover { color: var(--text-primary); }
 
         .search-box {
@@ -125,31 +129,7 @@
             color: var(--text-secondary);
         }
 
-        /* View Layout Toggle */
-        .layout-toggle {
-            display: flex;
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .layout-btn {
-            background: none;
-            border: none;
-            padding: 6px 12px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-
-        .layout-btn.active {
-            background: var(--hover-color);
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        /* Files Table (Linear View) */
+        /* Table */
         .files-table-container {
             background: var(--surface-color);
             border: 1px solid var(--border-color);
@@ -159,7 +139,7 @@
 
         .table-header {
             display: grid;
-            grid-template-columns: 3fr 1fr 1fr 1fr 40px;
+            grid-template-columns: 3fr 1.2fr 1.2fr 1fr 40px;
             padding: 14px 20px;
             border-bottom: 1px solid var(--border-color);
             font-size: 12px;
@@ -170,7 +150,7 @@
 
         .file-row {
             display: grid;
-            grid-template-columns: 3fr 1fr 1fr 1fr 40px;
+            grid-template-columns: 3fr 1.2fr 1.2fr 1fr 40px;
             align-items: center;
             padding: 14px 20px;
             border-bottom: 1px solid var(--border-color);
@@ -212,17 +192,24 @@
             cursor: pointer;
         }
 
-        .col-size, .col-added { font-size: 13px; color: var(--text-secondary); }
-
-        .status-pill {
-            display: inline-block;
-            padding: 3px 8px;
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
             border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            background: var(--badge-green-bg);
-            color: var(--badge-green-text);
+            font-size: 12px;
+            font-weight: 500;
             width: fit-content;
+        }
+
+        .badge-personal { background: var(--badge-gray-bg); color: var(--badge-gray-text); }
+        .badge-shared { background: var(--badge-blue-bg); color: var(--badge-blue-text); }
+
+        .col-format {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
         }
 
         /* 3-Dots Dropdown */
@@ -245,7 +232,7 @@
             background: var(--surface-color);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            box-shadow: var(--shadow-popup);
+            box-shadow: var(--shadow-modal);
             width: 170px;
             z-index: 100;
             display: none;
@@ -269,42 +256,12 @@
         .dropdown-item:hover { background: var(--hover-color); }
         .dropdown-item.danger { color: var(--danger); }
 
-        /* Grid View Alternative */
-        .items-grid-view {
-            display: none;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px;
-        }
-
-        .grid-card {
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            padding: 14px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .grid-card .item-preview {
-            height: 120px;
-            border-radius: 8px;
-            background: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 10px;
-            overflow: hidden;
-            font-size: 32px;
-        }
-
-        .grid-card .item-preview img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* Custom Modals */
+        /* Modern Bottom/Floating Modal */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -317,30 +274,60 @@
 
         .modal-overlay.active { visibility: visible; opacity: 1; }
 
-        .modal {
+        .modal-card {
             background: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 24px;
             width: 100%;
-            max-width: 380px;
-            box-shadow: var(--shadow-popup);
+            max-width: 440px;
+            box-shadow: var(--shadow-modal);
         }
 
-        .modal h3 { margin: 0 0 16px 0; font-size: 17px; }
+        .modal-card h3 { margin: 0 0 16px 0; font-size: 18px; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
         .modal-input {
             width: 100%;
-            padding: 12px;
+            padding: 10px 12px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 10px;
             background: var(--bg-color);
             color: var(--text-primary);
             font-size: 14px;
             outline: none;
-            margin-bottom: 16px;
         }
 
-        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+        .viewers-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        .viewer-tag {
+            background: var(--badge-blue-bg);
+            color: var(--badge-blue-text);
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .viewer-tag span { cursor: pointer; font-weight: bold; }
 
         .toast {
             position: fixed;
@@ -357,17 +344,16 @@
         }
 
         @media (max-width: 640px) {
-            .table-header, .col-size, .col-added { display: none; }
-            .file-row { grid-template-columns: 1fr auto 40px; }
+            .table-header { display: none; }
+            .file-row { grid-template-columns: 1fr auto 40px; gap: 8px; }
+            .col-format { display: none; }
         }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="header-title">
-        <span>⚙️</span> Knowledge Base
-    </div>
+    <div class="header-title"><span>⚙️</span> Knowledge Base</div>
     <div style="display: flex; align-items: center; gap: 12px;">
         <span class="user-info" id="userDisplay">Loading...</span>
         <button class="btn-ui" id="logoutBtn" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Sign Out</button>
@@ -377,14 +363,10 @@
 <div class="container">
     <div class="nav-bar">
         <div class="breadcrumbs" id="breadcrumbs">
-            <span class="breadcrumb-link" id="navRoot">Knowledge base</span>
+            <span class="breadcrumb-link" id="navHome">Knowledge base</span>
         </div>
 
         <div style="display: flex; gap: 8px;">
-            <div class="layout-toggle">
-                <button class="layout-btn active" id="btnList">☰ List</button>
-                <button class="layout-btn" id="btnGrid">⊞ Grid</button>
-            </div>
             <button class="btn-ui" id="newFolderBtn" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">+ New Folder</button>
             <a href="upload.html" class="btn-ui">↑ Upload</a>
         </div>
@@ -395,40 +377,70 @@
         <input type="text" id="searchInput" placeholder="Search files...">
     </div>
 
-    <!-- Table View (Default Linear) -->
-    <div class="files-table-container" id="tableView">
+    <div class="files-table-container">
         <div class="table-header">
             <div>Name</div>
-            <div>Size</div>
-            <div>Status</div>
-            <div>Added</div>
+            <div>Access</div>
+            <div>Format</div>
+            <div>Password</div>
             <div></div>
         </div>
         <div id="tableBody"></div>
     </div>
+</div>
 
-    <!-- Grid View -->
-    <div class="items-grid-view" id="gridView"></div>
+<!-- Modal: Share & Access Management -->
+<div class="modal-overlay" id="shareModal">
+    <div class="modal-card">
+        <h3>Share & Access Management</h3>
+        
+        <div class="form-group">
+            <label>File Format</label>
+            <div id="shareFileFormat" style="font-weight: 600; font-size: 14px;">Image</div>
+        </div>
+
+        <div class="form-group">
+            <label>Access Password</label>
+            <input type="text" id="sharePasswordInput" class="modal-input" placeholder="No Password set (optional)">
+        </div>
+
+        <div class="form-group">
+            <label>Add Viewer (Email)</label>
+            <div style="display: flex; gap: 6px;">
+                <input type="email" id="shareEmailInput" class="modal-input" placeholder="user@perplexity.com" style="margin-bottom: 0;">
+                <button class="btn-ui" id="addViewerBtn" style="flex-shrink: 0;">+ Add</button>
+            </div>
+            <div class="viewers-list" id="viewersList"></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <button class="btn-ui" id="copyShareLinkBtn" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">🔗 Copy Link</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-ui" id="closeShareModal" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Cancel</button>
+                <button class="btn-ui" id="saveShareSettings">Save</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal: Rename -->
 <div class="modal-overlay" id="renameModal">
-    <div class="modal">
-        <h3>Rename Item</h3>
+    <div class="modal-card">
+        <h3>Rename</h3>
         <input type="text" id="renameInput" class="modal-input">
-        <div class="modal-actions">
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button class="btn-ui" id="closeRenameModal" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Cancel</button>
             <button class="btn-ui" id="submitRename">Save</button>
         </div>
     </div>
 </div>
 
-<!-- Modal: Shift to Folder -->
+<!-- Modal: Shift Folder -->
 <div class="modal-overlay" id="shiftModal">
-    <div class="modal">
+    <div class="modal-card">
         <h3>Shift to Folder</h3>
         <select id="shiftFolderSelect" class="modal-input"></select>
-        <div class="modal-actions">
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button class="btn-ui" id="closeShiftModal" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Cancel</button>
             <button class="btn-ui" id="submitShift">Shift</button>
         </div>
@@ -437,10 +449,10 @@
 
 <!-- Modal: New Folder -->
 <div class="modal-overlay" id="folderModal">
-    <div class="modal">
+    <div class="modal-card">
         <h3>Create New Folder</h3>
-        <input type="text" id="newFolderNameInput" class="modal-input" placeholder="Folder name...">
-        <div class="modal-actions">
+        <input type="text" id="newFolderNameInput" class="modal-input" placeholder="Folder Name...">
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button class="btn-ui" id="closeFolderModal" style="background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);">Cancel</button>
             <button class="btn-ui" id="submitNewFolder">Create</button>
         </div>
@@ -479,6 +491,19 @@
         setTimeout(() => toast.style.display = 'none', 2500);
     }
 
+    // Helper: Map extension/Type to Format Name
+    function getFriendlyFormat(typeStr, isFolder) {
+        if (isFolder) return "Folder";
+        const t = (typeStr || "").toLowerCase();
+        if (t.includes("img") || t.includes("png") || t.includes("jpg") || t.includes("jpeg")) return "Image";
+        if (t.includes("pdf")) return "PDF";
+        if (t.includes("mp4") || t.includes("mkv") || t.includes("video")) return "Video";
+        if (t.includes("xls") || t.includes("csv") || t.includes("sheet")) return "Sheets";
+        if (t.includes("ppt") || t.includes("pptx")) return "PPT";
+        if (t.includes("doc") || t.includes("docx") || t.includes("txt")) return "Document";
+        return "Document";
+    }
+
     // Auth verification
     let currentUser = null;
     try {
@@ -496,46 +521,16 @@
         window.location.reload();
     });
 
-    // Close any open 3-dots dropdown when clicking outside
     window.addEventListener('click', (e) => {
         if (!e.target.classList.contains('dots-btn')) {
             document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
         }
     });
 
-    // View States
     let currentFolderId = null;
     let currentFolderName = "";
-    let isGridView = false;
     let allFolders = [];
-    let currentLoadedFiles = [];
 
-    // Layout Toggle
-    const btnList = document.getElementById('btnList');
-    const btnGrid = document.getElementById('btnGrid');
-    const tableView = document.getElementById('tableView');
-    const gridView = document.getElementById('gridView');
-
-    btnList.addEventListener('click', () => switchLayout(false));
-    btnGrid.addEventListener('click', () => switchLayout(true));
-
-    function switchLayout(grid) {
-        isGridView = grid;
-        if (grid) {
-            btnGrid.classList.add('active');
-            btnList.classList.remove('active');
-            tableView.style.display = 'none';
-            gridView.style.display = 'grid';
-        } else {
-            btnList.classList.add('active');
-            btnGrid.classList.remove('active');
-            tableView.style.display = 'block';
-            gridView.style.display = 'none';
-        }
-    }
-
-    // Breadcrumbs
-    const breadcrumbs = document.getElementById('breadcrumbs');
     function updateBreadcrumbs() {
         if (!currentFolderId) {
             breadcrumbs.innerHTML = `<span>Knowledge base</span>`;
@@ -553,14 +548,13 @@
         }
     }
 
-    // Data Fetching
     async function loadDrive() {
         updateBreadcrumbs();
         const tableBody = document.getElementById('tableBody');
         tableBody.innerHTML = `<div style="padding: 20px; color: var(--text-secondary);">Loading records...</div>`;
-        gridView.innerHTML = '';
 
         try {
+            // Load items owned by or accessible to user
             const q = query(collection(db, "Cloud Drive"), where("Email", "==", userEmail));
             const snapshot = await getDocs(q);
 
@@ -577,13 +571,11 @@
             });
 
             allFolders = folders;
-            currentLoadedFiles = files;
             tableBody.innerHTML = '';
 
             let itemsToRender = [];
 
             if (currentFolderId === null) {
-                // Root: Folders + Standalone Files
                 const folderAssignedFiles = new Set();
                 folders.forEach(f => {
                     if (Array.isArray(f.Files)) f.Files.forEach(id => folderAssignedFiles.add(id));
@@ -594,7 +586,6 @@
                     ...files.filter(file => !folderAssignedFiles.has(file.id)).map(f => ({ ...f, isFolder: false }))
                 ];
             } else {
-                // Inside Folder
                 const activeFolder = folders.find(f => f.id === currentFolderId);
                 const fileIds = (activeFolder && Array.isArray(activeFolder.Files)) ? activeFolder.Files : [];
                 itemsToRender = files.filter(f => fileIds.includes(f.id)).map(f => ({ ...f, isFolder: false, insideFolder: true }));
@@ -607,22 +598,27 @@
 
             itemsToRender.forEach(item => renderRow(item));
         } catch (err) {
-            console.error("Load failed:", err);
+            console.error(err);
             tableBody.innerHTML = `<div style="padding: 20px; color: var(--danger);">Failed to load data</div>`;
         }
     }
 
-    // Render Row & Grid Card
     function renderRow(item) {
         const tableBody = document.getElementById('tableBody');
         const isFolder = item.isFolder;
         const displayName = item.Name || (item.File ? item.File.split('/').pop() : "Untitled");
-        const type = (item.Type || (isFolder ? "folder" : ".file")).toLowerCase();
-        const isImg = type === '.img' || ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(type);
+        const formatLabel = getFriendlyFormat(item.Type, isFolder);
+        const isImg = formatLabel === "Image";
+
+        // Calculate Access badge
+        const viewers = (item.Access && Array.isArray(item.Access.Viewer)) ? item.Access.Viewer : [];
+        let accessBadgeHtml = `<span class="badge-pill badge-personal">Personal</span>`;
+        if (viewers.length > 0) {
+            accessBadgeHtml = `<span class="badge-pill badge-shared">You & ${viewers.length} other${viewers.length > 1 ? 's' : ''}</span>`;
+        }
 
         const iconHtml = isFolder ? '📁' : (isImg ? `<img src="${item.File}" alt="thumb">` : '📄');
 
-        // Linear Row
         const row = document.createElement('div');
         row.className = 'file-row';
         row.innerHTML = `
@@ -630,118 +626,138 @@
                 <div class="file-icon">${iconHtml}</div>
                 <div class="name-text" title="${displayName}">${displayName}</div>
             </div>
-            <div class="col-size">${isFolder ? `${(item.Files || []).length} items` : '127 KB'}</div>
-            <div class="col-status"><span class="status-pill">Ready</span></div>
-            <div class="col-added">Now</div>
+            <div class="col-access">${accessBadgeHtml}</div>
+            <div class="col-format">${formatLabel}</div>
+            <div class="col-password" style="font-size: 13px; color: var(--text-secondary);">${item.Password ? '🔒 Protected' : 'None'}</div>
             <div class="col-actions">
                 <button class="dots-btn">···</button>
                 <div class="dropdown-menu">
                     ${!isFolder ? `<div class="dropdown-item opt-download">📥 Download</div>` : ''}
                     <div class="dropdown-item opt-rename">✏️ Rename</div>
                     ${!isFolder ? `<div class="dropdown-item opt-shift">📁 ${item.insideFolder ? 'Remove from Folder' : 'Shift to folder'}</div>` : ''}
-                    ${!isFolder ? `<div class="dropdown-item opt-share">🔗 Share</div>` : ''}
+                    <div class="dropdown-item opt-share">🔗 Share & Access</div>
                     <div class="dropdown-item danger opt-delete">🗑️ Delete</div>
                 </div>
             </div>
         `;
 
-        // Grid Card
-        const card = document.createElement('div');
-        card.className = 'grid-card';
-        card.innerHTML = `
-            <div class="item-preview">${iconHtml}</div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="name-text" style="font-weight: 600; font-size: 14px;">${displayName}</div>
-                <div class="col-actions">
-                    <button class="dots-btn">···</button>
-                    <div class="dropdown-menu">
-                        ${!isFolder ? `<div class="dropdown-item opt-download">📥 Download</div>` : ''}
-                        <div class="dropdown-item opt-rename">✏️ Rename</div>
-                        ${!isFolder ? `<div class="dropdown-item opt-shift">📁 ${item.insideFolder ? 'Remove from Folder' : 'Shift to folder'}</div>` : ''}
-                        ${!isFolder ? `<div class="dropdown-item opt-share">🔗 Share</div>` : ''}
-                        <div class="dropdown-item danger opt-delete">🗑️ Delete</div>
-                    </div>
-                </div>
-            </div>
-            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">
-                ${isFolder ? `${(item.Files || []).length} items` : 'Ready'}
-            </div>
-        `;
+        const dotsBtn = row.querySelector('.dots-btn');
+        const menu = row.querySelector('.dropdown-menu');
 
-        // Attach action events for both Table & Grid elements
-        [row, card].forEach(el => {
-            const dotsBtn = el.querySelector('.dots-btn');
-            const menu = el.querySelector('.dropdown-menu');
+        dotsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.querySelectorAll('.dropdown-menu').forEach(m => m !== menu && m.classList.remove('active'));
+            menu.classList.toggle('active');
+        });
 
-            dotsBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                document.querySelectorAll('.dropdown-menu').forEach(m => m !== menu && m.classList.remove('active'));
-                menu.classList.toggle('active');
+        if (isFolder) {
+            row.querySelector('.col-name').addEventListener('click', () => {
+                currentFolderId = item.id;
+                currentFolderName = item.Name;
+                loadDrive();
             });
+        }
 
-            if (isFolder) {
-                el.querySelector('.col-name, .item-preview').addEventListener('click', () => {
-                    currentFolderId = item.id;
-                    currentFolderName = item.Name;
-                    loadDrive();
-                });
-            }
-
-            // 1. Download
-            const btnDownload = el.querySelector('.opt-download');
-            if (btnDownload) {
-                btnDownload.addEventListener('click', () => {
-                    window.open(item.File, '_blank');
-                    showToast("Download started");
-                });
-            }
-
-            // 2. Rename
-            el.querySelector('.opt-rename').addEventListener('click', () => {
-                openRenameModal(item);
+        // Action Handlers
+        if (!isFolder) {
+            row.querySelector('.opt-download').addEventListener('click', () => {
+                if (item.Password) {
+                    const passPrompt = prompt("Enter Password to Download:");
+                    if (passPrompt !== item.Password) return showToast("Incorrect Password!");
+                }
+                window.open(item.File, '_blank');
             });
+        }
 
-            // 3. Shift
-            const btnShift = el.querySelector('.opt-shift');
-            if (btnShift) {
-                btnShift.addEventListener('click', async () => {
-                    if (item.insideFolder) {
-                        await updateDoc(doc(db, "Cloud Drive", currentFolderId), {
-                            Files: arrayRemove(item.id)
-                        });
-                        showToast("Removed from folder");
-                        loadDrive();
-                    } else {
-                        openShiftModal(item.id);
-                    }
-                });
-            }
+        row.querySelector('.opt-rename').addEventListener('click', () => openRenameModal(item));
 
-            // 4. Share
-            const btnShare = el.querySelector('.opt-share');
-            if (btnShare) {
-                btnShare.addEventListener('click', () => {
-                    navigator.clipboard.writeText(item.File).then(() => {
-                        showToast("Link copied to clipboard!");
-                    });
-                });
-            }
-
-            // 5. Delete
-            el.querySelector('.opt-delete').addEventListener('click', async () => {
-                if (confirm(`Delete ${isFolder ? 'folder' : 'file'} permanently?`)) {
-                    await deleteDoc(doc(db, "Cloud Drive", item.id));
-                    showToast("Deleted successfully");
+        if (!isFolder) {
+            row.querySelector('.opt-shift').addEventListener('click', async () => {
+                if (item.insideFolder) {
+                    await updateDoc(doc(db, "Cloud Drive", currentFolderId), { Files: arrayRemove(item.id) });
+                    showToast("Removed from folder");
                     loadDrive();
+                } else {
+                    openShiftModal(item.id);
                 }
             });
+        }
+
+        row.querySelector('.opt-share').addEventListener('click', () => openShareModal(item));
+
+        row.querySelector('.opt-delete').addEventListener('click', async () => {
+            if (confirm(`Delete permanently?`)) {
+                await deleteDoc(doc(db, "Cloud Drive", item.id));
+                showToast("Deleted");
+                loadDrive();
+            }
         });
 
         tableBody.appendChild(row);
-        gridView.appendChild(card);
     }
 
-    // Modal Operations
+    // Modal: Share & Access
+    let activeShareItem = null;
+    let localViewers = [];
+    const shareModal = document.getElementById('shareModal');
+    const shareFileFormat = document.getElementById('shareFileFormat');
+    const sharePasswordInput = document.getElementById('sharePasswordInput');
+    const shareEmailInput = document.getElementById('shareEmailInput');
+    const viewersList = document.getElementById('viewersList');
+
+    function openShareModal(item) {
+        activeShareItem = item;
+        shareFileFormat.innerText = getFriendlyFormat(item.Type, item.isFolder);
+        sharePasswordInput.value = item.Password || "";
+        localViewers = (item.Access && Array.isArray(item.Access.Viewer)) ? [...item.Access.Viewer] : [];
+        renderViewers();
+        shareModal.classList.add('active');
+    }
+
+    function renderViewers() {
+        viewersList.innerHTML = '';
+        localViewers.forEach((email, idx) => {
+            const tag = document.createElement('div');
+            tag.className = 'viewer-tag';
+            tag.innerHTML = `${email} <span data-idx="${idx}">&times;</span>`;
+            tag.querySelector('span').addEventListener('click', () => {
+                localViewers.splice(idx, 1);
+                renderViewers();
+            });
+            viewersList.appendChild(tag);
+        });
+    }
+
+    document.getElementById('addViewerBtn').addEventListener('click', () => {
+        const val = shareEmailInput.value.trim();
+        if (val && !localViewers.includes(val)) {
+            localViewers.push(val);
+            shareEmailInput.value = '';
+            renderViewers();
+        }
+    });
+
+    document.getElementById('copyShareLinkBtn').addEventListener('click', () => {
+        if (activeShareItem && activeShareItem.File) {
+            navigator.clipboard.writeText(activeShareItem.File).then(() => showToast("File link copied!"));
+        }
+    });
+
+    document.getElementById('closeShareModal').addEventListener('click', () => shareModal.classList.remove('active'));
+
+    document.getElementById('saveShareSettings').addEventListener('click', async () => {
+        if (!activeShareItem) return;
+        const newPassword = sharePasswordInput.value.trim();
+        await updateDoc(doc(db, "Cloud Drive", activeShareItem.id), {
+            Password: newPassword,
+            Access: { Viewer: localViewers }
+        });
+        shareModal.classList.remove('active');
+        showToast("Access settings updated!");
+        loadDrive();
+    });
+
+    // Rename Modal
     let activeRenameItem = null;
     const renameModal = document.getElementById('renameModal');
     const renameInput = document.getElementById('renameInput');
@@ -751,7 +767,6 @@
         renameInput.value = item.Name || item.File.split('/').pop();
         renameModal.classList.add('active');
     }
-
     document.getElementById('closeRenameModal').addEventListener('click', () => renameModal.classList.remove('active'));
     document.getElementById('submitRename').addEventListener('click', async () => {
         const newName = renameInput.value.trim();
@@ -771,10 +786,6 @@
     function openShiftModal(fileId) {
         activeShiftFileId = fileId;
         shiftFolderSelect.innerHTML = "";
-        if (allFolders.length === 0) {
-            showToast("No folders available. Create one first.");
-            return;
-        }
         allFolders.forEach(f => {
             const opt = document.createElement('option');
             opt.value = f.id;
@@ -783,14 +794,11 @@
         });
         shiftModal.classList.add('active');
     }
-
     document.getElementById('closeShiftModal').addEventListener('click', () => shiftModal.classList.remove('active'));
     document.getElementById('submitShift').addEventListener('click', async () => {
         const targetId = shiftFolderSelect.value;
         if (targetId && activeShiftFileId) {
-            await updateDoc(doc(db, "Cloud Drive", targetId), {
-                Files: arrayUnion(activeShiftFileId)
-            });
+            await updateDoc(doc(db, "Cloud Drive", targetId), { Files: arrayUnion(activeShiftFileId) });
             shiftModal.classList.remove('active');
             showToast("Shifted to folder");
             loadDrive();
@@ -805,7 +813,6 @@
         newFolderNameInput.value = "";
         folderModal.classList.add('active');
     });
-
     document.getElementById('closeFolderModal').addEventListener('click', () => folderModal.classList.remove('active'));
     document.getElementById('submitNewFolder').addEventListener('click', async () => {
         const name = newFolderNameInput.value.trim();
@@ -814,7 +821,9 @@
                 Email: userEmail,
                 Folder: "True",
                 Name: name,
-                Files: []
+                Files: [],
+                Access: { Viewer: [] },
+                Password: ""
             });
             folderModal.classList.remove('active');
             showToast(`Folder created: ${name}`);
@@ -822,16 +831,12 @@
         }
     });
 
-    // Live Search Filter
+    // Search
     document.getElementById('searchInput').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
         document.querySelectorAll('.file-row').forEach(row => {
             const text = row.querySelector('.name-text').innerText.toLowerCase();
             row.style.display = text.includes(val) ? 'grid' : 'none';
-        });
-        document.querySelectorAll('.grid-card').forEach(card => {
-            const text = card.querySelector('.name-text').innerText.toLowerCase();
-            card.style.display = text.includes(val) ? 'flex' : 'none';
         });
     });
 
