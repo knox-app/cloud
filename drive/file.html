@@ -1,596 +1,845 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Cloud Drive — Media Editor & Viewer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Image Studio & Viewer</title>
+    <style>
+        :root {
+            --bg-base: #0a0a0c;
+            --surface-panel: #16161a;
+            --surface-card: #222227;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --danger: #ef4444;
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
+            --border: #2e2e38;
+        }
 
-  <!-- Tailwind CSS & Lucide Icons -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
 
-  <!-- Firebase v10 Compat SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+        /* Top Navigation */
+        header {
+            height: 56px;
+            background: var(--surface-panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 30;
+        }
 
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .glassmorphism {
-      background: rgba(18, 18, 20, 0.85);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-    }
-    .crop-handle {
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      background: #6366f1;
-      border: 2px solid white;
-      border-radius: 50%;
-    }
-  </style>
+        .nav-group { display: flex; align-items: center; gap: 8px; }
+        .back-btn {
+            background: transparent;
+            color: var(--text-main);
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .title { font-size: 15px; font-weight: 600; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .btn-action {
+            background: var(--surface-card);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.15s;
+        }
+
+        .btn-action:hover { background: var(--border); }
+        .btn-action.primary { background: var(--accent); border-color: var(--accent); }
+        .btn-action.primary:hover { background: var(--accent-hover); }
+        .btn-action.danger { color: var(--danger); border-color: rgba(239,68,68,0.3); }
+
+        /* Main Workspace */
+        .workspace {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: radial-gradient(circle, #1a1a22 0%, #0a0a0c 100%);
+        }
+
+        .canvas-container {
+            position: relative;
+            max-width: 95%;
+            max-height: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+
+        /* Editing Studio Bottom Panel */
+        .editor-drawer {
+            background: var(--surface-panel);
+            border-top: 1px solid var(--border);
+            display: none;
+            flex-direction: column;
+            z-index: 20;
+            max-height: 38vh;
+        }
+
+        .editor-drawer.open { display: flex; }
+
+        .editor-tabs {
+            display: flex;
+            overflow-x: auto;
+            border-bottom: 1px solid var(--border);
+            padding: 6px 10px;
+            gap: 6px;
+        }
+
+        .editor-tabs::-webkit-scrollbar { display: none; }
+
+        .tab-item {
+            background: transparent;
+            color: var(--text-sub);
+            border: none;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tab-item.active { background: var(--accent); color: #fff; }
+
+        .panel-content {
+            padding: 14px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .control-shelf { display: none; }
+        .control-shelf.active { display: flex; flex-direction: column; gap: 12px; }
+
+        /* Horizontal Carousel (Filters, Light, Stickers) */
+        .horizontal-carousel {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 4px 0 10px 0;
+        }
+
+        .carousel-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .filter-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            background: var(--surface-card);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            overflow: hidden;
+        }
+
+        .carousel-node.selected .filter-thumb { border-color: var(--accent); }
+        .node-label { font-size: 11px; color: var(--text-sub); }
+
+        /* Sliders Layout */
+        .slider-row {
+            display: grid;
+            grid-template-columns: 140px 1fr 45px;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        input[type="range"] {
+            accent-color: var(--accent);
+            cursor: pointer;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        /* Interactive Overlay Elements (Instagram Style Stickers & Text) */
+        .interactive-element {
+            position: absolute;
+            cursor: move;
+            touch-action: none;
+            transform-origin: center center;
+            border: 1px dashed transparent;
+            padding: 6px 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .interactive-element.active-element {
+            border-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .interactive-element .elem-delete {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--danger);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .interactive-element.active-element .elem-delete { display: flex; }
+
+        /* Crop Box Overlay */
+        .crop-overlay {
+            position: absolute;
+            inset: 0;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 0 10000px rgba(0,0,0,0.6);
+            display: none;
+            pointer-events: none;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #27272a;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 13px;
+            display: none;
+            z-index: 100;
+            border: 1px solid var(--border);
+        }
+    </style>
 </head>
-<body class="bg-black text-white h-screen w-screen overflow-hidden flex flex-col justify-between">
+<body>
 
-  <!-- ================= TOP BAR ================= -->
-  <header class="fixed top-0 inset-x-0 z-30 flex items-center justify-between px-4 py-3 glassmorphism border-b border-white/10 transition-all">
-    <div class="flex items-center gap-3">
-      <button onclick="window.history.back()" class="p-2 rounded-full hover:bg-white/10 active:scale-95 transition">
-        <i data-lucide="arrow-left" class="w-5 h-5 text-white"></i>
-      </button>
-      <div>
-        <h1 id="doc-id-title" class="text-sm font-semibold tracking-wide truncate max-w-[180px] sm:max-w-xs">Loading...</h1>
-        <p id="doc-email" class="text-xs text-zinc-400 truncate max-w-[180px] sm:max-w-xs"></p>
-      </div>
+<header>
+    <div class="nav-group">
+        <button class="back-btn" id="btnBack">←</button>
+        <div class="title" id="fileNameDisplay">Image Studio</div>
     </div>
-    <div class="flex items-center gap-2">
-      <span id="save-status" class="hidden text-xs bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-full animate-pulse">Syncing...</span>
+    
+    <div class="nav-group" id="viewModeBar">
+        <button class="btn-action" id="btnEdit">✏️ Edit</button>
+        <button class="btn-action" id="btnShare">🔗 Share</button>
+        <button class="btn-action" id="btnDownload">📥 Download</button>
+        <button class="btn-action danger" id="btnDelete">🗑️</button>
     </div>
-  </header>
 
-  <!-- ================= MAIN IMAGE DISPLAY ================= -->
-  <main class="relative flex-1 flex items-center justify-center p-2 sm:p-6 overflow-hidden">
-    <div id="loader" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 gap-3">
-      <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-      <p class="text-xs text-zinc-400 font-medium">Fetching Image...</p>
+    <div class="nav-group" id="editModeBar" style="display: none;">
+        <button class="btn-action" id="btnDiscardEdit">Discard</button>
+        <button class="btn-action primary" id="btnSaveEdit">Done & Save</button>
     </div>
-    <div id="image-container" class="relative max-h-full max-w-full flex items-center justify-center">
-      <img id="main-image" src="" alt="Viewer" class="max-h-[70vh] sm:max-h-[75vh] w-auto max-w-full object-contain rounded-xl shadow-2xl transition duration-200" />
-    </div>
-  </main>
+</header>
 
-  <!-- ================= SAMSUNG THUMBNAIL BAR & CONTROLS ================= -->
-  <footer class="fixed bottom-0 inset-x-0 z-30 flex flex-col glassmorphism border-t border-white/10">
-    <div class="px-3 pt-2 pb-1 border-b border-white/5">
-      <div id="thumbnails-container" class="flex gap-2 overflow-x-auto hide-scrollbar py-1 items-center"></div>
+<div class="workspace" id="workspace">
+    <div class="canvas-container" id="canvasWrapper">
+        <canvas id="mainCanvas"></canvas>
+        <div class="crop-overlay" id="cropBox"></div>
     </div>
-    <div class="flex items-center justify-around py-3 px-6 max-w-lg mx-auto w-full">
-      <button id="btn-heart" class="flex flex-col items-center gap-1 group active:scale-90 transition">
-        <i id="heart-icon" data-lucide="heart" class="w-6 h-6 text-zinc-400 group-hover:text-rose-500 transition"></i>
-        <span class="text-[10px] text-zinc-400">Favorite</span>
-      </button>
-      <button id="btn-edit" class="flex flex-col items-center gap-1 group active:scale-90 transition">
-        <div class="p-2 rounded-full bg-white/10 group-hover:bg-indigo-600 transition">
-          <i data-lucide="sliders" class="w-5 h-5 text-white"></i>
+</div>
+
+<!-- Studio Editor Drawer -->
+<div class="editor-drawer" id="editorDrawer">
+    <div class="editor-tabs">
+        <button class="tab-item active" data-target="shelf-crop">Crop & Rotate</button>
+        <button class="tab-item" data-target="shelf-filters">Filters</button>
+        <button class="tab-item" data-target="shelf-adjust">Controls</button>
+        <button class="tab-item" data-target="shelf-light">Light Effects</button>
+        <button class="tab-item" data-target="shelf-stickers">Stickers</button>
+        <button class="tab-item" data-target="shelf-text">Text</button>
+        <button class="tab-item" data-target="shelf-doodle">Doodle</button>
+    </div>
+
+    <div class="panel-content">
+        <!-- 1. Crop & Rotate -->
+        <div class="control-shelf active" id="shelf-crop">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="btn-action" id="btnRotate90">↻ Rotate 90°</button>
+                <button class="btn-action" data-crop="free">Free</button>
+                <button class="btn-action" data-crop="1-1">1:1 Square</button>
+                <button class="btn-action" data-crop="4-5">4:5 Insta</button>
+                <button class="btn-action" data-crop="16-9">16:9 Landscape</button>
+                <button class="btn-action" data-crop="9-16">9:16 Story</button>
+            </div>
         </div>
-        <span class="text-[10px] text-zinc-300 font-medium">Edit Studio</span>
-      </button>
-      <button id="btn-share" class="flex flex-col items-center gap-1 group active:scale-90 transition">
-        <i data-lucide="share-2" class="w-6 h-6 text-zinc-400 group-hover:text-blue-400 transition"></i>
-        <span class="text-[10px] text-zinc-400">Share</span>
-      </button>
-      <button id="btn-delete" class="flex flex-col items-center gap-1 group active:scale-90 transition">
-        <i data-lucide="trash-2" class="w-6 h-6 text-zinc-400 group-hover:text-red-500 transition"></i>
-        <span class="text-[10px] text-zinc-400">Delete</span>
-      </button>
+
+        <!-- 2. 22+ Filters -->
+        <div class="control-shelf" id="shelf-filters">
+            <div class="horizontal-carousel" id="filtersCarousel"></div>
+        </div>
+
+        <!-- 3. Studio Image Controls -->
+        <div class="control-shelf" id="shelf-adjust">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px 16px;">
+                <div class="slider-row"><span>Exposure</span><input type="range" id="adj-exposure" min="-100" max="100" value="0"><span id="val-exposure">0</span></div>
+                <div class="slider-row"><span>Brightness</span><input type="range" id="adj-brightness" min="-100" max="100" value="0"><span id="val-brightness">0</span></div>
+                <div class="slider-row"><span>Contrast</span><input type="range" id="adj-contrast" min="-100" max="100" value="0"><span id="val-contrast">0</span></div>
+                <div class="slider-row"><span>Highlights</span><input type="range" id="adj-highlights" min="-100" max="100" value="0"><span id="val-highlights">0</span></div>
+                <div class="slider-row"><span>Shadows</span><input type="range" id="adj-shadows" min="-100" max="100" value="0"><span id="val-shadows">0</span></div>
+                <div class="slider-row"><span>Saturation</span><input type="range" id="adj-saturation" min="-100" max="100" value="0"><span id="val-saturation">0</span></div>
+                <div class="slider-row"><span>Vibrance</span><input type="range" id="adj-vibrance" min="-100" max="100" value="0"><span id="val-vibrance">0</span></div>
+                <div class="slider-row"><span>Temperature</span><input type="range" id="adj-temp" min="-100" max="100" value="0"><span id="val-temp">0</span></div>
+                <div class="slider-row"><span>Hue Shift</span><input type="range" id="adj-hue" min="-180" max="180" value="0"><span id="val-hue">0</span></div>
+                <div class="slider-row"><span>Fading</span><input type="range" id="adj-fade" min="0" max="100" value="0"><span id="val-fade">0</span></div>
+                <div class="slider-row"><span>Dark Corners (Vignette)</span><input type="range" id="adj-vignette" min="0" max="100" value="0"><span id="val-vignette">0</span></div>
+            </div>
+        </div>
+
+        <!-- 4. Light Effects -->
+        <div class="control-shelf" id="shelf-light">
+            <div class="horizontal-carousel" id="lightCarousel">
+                <div class="carousel-node selected" data-fx="none"><div class="filter-thumb">🚫</div><span class="node-label">None</span></div>
+                <div class="carousel-node" data-fx="flare"><div class="filter-thumb">☀️</div><span class="node-label">Sun Flare</span></div>
+                <div class="carousel-node" data-fx="warm"><div class="filter-thumb">🌅</div><span class="node-label">Warm Glow</span></div>
+                <div class="carousel-node" data-fx="spot"><div class="filter-thumb">🔦</div><span class="node-label">Spotlight</span></div>
+                <div class="carousel-node" data-fx="neon"><div class="filter-thumb">🔮</div><span class="node-label">Neon Edge</span></div>
+            </div>
+        </div>
+
+        <!-- 5. Stickers -->
+        <div class="control-shelf" id="shelf-stickers">
+            <div class="horizontal-carousel" id="stickersList">
+                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">🔥</span>
+                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">⭐</span>
+                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">📍</span>
+                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">💯</span>
+                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">😎</span>
+                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">❤️</span>
+                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">⚡</span>
+                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">🚀</span>
+                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">👑</span>
+                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">✨</span>
+            </div>
+        </div>
+
+        <!-- 6. Text Placement -->
+        <div class="control-shelf" id="shelf-text">
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="addTextInput" placeholder="Type your text..." style="flex:1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-card); color: #fff;">
+                <input type="color" id="textColor" value="#ffffff" style="width: 44px; height: 42px; border:none; background:transparent; cursor:pointer;">
+                <button class="btn-action primary" id="btnAddText">+ Add</button>
+            </div>
+        </div>
+
+        <!-- 7. Doodle (Brush) -->
+        <div class="control-shelf" id="shelf-doodle">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <label style="font-size:12px;">Color:</label>
+                <input type="color" id="brushColor" value="#ff0055" style="border:none; width:34px; height:34px; background:none; cursor:pointer;">
+                <label style="font-size:12px;">Size:</label>
+                <input type="range" id="brushSize" min="2" max="50" value="8">
+                <button class="btn-action" id="btnToggleDoodle">🖌️ Draw Mode: OFF</button>
+                <button class="btn-action danger" id="btnClearDoodle">Clear All Doodle</button>
+            </div>
+        </div>
     </div>
-  </footer>
+</div>
 
-  <!-- ================= ADVANCED STUDIO / EDIT MODAL ================= -->
-  <div id="edit-modal" class="fixed inset-0 z-50 bg-black/95 flex flex-col justify-between hidden">
-    <!-- Top Action Bar -->
-    <div class="flex items-center justify-between p-4 glassmorphism border-b border-white/10">
-      <button id="btn-cancel-edit" class="text-sm font-medium text-zinc-400 hover:text-white px-3 py-1.5 rounded-lg">Cancel</button>
-      <div class="flex items-center gap-3">
-        <button id="btn-undo" title="Undo" class="p-2 text-zinc-400 hover:text-white active:scale-90"><i data-lucide="undo" class="w-5 h-5"></i></button>
-        <button id="btn-delete-item" title="Delete Selected Layer" class="p-2 text-red-400 hover:text-red-300 hidden active:scale-90"><i data-lucide="trash" class="w-5 h-5"></i></button>
-        <button id="btn-save-edit" class="text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-1.5 rounded-full shadow-lg active:scale-95 transition">Save & Overwrite</button>
-      </div>
-    </div>
+<div class="toast" id="toast"></div>
 
-    <!-- Canvas Workspace -->
-    <div id="canvas-container" class="relative flex-1 flex items-center justify-center p-4 overflow-hidden select-none">
-      <canvas id="editor-canvas" class="max-h-[62vh] max-w-full rounded-lg shadow-2xl bg-zinc-950 border border-white/10 touch-none cursor-crosshair"></canvas>
-      
-      <!-- Interactive Crop Box Overlay -->
-      <div id="crop-box" class="absolute border-2 border-dashed border-indigo-400 bg-indigo-500/10 hidden pointer-events-none">
-        <div class="crop-handle top-[-7px] left-[-7px]"></div>
-        <div class="crop-handle top-[-7px] right-[-7px]"></div>
-        <div class="crop-handle bottom-[-7px] left-[-7px]"></div>
-        <div class="crop-handle bottom-[-7px] right-[-7px]"></div>
-      </div>
-    </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    <!-- Sub Controls Tray -->
-    <div class="glassmorphism border-t border-white/10 p-3 flex flex-col gap-3">
-      <div id="sub-tool-bar" class="flex items-center justify-center gap-3 min-h-[44px] overflow-x-auto hide-scrollbar"></div>
-
-      <!-- Main Edit Tabs -->
-      <div class="flex items-center justify-around border-t border-white/10 pt-2">
-        <button class="edit-tab-btn flex flex-col items-center text-indigo-400 text-xs gap-1" data-tool="select">
-          <i data-lucide="move" class="w-5 h-5"></i><span>Transform</span>
-        </button>
-        <button class="edit-tab-btn flex flex-col items-center text-zinc-400 hover:text-white text-xs gap-1" data-tool="crop">
-          <i data-lucide="crop" class="w-5 h-5"></i><span>Crop</span>
-        </button>
-        <button class="edit-tab-btn flex flex-col items-center text-zinc-400 hover:text-white text-xs gap-1" data-tool="draw">
-          <i data-lucide="pencil" class="w-5 h-5"></i><span>Draw</span>
-        </button>
-        <button class="edit-tab-btn flex flex-col items-center text-zinc-400 hover:text-white text-xs gap-1" data-tool="text">
-          <i data-lucide="type" class="w-5 h-5"></i><span>Text</span>
-        </button>
-        <button class="edit-tab-btn flex flex-col items-center text-zinc-400 hover:text-white text-xs gap-1" data-tool="stickers">
-          <i data-lucide="smile" class="w-5 h-5"></i><span>Stickers</span>
-        </button>
-        <button class="edit-tab-btn flex flex-col items-center text-zinc-400 hover:text-white text-xs gap-1" data-tool="filters">
-          <i data-lucide="sparkles" class="w-5 h-5"></i><span>Filters</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= FIREBASE & APP LOGIC ================= -->
-  <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
-      authDomain: "cloud-computer-4891a.firebaseapp.com",
-      projectId: "cloud-computer-4891a",
-      storageBucket: "cloud-computer-4891a.firebasestorage.app",
-      messagingSenderId: "744203234287",
-      appId: "1:744203234287:web:81d943ae9b75fd77dce41a",
-      measurementId: "G-QE17C33TMN"
+        apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
+        authDomain: "cloud-computer-4891a.firebaseapp.com",
+        projectId: "cloud-computer-4891a",
+        storageBucket: "cloud-computer-4891a.firebasestorage.app",
+        messagingSenderId: "744203234287",
+        appId: "1:744203234287:web:81d943ae9b75fd77dce41a"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const COLLECTION = "Cloud Drive";
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    let currentDocId = "";
-    let currentData = null;
-    let allDocuments = [];
-    let isFavorite = false;
+    const urlParams = new URLSearchParams(window.location.search);
+    const fileDocId = urlParams.get('id');
 
-    const mainImg = document.getElementById("main-image");
-    const loader = document.getElementById("loader");
-    const docIdTitle = document.getElementById("doc-id-title");
-    const docEmail = document.getElementById("doc-email");
-    const thumbContainer = document.getElementById("thumbnails-container");
-    const saveStatus = document.getElementById("save-status");
-    const btnDeleteLayer = document.getElementById("btn-delete-item");
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const canvasWrapper = document.getElementById('canvasWrapper');
 
-    lucide.createIcons();
+    let originalImage = new Image();
+    let currentRotation = 0;
+    let selectedFilter = 'original';
+    let selectedLightFx = 'none';
 
-    function getDocIdFromURL() {
-      const hash = window.location.hash.replace("#", "").trim();
-      return hash || "p7543LtVQA49lB6L3mvO";
+    // Image Adjustments State
+    const controls = {
+        exposure: 0, brightness: 0, contrast: 0, highlights: 0, shadows: 0,
+        saturation: 0, vibrance: 0, temp: 0, hue: 0, fade: 0, vignette: 0
+    };
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.innerText = msg;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 2500);
     }
 
-    async function loadAllDocuments() {
-      try {
-        const snap = await db.collection(COLLECTION).get();
-        allDocuments = [];
-        snap.forEach(doc => allDocuments.push({ id: doc.id, ...doc.data() }));
-        renderThumbnails();
-      } catch (err) { console.error("Error loading thumbs:", err); }
-    }
+    document.getElementById('btnBack').addEventListener('click', () => window.location.href = "1.html");
 
-    async function loadDocument(id) {
-      loader.classList.remove("hidden");
-      currentDocId = id;
-      window.location.hash = id;
-
-      try {
-        const docRef = await db.collection(COLLECTION).doc(id).get();
-        if (docRef.exists) {
-          currentData = docRef.data();
-          docIdTitle.textContent = id;
-          docEmail.textContent = currentData.Email || "Cloud Storage";
-          mainImg.src = currentData.File;
-          mainImg.onload = () => loader.classList.add("hidden");
-        } else {
-          alert("Document not found!");
-          loader.classList.add("hidden");
+    // Load Database File
+    let fileRecord = null;
+    async function initFile() {
+        if (!fileDocId) {
+            showToast("No file specified");
+            return;
         }
-      } catch (err) {
-        console.error(err);
-        loader.classList.add("hidden");
-      }
-      renderThumbnails();
-    }
 
-    function renderThumbnails() {
-      thumbContainer.innerHTML = "";
-      allDocuments.forEach(item => {
-        const isActive = item.id === currentDocId;
-        const thumb = document.createElement("div");
-        thumb.className = `w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden cursor-pointer transition-all duration-200 border ${isActive ? 'ring-2 ring-indigo-500 scale-105 opacity-100 border-indigo-400' : 'opacity-60 border-white/10 hover:opacity-100'}`;
-        thumb.innerHTML = `<img src="${item.File}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/60?text=IMG'"/>`;
-        thumb.onclick = () => loadDocument(item.id);
-        thumbContainer.appendChild(thumb);
-      });
-    }
+        try {
+            const docSnap = await getDoc(doc(db, "Cloud Drive", fileDocId));
+            if (!docSnap.exists()) {
+                showToast("File not found in database");
+                return;
+            }
+            fileRecord = docSnap.data();
+            document.getElementById('fileNameDisplay').innerText = fileRecord.Name || fileRecord.File.split('/').pop();
 
-    // Favorite / Delete / Share handlers
-    document.getElementById("btn-heart").onclick = () => {
-      isFavorite = !isFavorite;
-      document.getElementById("heart-icon").classList.toggle("text-rose-500", isFavorite);
-      document.getElementById("heart-icon").classList.toggle("fill-rose-500", isFavorite);
-    };
-
-    document.getElementById("btn-delete").onclick = async () => {
-      if (confirm(`Permanently delete document: ${currentDocId}?`)) {
-        await db.collection(COLLECTION).doc(currentDocId).delete();
-        alert("Deleted.");
-        location.reload();
-      }
-    };
-
-    document.getElementById("btn-share").onclick = () => {
-      if (navigator.share) {
-        navigator.share({ title: currentDocId, url: window.location.href });
-      } else {
-        navigator.clipboard.writeText(window.location.href);
-        alert("URL copied to clipboard!");
-      }
-    };
-
-    // ==========================================
-    // ADVANCED CANVAS ENGINE WITH LAYERS & CROP
-    // ==========================================
-    const editModal = document.getElementById("edit-modal");
-    const canvas = document.getElementById("editor-canvas");
-    const ctx = canvas.getContext("2d");
-    const subToolBar = document.getElementById("sub-tool-bar");
-
-    let baseImage = new Image();
-    let currentTool = "select";
-    let layers = []; // Array of text & sticker items {type, text, x, y, size, color}
-    let selectedLayer = null;
-    let isDragging = false;
-    let isDrawing = false;
-    let drawColor = "#ef4444";
-    let drawSize = 6;
-    let activeFilter = "none";
-    let cropBox = { x: 0.1, y: 0.1, w: 0.8, h: 0.8 }; // Percentages
-
-    document.getElementById("btn-edit").onclick = () => {
-      if (!currentData || !currentData.File) return;
-      editModal.classList.remove("hidden");
-      baseImage.crossOrigin = "anonymous";
-      baseImage.src = currentData.File;
-      baseImage.onload = () => {
-        canvas.width = baseImage.naturalWidth;
-        canvas.height = baseImage.naturalHeight;
-        layers = [];
-        selectedLayer = null;
-        redrawCanvas();
-        switchTool("select");
-      };
-    };
-
-    document.getElementById("btn-cancel-edit").onclick = () => editModal.classList.add("hidden");
-
-    function switchTool(tool) {
-      currentTool = tool;
-      subToolBar.innerHTML = "";
-      btnDeleteLayer.classList.toggle("hidden", !selectedLayer);
-
-      if (tool === "select") {
-        subToolBar.innerHTML = `
-          <div class="flex items-center gap-3">
-            <span class="text-xs text-zinc-400">Drag to move, click layer to select.</span>
-            ${selectedLayer ? `<label class="text-xs text-zinc-400 flex items-center gap-1.5">Size: <input type="range" min="15" max="150" value="${selectedLayer.size}" id="layer-size-slider" class="w-24 accent-indigo-500 cursor-pointer"/></label>` : ''}
-          </div>`;
-        if (selectedLayer) {
-          document.getElementById("layer-size-slider").oninput = (e) => {
-            selectedLayer.size = parseInt(e.target.value);
-            redrawCanvas();
-          };
+            originalImage.crossOrigin = "anonymous";
+            originalImage.src = fileRecord.File;
+            originalImage.onload = () => {
+                resetCanvasToImage();
+                renderAll();
+            };
+        } catch (err) {
+            console.error(err);
+            showToast("Failed to fetch file details");
         }
-      } else if (tool === "crop") {
-        subToolBar.innerHTML = `
-          <div class="flex items-center gap-3">
-            <button onclick="applyCropBox()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-lg shadow">Apply Crop</button>
-            <button onclick="resetCrop()" class="px-3 py-1.5 bg-white/10 rounded-lg text-xs">Reset</button>
-          </div>`;
-      } else if (tool === "draw") {
-        subToolBar.innerHTML = `
-          <div class="flex items-center gap-3">
-            <input type="color" id="draw-color-picker" value="${drawColor}" class="w-8 h-8 rounded-full border-none cursor-pointer bg-transparent" />
-            <input type="range" id="draw-size-picker" min="2" max="50" value="${drawSize}" class="w-28 accent-indigo-500 cursor-pointer" />
-          </div>`;
-        document.getElementById("draw-color-picker").onchange = (e) => drawColor = e.target.value;
-        document.getElementById("draw-size-picker").oninput = (e) => drawSize = parseInt(e.target.value);
-      } else if (tool === "text") {
-        subToolBar.innerHTML = `
-          <div class="flex items-center gap-2">
-            <input type="text" id="text-input-field" placeholder="Add text..." class="px-3 py-1.5 text-sm bg-white/10 rounded-lg text-white border border-white/20 outline-none w-44" />
-            <input type="color" id="text-color-field" value="#ffffff" class="w-8 h-8 rounded-full cursor-pointer bg-transparent border-none"/>
-            <button id="btn-create-text" class="px-3 py-1.5 bg-indigo-600 rounded-lg text-xs font-semibold">Add</button>
-          </div>`;
-        document.getElementById("btn-create-text").onclick = () => {
-          const val = document.getElementById("text-input-field").value;
-          if (val) {
-            const newLayer = {
-              type: "text",
-              text: val,
-              color: document.getElementById("text-color-field").value,
-              size: 50,
-              x: canvas.width / 2,
-              y: canvas.height / 2
-            };
-            layers.push(newLayer);
-            selectedLayer = newLayer;
-            redrawCanvas();
-            switchTool("select");
-          }
-        };
-      } else if (tool === "stickers") {
-        const stickers = ["🔥", "❤️", "✨", "👑", "🚀", "🕶️", "💯", "⭐", "🎉", "👍", "💥", "🥳"];
-        subToolBar.innerHTML = stickers.map(s => `<button class="text-2xl p-1 hover:scale-125 transition sticker-btn">${s}</button>`).join("");
-        document.querySelectorAll(".sticker-btn").forEach(btn => {
-          btn.onclick = () => {
-            const newLayer = {
-              type: "emoji",
-              text: btn.innerText,
-              size: 80,
-              x: canvas.width / 2,
-              y: canvas.height / 2
-            };
-            layers.push(newLayer);
-            selectedLayer = newLayer;
-            redrawCanvas();
-            switchTool("select");
-          };
-        });
-      } else if (tool === "filters") {
-        subToolBar.innerHTML = `
-          <div class="flex items-center gap-2">
-            <button onclick="setFilter('none')" class="px-3 py-1.5 bg-white/10 rounded-lg text-xs">Normal</button>
-            <button onclick="setFilter('grayscale')" class="px-3 py-1.5 bg-white/10 rounded-lg text-xs">B&W</button>
-            <button onclick="setFilter('sepia')" class="px-3 py-1.5 bg-white/10 rounded-lg text-xs">Sepia</button>
-            <button onclick="setFilter('invert')" class="px-3 py-1.5 bg-white/10 rounded-lg text-xs">Invert</button>
-            <button onclick="rotateImage()" class="px-3 py-1.5 bg-indigo-600/60 rounded-lg text-xs flex items-center gap-1">Rotate 90°</button>
-          </div>`;
-      }
-      lucide.createIcons();
     }
 
-    document.querySelectorAll(".edit-tab-btn").forEach(btn => {
-      btn.onclick = () => {
-        document.querySelectorAll(".edit-tab-btn").forEach(b => {
-          b.classList.remove("text-indigo-400");
-          b.classList.add("text-zinc-400");
+    function resetCanvasToImage() {
+        canvas.width = originalImage.naturalWidth;
+        canvas.height = originalImage.naturalHeight;
+    }
+
+    // Filters Definition (22+ Filters)
+    const FILTER_PRESETS = [
+        { id: 'original', name: 'Original', icon: '🎨' },
+        { id: 'bw', name: 'Black & White', icon: '⚫' },
+        { id: 'blue_ice', name: 'Blue Ice', icon: '🧊' },
+        { id: 'noir', name: 'Noir', icon: '🎬' },
+        { id: 'vintage', name: 'Vintage', icon: '📻' },
+        { id: 'cyberpunk', name: 'Cyberpunk', icon: '🌆' },
+        { id: 'sepia', name: 'Sepia', icon: '📜' },
+        { id: 'emerald', name: 'Emerald', icon: '🌲' },
+        { id: 'rose', name: 'Rosé', icon: '🌸' },
+        { id: 'warm_summer', name: 'Warm Summer', icon: '☀️' },
+        { id: 'cold_winter', name: 'Cold Winter', icon: '❄️' },
+        { id: 'drama', name: 'Drama', icon: '🎭' },
+        { id: 'fade_soft', name: 'Fade', icon: '🌫️' },
+        { id: 'sunset', name: 'Sunset', icon: '🌅' },
+        { id: 'forest', name: 'Forest', icon: '🍃' },
+        { id: 'golden', name: 'Golden Hour', icon: '✨' },
+        { id: 'cinema', name: 'Cinematic', icon: '🎥' },
+        { id: 'invert', name: 'Invert', icon: '🔄' },
+        { id: 'poster', name: 'Posterize', icon: '🖼️' },
+        { id: 'pastel', name: 'Pastel', icon: '🧁' },
+        { id: 'midnight', name: 'Midnight', icon: '🌙' },
+        { id: 'acid', name: 'Acid Pop', icon: '⚡' },
+        { id: 'velvet', name: 'Velvet', icon: '🍷' }
+    ];
+
+    const filterShelf = document.getElementById('filtersCarousel');
+    FILTER_PRESETS.forEach((f, idx) => {
+        const node = document.createElement('div');
+        node.className = `carousel-node ${idx === 0 ? 'selected' : ''}`;
+        node.dataset.filter = f.id;
+        node.innerHTML = `<div class="filter-thumb">${f.icon}</div><span class="node-label">${f.name}</span>`;
+        node.addEventListener('click', () => {
+            document.querySelectorAll('#filtersCarousel .carousel-node').forEach(c => c.classList.remove('selected'));
+            node.classList.add('selected');
+            selectedFilter = f.id;
+            renderAll();
         });
-        btn.classList.remove("text-zinc-400");
-        btn.classList.add("text-indigo-400");
-        switchTool(btn.dataset.tool);
-      };
+        filterShelf.appendChild(node);
     });
 
-    btnDeleteLayer.onclick = () => {
-      if (selectedLayer) {
-        layers = layers.filter(l => l !== selectedLayer);
-        selectedLayer = null;
-        redrawCanvas();
-        switchTool("select");
-      }
-    };
+    // Main Canvas Render Pipeline
+    function renderAll() {
+        if (!originalImage.complete) return;
 
-    function setFilter(f) {
-      activeFilter = f;
-      redrawCanvas();
-    }
-
-    function rotateImage() {
-      const temp = document.createElement("canvas");
-      temp.width = canvas.height;
-      temp.height = canvas.width;
-      const tCtx = temp.getContext("2d");
-      tCtx.translate(temp.width / 2, temp.height / 2);
-      tCtx.rotate((90 * Math.PI) / 180);
-      tCtx.drawImage(baseImage, -canvas.width / 2, -canvas.height / 2);
-
-      const rotatedImg = new Image();
-      rotatedImg.onload = () => {
-        baseImage = rotatedImg;
-        canvas.width = baseImage.width;
-        canvas.height = baseImage.height;
-        redrawCanvas();
-      };
-      rotatedImg.src = temp.toDataURL();
-    }
-
-    // Interactive Crop Implementation
-    window.applyCropBox = function() {
-      const cropW = canvas.width * 0.8;
-      const cropH = canvas.height * 0.8;
-      const cropX = canvas.width * 0.1;
-      const cropY = canvas.height * 0.1;
-
-      const temp = document.createElement("canvas");
-      temp.width = cropW;
-      temp.height = cropH;
-      const tCtx = temp.getContext("2d");
-      tCtx.drawImage(canvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-
-      const cropped = new Image();
-      cropped.onload = () => {
-        baseImage = cropped;
-        canvas.width = cropW;
-        canvas.height = cropH;
-        layers = [];
-        selectedLayer = null;
-        redrawCanvas();
-        switchTool("select");
-      };
-      cropped.src = temp.toDataURL();
-    };
-
-    window.resetCrop = () => redrawCanvas();
-
-    function redrawCanvas() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.filter = activeFilter === "grayscale" ? "grayscale(100%)" :
-                   activeFilter === "sepia" ? "sepia(100%)" :
-                   activeFilter === "invert" ? "invert(100%)" : "none";
-      ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
-      ctx.filter = "none";
-
-      // Draw active layers (Text / Emoji)
-      layers.forEach(l => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.save();
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
 
-        if (l.type === "text") {
-          ctx.font = `bold ${l.size}px 'Plus Jakarta Sans', sans-serif`;
-          ctx.fillStyle = l.color;
-          ctx.shadowColor = "rgba(0,0,0,0.8)";
-          ctx.shadowBlur = 6;
-          ctx.fillText(l.text, l.x, l.y);
-        } else if (l.type === "emoji") {
-          ctx.font = `${l.size}px sans-serif`;
-          ctx.fillText(l.text, l.x, l.y);
-        }
-
-        // Bounding Selection Box for Active Element
-        if (l === selectedLayer) {
-          ctx.strokeStyle = "#6366f1";
-          ctx.lineWidth = 3;
-          ctx.setLineDash([6, 6]);
-          const metric = ctx.measureText(l.text);
-          const w = metric.width + 20;
-          const h = l.size + 20;
-          ctx.strokeRect(l.x - w / 2, l.y - h / 2, w, h);
-        }
+        // 1. Rotation Transform
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((currentRotation * Math.PI) / 180);
+        ctx.drawImage(originalImage, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
         ctx.restore();
-      });
+
+        // 2. Pixel Shader Adjustments & Filters
+        applyPixelPipeline();
+
+        // 3. Light Effects
+        applyLightEffect();
     }
 
-    // Coordinate conversion
-    function getMousePos(e) {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      const cx = e.touches ? e.touches[0].clientX : e.clientX;
-      const cy = e.touches ? e.touches[0].clientY : e.clientY;
-      return { x: (cx - rect.left) * scaleX, y: (cy - rect.top) * scaleY };
+    function applyPixelPipeline() {
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+
+        // Precomputations
+        const br = controls.brightness * 2.55;
+        const ct = (controls.contrast + 100) / 100;
+        const exp = Math.pow(2, controls.exposure / 50);
+        const sat = (controls.saturation + 100) / 100;
+        const temp = controls.temp;
+
+        for (let i = 0; i < data.length; i += 4) {
+            let r = data[i];
+            let g = data[i + 1];
+            let b = data[i + 2];
+
+            // Brightness & Exposure
+            r = (r * exp) + br;
+            g = (g * exp) + br;
+            b = (b * exp) + br;
+
+            // Contrast
+            r = ((r / 255 - 0.5) * ct + 0.5) * 255;
+            g = ((g / 255 - 0.5) * ct + 0.5) * 255;
+            b = ((b / 255 - 0.5) * ct + 0.5) * 255;
+
+            // Saturation
+            const gray = 0.2989 * r + 0.5870 * g + 0.1140 * b;
+            r = gray + sat * (r - gray);
+            g = gray + sat * (g - gray);
+            b = gray + sat * (b - gray);
+
+            // Color Temperature
+            if (temp > 0) {
+                r += temp * 0.8;
+                b -= temp * 0.5;
+            } else {
+                r += temp * 0.5;
+                b -= temp * 0.8;
+            }
+
+            // Filters
+            switch (selectedFilter) {
+                case 'bw': r = g = b = gray; break;
+                case 'blue_ice': r *= 0.6; g *= 0.9; b *= 1.4; break;
+                case 'sepia':
+                    r = (r * 0.393) + (g * 0.769) + (b * 0.189);
+                    g = (r * 0.349) + (g * 0.686) + (b * 0.168);
+                    b = (r * 0.272) + (g * 0.534) + (b * 0.131);
+                    break;
+                case 'noir': r = g = b = (gray > 120 ? gray * 1.2 : gray * 0.8); break;
+                case 'cyberpunk': r *= 1.3; g *= 0.6; b *= 1.4; break;
+                case 'emerald': r *= 0.7; g *= 1.3; b *= 0.8; break;
+                case 'rose': r *= 1.3; g *= 0.8; b *= 1.1; break;
+                case 'invert': r = 255 - r; g = 255 - g; b = 255 - b; break;
+            }
+
+            // Clamping
+            data[i] = Math.min(255, Math.max(0, r));
+            data[i + 1] = Math.min(255, Math.max(0, g));
+            data[i + 2] = Math.min(255, Math.max(0, b));
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+
+        // Vignette (Dark Corners)
+        if (controls.vignette > 0) {
+            const rad = Math.max(canvas.width, canvas.height) / 1.5;
+            const gradient = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, rad * (1 - controls.vignette / 100),
+                canvas.width / 2, canvas.height / 2, rad
+            );
+            gradient.addColorStop(0, 'rgba(0,0,0,0)');
+            gradient.addColorStop(1, `rgba(0,0,0,${controls.vignette / 100})`);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
     }
 
-    // Drag, Move, Selection & Drawing Listeners
-    canvas.addEventListener("mousedown", handleStart);
-    canvas.addEventListener("mousemove", handleMove);
-    canvas.addEventListener("mouseup", handleEnd);
-    canvas.addEventListener("touchstart", handleStart);
-    canvas.addEventListener("touchmove", handleMove);
-    canvas.addEventListener("touchend", handleEnd);
+    function applyLightEffect() {
+        if (selectedLightFx === 'none') return;
 
-    function handleStart(e) {
-      const pos = getMousePos(e);
+        if (selectedLightFx === 'flare') {
+            const flare = ctx.createRadialGradient(0, 0, 10, 0, 0, canvas.width * 0.6);
+            flare.addColorStop(0, 'rgba(255, 230, 150, 0.8)');
+            flare.addColorStop(0.5, 'rgba(255, 180, 50, 0.2)');
+            flare.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = flare;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        } else if (selectedLightFx === 'warm') {
+            ctx.fillStyle = 'rgba(255, 120, 0, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        } else if (selectedLightFx === 'neon') {
+            ctx.strokeStyle = '#00f7ff';
+            ctx.lineWidth = 14;
+            ctx.strokeRect(0, 0, canvas.width, canvas.height);
+        }
+    }
 
-      if (currentTool === "draw") {
+    // Sliders Listeners
+    Object.keys(controls).forEach(key => {
+        const slider = document.getElementById(`adj-${key}`);
+        const valSpan = document.getElementById(`val-${key}`);
+        if (slider) {
+            slider.addEventListener('input', () => {
+                controls[key] = parseFloat(slider.value);
+                if (valSpan) valSpan.innerText = slider.value;
+                renderAll();
+            });
+        }
+    });
+
+    // Light FX Nodes
+    document.querySelectorAll('#lightCarousel .carousel-node').forEach(node => {
+        node.addEventListener('click', () => {
+            document.querySelectorAll('#lightCarousel .carousel-node').forEach(c => c.classList.remove('selected'));
+            node.classList.add('selected');
+            selectedLightFx = node.dataset.fx;
+            renderAll();
+        });
+    });
+
+    // Rotation
+    document.getElementById('btnRotate90').addEventListener('click', () => {
+        currentRotation = (currentRotation + 90) % 360;
+        renderAll();
+    });
+
+    // Drawer & Tab Switcher
+    const tabs = document.querySelectorAll('.tab-item');
+    const shelves = document.querySelectorAll('.control-shelf');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            shelves.forEach(s => s.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.target).classList.add('active');
+        });
+    });
+
+    // View/Edit Mode Switching
+    const viewBar = document.getElementById('viewModeBar');
+    const editBar = document.getElementById('editModeBar');
+    const drawer = document.getElementById('editorDrawer');
+
+    document.getElementById('btnEdit').addEventListener('click', () => {
+        viewBar.style.display = 'none';
+        editBar.style.display = 'flex';
+        drawer.classList.add('open');
+    });
+
+    document.getElementById('btnDiscardEdit').addEventListener('click', () => {
+        viewBar.style.display = 'flex';
+        editBar.style.display = 'none';
+        drawer.classList.remove('open');
+        initFile(); // Reset
+    });
+
+    document.getElementById('btnSaveEdit').addEventListener('click', () => {
+        // Burn interactive stickers/text into Canvas
+        burnOverlaysToCanvas();
+        viewBar.style.display = 'flex';
+        editBar.style.display = 'none';
+        drawer.classList.remove('open');
+        showToast("Edits applied to preview");
+    });
+
+    // Instagram-style Interactive Stickers & Text Engine
+    function createInteractiveElement(htmlContent, isText = false) {
+        const el = document.createElement('div');
+        el.className = 'interactive-element active-element';
+        el.innerHTML = `
+            <div class="content">${htmlContent}</div>
+            <div class="elem-delete">&times;</div>
+        `;
+
+        el.style.left = '50%';
+        el.style.top = '50%';
+        el.style.transform = 'translate(-50%, -50%)';
+
+        canvasWrapper.appendChild(el);
+
+        // Dragging Logic
+        let isDragging = false, startX, startY, initialX, initialY;
+
+        el.addEventListener('pointerdown', (e) => {
+            if (e.target.classList.contains('elem-delete')) return;
+            document.querySelectorAll('.interactive-element').forEach(i => i.classList.remove('active-element'));
+            el.classList.add('active-element');
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            const rect = el.getBoundingClientRect();
+            const parentRect = canvasWrapper.getBoundingClientRect();
+            initialX = rect.left - parentRect.left;
+            initialY = rect.top - parentRect.top;
+            el.setPointerCapture(e.pointerId);
+        });
+
+        el.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            el.style.left = `${initialX + dx}px`;
+            el.style.top = `${initialY + dy}px`;
+            el.style.transform = 'none';
+        });
+
+        el.addEventListener('pointerup', () => isDragging = false);
+
+        el.querySelector('.elem-delete').addEventListener('click', () => el.remove());
+    }
+
+    // Add Text
+    document.getElementById('btnAddText').addEventListener('click', () => {
+        const text = document.getElementById('addTextInput').value.trim();
+        const color = document.getElementById('textColor').value;
+        if (!text) return;
+        createInteractiveElement(`<span style="font-size: 24px; font-weight: 700; color: ${color}; text-shadow: 0 2px 8px rgba(0,0,0,0.8);">${text}</span>`, true);
+        document.getElementById('addTextInput').value = '';
+    });
+
+    // Add Sticker
+    document.querySelectorAll('.sticker-opt').forEach(opt => {
+        opt.addEventListener('click', () => createInteractiveElement(`<span style="font-size: 48px;">${opt.innerText}</span>`));
+    });
+
+    function burnOverlaysToCanvas() {
+        const elems = document.querySelectorAll('.interactive-element');
+        elems.forEach(el => {
+            const rect = el.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+
+            const scaleX = canvas.width / canvasRect.width;
+            const scaleY = canvas.height / canvasRect.height;
+
+            const posX = (rect.left - canvasRect.left) * scaleX;
+            const posY = (rect.top - canvasRect.top) * scaleY;
+
+            ctx.save();
+            const txt = el.querySelector('span');
+            if (txt) {
+                ctx.font = `bold ${28 * scaleX}px sans-serif`;
+                ctx.fillStyle = txt.style.color || '#ffffff';
+                ctx.fillText(txt.innerText, posX, posY + (28 * scaleX));
+            }
+            ctx.restore();
+            el.remove();
+        });
+    }
+
+    // Drive Direct Actions
+    document.getElementById('btnDownload').addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = `edited_${fileRecord ? fileRecord.Name : 'image'}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    });
+
+    document.getElementById('btnShare').addEventListener('click', async () => {
+        if (!fileRecord) return;
+        if (navigator.share) {
+            await navigator.share({ title: fileRecord.Name, url: fileRecord.File });
+        } else {
+            navigator.clipboard.writeText(fileRecord.File);
+            showToast("File link copied to clipboard!");
+        }
+    });
+
+    document.getElementById('btnDelete').addEventListener('click', async () => {
+        if (confirm("Delete this image permanently from Cloud Drive?")) {
+            await deleteDoc(doc(db, "Cloud Drive", fileDocId));
+            showToast("Image Deleted");
+            setTimeout(() => window.location.href = "1.html", 1000);
+        }
+    });
+
+    // Freehand Doodle Brush
+    let isDrawing = false, doodleActive = false;
+    const brushColor = document.getElementById('brushColor');
+    const brushSize = document.getElementById('brushSize');
+    const doodleBtn = document.getElementById('btnToggleDoodle');
+
+    doodleBtn.addEventListener('click', () => {
+        doodleActive = !doodleActive;
+        doodleBtn.innerText = doodleActive ? "🖌️ Draw Mode: ON" : "🖌️ Draw Mode: OFF";
+        doodleBtn.classList.toggle('primary', doodleActive);
+    });
+
+    canvas.addEventListener('pointerdown', (e) => {
+        if (!doodleActive) return;
         isDrawing = true;
         ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-      } else {
-        // Selection detection
-        let found = null;
-        for (let i = layers.length - 1; i >= 0; i--) {
-          const l = layers[i];
-          const dist = Math.hypot(l.x - pos.x, l.y - pos.y);
-          if (dist < l.size) {
-            found = l;
-            break;
-          }
-        }
-        selectedLayer = found;
-        if (selectedLayer) {
-          isDragging = true;
-          switchTool("select");
-        }
-        redrawCanvas();
-      }
-    }
-
-    function handleMove(e) {
-      const pos = getMousePos(e);
-      if (isDrawing && currentTool === "draw") {
-        ctx.strokeStyle = drawColor;
-        ctx.lineWidth = drawSize;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-      } else if (isDragging && selectedLayer) {
-        selectedLayer.x = pos.x;
-        selectedLayer.y = pos.y;
-        redrawCanvas();
-      }
-    }
-
-    function handleEnd() {
-      isDrawing = false;
-      isDragging = false;
-    }
-
-    // ========================================================
-    // SAVE & OVERWRITE OLD VERSION DIRECTLY IN FIRESTORE
-    // ========================================================
-    document.getElementById("btn-save-edit").onclick = async () => {
-      try {
-        selectedLayer = null;
-        redrawCanvas();
-
-        saveStatus.classList.remove("hidden");
-        const newImageData = canvas.toDataURL("image/jpeg", 0.92);
-
-        // Overwrites the document field in Firestore with the new version
-        await db.collection(COLLECTION).doc(currentDocId).update({
-          File: newImageData,
-          UpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // Update local views
-        mainImg.src = newImageData;
-        currentData.File = newImageData;
-        
-        // Refresh thumbnail cache
-        const target = allDocuments.find(d => d.id === currentDocId);
-        if (target) target.File = newImageData;
-        renderThumbnails();
-
-        editModal.classList.add("hidden");
-        saveStatus.classList.add("hidden");
-        alert("Success: Old image replaced with new edited version!");
-      } catch (err) {
-        saveStatus.classList.add("hidden");
-        alert("Failed to overwrite database: " + err.message);
-      }
-    };
-
-    window.addEventListener("hashchange", () => loadDocument(getDocIdFromURL()));
-    window.addEventListener("DOMContentLoaded", () => {
-      loadAllDocuments();
-      loadDocument(getDocIdFromURL());
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        ctx.moveTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
     });
-  </script>
+
+    canvas.addEventListener('pointermove', (e) => {
+        if (!isDrawing || !doodleActive) return;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        ctx.lineTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
+        ctx.strokeStyle = brushColor.value;
+        ctx.lineWidth = brushSize.value * scaleX;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+    });
+
+    canvas.addEventListener('pointerup', () => isDrawing = false);
+    document.getElementById('btnClearDoodle').addEventListener('click', () => renderAll());
+
+    initFile();
+</script>
 </body>
 </html>
