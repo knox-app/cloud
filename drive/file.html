@@ -3,843 +3,532 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Image Studio & Viewer</title>
+    <title>Gallery Viewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --bg-base: #0a0a0c;
-            --surface-panel: #16161a;
-            --surface-card: #222227;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --danger: #ef4444;
-            --text-main: #f3f4f6;
-            --text-sub: #9ca3af;
-            --border: #2e2e38;
+            --bg-color: #0b0b0f;
+            --surface-color: rgba(22, 22, 28, 0.85);
+            --text-primary: #ffffff;
+            --text-secondary: #9e9ea7;
+            --accent-blue: #2f80ed;
+            --danger-color: #eb5757;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-base);
-            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* Top Navigation */
+        /* Top Bar */
         header {
-            height: 56px;
-            background: var(--surface-panel);
-            border-bottom: 1px solid var(--border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--surface-color);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 16px;
-            z-index: 30;
+            z-index: 100;
+            border-bottom: 1px solid var(--glass-border);
+            transition: var(--transition-smooth);
         }
 
-        .nav-group { display: flex; align-items: center; gap: 8px; }
-        .back-btn {
-            background: transparent;
-            color: var(--text-main);
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 8px;
-        }
-
-        .title { font-size: 15px; font-weight: 600; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        .btn-action {
-            background: var(--surface-card);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 7px 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            transition: 0.15s;
-        }
-
-        .btn-action:hover { background: var(--border); }
-        .btn-action.primary { background: var(--accent); border-color: var(--accent); }
-        .btn-action.primary:hover { background: var(--accent-hover); }
-        .btn-action.danger { color: var(--danger); border-color: rgba(239,68,68,0.3); }
-
-        /* Main Workspace */
-        .workspace {
-            flex: 1;
-            position: relative;
+        .meta-info {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            background: radial-gradient(circle, #1a1a22 0%, #0a0a0c 100%);
-        }
-
-        .canvas-container {
-            position: relative;
-            max-width: 95%;
-            max-height: 90%;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        canvas {
-            display: block;
-            max-width: 100%;
-            max-height: 80vh;
-            object-fit: contain;
-        }
-
-        /* Editing Studio Bottom Panel */
-        .editor-drawer {
-            background: var(--surface-panel);
-            border-top: 1px solid var(--border);
-            display: none;
             flex-direction: column;
-            z-index: 20;
-            max-height: 38vh;
+            overflow: hidden;
         }
 
-        .editor-drawer.open { display: flex; }
-
-        .editor-tabs {
-            display: flex;
-            overflow-x: auto;
-            border-bottom: 1px solid var(--border);
-            padding: 6px 10px;
-            gap: 6px;
-        }
-
-        .editor-tabs::-webkit-scrollbar { display: none; }
-
-        .tab-item {
-            background: transparent;
-            color: var(--text-sub);
-            border: none;
-            padding: 8px 14px;
-            font-size: 13px;
-            font-weight: 500;
-            border-radius: 20px;
-            cursor: pointer;
+        .file-name {
+            font-size: 15px;
+            font-weight: 600;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .tab-item.active { background: var(--accent); color: #fff; }
-
-        .panel-content {
-            padding: 14px;
-            overflow-y: auto;
-            flex: 1;
+        .file-role {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
         }
 
-        .control-shelf { display: none; }
-        .control-shelf.active { display: flex; flex-direction: column; gap: 12px; }
-
-        /* Horizontal Carousel (Filters, Light, Stickers) */
-        .horizontal-carousel {
+        .action-btns {
             display: flex;
-            gap: 12px;
-            overflow-x: auto;
-            padding: 4px 0 10px 0;
-        }
-
-        .carousel-node {
-            display: flex;
-            flex-direction: column;
+            gap: 8px;
             align-items: center;
-            gap: 6px;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             cursor: pointer;
-            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: var(--transition-smooth);
         }
 
-        .filter-thumb {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            border: 2px solid transparent;
-            background: var(--surface-card);
+        .icon-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .icon-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* Main Image Stage */
+        main {
+            flex: 1;
             display: flex;
-            justify-content: center;
             align-items: center;
-            font-size: 18px;
+            justify-content: center;
+            position: relative;
+            padding: 70px 10px 120px;
             overflow: hidden;
         }
 
-        .carousel-node.selected .filter-thumb { border-color: var(--accent); }
-        .node-label { font-size: 11px; color: var(--text-sub); }
-
-        /* Sliders Layout */
-        .slider-row {
-            display: grid;
-            grid-template-columns: 140px 1fr 45px;
-            align-items: center;
-            gap: 10px;
-            font-size: 12px;
-        }
-
-        input[type="range"] {
-            accent-color: var(--accent);
-            cursor: pointer;
-            height: 4px;
-            background: var(--border);
-            border-radius: 2px;
-        }
-
-        /* Interactive Overlay Elements (Instagram Style Stickers & Text) */
-        .interactive-element {
-            position: absolute;
-            cursor: move;
-            touch-action: none;
-            transform-origin: center center;
-            border: 1px dashed transparent;
-            padding: 6px 10px;
-            border-radius: 8px;
+        .image-container {
+            width: 100%;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
-        .interactive-element.active-element {
-            border-color: #ffffff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        .main-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s ease-out;
         }
 
-        .interactive-element .elem-delete {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background: var(--danger);
-            color: white;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: none;
-            justify-content: center;
-            align-items: center;
+        /* Filmstrip / Thumbnail Dock */
+        .bottom-dock {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--surface-color);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 12px 16px;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+            transition: var(--transition-smooth);
+        }
+
+        .dock-title {
             font-size: 12px;
-            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 500;
+            padding-left: 4px;
         }
 
-        .interactive-element.active-element .elem-delete { display: flex; }
+        .filmstrip {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding-bottom: 4px;
+        }
 
-        /* Crop Box Overlay */
-        .crop-overlay {
+        .filmstrip::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .filmstrip::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .thumb-item {
+            flex: 0 0 60px;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            background: #1e1e24;
+        }
+
+        .thumb-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .thumb-item.active {
+            border-color: var(--accent-blue);
+            transform: scale(1.05);
+        }
+
+        /* UI Overlays & Loaders */
+        .loader {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent-blue);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-screen {
             position: absolute;
             inset: 0;
-            border: 2px solid #ffffff;
-            box-shadow: 0 0 0 10000px rgba(0,0,0,0.6);
-            display: none;
-            pointer-events: none;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            z-index: 200;
+            gap: 15px;
         }
 
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #27272a;
+        .error-screen i {
+            font-size: 48px;
+            color: var(--danger-color);
+        }
+
+        .btn-retry {
+            padding: 10px 24px;
+            background: #222;
             color: #fff;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-size: 13px;
-            display: none;
-            z-index: 100;
-            border: 1px solid var(--border);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="nav-group">
-        <button class="back-btn" id="btnBack">←</button>
-        <div class="title" id="fileNameDisplay">Image Studio</div>
-    </div>
-    
-    <div class="nav-group" id="viewModeBar">
-        <button class="btn-action" id="btnEdit">✏️ Edit</button>
-        <button class="btn-action" id="btnShare">🔗 Share</button>
-        <button class="btn-action" id="btnDownload">📥 Download</button>
-        <button class="btn-action danger" id="btnDelete">🗑️</button>
-    </div>
+    <!-- Header Controls -->
+    <header id="topBar">
+        <div class="meta-info">
+            <span class="file-name" id="fileName">Loading...</span>
+            <span class="file-role" id="userRole">Checking Permissions...</span>
+        </div>
+        <div class="action-btns">
+            <button class="icon-btn" id="shareBtn" title="Share"><i class="fa-solid fa-share-nodes"></i></button>
+            <button class="icon-btn" id="downloadBtn" style="display: none;" title="Download"><i class="fa-solid fa-download"></i></button>
+            <button class="icon-btn" id="deleteBtn" style="display: none; color: var(--danger-color);" title="Delete"><i class="fa-regular fa-trash-can"></i></button>
+        </div>
+    </header>
 
-    <div class="nav-group" id="editModeBar" style="display: none;">
-        <button class="btn-action" id="btnDiscardEdit">Discard</button>
-        <button class="btn-action primary" id="btnSaveEdit">Done & Save</button>
-    </div>
-</header>
+    <!-- Main Viewer Stage -->
+    <main>
+        <div class="loader" id="loader"></div>
+        <div class="image-container">
+            <img id="activeImage" class="main-img" style="display: none;" alt="Viewer Image" />
+        </div>
+    </main>
 
-<div class="workspace" id="workspace">
-    <div class="canvas-container" id="canvasWrapper">
-        <canvas id="mainCanvas"></canvas>
-        <div class="crop-overlay" id="cropBox"></div>
-    </div>
-</div>
-
-<!-- Studio Editor Drawer -->
-<div class="editor-drawer" id="editorDrawer">
-    <div class="editor-tabs">
-        <button class="tab-item active" data-target="shelf-crop">Crop & Rotate</button>
-        <button class="tab-item" data-target="shelf-filters">Filters</button>
-        <button class="tab-item" data-target="shelf-adjust">Controls</button>
-        <button class="tab-item" data-target="shelf-light">Light Effects</button>
-        <button class="tab-item" data-target="shelf-stickers">Stickers</button>
-        <button class="tab-item" data-target="shelf-text">Text</button>
-        <button class="tab-item" data-target="shelf-doodle">Doodle</button>
+    <!-- Bottom Thumbnail Dock -->
+    <div class="bottom-dock" id="bottomDock">
+        <div class="dock-title">More Media</div>
+        <div class="filmstrip" id="filmstripContainer"></div>
     </div>
 
-    <div class="panel-content">
-        <!-- 1. Crop & Rotate -->
-        <div class="control-shelf active" id="shelf-crop">
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button class="btn-action" id="btnRotate90">↻ Rotate 90°</button>
-                <button class="btn-action" data-crop="free">Free</button>
-                <button class="btn-action" data-crop="1-1">1:1 Square</button>
-                <button class="btn-action" data-crop="4-5">4:5 Insta</button>
-                <button class="btn-action" data-crop="16-9">16:9 Landscape</button>
-                <button class="btn-action" data-crop="9-16">9:16 Story</button>
-            </div>
-        </div>
-
-        <!-- 2. 22+ Filters -->
-        <div class="control-shelf" id="shelf-filters">
-            <div class="horizontal-carousel" id="filtersCarousel"></div>
-        </div>
-
-        <!-- 3. Studio Image Controls -->
-        <div class="control-shelf" id="shelf-adjust">
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px 16px;">
-                <div class="slider-row"><span>Exposure</span><input type="range" id="adj-exposure" min="-100" max="100" value="0"><span id="val-exposure">0</span></div>
-                <div class="slider-row"><span>Brightness</span><input type="range" id="adj-brightness" min="-100" max="100" value="0"><span id="val-brightness">0</span></div>
-                <div class="slider-row"><span>Contrast</span><input type="range" id="adj-contrast" min="-100" max="100" value="0"><span id="val-contrast">0</span></div>
-                <div class="slider-row"><span>Highlights</span><input type="range" id="adj-highlights" min="-100" max="100" value="0"><span id="val-highlights">0</span></div>
-                <div class="slider-row"><span>Shadows</span><input type="range" id="adj-shadows" min="-100" max="100" value="0"><span id="val-shadows">0</span></div>
-                <div class="slider-row"><span>Saturation</span><input type="range" id="adj-saturation" min="-100" max="100" value="0"><span id="val-saturation">0</span></div>
-                <div class="slider-row"><span>Vibrance</span><input type="range" id="adj-vibrance" min="-100" max="100" value="0"><span id="val-vibrance">0</span></div>
-                <div class="slider-row"><span>Temperature</span><input type="range" id="adj-temp" min="-100" max="100" value="0"><span id="val-temp">0</span></div>
-                <div class="slider-row"><span>Hue Shift</span><input type="range" id="adj-hue" min="-180" max="180" value="0"><span id="val-hue">0</span></div>
-                <div class="slider-row"><span>Fading</span><input type="range" id="adj-fade" min="0" max="100" value="0"><span id="val-fade">0</span></div>
-                <div class="slider-row"><span>Dark Corners (Vignette)</span><input type="range" id="adj-vignette" min="0" max="100" value="0"><span id="val-vignette">0</span></div>
-            </div>
-        </div>
-
-        <!-- 4. Light Effects -->
-        <div class="control-shelf" id="shelf-light">
-            <div class="horizontal-carousel" id="lightCarousel">
-                <div class="carousel-node selected" data-fx="none"><div class="filter-thumb">🚫</div><span class="node-label">None</span></div>
-                <div class="carousel-node" data-fx="flare"><div class="filter-thumb">☀️</div><span class="node-label">Sun Flare</span></div>
-                <div class="carousel-node" data-fx="warm"><div class="filter-thumb">🌅</div><span class="node-label">Warm Glow</span></div>
-                <div class="carousel-node" data-fx="spot"><div class="filter-thumb">🔦</div><span class="node-label">Spotlight</span></div>
-                <div class="carousel-node" data-fx="neon"><div class="filter-thumb">🔮</div><span class="node-label">Neon Edge</span></div>
-            </div>
-        </div>
-
-        <!-- 5. Stickers -->
-        <div class="control-shelf" id="shelf-stickers">
-            <div class="horizontal-carousel" id="stickersList">
-                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">🔥</span>
-                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">⭐</span>
-                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">📍</span>
-                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">💯</span>
-                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">😎</span>
-                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">❤️</span>
-                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">⚡</span>
-                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">🚀</span>
-                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">👑</span>
-                <span style="font-size:32px; cursor:pointer;" class="sticker-opt">✨</span>
-            </div>
-        </div>
-
-        <!-- 6. Text Placement -->
-        <div class="control-shelf" id="shelf-text">
-            <div style="display: flex; gap: 8px;">
-                <input type="text" id="addTextInput" placeholder="Type your text..." style="flex:1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-card); color: #fff;">
-                <input type="color" id="textColor" value="#ffffff" style="width: 44px; height: 42px; border:none; background:transparent; cursor:pointer;">
-                <button class="btn-action primary" id="btnAddText">+ Add</button>
-            </div>
-        </div>
-
-        <!-- 7. Doodle (Brush) -->
-        <div class="control-shelf" id="shelf-doodle">
-            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                <label style="font-size:12px;">Color:</label>
-                <input type="color" id="brushColor" value="#ff0055" style="border:none; width:34px; height:34px; background:none; cursor:pointer;">
-                <label style="font-size:12px;">Size:</label>
-                <input type="range" id="brushSize" min="2" max="50" value="8">
-                <button class="btn-action" id="btnToggleDoodle">🖌️ Draw Mode: OFF</button>
-                <button class="btn-action danger" id="btnClearDoodle">Clear All Doodle</button>
-            </div>
-        </div>
+    <!-- Error Screen Prompt -->
+    <div class="error-screen" id="errorOverlay" style="display: none;">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <h2 id="errorMessage">Access Denied</h2>
+        <p id="errorSubtitle" style="color: var(--text-secondary); max-width: 320px;">You do not have access to view this file.</p>
+        <button class="btn-retry" onclick="window.location.href='1.html'">Sign in with another account</button>
     </div>
-</div>
 
-<div class="toast" id="toast"></div>
+    <!-- Firebase SDK Modular Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            collection, 
+            getDocs, 
+            deleteDoc 
+        } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
+            authDomain: "cloud-computer-4891a.firebaseapp.com",
+            projectId: "cloud-computer-4891a",
+            storageBucket: "cloud-computer-4891a.firebasestorage.app",
+            messagingSenderId: "744203234287",
+            appId: "1:744203234287:web:81d943ae9b75fd77dce41a",
+            measurementId: "G-QE17C33TMN"
+        };
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
-        authDomain: "cloud-computer-4891a.firebaseapp.com",
-        projectId: "cloud-computer-4891a",
-        storageBucket: "cloud-computer-4891a.firebasestorage.app",
-        messagingSenderId: "744203234287",
-        appId: "1:744203234287:web:81d943ae9b75fd77dce41a"
-    };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+        // State Store
+        let activeUser = null;
+        let activeDocData = null;
+        let currentDocId = window.location.hash.replace('#', '').trim();
+        let galleryFiles = [];
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const fileDocId = urlParams.get('id');
-
-    const canvas = document.getElementById('mainCanvas');
-    const ctx = canvas.getContext('2d');
-    const canvasWrapper = document.getElementById('canvasWrapper');
-
-    let originalImage = new Image();
-    let currentRotation = 0;
-    let selectedFilter = 'original';
-    let selectedLightFx = 'none';
-
-    // Image Adjustments State
-    const controls = {
-        exposure: 0, brightness: 0, contrast: 0, highlights: 0, shadows: 0,
-        saturation: 0, vibrance: 0, temp: 0, hue: 0, fade: 0, vignette: 0
-    };
-
-    function showToast(msg) {
-        const toast = document.getElementById('toast');
-        toast.innerText = msg;
-        toast.style.display = 'block';
-        setTimeout(() => toast.style.display = 'none', 2500);
-    }
-
-    document.getElementById('btnBack').addEventListener('click', () => window.location.href = "1.html");
-
-    // Load Database File
-    let fileRecord = null;
-    async function initFile() {
-        if (!fileDocId) {
-            showToast("No file specified");
-            return;
+        // 1. Authenticate user from LocalStorage
+        function authenticate() {
+            try {
+                const userJson = localStorage.getItem('active_user');
+                if (!userJson) {
+                    redirectToLogin();
+                    return false;
+                }
+                activeUser = JSON.parse(userJson);
+                if (!activeUser || !activeUser.Email) {
+                    redirectToLogin();
+                    return false;
+                }
+                return true;
+            } catch (err) {
+                redirectToLogin();
+                return false;
+            }
         }
 
-        try {
-            const docSnap = await getDoc(doc(db, "Cloud Drive", fileDocId));
-            if (!docSnap.exists()) {
-                showToast("File not found in database");
+        function redirectToLogin() {
+            const returnUrl = encodeURIComponent(window.location.href);
+            window.location.href = `1.html?continue=${returnUrl}`;
+        }
+
+        function showFatalError(title, subtitle) {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('errorMessage').innerText = title;
+            document.getElementById('errorSubtitle').innerText = subtitle;
+            document.getElementById('errorOverlay').style.display = 'flex';
+        }
+
+        // 2. Fetch Active Document
+        async function fetchDocument(docId) {
+            if (!docId) {
+                showFatalError("No Document Specified", "Please provide a valid document hash in the URL (#docId).");
                 return;
             }
-            fileRecord = docSnap.data();
-            document.getElementById('fileNameDisplay').innerText = fileRecord.Name || fileRecord.File.split('/').pop();
 
-            originalImage.crossOrigin = "anonymous";
-            originalImage.src = fileRecord.File;
-            originalImage.onload = () => {
-                resetCanvasToImage();
-                renderAll();
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('activeImage').style.display = 'none';
+
+            try {
+                const docRef = doc(db, "Cloud Drive", docId);
+                const snapshot = await getDoc(docRef);
+
+                if (!snapshot.exists()) {
+                    showFatalError("File Not Found", "The requested image does not exist or has been deleted.");
+                    return;
+                }
+
+                activeDocData = snapshot.data();
+                evaluatePermissionAndRender(docId);
+            } catch (e) {
+                console.error("Firestore read error:", e);
+                showFatalError("Database Error", e.message);
+            }
+        }
+
+        // 3. Evaluate Access Permissions
+        function evaluatePermissionAndRender(docId) {
+            const userEmail = (activeUser.Email || "").toLowerCase().trim();
+            const ownerEmail = (activeDocData.Email || "").toLowerCase().trim();
+            const accessObj = activeDocData.Access || {};
+            
+            // Extract Viewer and Editor entries safely
+            const viewers = (accessObj.Viewer || []).map(e => e.toLowerCase().trim());
+            const editors = (accessObj.Editor || []).map(e => e.toLowerCase().trim());
+
+            const isOwner = userEmail === ownerEmail;
+            const isEditor = editors.includes(userEmail);
+            const isViewer = viewers.includes(userEmail);
+
+            // Deny if not permitted
+            if (!isOwner && !isEditor && !isViewer) {
+                showFatalError("Access Denied", `Account (${userEmail}) does not have permission to view this file.`);
+                return;
+            }
+
+            // Determine Role Level
+            let roleLabel = "Viewer";
+            const canModifyOrDownload = isOwner || isEditor;
+
+            if (isOwner) roleLabel = "Owner";
+            else if (isEditor) roleLabel = "Editor";
+
+            // Update UI Elements
+            document.getElementById('fileName').innerText = activeDocData.Name || "Untitled Image";
+            document.getElementById('userRole').innerText = roleLabel;
+
+            const downloadBtn = document.getElementById('downloadBtn');
+            const deleteBtn = document.getElementById('deleteBtn');
+
+            downloadBtn.style.display = canModifyOrDownload ? "flex" : "none";
+            deleteBtn.style.display = isOwner ? "flex" : "none"; // Only Owner can delete
+
+            // Load Main Image
+            const imgElement = document.getElementById('activeImage');
+            imgElement.src = activeDocData.File;
+            imgElement.onload = () => {
+                document.getElementById('loader').style.display = 'none';
+                imgElement.style.display = 'block';
             };
-        } catch (err) {
-            console.error(err);
-            showToast("Failed to fetch file details");
+
+            // Load Gallery Strip items
+            fetchGalleryFiles(ownerEmail, docId);
         }
-    }
 
-    function resetCanvasToImage() {
-        canvas.width = originalImage.naturalWidth;
-        canvas.height = originalImage.naturalHeight;
-    }
+        // 4. Fetch All Associated Images for the Bottom Dock
+        async function fetchGalleryFiles(ownerEmail, currentId) {
+            try {
+                const querySnapshot = await getDocs(collection(db, "Cloud Drive"));
+                const filmstrip = document.getElementById('filmstripContainer');
+                filmstrip.innerHTML = '';
+                galleryFiles = [];
 
-    // Filters Definition (22+ Filters)
-    const FILTER_PRESETS = [
-        { id: 'original', name: 'Original', icon: '🎨' },
-        { id: 'bw', name: 'Black & White', icon: '⚫' },
-        { id: 'blue_ice', name: 'Blue Ice', icon: '🧊' },
-        { id: 'noir', name: 'Noir', icon: '🎬' },
-        { id: 'vintage', name: 'Vintage', icon: '📻' },
-        { id: 'cyberpunk', name: 'Cyberpunk', icon: '🌆' },
-        { id: 'sepia', name: 'Sepia', icon: '📜' },
-        { id: 'emerald', name: 'Emerald', icon: '🌲' },
-        { id: 'rose', name: 'Rosé', icon: '🌸' },
-        { id: 'warm_summer', name: 'Warm Summer', icon: '☀️' },
-        { id: 'cold_winter', name: 'Cold Winter', icon: '❄️' },
-        { id: 'drama', name: 'Drama', icon: '🎭' },
-        { id: 'fade_soft', name: 'Fade', icon: '🌫️' },
-        { id: 'sunset', name: 'Sunset', icon: '🌅' },
-        { id: 'forest', name: 'Forest', icon: '🍃' },
-        { id: 'golden', name: 'Golden Hour', icon: '✨' },
-        { id: 'cinema', name: 'Cinematic', icon: '🎥' },
-        { id: 'invert', name: 'Invert', icon: '🔄' },
-        { id: 'poster', name: 'Posterize', icon: '🖼️' },
-        { id: 'pastel', name: 'Pastel', icon: '🧁' },
-        { id: 'midnight', name: 'Midnight', icon: '🌙' },
-        { id: 'acid', name: 'Acid Pop', icon: '⚡' },
-        { id: 'velvet', name: 'Velvet', icon: '🍷' }
-    ];
+                querySnapshot.forEach((docItem) => {
+                    const data = docItem.data();
+                    const docId = docItem.id;
+                    const docOwner = (data.Email || "").toLowerCase().trim();
+                    const accessObj = data.Access || {};
+                    const viewers = (accessObj.Viewer || []).map(e => e.toLowerCase().trim());
+                    const editors = (accessObj.Editor || []).map(e => e.toLowerCase().trim());
+                    const userEmail = activeUser.Email.toLowerCase().trim();
 
-    const filterShelf = document.getElementById('filtersCarousel');
-    FILTER_PRESETS.forEach((f, idx) => {
-        const node = document.createElement('div');
-        node.className = `carousel-node ${idx === 0 ? 'selected' : ''}`;
-        node.dataset.filter = f.id;
-        node.innerHTML = `<div class="filter-thumb">${f.icon}</div><span class="node-label">${f.name}</span>`;
-        node.addEventListener('click', () => {
-            document.querySelectorAll('#filtersCarousel .carousel-node').forEach(c => c.classList.remove('selected'));
-            node.classList.add('selected');
-            selectedFilter = f.id;
-            renderAll();
+                    // Show image if it belongs to same folder/owner and current user has rights
+                    if ((docOwner === ownerEmail || docOwner === userEmail) && 
+                        (docOwner === userEmail || editors.includes(userEmail) || viewers.includes(userEmail))) {
+                        
+                        galleryFiles.push({ id: docId, ...data });
+
+                        const thumb = document.createElement('div');
+                        thumb.className = `thumb-item ${docId === currentId ? 'active' : ''}`;
+                        thumb.innerHTML = `<img src="${data.File}" alt="${data.Name || 'thumb'}" loading="lazy"/>`;
+                        
+                        thumb.onclick = () => {
+                            if (window.location.hash !== `#${docId}`) {
+                                window.location.hash = `#${docId}`;
+                            }
+                        };
+                        filmstrip.appendChild(thumb);
+                    }
+                });
+
+                if (galleryFiles.length <= 1) {
+                    document.getElementById('bottomDock').style.display = 'none';
+                } else {
+                    document.getElementById('bottomDock').style.display = 'flex';
+                }
+            } catch (err) {
+                console.error("Filmstrip load error:", err);
+            }
+        }
+
+        // 5. Action Handlers: Download, Share, Delete
+        document.getElementById('downloadBtn').addEventListener('click', async () => {
+            if (!activeDocData || !activeDocData.File) return;
+            try {
+                const response = await fetch(activeDocData.File);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = activeDocData.Name || `image-${Date.now()}`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                // Fallback for CORS blocks
+                window.open(activeDocData.File, '_blank');
+            }
         });
-        filterShelf.appendChild(node);
-    });
 
-    // Main Canvas Render Pipeline
-    function renderAll() {
-        if (!originalImage.complete) return;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.save();
-
-        // 1. Rotation Transform
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate((currentRotation * Math.PI) / 180);
-        ctx.drawImage(originalImage, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
-        ctx.restore();
-
-        // 2. Pixel Shader Adjustments & Filters
-        applyPixelPipeline();
-
-        // 3. Light Effects
-        applyLightEffect();
-    }
-
-    function applyPixelPipeline() {
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imgData.data;
-
-        // Precomputations
-        const br = controls.brightness * 2.55;
-        const ct = (controls.contrast + 100) / 100;
-        const exp = Math.pow(2, controls.exposure / 50);
-        const sat = (controls.saturation + 100) / 100;
-        const temp = controls.temp;
-
-        for (let i = 0; i < data.length; i += 4) {
-            let r = data[i];
-            let g = data[i + 1];
-            let b = data[i + 2];
-
-            // Brightness & Exposure
-            r = (r * exp) + br;
-            g = (g * exp) + br;
-            b = (b * exp) + br;
-
-            // Contrast
-            r = ((r / 255 - 0.5) * ct + 0.5) * 255;
-            g = ((g / 255 - 0.5) * ct + 0.5) * 255;
-            b = ((b / 255 - 0.5) * ct + 0.5) * 255;
-
-            // Saturation
-            const gray = 0.2989 * r + 0.5870 * g + 0.1140 * b;
-            r = gray + sat * (r - gray);
-            g = gray + sat * (g - gray);
-            b = gray + sat * (b - gray);
-
-            // Color Temperature
-            if (temp > 0) {
-                r += temp * 0.8;
-                b -= temp * 0.5;
+        document.getElementById('shareBtn').addEventListener('click', async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: activeDocData?.Name || 'Gallery File',
+                        url: window.location.href
+                    });
+                } catch (err) {
+                    console.log('Share dismissed');
+                }
             } else {
-                r += temp * 0.5;
-                b -= temp * 0.8;
+                navigator.clipboard.writeText(window.location.href);
+                alert("Link copied to clipboard!");
             }
+        });
 
-            // Filters
-            switch (selectedFilter) {
-                case 'bw': r = g = b = gray; break;
-                case 'blue_ice': r *= 0.6; g *= 0.9; b *= 1.4; break;
-                case 'sepia':
-                    r = (r * 0.393) + (g * 0.769) + (b * 0.189);
-                    g = (r * 0.349) + (g * 0.686) + (b * 0.168);
-                    b = (r * 0.272) + (g * 0.534) + (b * 0.131);
-                    break;
-                case 'noir': r = g = b = (gray > 120 ? gray * 1.2 : gray * 0.8); break;
-                case 'cyberpunk': r *= 1.3; g *= 0.6; b *= 1.4; break;
-                case 'emerald': r *= 0.7; g *= 1.3; b *= 0.8; break;
-                case 'rose': r *= 1.3; g *= 0.8; b *= 1.1; break;
-                case 'invert': r = 255 - r; g = 255 - g; b = 255 - b; break;
+        document.getElementById('deleteBtn').addEventListener('click', async () => {
+            const confirmDelete = confirm(`Are you sure you want to delete "${activeDocData.Name}"?`);
+            if (confirmDelete && currentDocId) {
+                try {
+                    await deleteDoc(doc(db, "Cloud Drive", currentDocId));
+                    alert("Image deleted successfully.");
+                    // Redirect to remaining file or reload
+                    const remaining = galleryFiles.filter(f => f.id !== currentDocId);
+                    if (remaining.length > 0) {
+                        window.location.hash = `#${remaining[0].id}`;
+                    } else {
+                        window.location.reload();
+                    }
+                } catch (err) {
+                    alert("Failed to delete file: " + err.message);
+                }
             }
-
-            // Clamping
-            data[i] = Math.min(255, Math.max(0, r));
-            data[i + 1] = Math.min(255, Math.max(0, g));
-            data[i + 2] = Math.min(255, Math.max(0, b));
-        }
-
-        ctx.putImageData(imgData, 0, 0);
-
-        // Vignette (Dark Corners)
-        if (controls.vignette > 0) {
-            const rad = Math.max(canvas.width, canvas.height) / 1.5;
-            const gradient = ctx.createRadialGradient(
-                canvas.width / 2, canvas.height / 2, rad * (1 - controls.vignette / 100),
-                canvas.width / 2, canvas.height / 2, rad
-            );
-            gradient.addColorStop(0, 'rgba(0,0,0,0)');
-            gradient.addColorStop(1, `rgba(0,0,0,${controls.vignette / 100})`);
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-    }
-
-    function applyLightEffect() {
-        if (selectedLightFx === 'none') return;
-
-        if (selectedLightFx === 'flare') {
-            const flare = ctx.createRadialGradient(0, 0, 10, 0, 0, canvas.width * 0.6);
-            flare.addColorStop(0, 'rgba(255, 230, 150, 0.8)');
-            flare.addColorStop(0.5, 'rgba(255, 180, 50, 0.2)');
-            flare.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = flare;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        } else if (selectedLightFx === 'warm') {
-            ctx.fillStyle = 'rgba(255, 120, 0, 0.15)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        } else if (selectedLightFx === 'neon') {
-            ctx.strokeStyle = '#00f7ff';
-            ctx.lineWidth = 14;
-            ctx.strokeRect(0, 0, canvas.width, canvas.height);
-        }
-    }
-
-    // Sliders Listeners
-    Object.keys(controls).forEach(key => {
-        const slider = document.getElementById(`adj-${key}`);
-        const valSpan = document.getElementById(`val-${key}`);
-        if (slider) {
-            slider.addEventListener('input', () => {
-                controls[key] = parseFloat(slider.value);
-                if (valSpan) valSpan.innerText = slider.value;
-                renderAll();
-            });
-        }
-    });
-
-    // Light FX Nodes
-    document.querySelectorAll('#lightCarousel .carousel-node').forEach(node => {
-        node.addEventListener('click', () => {
-            document.querySelectorAll('#lightCarousel .carousel-node').forEach(c => c.classList.remove('selected'));
-            node.classList.add('selected');
-            selectedLightFx = node.dataset.fx;
-            renderAll();
-        });
-    });
-
-    // Rotation
-    document.getElementById('btnRotate90').addEventListener('click', () => {
-        currentRotation = (currentRotation + 90) % 360;
-        renderAll();
-    });
-
-    // Drawer & Tab Switcher
-    const tabs = document.querySelectorAll('.tab-item');
-    const shelves = document.querySelectorAll('.control-shelf');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            shelves.forEach(s => s.classList.remove('active'));
-            tab.classList.add('active');
-            document.getElementById(tab.dataset.target).classList.add('active');
-        });
-    });
-
-    // View/Edit Mode Switching
-    const viewBar = document.getElementById('viewModeBar');
-    const editBar = document.getElementById('editModeBar');
-    const drawer = document.getElementById('editorDrawer');
-
-    document.getElementById('btnEdit').addEventListener('click', () => {
-        viewBar.style.display = 'none';
-        editBar.style.display = 'flex';
-        drawer.classList.add('open');
-    });
-
-    document.getElementById('btnDiscardEdit').addEventListener('click', () => {
-        viewBar.style.display = 'flex';
-        editBar.style.display = 'none';
-        drawer.classList.remove('open');
-        initFile(); // Reset
-    });
-
-    document.getElementById('btnSaveEdit').addEventListener('click', () => {
-        // Burn interactive stickers/text into Canvas
-        burnOverlaysToCanvas();
-        viewBar.style.display = 'flex';
-        editBar.style.display = 'none';
-        drawer.classList.remove('open');
-        showToast("Edits applied to preview");
-    });
-
-    // Instagram-style Interactive Stickers & Text Engine
-    function createInteractiveElement(htmlContent, isText = false) {
-        const el = document.createElement('div');
-        el.className = 'interactive-element active-element';
-        el.innerHTML = `
-            <div class="content">${htmlContent}</div>
-            <div class="elem-delete">&times;</div>
-        `;
-
-        el.style.left = '50%';
-        el.style.top = '50%';
-        el.style.transform = 'translate(-50%, -50%)';
-
-        canvasWrapper.appendChild(el);
-
-        // Dragging Logic
-        let isDragging = false, startX, startY, initialX, initialY;
-
-        el.addEventListener('pointerdown', (e) => {
-            if (e.target.classList.contains('elem-delete')) return;
-            document.querySelectorAll('.interactive-element').forEach(i => i.classList.remove('active-element'));
-            el.classList.add('active-element');
-            isDragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            const rect = el.getBoundingClientRect();
-            const parentRect = canvasWrapper.getBoundingClientRect();
-            initialX = rect.left - parentRect.left;
-            initialY = rect.top - parentRect.top;
-            el.setPointerCapture(e.pointerId);
         });
 
-        el.addEventListener('pointermove', (e) => {
-            if (!isDragging) return;
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-            el.style.left = `${initialX + dx}px`;
-            el.style.top = `${initialY + dy}px`;
-            el.style.transform = 'none';
+        // 6. Handle Hash Routing Changes
+        window.addEventListener('hashchange', () => {
+            currentDocId = window.location.hash.replace('#', '').trim();
+            fetchDocument(currentDocId);
         });
 
-        el.addEventListener('pointerup', () => isDragging = false);
-
-        el.querySelector('.elem-delete').addEventListener('click', () => el.remove());
-    }
-
-    // Add Text
-    document.getElementById('btnAddText').addEventListener('click', () => {
-        const text = document.getElementById('addTextInput').value.trim();
-        const color = document.getElementById('textColor').value;
-        if (!text) return;
-        createInteractiveElement(`<span style="font-size: 24px; font-weight: 700; color: ${color}; text-shadow: 0 2px 8px rgba(0,0,0,0.8);">${text}</span>`, true);
-        document.getElementById('addTextInput').value = '';
-    });
-
-    // Add Sticker
-    document.querySelectorAll('.sticker-opt').forEach(opt => {
-        opt.addEventListener('click', () => createInteractiveElement(`<span style="font-size: 48px;">${opt.innerText}</span>`));
-    });
-
-    function burnOverlaysToCanvas() {
-        const elems = document.querySelectorAll('.interactive-element');
-        elems.forEach(el => {
-            const rect = el.getBoundingClientRect();
-            const canvasRect = canvas.getBoundingClientRect();
-
-            const scaleX = canvas.width / canvasRect.width;
-            const scaleY = canvas.height / canvasRect.height;
-
-            const posX = (rect.left - canvasRect.left) * scaleX;
-            const posY = (rect.top - canvasRect.top) * scaleY;
-
-            ctx.save();
-            const txt = el.querySelector('span');
-            if (txt) {
-                ctx.font = `bold ${28 * scaleX}px sans-serif`;
-                ctx.fillStyle = txt.style.color || '#ffffff';
-                ctx.fillText(txt.innerText, posX, posY + (28 * scaleX));
-            }
-            ctx.restore();
-            el.remove();
-        });
-    }
-
-    // Drive Direct Actions
-    document.getElementById('btnDownload').addEventListener('click', () => {
-        const link = document.createElement('a');
-        link.download = `edited_${fileRecord ? fileRecord.Name : 'image'}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-    });
-
-    document.getElementById('btnShare').addEventListener('click', async () => {
-        if (!fileRecord) return;
-        if (navigator.share) {
-            await navigator.share({ title: fileRecord.Name, url: fileRecord.File });
-        } else {
-            navigator.clipboard.writeText(fileRecord.File);
-            showToast("File link copied to clipboard!");
+        // Init
+        if (authenticate()) {
+            fetchDocument(currentDocId);
         }
-    });
-
-    document.getElementById('btnDelete').addEventListener('click', async () => {
-        if (confirm("Delete this image permanently from Cloud Drive?")) {
-            await deleteDoc(doc(db, "Cloud Drive", fileDocId));
-            showToast("Image Deleted");
-            setTimeout(() => window.location.href = "1.html", 1000);
-        }
-    });
-
-    // Freehand Doodle Brush
-    let isDrawing = false, doodleActive = false;
-    const brushColor = document.getElementById('brushColor');
-    const brushSize = document.getElementById('brushSize');
-    const doodleBtn = document.getElementById('btnToggleDoodle');
-
-    doodleBtn.addEventListener('click', () => {
-        doodleActive = !doodleActive;
-        doodleBtn.innerText = doodleActive ? "🖌️ Draw Mode: ON" : "🖌️ Draw Mode: OFF";
-        doodleBtn.classList.toggle('primary', doodleActive);
-    });
-
-    canvas.addEventListener('pointerdown', (e) => {
-        if (!doodleActive) return;
-        isDrawing = true;
-        ctx.beginPath();
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        ctx.moveTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
-    });
-
-    canvas.addEventListener('pointermove', (e) => {
-        if (!isDrawing || !doodleActive) return;
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        ctx.lineTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
-        ctx.strokeStyle = brushColor.value;
-        ctx.lineWidth = brushSize.value * scaleX;
-        ctx.lineCap = 'round';
-        ctx.stroke();
-    });
-
-    canvas.addEventListener('pointerup', () => isDrawing = false);
-    document.getElementById('btnClearDoodle').addEventListener('click', () => renderAll());
-
-    initFile();
-</script>
+    </script>
 </body>
 </html>
