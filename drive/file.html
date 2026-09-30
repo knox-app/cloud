@@ -4,17 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gallery Viewer</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --bg-color: #0b0b0f;
-            --surface-color: rgba(22, 22, 28, 0.85);
-            --text-primary: #ffffff;
-            --text-secondary: #9e9ea7;
-            --accent-blue: #2f80ed;
-            --danger-color: #eb5757;
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --bg-color: #0b0c0e;
+            --surface-color: rgba(22, 24, 29, 0.85);
+            --surface-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #f5f6f8;
+            --text-secondary: #9aa0a6;
+            --accent-color: #3b82f6;
+            --accent-danger: #ef4444;
+            --badge-bg: rgba(255, 255, 255, 0.12);
+            --bottom-bar-bg: rgba(18, 20, 24, 0.9);
+            --icon-color: #e5e7eb;
+            --icon-hover: #ffffff;
+        }
+
+        body.light {
+            --bg-color: #f4f5f8;
+            --surface-color: rgba(255, 255, 255, 0.9);
+            --surface-border: rgba(0, 0, 0, 0.08);
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --accent-color: #2563eb;
+            --accent-danger: #dc2626;
+            --badge-bg: rgba(0, 0, 0, 0.06);
+            --bottom-bar-bg: rgba(255, 255, 255, 0.92);
+            --icon-color: #374151;
+            --icon-hover: #111827;
         }
 
         * {
@@ -26,165 +42,212 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
             height: 100vh;
+            width: 100vw;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* Top Bar */
+        /* Top Navigation Header */
         header {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             right: 0;
             height: 60px;
-            background: var(--surface-color);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 16px;
-            z-index: 100;
-            border-bottom: 1px solid var(--glass-border);
-            transition: var(--transition-smooth);
+            background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%);
+            z-index: 20;
+            transition: opacity 0.3s ease;
         }
 
-        .meta-info {
+        body.light header {
+            background: linear-gradient(180deg, rgba(255,255,255,0.85) 0%, transparent 100%);
+        }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title-box {
             display: flex;
             flex-direction: column;
-            overflow: hidden;
         }
 
-        .file-name {
-            font-size: 15px;
+        .header-title {
+            font-size: 16px;
             font-weight: 600;
+            max-width: 200px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .file-role {
+        .header-subtitle {
             font-size: 11px;
             color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            font-weight: 600;
-        }
-
-        .action-btns {
-            display: flex;
-            gap: 8px;
-            align-items: center;
         }
 
         .icon-btn {
             background: transparent;
             border: none;
-            color: var(--text-primary);
+            outline: none;
+            color: var(--icon-color);
+            cursor: pointer;
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            transition: var(--transition-smooth);
+            transition: background-color 0.2s, color 0.2s, transform 0.1s;
         }
 
         .icon-btn:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: var(--badge-bg);
+            color: var(--icon-hover);
         }
 
         .icon-btn:active {
             transform: scale(0.92);
         }
 
+        .icon-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
         /* Main Image Stage */
         main {
             flex: 1;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            padding: 70px 10px 120px;
             overflow: hidden;
-        }
-
-        .image-container {
             width: 100%;
             height: 100%;
+        }
+
+        .image-wrapper {
+            position: relative;
+            max-width: 100%;
+            max-height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
+            cursor: grab;
         }
 
-        .main-img {
-            max-width: 100%;
-            max-height: 100%;
+        .image-wrapper.zoomed {
+            cursor: grab;
+        }
+
+        #mainImage {
+            max-width: 100vw;
+            max-height: calc(100vh - 160px);
             object-fit: contain;
             border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            transition: transform 0.2s ease-out;
+            transition: transform 0.25s cubic-bezier(0.2, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
-        /* Filmstrip / Thumbnail Dock */
-        .bottom-dock {
-            position: fixed;
+        /* Prev / Next Nav Chevrons */
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--surface-color);
+            border: 1px solid var(--surface-border);
+            color: var(--text-primary);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            backdrop-filter: blur(12px);
+            transition: opacity 0.2s, background 0.2s;
+            opacity: 0.7;
+        }
+
+        .nav-btn:hover {
+            opacity: 1;
+            background: var(--badge-bg);
+        }
+
+        .nav-prev { left: 16px; }
+        .nav-next { right: 16px; }
+
+        /* Bottom Floating Bar & Carousel */
+        .bottom-container {
+            position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--surface-color);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 12px 16px;
-            border-top: 1px solid var(--glass-border);
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            z-index: 100;
-            transition: var(--transition-smooth);
+            align-items: center;
+            z-index: 20;
+            background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);
+            padding-bottom: 16px;
+            transition: opacity 0.3s ease;
         }
 
-        .dock-title {
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-weight: 500;
-            padding-left: 4px;
+        body.light .bottom-container {
+            background: linear-gradient(0deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 70%, transparent 100%);
         }
 
-        .filmstrip {
-            display: flex;
-            gap: 10px;
+        /* Samsung Gallery Strip */
+        .filmstrip-wrapper {
+            width: 100%;
+            max-width: 650px;
             overflow-x: auto;
-            scroll-behavior: smooth;
-            padding-bottom: 4px;
+            padding: 8px 16px;
+            display: flex;
+            gap: 8px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
 
-        .filmstrip::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        .filmstrip::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
+        .filmstrip-wrapper::-webkit-scrollbar {
+            display: none;
         }
 
         .thumb-item {
-            flex: 0 0 60px;
-            height: 60px;
+            width: 52px;
+            height: 52px;
             border-radius: 8px;
             overflow: hidden;
-            border: 2px solid transparent;
+            flex-shrink: 0;
             cursor: pointer;
-            transition: var(--transition-smooth);
-            background: #1e1e24;
+            border: 2px solid transparent;
+            opacity: 0.55;
+            transition: transform 0.2s, opacity 0.2s, border-color 0.2s;
+            background: #1e2025;
+        }
+
+        .thumb-item.active {
+            opacity: 1;
+            border-color: var(--accent-color);
+            transform: scale(1.08);
+        }
+
+        .thumb-item:hover {
+            opacity: 0.9;
         }
 
         .thumb-item img {
@@ -193,19 +256,198 @@
             object-fit: cover;
         }
 
-        .thumb-item.active {
-            border-color: var(--accent-blue);
-            transform: scale(1.05);
+        /* Samsung OneUI Action Pill */
+        .action-dock {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            background: var(--bottom-bar-bg);
+            border: 1px solid var(--surface-border);
+            padding: 8px 24px;
+            border-radius: 35px;
+            backdrop-filter: blur(15px);
+            margin-top: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
         }
 
-        /* UI Overlays & Loaders */
-        .loader {
-            position: absolute;
+        .action-dock .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--icon-color);
+            font-size: 11px;
+            cursor: pointer;
+            transition: color 0.2s, transform 0.1s;
+        }
+
+        .action-dock .action-btn:hover {
+            color: var(--accent-color);
+        }
+
+        .action-dock .action-btn.delete-btn:hover {
+            color: var(--accent-danger);
+        }
+
+        .action-dock .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .action-dock .action-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Fullscreen & Overlay States */
+        .hide-ui header,
+        .hide-ui .bottom-container,
+        .hide-ui .nav-btn {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Modals & Dialogs */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: var(--surface-color);
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 380px;
+            padding: 24px;
+            color: var(--text-primary);
+            text-align: center;
+            transform: scale(0.95);
+            transition: transform 0.25s ease;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .modal-backdrop.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .modal-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--surface-border);
+            background: var(--badge-bg);
+            color: var(--text-primary);
+            outline: none;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn-cancel {
+            background: var(--badge-bg);
+            color: var(--text-primary);
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: #ffffff;
+        }
+
+        .btn-danger {
+            background: var(--accent-danger);
+            color: #ffffff;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: var(--surface-color);
+            color: var(--text-primary);
+            border: 1px solid var(--surface-border);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.25s ease, opacity 0.25s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Details info sheet */
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            border-bottom: 1px solid var(--surface-border);
+            text-align: left;
+        }
+        .info-label { color: var(--text-secondary); }
+        .info-val { font-weight: 500; word-break: break-all; max-width: 60%; text-align: right; }
+
+        /* Spinner */
+        .spinner {
             width: 40px;
             height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
+            border: 3px solid var(--surface-border);
+            border-top-color: var(--accent-color);
             border-radius: 50%;
-            border-top-color: var(--accent-blue);
             animation: spin 0.8s linear infinite;
         }
 
@@ -213,83 +455,131 @@
             to { transform: rotate(360deg); }
         }
 
-        .error-screen {
+        #loaderContainer {
             position: absolute;
             inset: 0;
-            background: var(--bg-color);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            text-align: center;
-            z-index: 200;
-            gap: 15px;
-        }
-
-        .error-screen i {
-            font-size: 48px;
-            color: var(--danger-color);
-        }
-
-        .btn-retry {
-            padding: 10px 24px;
-            background: #222;
-            color: #fff;
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            cursor: pointer;
+            gap: 12px;
+            z-index: 30;
+            background: var(--bg-color);
         }
     </style>
 </head>
 <body>
 
-    <!-- Header Controls -->
-    <header id="topBar">
-        <div class="meta-info">
-            <span class="file-name" id="fileName">Loading...</span>
-            <span class="file-role" id="userRole">Checking Permissions...</span>
+    <div id="loaderContainer">
+        <div class="spinner"></div>
+        <p style="font-size: 13px; color: var(--text-secondary);" id="loaderText">Loading Gallery...</p>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-left">
+            <button class="icon-btn" id="backBtn" title="Back">
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            </button>
+            <div class="header-title-box">
+                <span class="header-title" id="imageTitle">Image</span>
+                <span class="header-subtitle" id="imageOwner">Perplexity Cloud</span>
+            </div>
         </div>
-        <div class="action-btns">
-            <button class="icon-btn" id="shareBtn" title="Share"><i class="fa-solid fa-share-nodes"></i></button>
-            <button class="icon-btn" id="downloadBtn" style="display: none;" title="Download"><i class="fa-solid fa-download"></i></button>
-            <button class="icon-btn" id="deleteBtn" style="display: none; color: var(--danger-color);" title="Delete"><i class="fa-regular fa-trash-can"></i></button>
+        <div class="header-right">
+            <button class="icon-btn" id="infoBtn" title="Details">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            </button>
+            <button class="icon-btn" id="fullscreenBtn" title="Toggle Fullscreen">
+                <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+            </button>
         </div>
     </header>
 
-    <!-- Main Viewer Stage -->
-    <main>
-        <div class="loader" id="loader"></div>
-        <div class="image-container">
-            <img id="activeImage" class="main-img" style="display: none;" alt="Viewer Image" />
+    <!-- Main Viewport -->
+    <main id="mainContainer">
+        <button class="nav-btn nav-prev" id="prevBtn" title="Previous Image">
+            <svg style="width:24px;height:24px;fill:currentColor;" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        </button>
+
+        <div class="image-wrapper" id="imageWrapper">
+            <img id="mainImage" src="" alt="" style="display: none;">
         </div>
+
+        <button class="nav-btn nav-next" id="nextBtn" title="Next Image">
+            <svg style="width:24px;height:24px;fill:currentColor;" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+        </button>
     </main>
 
-    <!-- Bottom Thumbnail Dock -->
-    <div class="bottom-dock" id="bottomDock">
-        <div class="dock-title">More Media</div>
-        <div class="filmstrip" id="filmstripContainer"></div>
+    <!-- Bottom Controls & Carousel -->
+    <div class="bottom-container">
+        <!-- Filmstrip thumbnails -->
+        <div class="filmstrip-wrapper" id="filmstripWrapper"></div>
+
+        <!-- Samsung OneUI Floating action dock -->
+        <div class="action-dock" id="actionDock">
+            <button class="action-btn" id="shareBtn">
+                <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+                <span>Share</span>
+            </button>
+
+            <!-- Download Button: Visible for Owner & Editor, Hidden for Viewer -->
+            <button class="action-btn" id="downloadBtn" style="display: none;">
+                <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                <span>Download</span>
+            </button>
+
+            <!-- Delete Button: Visible for Owner & Editor -->
+            <button class="action-btn delete-btn" id="deleteBtn" style="display: none;">
+                <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                <span>Delete</span>
+            </button>
+        </div>
     </div>
 
-    <!-- Error Screen Prompt -->
-    <div class="error-screen" id="errorOverlay" style="display: none;">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <h2 id="errorMessage">Access Denied</h2>
-        <p id="errorSubtitle" style="color: var(--text-secondary); max-width: 320px;">You do not have access to view this file.</p>
-        <button class="btn-retry" onclick="window.location.href='1.html'">Sign in with another account</button>
+    <!-- Password Modal -->
+    <div class="modal-backdrop" id="passwordModal">
+        <div class="modal-box">
+            <h3 class="modal-title">Protected Image</h3>
+            <p class="modal-desc">This image requires a password to unlock and view.</p>
+            <input type="password" id="passwordInput" class="modal-input" placeholder="Enter password">
+            <div class="modal-actions">
+                <button class="modal-btn btn-cancel" id="pwdCancelBtn">Go Back</button>
+                <button class="modal-btn btn-primary" id="pwdSubmitBtn">Unlock</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Firebase SDK Modular Scripts -->
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-backdrop" id="deleteModal">
+        <div class="modal-box">
+            <h3 class="modal-title">Delete Image?</h3>
+            <p class="modal-desc">Are you sure you want to permanently delete this image from your Cloud Drive?</p>
+            <div class="modal-actions">
+                <button class="modal-btn btn-cancel" id="cancelDeleteBtn">Cancel</button>
+                <button class="modal-btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info / Details Modal -->
+    <div class="modal-backdrop" id="infoModal">
+        <div class="modal-box">
+            <h3 class="modal-title">Image Details</h3>
+            <div id="infoContent" style="margin: 15px 0;"></div>
+            <div class="modal-actions">
+                <button class="modal-btn btn-primary" id="closeInfoBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">Notice message</div>
+
+    <!-- Firebase SDK & Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { 
-            getFirestore, 
-            doc, 
-            getDoc, 
-            collection, 
-            getDocs, 
-            deleteDoc 
-        } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
@@ -304,231 +594,423 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // State Store
+        // State
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentDocId = urlParams.get('id');
+        const theme = urlParams.get('theme') ? urlParams.get('theme').toLowerCase() : null;
+
         let activeUser = null;
-        let activeDocData = null;
-        let currentDocId = window.location.hash.replace('#', '').trim();
-        let galleryFiles = [];
+        let currentDocData = null;
+        let galleryList = [];
+        let currentIndex = -1;
+        let isZoomed = false;
 
-        // 1. Authenticate user from LocalStorage
-        function authenticate() {
-            try {
-                const userJson = localStorage.getItem('active_user');
-                if (!userJson) {
-                    redirectToLogin();
-                    return false;
+        /* ================= THEME HANDLER ================= */
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        function applyTheme() {
+            if (theme === "light" || theme === "l") {
+                document.body.classList.add("light");
+            } else if (theme === "dark" || theme === "d") {
+                document.body.classList.remove("light");
+            } else {
+                if (!mediaQuery.matches) {
+                    document.body.classList.add("light");
+                } else {
+                    document.body.classList.remove("light");
                 }
-                activeUser = JSON.parse(userJson);
-                if (!activeUser || !activeUser.Email) {
-                    redirectToLogin();
-                    return false;
-                }
-                return true;
-            } catch (err) {
-                redirectToLogin();
-                return false;
             }
         }
+        applyTheme();
+        mediaQuery.addEventListener("change", () => { if (!theme) applyTheme(); });
 
-        function redirectToLogin() {
-            const returnUrl = encodeURIComponent(window.location.href);
-            window.location.href = `1.html?continue=${returnUrl}`;
-        }
-
-        function showFatalError(title, subtitle) {
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('errorMessage').innerText = title;
-            document.getElementById('errorSubtitle').innerText = subtitle;
-            document.getElementById('errorOverlay').style.display = 'flex';
-        }
-
-        // 2. Fetch Active Document
-        async function fetchDocument(docId) {
-            if (!docId) {
-                showFatalError("No Document Specified", "Please provide a valid document hash in the URL (#docId).");
-                return;
+        /* ================= AUTH CHECK ================= */
+        try {
+            const rawUser = localStorage.getItem('active_user');
+            if (rawUser) {
+                activeUser = JSON.parse(rawUser);
             }
-
-            document.getElementById('loader').style.display = 'block';
-            document.getElementById('activeImage').style.display = 'none';
-
-            try {
-                const docRef = doc(db, "Cloud Drive", docId);
-                const snapshot = await getDoc(docRef);
-
-                if (!snapshot.exists()) {
-                    showFatalError("File Not Found", "The requested image does not exist or has been deleted.");
-                    return;
-                }
-
-                activeDocData = snapshot.data();
-                evaluatePermissionAndRender(docId);
-            } catch (e) {
-                console.error("Firestore read error:", e);
-                showFatalError("Database Error", e.message);
-            }
+        } catch (e) {
+            console.error("Failed to parse active user", e);
         }
 
-        // 3. Evaluate Access Permissions
-        function evaluatePermissionAndRender(docId) {
+        if (!activeUser || !activeUser.Email) {
+            // Redirect to login preserving continue param
+            window.location.href = `1.html?continue=${encodeURIComponent(window.location.href)}`;
+        }
+
+        /* ================= TOAST NOTIFICATION ================= */
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2800);
+        }
+
+        /* ================= PERMISSION LOGIC ================= */
+        function checkPermissions(docData) {
             const userEmail = (activeUser.Email || "").toLowerCase().trim();
-            const ownerEmail = (activeDocData.Email || "").toLowerCase().trim();
-            const accessObj = activeDocData.Access || {};
-            
-            // Extract Viewer and Editor entries safely
-            const viewers = (accessObj.Viewer || []).map(e => e.toLowerCase().trim());
-            const editors = (accessObj.Editor || []).map(e => e.toLowerCase().trim());
+            const ownerEmail = (docData.Email || "").toLowerCase().trim();
 
             const isOwner = userEmail === ownerEmail;
-            const isEditor = editors.includes(userEmail);
-            const isViewer = viewers.includes(userEmail);
 
-            // Deny if not permitted
-            if (!isOwner && !isEditor && !isViewer) {
-                showFatalError("Access Denied", `Account (${userEmail}) does not have permission to view this file.`);
-                return;
+            // Handle Access Map (Access.Editor and Access.Viewer arrays)
+            let isEditor = isOwner;
+            let isViewer = isOwner;
+
+            if (docData.Access) {
+                if (Array.isArray(docData.Access.Editor)) {
+                    if (docData.Access.Editor.map(e => (e||'').toLowerCase().trim()).includes(userEmail)) {
+                        isEditor = true;
+                    }
+                }
+                if (Array.isArray(docData.Access.Viewer)) {
+                    if (docData.Access.Viewer.map(e => (e||'').toLowerCase().trim()).includes(userEmail)) {
+                        isViewer = true;
+                    }
+                }
             }
 
-            // Determine Role Level
-            let roleLabel = "Viewer";
-            const canModifyOrDownload = isOwner || isEditor;
+            // Editor automatically gets viewing rights
+            if (isEditor) isViewer = true;
 
-            if (isOwner) roleLabel = "Owner";
-            else if (isEditor) roleLabel = "Editor";
-
-            // Update UI Elements
-            document.getElementById('fileName').innerText = activeDocData.Name || "Untitled Image";
-            document.getElementById('userRole').innerText = roleLabel;
-
-            const downloadBtn = document.getElementById('downloadBtn');
-            const deleteBtn = document.getElementById('deleteBtn');
-
-            downloadBtn.style.display = canModifyOrDownload ? "flex" : "none";
-            deleteBtn.style.display = isOwner ? "flex" : "none"; // Only Owner can delete
-
-            // Load Main Image
-            const imgElement = document.getElementById('activeImage');
-            imgElement.src = activeDocData.File;
-            imgElement.onload = () => {
-                document.getElementById('loader').style.display = 'none';
-                imgElement.style.display = 'block';
-            };
-
-            // Load Gallery Strip items
-            fetchGalleryFiles(ownerEmail, docId);
+            return { isOwner, isEditor, isViewer };
         }
 
-        // 4. Fetch All Associated Images for the Bottom Dock
-        async function fetchGalleryFiles(ownerEmail, currentId) {
+        /* ================= LOAD ALL ACCESSIBLE FILES ================= */
+        async function loadGalleryFiles() {
             try {
-                const querySnapshot = await getDocs(collection(db, "Cloud Drive"));
-                const filmstrip = document.getElementById('filmstripContainer');
-                filmstrip.innerHTML = '';
-                galleryFiles = [];
+                const querySnap = await getDocs(collection(db, "Cloud Drive"));
+                galleryList = [];
 
-                querySnapshot.forEach((docItem) => {
-                    const data = docItem.data();
-                    const docId = docItem.id;
-                    const docOwner = (data.Email || "").toLowerCase().trim();
-                    const accessObj = data.Access || {};
-                    const viewers = (accessObj.Viewer || []).map(e => e.toLowerCase().trim());
-                    const editors = (accessObj.Editor || []).map(e => e.toLowerCase().trim());
-                    const userEmail = activeUser.Email.toLowerCase().trim();
+                querySnap.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const perms = checkPermissions(data);
+                    
+                    // Only include image files that user can view
+                    const fileType = (data.Type || '').toLowerCase();
+                    const isImg = fileType.includes('img') || fileType.includes('jpg') || fileType.includes('png') || fileType.includes('jpeg') || fileType.includes('webp') || (data.File && data.File.match(/\.(jpeg|jpg|gif|png|webp)/i));
 
-                    // Show image if it belongs to same folder/owner and current user has rights
-                    if ((docOwner === ownerEmail || docOwner === userEmail) && 
-                        (docOwner === userEmail || editors.includes(userEmail) || viewers.includes(userEmail))) {
-                        
-                        galleryFiles.push({ id: docId, ...data });
-
-                        const thumb = document.createElement('div');
-                        thumb.className = `thumb-item ${docId === currentId ? 'active' : ''}`;
-                        thumb.innerHTML = `<img src="${data.File}" alt="${data.Name || 'thumb'}" loading="lazy"/>`;
-                        
-                        thumb.onclick = () => {
-                            if (window.location.hash !== `#${docId}`) {
-                                window.location.hash = `#${docId}`;
-                            }
-                        };
-                        filmstrip.appendChild(thumb);
+                    if (perms.isViewer && isImg) {
+                        galleryList.push({
+                            id: docSnap.id,
+                            ...data
+                        });
                     }
                 });
 
-                if (galleryFiles.length <= 1) {
-                    document.getElementById('bottomDock').style.display = 'none';
-                } else {
-                    document.getElementById('bottomDock').style.display = 'flex';
-                }
+                renderFilmstrip();
             } catch (err) {
-                console.error("Filmstrip load error:", err);
+                console.error("Error loading gallery list:", err);
             }
         }
 
-        // 5. Action Handlers: Download, Share, Delete
-        document.getElementById('downloadBtn').addEventListener('click', async () => {
-            if (!activeDocData || !activeDocData.File) return;
+        function renderFilmstrip() {
+            const filmstrip = document.getElementById('filmstripWrapper');
+            filmstrip.innerHTML = '';
+
+            galleryList.forEach((item, index) => {
+                const thumb = document.createElement('div');
+                thumb.className = `thumb-item ${item.id === currentDocId ? 'active' : ''}`;
+                thumb.innerHTML = `<img src="${item.File}" alt="${item.Name || ''}" loading="lazy">`;
+                
+                thumb.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (item.id !== currentDocId) {
+                        loadDocument(item.id);
+                    }
+                });
+                filmstrip.appendChild(thumb);
+            });
+
+            // Auto-scroll active into view
+            const activeThumb = filmstrip.querySelector('.thumb-item.active');
+            if (activeThumb) {
+                activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+        }
+
+        /* ================= LOAD SPECIFIC IMAGE ================= */
+        async function loadDocument(docId) {
+            if (!docId) {
+                document.getElementById('loaderText').innerText = "No image selected.";
+                return;
+            }
+
+            document.getElementById('loaderContainer').style.display = 'flex';
+            currentDocId = docId;
+
+            // Update URL without page reload
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.set('id', docId);
+            window.history.replaceState({}, '', newUrl.toString());
+
             try {
-                const response = await fetch(activeDocData.File);
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = activeDocData.Name || `image-${Date.now()}`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-            } catch (err) {
-                // Fallback for CORS blocks
-                window.open(activeDocData.File, '_blank');
+                const docRef = doc(db, "Cloud Drive", docId);
+                const docSnap = await getDoc(docRef);
+
+                if (!docSnap.exists()) {
+                    alert("Image not found.");
+                    document.getElementById('loaderContainer').style.display = 'none';
+                    return;
+                }
+
+                currentDocData = docSnap.data();
+                const perms = checkPermissions(currentDocData);
+
+                if (!perms.isViewer) {
+                    alert("Access Denied: You do not have permission to view this image.");
+                    document.getElementById('loaderContainer').style.display = 'none';
+                    return;
+                }
+
+                // Password Check
+                if (currentDocData.Password && currentDocData.Password.trim() !== "" && !perms.isOwner) {
+                    showPasswordModal();
+                } else {
+                    displayImage(currentDocData, perms);
+                }
+
+                // Update Gallery filmstrip index
+                currentIndex = galleryList.findIndex(item => item.id === docId);
+                renderFilmstrip();
+
+            } catch (error) {
+                console.error("Firestore read error:", error);
+                alert("Failed to load image from database.");
+            } finally {
+                document.getElementById('loaderContainer').style.display = 'none';
+            }
+        }
+
+        function displayImage(data, perms) {
+            const img = document.getElementById('mainImage');
+            img.style.display = 'block';
+            img.src = data.File || '';
+            img.alt = data.Name || 'Gallery Image';
+
+            document.getElementById('imageTitle').innerText = data.Name || 'Untitled';
+            document.getElementById('imageOwner').innerText = data.Email || 'Cloud Drive';
+
+            // Role based UI updates
+            const downloadBtn = document.getElementById('downloadBtn');
+            const deleteBtn = document.getElementById('deleteBtn');
+
+            if (perms.isEditor || perms.isOwner) {
+                downloadBtn.style.display = 'flex';
+                deleteBtn.style.display = 'flex';
+            } else {
+                downloadBtn.style.display = 'none';
+                deleteBtn.style.display = 'none';
+            }
+
+            // Reset Zoom
+            isZoomed = false;
+            img.style.transform = 'scale(1)';
+        }
+
+        /* ================= PASSWORD MODAL ================= */
+        function showPasswordModal() {
+            const modal = document.getElementById('passwordModal');
+            const input = document.getElementById('passwordInput');
+            input.value = '';
+            modal.classList.add('active');
+            input.focus();
+        }
+
+        document.getElementById('pwdSubmitBtn').addEventListener('click', () => {
+            const entered = document.getElementById('passwordInput').value;
+            if (entered === currentDocData.Password) {
+                document.getElementById('passwordModal').classList.remove('active');
+                const perms = checkPermissions(currentDocData);
+                displayImage(currentDocData, perms);
+                showToast("Unlocked successfully");
+            } else {
+                alert("Incorrect password!");
             }
         });
 
-        document.getElementById('shareBtn').addEventListener('click', async () => {
+        document.getElementById('pwdCancelBtn').addEventListener('click', () => {
+            document.getElementById('passwordModal').classList.remove('active');
+            history.back();
+        });
+
+        /* ================= GALLERY NAVIGATION ================= */
+        document.getElementById('prevBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (galleryList.length <= 1) return;
+            let newIndex = currentIndex - 1;
+            if (newIndex < 0) newIndex = galleryList.length - 1;
+            loadDocument(galleryList[newIndex].id);
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (galleryList.length <= 1) return;
+            let newIndex = (currentIndex + 1) % galleryList.length;
+            loadDocument(galleryList[newIndex].id);
+        });
+
+        // Keyboard arrows
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') document.getElementById('prevBtn').click();
+            if (e.key === 'ArrowRight') document.getElementById('nextBtn').click();
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('active'));
+            }
+        });
+
+        /* ================= INTERACTION: DOUBLE-CLICK ZOOM & TOGGLE UI ================= */
+        const mainContainer = document.getElementById('mainContainer');
+        const mainImage = document.getElementById('mainImage');
+
+        mainContainer.addEventListener('click', (e) => {
+            if (e.target.closest('.nav-btn') || e.target.closest('.action-dock')) return;
+            document.body.classList.toggle('hide-ui');
+        });
+
+        mainImage.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            isZoomed = !isZoomed;
+            if (isZoomed) {
+                mainImage.style.transform = 'scale(2)';
+            } else {
+                mainImage.style.transform = 'scale(1)';
+            }
+        });
+
+        /* ================= ACTIONS: DOWNLOAD ================= */
+        document.getElementById('downloadBtn').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!currentDocData || !currentDocData.File) return;
+
+            showToast("Downloading...");
+            try {
+                const response = await fetch(currentDocData.File);
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = (currentDocData.Name || 'image') + (currentDocData.Type || '.jpg');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(blobUrl);
+                showToast("Download started");
+            } catch (err) {
+                console.error("Direct download failed, opening in new tab:", err);
+                window.open(currentDocData.File, '_blank');
+            }
+        });
+
+        /* ================= ACTIONS: SHARE ================= */
+        document.getElementById('shareBtn').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const shareUrl = window.location.href;
             if (navigator.share) {
                 try {
                     await navigator.share({
-                        title: activeDocData?.Name || 'Gallery File',
-                        url: window.location.href
+                        title: currentDocData?.Name || 'Shared Image',
+                        text: 'View this image on Perplexity Cloud Drive',
+                        url: shareUrl
                     });
-                } catch (err) {
-                    console.log('Share dismissed');
+                } catch (e) {
+                    console.log("Share dismissed");
                 }
             } else {
-                navigator.clipboard.writeText(window.location.href);
-                alert("Link copied to clipboard!");
+                navigator.clipboard.writeText(shareUrl);
+                showToast("Link copied to clipboard!");
             }
         });
 
-        document.getElementById('deleteBtn').addEventListener('click', async () => {
-            const confirmDelete = confirm(`Are you sure you want to delete "${activeDocData.Name}"?`);
-            if (confirmDelete && currentDocId) {
-                try {
-                    await deleteDoc(doc(db, "Cloud Drive", currentDocId));
-                    alert("Image deleted successfully.");
-                    // Redirect to remaining file or reload
-                    const remaining = galleryFiles.filter(f => f.id !== currentDocId);
-                    if (remaining.length > 0) {
-                        window.location.hash = `#${remaining[0].id}`;
-                    } else {
-                        window.location.reload();
-                    }
-                } catch (err) {
-                    alert("Failed to delete file: " + err.message);
+        /* ================= ACTIONS: DELETE ================= */
+        const deleteModal = document.getElementById('deleteModal');
+        document.getElementById('deleteBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteModal.classList.add('active');
+        });
+
+        document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+            deleteModal.classList.remove('active');
+        });
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            if (!currentDocId) return;
+            try {
+                await deleteDoc(doc(db, "Cloud Drive", currentDocId));
+                deleteModal.classList.remove('active');
+                showToast("Image deleted");
+
+                // Remove from gallery and transition
+                galleryList = galleryList.filter(item => item.id !== currentDocId);
+                if (galleryList.length > 0) {
+                    loadDocument(galleryList[0].id);
+                } else {
+                    document.getElementById('mainImage').style.display = 'none';
+                    document.getElementById('imageTitle').innerText = "Empty";
+                    showToast("No more images left.");
                 }
+            } catch (err) {
+                console.error("Delete failed:", err);
+                alert("Failed to delete the file. Please try again.");
             }
         });
 
-        // 6. Handle Hash Routing Changes
-        window.addEventListener('hashchange', () => {
-            currentDocId = window.location.hash.replace('#', '').trim();
-            fetchDocument(currentDocId);
+        /* ================= ACTIONS: DETAILS / INFO MODAL ================= */
+        const infoModal = document.getElementById('infoModal');
+        document.getElementById('infoBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!currentDocData) return;
+
+            const viewers = currentDocData.Access?.Viewer ? currentDocData.Access.Viewer.join(', ') : 'None';
+            const editors = currentDocData.Access?.Editor ? currentDocData.Access.Editor.join(', ') : 'Owner only';
+
+            document.getElementById('infoContent').innerHTML = `
+                <div class="info-row"><span class="info-label">Title</span><span class="info-val">${currentDocData.Name || 'Untitled'}</span></div>
+                <div class="info-row"><span class="info-label">Type</span><span class="info-val">${currentDocData.Type || 'Image'}</span></div>
+                <div class="info-row"><span class="info-label">Owner</span><span class="info-val">${currentDocData.Email || 'Unknown'}</span></div>
+                <div class="info-row"><span class="info-label">Editors</span><span class="info-val">${editors}</span></div>
+                <div class="info-row"><span class="info-label">Viewers</span><span class="info-val">${viewers}</span></div>
+                <div class="info-row"><span class="info-label">Protected</span><span class="info-val">${currentDocData.Password ? 'Yes' : 'No'}</span></div>
+            `;
+            infoModal.classList.add('active');
         });
 
-        // Init
-        if (authenticate()) {
-            fetchDocument(currentDocId);
+        document.getElementById('closeInfoBtn').addEventListener('click', () => {
+            infoModal.classList.remove('active');
+        });
+
+        /* ================= FULLSCREEN & BACK ================= */
+        document.getElementById('fullscreenBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen().catch(() => {});
+            }
+        });
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+            if (window.history.length > 1) {
+                history.back();
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        /* ================= INIT SEQUENCE ================= */
+        async function init() {
+            await loadGalleryFiles();
+            if (currentDocId) {
+                await loadDocument(currentDocId);
+            } else if (galleryList.length > 0) {
+                await loadDocument(galleryList[0].id);
+            } else {
+                document.getElementById('loaderContainer').style.display = 'none';
+                showToast("No accessible images found.");
+            }
         }
+
+        init();
     </script>
 </body>
 </html>
