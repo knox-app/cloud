@@ -12,23 +12,23 @@
             --text-secondary: #9ca3af;
             --border-color: #262626;
             --hover-bg: #1f1f1f;
-            --btn-bg: #ffffff;
-            --btn-text: #0d0d0d;
-            --accent: #10a37f;
+            --accent: #ffffff;
+            --accent-text: #000000;
+            --card-bg: #141414;
             --sidebar-width: 64px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
             display: flex;
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
-        /* Sidebar */
+        /* Sidebar Navigation */
         aside.sidebar {
             width: var(--sidebar-width);
             border-right: 1px solid var(--border-color);
@@ -42,31 +42,31 @@
         }
 
         .side-icon {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 8px;
+            border-radius: 10px;
             color: var(--text-secondary);
             cursor: pointer;
             text-decoration: none;
-            transition: 0.15s;
+            transition: all 0.15s;
         }
-        .side-icon.active, .side-icon:hover {
+        .side-icon:hover, .side-icon.active {
             background-color: var(--hover-bg);
             color: var(--text-primary);
         }
-        .side-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+        .side-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
         /* Main Workspace */
-        main.content-area {
+        main.main-content {
             flex-grow: 1;
             padding: 36px 48px;
             max-width: 1200px;
         }
 
-        .top-row {
+        .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -74,111 +74,129 @@
         }
 
         .page-title {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 600;
             letter-spacing: -0.02em;
         }
 
-        .btn-pill {
-            background-color: var(--btn-bg);
-            color: var(--btn-text);
+        .btn-open-drive {
+            background-color: var(--accent);
+            color: var(--accent-text);
             border: none;
-            padding: 10px 20px;
+            padding: 10px 22px;
             border-radius: 9999px;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
+            gap: 8px;
+            transition: opacity 0.15s;
         }
+        .btn-open-drive:hover { opacity: 0.9; }
 
         .section-label {
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
             color: var(--text-secondary);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
             margin-bottom: 16px;
+            display: block;
         }
 
-        /* Recently Opened Grid */
-        .recent-grid {
+        /* Recently Opened Visual Cards */
+        .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
             gap: 16px;
             margin-bottom: 40px;
         }
 
         .recent-card {
-            background: var(--surface-color);
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 16px;
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.15s;
+            transition: transform 0.15s, border-color 0.15s;
         }
-        .recent-card:hover { transform: translateY(-2px); }
+        .recent-card:hover {
+            transform: translateY(-2px);
+            border-color: #3f3f46;
+        }
 
         .card-preview {
             width: 100%;
             height: 120px;
-            background: #262626;
+            background: #1f1f1f;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
         }
-        .card-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .card-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(20%);
+        }
+        .card-preview svg { width: 32px; height: 32px; stroke: var(--text-secondary); fill: none; stroke-width: 1.5; }
 
         .card-info {
             padding: 14px;
         }
-        .card-title {
+        .card-name {
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
         }
         .card-date {
             font-size: 12px;
             color: var(--text-secondary);
-            margin-top: 4px;
         }
 
-        /* Table Structure */
-        .data-table { width: 100%; border-collapse: collapse; }
-        .table-head {
+        /* Recent Activity Table */
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .activity-head {
             display: grid;
-            grid-template-columns: 3fr 2.5fr 1.5fr 1.5fr;
-            padding: 12px 16px;
+            grid-template-columns: 3.5fr 2.5fr 1.5fr 1.5fr 40px;
+            padding: 12px 14px;
             font-size: 13px;
+            font-weight: 500;
             color: var(--text-secondary);
             border-bottom: 1px solid var(--border-color);
         }
-        .table-row {
+
+        .activity-row {
             display: grid;
-            grid-template-columns: 3fr 2.5fr 1.5fr 1.5fr;
+            grid-template-columns: 3.5fr 2.5fr 1.5fr 1.5fr 40px;
             align-items: center;
-            padding: 14px 16px;
+            padding: 14px;
             border-bottom: 1px solid var(--border-color);
             font-size: 14px;
-            cursor: pointer;
-            transition: background 0.15s;
+            transition: background-color 0.15s;
         }
-        .table-row:hover { background-color: var(--hover-bg); }
+        .activity-row:hover { background-color: var(--hover-bg); }
 
-        .file-cell {
+        .item-name-cell {
             display: flex;
             align-items: center;
             gap: 12px;
             overflow: hidden;
         }
         .thumb-box {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
             background: #262626;
             display: flex;
             align-items: center;
@@ -187,14 +205,38 @@
             overflow: hidden;
         }
         .thumb-box img { width: 100%; height: 100%; object-fit: cover; }
-        .thumb-box svg { width: 16px; height: 16px; stroke: var(--text-secondary); }
+        .thumb-box svg { width: 18px; height: 18px; stroke: var(--text-secondary); fill: none; stroke-width: 1.8; }
 
-        @media(max-width: 768px) {
+        .item-name-text {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+
+        .info-pill {
+            background: #2563eb;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 4px;
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
             aside.sidebar { display: none; }
-            main.content-area { padding: 20px 16px; }
-            .table-head { display: none; }
-            .table-row { grid-template-columns: 1fr auto; gap: 8px; }
-            .col-owner, .col-format { display: none; }
+            main.main-content { padding: 20px 16px; }
+            .activity-head { display: none; }
+            .activity-row {
+                grid-template-columns: 1fr auto 30px;
+                gap: 8px;
+            }
+            .cell-owner, .cell-format { display: none; }
         }
     </style>
 </head>
@@ -204,31 +246,35 @@
     <a href="home.html" class="side-icon active" title="Home">
         <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
     </a>
-    <a href="1.html" class="side-icon" title="Drive Workspace">
+    <a href="1.html" class="side-icon" title="Files & Knowledge Base">
         <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
     </a>
+    <div class="side-icon" id="logoutBtn" title="Sign Out">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+    </div>
 </aside>
 
-<main class="content-area">
-    <div class="top-row">
-        <h1 class="page-title">Home</h1>
-        <a href="1.html" class="btn-pill">Open Drive</a>
+<main class="main-content">
+    <div class="header-top">
+        <div class="page-title">Home</div>
+        <a href="1.html" class="btn-open-drive">Open Drive</a>
     </div>
 
-    <div class="section-label">Recently Opened</div>
-    <div class="recent-grid" id="recentGrid">
-        <div style="color: var(--text-secondary); font-size: 13px;">No recent files found.</div>
+    <span class="section-label">Recently Opened</span>
+    <div class="cards-grid" id="recentlyOpenedGrid">
+        <div style="color: var(--text-secondary); font-size: 13px;">No recently opened files.</div>
     </div>
 
-    <div class="section-label">Recent Activity</div>
-    <div class="data-table">
-        <div class="table-head">
+    <span class="section-label">Recent Activity</span>
+    <div class="activity-table">
+        <div class="activity-head">
             <div>Name</div>
-            <div>Owner</div>
-            <div class="col-format">Format</div>
+            <div class="cell-owner">Owner</div>
+            <div class="cell-format">Format</div>
             <div>Opened</div>
+            <div></div>
         </div>
-        <div id="activityList">
+        <div id="recentActivityList">
             <div style="padding: 16px 0; color: var(--text-secondary); font-size: 13px;">Loading activity...</div>
         </div>
     </div>
@@ -236,7 +282,9 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { 
+        getFirestore, collection, query, where, getDocs, or, doc, updateDoc 
+    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
@@ -252,76 +300,129 @@
 
     let currentUser = null;
     try { currentUser = JSON.parse(localStorage.getItem('active_user')); } catch(e){}
-    if(!currentUser) window.location.href = "1.html";
+    if (!currentUser || !currentUser.Email) {
+        window.location.href = "1.html";
+    }
+    const userEmail = currentUser.Email;
 
-    // Read local recent items log
-    let recentLog = [];
-    try {
-        recentLog = JSON.parse(localStorage.getItem(`recent_opened_${currentUser.Email}`) || '[]');
-    } catch(e){}
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('active_user');
+        window.location.reload();
+    });
 
-    const recentGrid = document.getElementById('recentGrid');
-    const activityList = document.getElementById('activityList');
+    const SVG_DOC = `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`;
 
-    async function renderHome() {
-        if (recentLog.length === 0) {
-            recentGrid.innerHTML = `<div style="color: var(--text-secondary); font-size: 13px;">No recent files opened yet.</div>`;
-            activityList.innerHTML = `<div style="padding: 16px 0; color: var(--text-secondary); font-size: 13px;">No activity logged.</div>`;
-            return;
-        }
+    function formatTime(isoStr) {
+        if (!isoStr) return "Just now";
+        const d = new Date(isoStr);
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
 
-        recentGrid.innerHTML = "";
-        activityList.innerHTML = "";
+    function formatDate(isoStr) {
+        if (!isoStr) return new Date().toLocaleDateString();
+        const d = new Date(isoStr);
+        return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+    }
 
-        // Fetch document metadata for up to 6 recently opened files
-        for (const item of recentLog.slice(0, 6)) {
-            try {
-                const snap = await getDoc(doc(db, "Cloud Drive", item.id));
-                if (!snap.exists()) continue;
-                const data = snap.data();
-                const name = data.Name || "Untitled";
-                const isImg = (data.Type || "").toLowerCase().includes("img") || (data.Type || "").includes("jpg") || (data.Type || "").includes("png");
+    async function loadRecentFiles() {
+        const grid = document.getElementById('recentlyOpenedGrid');
+        const list = document.getElementById('recentActivityList');
 
-                // Render Top Grid Card
-                const card = document.createElement('div');
-                card.className = 'recent-card';
-                card.innerHTML = `
-                    <div class="card-preview">
-                        ${isImg ? `<img src="${data.File}" alt="preview">` : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>`}
-                    </div>
-                    <div class="card-info">
-                        <div class="card-title">${name}</div>
-                        <div class="card-date">${item.date}</div>
-                    </div>
-                `;
-                card.onclick = () => window.open(data.File, '_blank');
-                recentGrid.appendChild(card);
+        try {
+            const q = query(
+                collection(db, "Cloud Drive"),
+                or(
+                    where("Email", "==", userEmail),
+                    where("Access.Viewer", "array-contains", userEmail),
+                    where("Access.Commentator", "array-contains", userEmail),
+                    where("Access.Editor", "array-contains", userEmail)
+                )
+            );
 
-                // Render Table Row
-                const row = document.createElement('div');
-                row.className = 'table-row';
-                row.innerHTML = `
-                    <div class="file-cell">
-                        <div class="thumb-box">
-                            ${isImg ? `<img src="${data.File}">` : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>`}
-                        </div>
-                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${name}</span>
-                    </div>
-                    <div class="col-owner" style="color: var(--text-secondary);">${data.Email}</div>
-                    <div class="col-format" style="color: var(--text-secondary);">${data.Type || '.file'}</div>
-                    <div style="color: var(--text-secondary); display:flex; align-items:center; gap:6px;">
-                        ${item.time} <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#3b82f6;"></span>
-                    </div>
-                `;
-                row.onclick = () => window.open(data.File, '_blank');
-                activityList.appendChild(row);
-            } catch(e) {
-                console.error(e);
+            const snap = await getDocs(q);
+            let items = [];
+            snap.forEach(d => {
+                const data = d.data();
+                if (data.Folder !== "True") {
+                    items.push({ id: d.id, ...data });
+                }
+            });
+
+            // Sort by LastOpened timestamp (descending)
+            items.sort((a, b) => new Date(b.LastOpened || b.CreatedAt || 0) - new Date(a.LastOpened || a.CreatedAt || 0));
+
+            if (items.length === 0) {
+                grid.innerHTML = `<div style="color: var(--text-secondary); font-size: 13px;">No recently opened files found.</div>`;
+                list.innerHTML = `<div style="padding: 16px 0; color: var(--text-secondary); font-size: 13px;">No activity logged yet.</div>`;
+                return;
             }
+
+            // Render top 4 items to visual cards
+            grid.innerHTML = "";
+            items.slice(0, 4).forEach(item => {
+                const card = document.createElement('div');
+                card.className = "recent-card";
+                const isImg = (item.Type || "").includes("img") || (item.Type || "").includes("png") || (item.Type || "").includes("jpg");
+                
+                const previewHtml = isImg 
+                    ? `<img src="${item.File}" alt="${item.Name || 'preview'}">` 
+                    : SVG_DOC;
+
+                card.innerHTML = `
+                    <div class="card-preview">${previewHtml}</div>
+                    <div class="card-info">
+                        <div class="card-name">${item.Name || item.File.split('/').pop()}</div>
+                        <div class="card-date">${formatDate(item.LastOpened)}</div>
+                    </div>
+                `;
+
+                card.addEventListener('click', async () => {
+                    await updateDoc(doc(db, "Cloud Drive", item.id), {
+                        LastOpened: new Date().toISOString(),
+                        LastOpenedBy: userEmail
+                    });
+                    window.open(item.File, '_blank');
+                });
+                grid.appendChild(card);
+            });
+
+            // Render Recent Activity Rows
+            list.innerHTML = "";
+            items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = "activity-row";
+                const isImg = (item.Type || "").includes("img") || (item.Type || "").includes("png") || (item.Type || "").includes("jpg");
+                const previewHtml = isImg ? `<img src="${item.File}">` : SVG_DOC;
+                const name = item.Name || item.File.split('/').pop();
+
+                row.innerHTML = `
+                    <div class="item-name-cell">
+                        <div class="thumb-box">${previewHtml}</div>
+                        <span class="item-name-text" title="${name}">${name}</span>
+                    </div>
+                    <div class="cell-owner" style="color: var(--text-secondary);">${item.Email}</div>
+                    <div class="cell-format" style="color: var(--text-secondary);">${item.Type || '.file'}</div>
+                    <div style="color: var(--text-secondary);">${formatTime(item.LastOpened)}</div>
+                    <div style="text-align: right;"><span class="info-pill">i</span></div>
+                `;
+
+                row.querySelector('.item-name-text').addEventListener('click', async () => {
+                    await updateDoc(doc(db, "Cloud Drive", item.id), {
+                        LastOpened: new Date().toISOString(),
+                        LastOpenedBy: userEmail
+                    });
+                    window.open(item.File, '_blank');
+                });
+
+                list.appendChild(row);
+            });
+
+        } catch(e) {
+            console.error("Home loading error:", e);
         }
     }
 
-    renderHome();
+    loadRecentFiles();
 </script>
 </body>
 </html>
