@@ -3,19 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cloud Drive Viewer</title>
+    <title>Universal Gallery & File Viewer</title>
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- PDF.js Engine (Canvas renderer, no native Chrome embed) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <!-- DOCX Renderer Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.1.20/dist/docx-preview.min.js"></script>
+
     <style>
         :root {
-            --bg-color: #0b0b0d;
-            --surface-color: rgba(26, 26, 30, 0.85);
+            --bg-color: #0c0c0e;
+            --surface-color: rgba(28, 28, 30, 0.92);
+            --surface-secondary: #242426;
             --text-primary: #ffffff;
-            --text-secondary: #9e9ea7;
-            --accent-color: #2196f3;
-            --danger-color: #ff5252;
-            --overlay-bg: rgba(0, 0, 0, 0.7);
-            --border-color: rgba(255, 255, 255, 0.1);
+            --text-secondary: #8e8e93;
+            --accent-color: #2f80ed;
+            --danger-color: #ff453a;
+            --overlay-bg: rgba(0, 0, 0, 0.75);
+            --card-border: rgba(255, 255, 255, 0.1);
         }
 
         * {
@@ -44,13 +53,13 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 60px;
+            height: 64px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 16px;
-            background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
-            z-index: 50;
+            background: linear-gradient(180deg, rgba(12,12,14,0.95) 0%, rgba(12,12,14,0) 100%);
+            z-index: 60;
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
@@ -67,12 +76,25 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 200px;
+            max-width: 220px;
         }
 
         .info-group .subtitle {
             font-size: 12px;
             color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-type {
+            background: var(--surface-secondary);
+            color: #4da3ff;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
         }
 
         .icon-btn {
@@ -85,13 +107,15 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
         }
 
-        .icon-btn:active { background: rgba(255, 255, 255, 0.15); }
-        .icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .icon-btn:active {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(0.95);
+        }
 
-        /* Main Viewport */
+        /* Viewport Container */
         .viewer-container {
             position: relative;
             flex: 1;
@@ -101,68 +125,241 @@
             overflow: hidden;
             width: 100vw;
             height: 100vh;
-            touch-action: pan-y;
         }
 
-        /* View Media Elements */
-        .media-content {
+        /* 1. Image Viewer */
+        .main-image {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-            display: none;
+            transition: transform 0.1s ease-out;
+            will-change: transform;
+            cursor: grab;
         }
 
-        video.media-content {
-            outline: none;
-            border-radius: 8px;
-            max-height: 80vh;
-            width: 90vw;
-            max-width: 1000px;
-        }
-
-        iframe.media-content {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #fff;
-        }
-
-        /* Generic File Card (EXE, DOCX Fallback, Zip, etc.) */
-        .file-card-preview {
+        /* 2. Custom PDF Viewer */
+        .pdf-wrapper {
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 40px 30px;
-            max-width: 380px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: auto;
         }
 
-        .file-card-preview .file-icon {
-            width: 72px;
-            height: 72px;
+        .pdf-canvas-container {
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: auto;
+        }
+
+        #pdfCanvas {
+            display: block;
+            max-width: 96vw;
+            max-height: 82vh;
+            object-fit: contain;
+        }
+
+        .pdf-floating-bar {
+            position: fixed;
+            bottom: 120px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--surface-color);
+            padding: 8px 18px;
+            border-radius: 40px;
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            z-index: 55;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+        }
+
+        .pdf-page-indicator {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* 3. DOCX Viewer */
+        .docx-wrapper {
+            display: none;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            padding: 80px 16px 140px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .docx-render-target {
+            background: #ffffff;
+            color: #111111;
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 12px 36px rgba(0,0,0,0.7);
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        /* 4. Custom Video Player (Samsung OneUI Inspired) */
+        .video-wrapper {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            max-height: 100vh;
+            object-fit: contain;
+        }
+
+        .video-controls-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 25%, transparent 75%, rgba(0,0,0,0.85) 100%);
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            pointer-events: auto;
+            z-index: 45;
+        }
+
+        .video-controls-overlay.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .video-center-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 68px;
+            height: 68px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .video-center-btn:active {
+            transform: translate(-50%, -50%) scale(0.9);
+        }
+
+        .video-bottom-panel {
+            padding: 0 20px 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .video-timeline-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .video-seek-bar {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .video-seek-bar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+        }
+
+        .video-time {
+            font-size: 12px;
+            color: #ddd;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .video-options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .video-options-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* 5. Generic Executable & Binary File Card */
+        .generic-file-wrapper {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+            max-width: 420px;
+            background: var(--surface-color);
+            border-radius: 28px;
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+        }
+
+        .generic-file-icon {
+            width: 90px;
+            height: 90px;
+            background: var(--surface-secondary);
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-bottom: 20px;
             color: var(--accent-color);
         }
 
-        .file-card-preview h2 {
+        .generic-file-name {
             font-size: 18px;
-            margin-bottom: 8px;
+            font-weight: 600;
+            margin-bottom: 6px;
             word-break: break-all;
         }
 
-        .file-card-preview p {
-            font-size: 14px;
+        .generic-file-desc {
+            font-size: 13px;
             color: var(--text-secondary);
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            line-height: 1.4;
         }
 
-        /* Bottom Controls Bar (Samsung Gallery style) */
+        /* Bottom Controls Bar & Filmstrip */
         .bottom-bar {
             position: fixed;
             bottom: 0;
@@ -171,20 +368,19 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: linear-gradient(0deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 70%, rgba(0,0,0,0) 100%);
+            background: linear-gradient(0deg, rgba(12,12,14,0.98) 0%, rgba(12,12,14,0.7) 65%, rgba(12,12,14,0) 100%);
             padding-bottom: env(safe-area-inset-bottom, 16px);
-            z-index: 50;
+            z-index: 60;
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
-        /* Filmstrip */
         .filmstrip-container {
             width: 100%;
             overflow-x: auto;
             white-space: nowrap;
             padding: 10px 16px;
             display: flex;
-            gap: 8px;
+            gap: 10px;
             scroll-behavior: smooth;
             -ms-overflow-style: none;
             scrollbar-width: none;
@@ -192,40 +388,42 @@
 
         .filmstrip-container::-webkit-scrollbar { display: none; }
 
-        .thumb {
-            width: 48px;
-            height: 48px;
-            border-radius: 8px;
-            background: #222;
-            display: flex;
+        .thumb-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: var(--surface-secondary);
+            display: inline-flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
             opacity: 0.5;
-            transition: opacity 0.2s, transform 0.2s, border 0.2s;
             cursor: pointer;
             border: 2px solid transparent;
+            transition: opacity 0.2s, transform 0.2s, border-color 0.2s;
             flex-shrink: 0;
-            overflow: hidden;
+            color: var(--text-secondary);
         }
 
-        .thumb img {
+        .thumb-box img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .thumb.active {
+        .thumb-box.active {
             opacity: 1;
             transform: scale(1.08);
             border-color: var(--accent-color);
+            color: var(--accent-color);
         }
 
         .actions-group {
             display: flex;
             justify-content: space-around;
             width: 100%;
-            max-width: 480px;
-            padding: 8px 0;
+            max-width: 450px;
+            padding: 8px 0 4px;
         }
 
         .action-item {
@@ -242,7 +440,7 @@
 
         .action-item span { color: var(--text-secondary); }
 
-        /* Hidden UI State */
+        /* UI Hidden State */
         .ui-hidden .top-bar {
             opacity: 0;
             transform: translateY(-100%);
@@ -255,15 +453,69 @@
             pointer-events: none;
         }
 
-        /* Modals & Dialogs */
+        .ui-hidden .pdf-floating-bar {
+            opacity: 0;
+            transform: translateY(30px);
+            pointer-events: none;
+        }
+
+        /* Popover Menu (Audio / Subtitles / Quality) */
+        .menu-popover {
+            position: fixed;
+            bottom: 140px;
+            right: 20px;
+            background: var(--surface-color);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 10px;
+            min-width: 180px;
+            backdrop-filter: blur(25px);
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 70;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .menu-popover.active { display: flex; }
+
+        .menu-popover-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 700;
+            padding: 6px 12px;
+        }
+
+        .menu-popover-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .menu-popover-item:hover, .menu-popover-item.selected {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-popover-item.selected {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        /* Modals & Sheets */
         .modal {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             background: var(--overlay-bg);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(14px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -276,15 +528,13 @@
         .modal.active { opacity: 1; pointer-events: auto; }
 
         .modal-card {
-            background: #1e1e24;
+            background: #1c1c1e;
             width: 90%;
             max-width: 380px;
-            border-radius: 24px;
+            border-radius: 26px;
             padding: 24px;
-            color: #fff;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--card-border);
         }
 
         .modal-card h2 { font-size: 20px; margin-bottom: 8px; }
@@ -293,9 +543,9 @@
         .modal-card input {
             width: 100%;
             padding: 14px;
-            background: #2b2b32;
-            border: 1px solid #444;
-            border-radius: 12px;
+            background: #2c2c2e;
+            border: 1px solid #3a3a3c;
+            border-radius: 14px;
             color: #fff;
             font-size: 16px;
             outline: none;
@@ -303,13 +553,10 @@
             text-align: center;
         }
 
-        .modal-card input:focus { border-color: var(--accent-color); }
-
         .modal-buttons { display: flex; gap: 12px; }
-
         .modal-buttons button {
             flex: 1;
-            padding: 12px;
+            padding: 13px;
             border-radius: 20px;
             border: none;
             font-size: 15px;
@@ -318,53 +565,40 @@
         }
 
         .btn-confirm { background: var(--accent-color); color: #fff; }
-        .btn-cancel { background: #333; color: #bbb; }
+        .btn-cancel { background: #2c2c2e; color: #a1a1a6; }
 
-        /* Sheet */
         .sheet {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: #1c1c21;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
+            background: #1c1c1e;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
             padding: 24px;
             z-index: 101;
             transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
             max-width: 500px;
             margin: 0 auto;
+            border-top: 1px solid var(--card-border);
         }
 
         .sheet.active { transform: translateY(0); }
-
-        .sheet-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .sheet-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 14px;
-        }
-
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .sheet-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 14px; }
         .sheet-row span:first-child { color: var(--text-secondary); }
 
-        /* Loader */
+        /* Spinner */
         .spinner {
             border: 3px solid rgba(255, 255, 255, 0.1);
             border-top: 3px solid var(--accent-color);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             animation: spin 0.8s linear infinite;
             position: absolute;
+            z-index: 40;
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -372,7 +606,7 @@
 </head>
 <body>
 
-    <!-- TOP BAR -->
+    <!-- TOP HEADER -->
     <div class="top-bar" id="topBar">
         <div style="display: flex; align-items: center;">
             <button class="icon-btn" id="btnBack">
@@ -380,7 +614,10 @@
             </button>
             <div class="info-group">
                 <span class="title" id="fileTitle">Loading...</span>
-                <span class="subtitle" id="fileSubtitle">Perplexity Drive</span>
+                <span class="subtitle">
+                    <span id="fileBadge" class="badge-type">FILE</span>
+                    <span id="fileIndexSubtitle">Perplexity Drive</span>
+                </span>
             </div>
         </div>
         <div style="display: flex; align-items: center; gap: 4px;">
@@ -390,31 +627,76 @@
         </div>
     </div>
 
-    <!-- MAIN VIEW CONTAINER -->
+    <!-- MAIN VIEWPORT DISPLAY -->
     <div class="viewer-container" id="viewerContainer">
         <div class="spinner" id="loader"></div>
-        
+
         <!-- 1. Image Viewer -->
-        <img class="media-content" id="imageViewer" alt="Image File">
+        <img class="main-image" id="mainImage" src="" alt="Image Preview" style="display: none;">
 
-        <!-- 2. Video Player -->
-        <video class="media-content" id="videoViewer" controls playsinline></video>
+        <!-- 2. Custom PDF Viewer -->
+        <div class="pdf-wrapper" id="pdfWrapper">
+            <div class="pdf-canvas-container">
+                <canvas id="pdfCanvas"></canvas>
+            </div>
+            <div class="pdf-floating-bar" id="pdfControls">
+                <button class="icon-btn" id="btnPdfPrev"><i data-lucide="chevron-left"></i></button>
+                <span class="pdf-page-indicator" id="pdfPageIndicator">1 / 1</span>
+                <button class="icon-btn" id="btnPdfNext"><i data-lucide="chevron-right"></i></button>
+                <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.2);"></div>
+                <button class="icon-btn" id="btnPdfZoomIn"><i data-lucide="zoom-in"></i></button>
+                <button class="icon-btn" id="btnPdfZoomOut"><i data-lucide="zoom-out"></i></button>
+            </div>
+        </div>
 
-        <!-- 3. Document / PDF / Office Iframe Viewer -->
-        <iframe class="media-content" id="docViewer" src="" allowfullscreen></iframe>
+        <!-- 3. DOCX Viewer -->
+        <div class="docx-wrapper" id="docxWrapper">
+            <div class="docx-render-target" id="docxRenderTarget"></div>
+        </div>
 
-        <!-- 4. Binary/Executable/Unknown File Card -->
-        <div class="file-card-preview" id="binaryViewer">
-            <div class="file-icon" id="binaryIcon"><i data-lucide="file-box" style="width:100%;height:100%;"></i></div>
-            <h2 id="binaryFileName">File.exe</h2>
-            <p id="binaryFileSize">Executable / Binary File</p>
-            <button class="btn-confirm" id="btnDirectDownload" style="padding: 12px 24px; border-radius: 20px; border:none; cursor:pointer;">
-                Download File
-            </button>
+        <!-- 4. Video Player -->
+        <div class="video-wrapper" id="videoWrapper">
+            <video id="mainVideo" playsinline preload="metadata"></video>
+            <div class="video-controls-overlay" id="videoControls">
+                <div></div>
+                <button class="video-center-btn" id="btnCenterPlay">
+                    <i data-lucide="play" id="centerPlayIcon"></i>
+                </button>
+                <div class="video-bottom-panel">
+                    <div class="video-timeline-container">
+                        <span class="video-time" id="videoCurrentTime">0:00</span>
+                        <input type="range" class="video-seek-bar" id="videoSeekBar" value="0" min="0" max="100" step="0.1">
+                        <span class="video-time" id="videoDuration">0:00</span>
+                    </div>
+                    <div class="video-options-row">
+                        <button class="icon-btn" id="btnPlayPause"><i data-lucide="play" id="playPauseIcon"></i></button>
+                        <div class="video-options-right">
+                            <button class="icon-btn" id="btnAudioTrack" title="Audio Tracks"><i data-lucide="volume-2"></i></button>
+                            <button class="icon-btn" id="btnSubtitles" title="Subtitles"><i data-lucide="captions"></i></button>
+                            <button class="icon-btn" id="btnSpeed" title="Speed"><i data-lucide="gauge"></i></button>
+                            <button class="icon-btn" id="btnFullscreen"><i data-lucide="maximize"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Generic Executable & Binary File Card -->
+        <div class="generic-file-wrapper" id="genericWrapper">
+            <div class="generic-file-icon" id="genericIconContainer">
+                <i data-lucide="binary" style="width: 44px; height: 44px;"></i>
+            </div>
+            <div class="generic-file-name" id="genericFileName">app.exe</div>
+            <div class="generic-file-desc" id="genericFileDesc">
+                This executable or document cannot be previewed directly on screen. You can securely download or share it below.
+            </div>
         </div>
     </div>
 
-    <!-- BOTTOM BAR & FILMSTRIP -->
+    <!-- POPOVER MENUS (Video Audio / Subtitles / Speed) -->
+    <div class="menu-popover" id="menuPopover"></div>
+
+    <!-- BOTTOM BAR & THUMBNAIL FILMSTRIP -->
     <div class="bottom-bar" id="bottomBar">
         <div class="filmstrip-container" id="filmstrip"></div>
         <div class="actions-group">
@@ -436,8 +718,8 @@
     <!-- PASSWORD MODAL -->
     <div class="modal" id="passwordModal">
         <div class="modal-card">
-            <h2>Protected File</h2>
-            <p>This file is protected. Enter the password to unlock.</p>
+            <h2>Protected Document</h2>
+            <p>Enter the password to access this file.</p>
             <input type="password" id="passwordInput" placeholder="Password">
             <div class="modal-buttons">
                 <button class="btn-cancel" id="btnCancelPass">Go Back</button>
@@ -449,16 +731,16 @@
     <!-- DETAILS INFO SHEET -->
     <div class="sheet" id="infoSheet">
         <div class="sheet-header">
-            <h3>File Details</h3>
+            <h3>File Properties</h3>
             <button class="icon-btn" id="btnCloseSheet"><i data-lucide="x"></i></button>
         </div>
         <div class="sheet-row"><span>Name</span><span id="detailName">-</span></div>
         <div class="sheet-row"><span>Owner</span><span id="detailOwner">-</span></div>
-        <div class="sheet-row"><span>Role</span><span id="detailRole">-</span></div>
-        <div class="sheet-row"><span>Type</span><span id="detailType">-</span></div>
+        <div class="sheet-row"><span>Access Role</span><span id="detailRole">-</span></div>
+        <div class="sheet-row"><span>Format</span><span id="detailType">-</span></div>
     </div>
 
-    <!-- FIREBASE & CORE CONTROLLER -->
+    <!-- FIREBASE & MAIN SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { 
@@ -470,7 +752,11 @@
             arrayRemove 
         } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Provided Firebase Configuration
+        // Setup PDF.js worker
+        if (window.pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
             authDomain: "cloud-computer-4891a.firebaseapp.com",
@@ -484,7 +770,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        /* 1. AUTHENTICATION & SESSION VERIFICATION */
+        /* 1. AUTHENTICATION */
         const activeUserRaw = localStorage.getItem('active_user');
         if (!activeUserRaw) {
             window.location.href = `1.html?continue=${encodeURIComponent(window.location.href)}`;
@@ -492,46 +778,68 @@
         const activeUser = JSON.parse(activeUserRaw || '{}');
         const userEmail = (activeUser.Email || "").toLowerCase();
 
-        /* 2. URL PARAMETERS */
+        /* 2. PARAMETERS & STATE */
         const urlParams = new URLSearchParams(window.location.search);
         let currentDocId = urlParams.get('id');
         let folderDocId = urlParams.get('folder');
 
-        /* 3. APPLICATION STATE */
-        let currentDocData = null;
         let galleryItems = [];
         let currentIndex = 0;
+        let currentDocData = null;
         let userRole = 'None';
 
-        // DOM Elements
-        const topBar = document.getElementById('topBar');
-        const bottomBar = document.getElementById('bottomBar');
+        // DOM elements
         const loader = document.getElementById('loader');
-        const filmstrip = document.getElementById('filmstrip');
         const fileTitle = document.getElementById('fileTitle');
-        const fileSubtitle = document.getElementById('fileSubtitle');
-        const passwordModal = document.getElementById('passwordModal');
-        const infoSheet = document.getElementById('infoSheet');
+        const fileBadge = document.getElementById('fileBadge');
+        const fileIndexSubtitle = document.getElementById('fileIndexSubtitle');
+        const filmstrip = document.getElementById('filmstrip');
+        
+        // Viewer containers
+        const mainImage = document.getElementById('mainImage');
+        const pdfWrapper = document.getElementById('pdfWrapper');
+        const pdfCanvas = document.getElementById('pdfCanvas');
+        const docxWrapper = document.getElementById('docxWrapper');
+        const docxRenderTarget = document.getElementById('docxRenderTarget');
+        const videoWrapper = document.getElementById('videoWrapper');
+        const mainVideo = document.getElementById('mainVideo');
+        const genericWrapper = document.getElementById('genericWrapper');
 
-        // Viewers
-        const imageViewer = document.getElementById('imageViewer');
-        const videoViewer = document.getElementById('videoViewer');
-        const docViewer = document.getElementById('docViewer');
-        const binaryViewer = document.getElementById('binaryViewer');
-        const binaryFileName = document.getElementById('binaryFileName');
-        const binaryFileSize = document.getElementById('binaryFileSize');
-        const btnDirectDownload = document.getElementById('btnDirectDownload');
-
-        // Actions
+        // Buttons
         const btnDownload = document.getElementById('btnDownload');
         const btnDelete = document.getElementById('btnDelete');
         const btnShare = document.getElementById('btnShare');
+        const menuPopover = document.getElementById('menuPopover');
 
-        /* 4. INIT FLOW */
+        /* 3. CLASSIFY FILE EXTENSION */
+        function getCategory(data) {
+            const typeField = (data.Type || "").toLowerCase();
+            const name = (data.Name || "").toLowerCase();
+            const url = (data.File || "").toLowerCase();
+
+            if (typeField.includes('img') || typeField.includes('image') || /\.(jpg|jpeg|png|webp|gif|svg|bmp|ico)$/.test(name) || /\.(jpg|jpeg|png|webp|gif|svg|bmp|ico)$/.test(url)) {
+                return 'image';
+            }
+            if (typeField.includes('pdf') || name.endsWith('.pdf') || url.includes('.pdf')) {
+                return 'pdf';
+            }
+            if (typeField.includes('docx') || typeField.includes('doc') || name.endsWith('.docx') || name.endsWith('.doc')) {
+                return 'docx';
+            }
+            if (typeField.includes('video') || /\.(mp4|mkv|webm|mov|avi|m4v|3gp)$/.test(name) || /\.(mp4|mkv|webm|mov|avi|m4v|3gp)$/.test(url)) {
+                return 'video';
+            }
+            if (name.endsWith('.exe') || typeField.includes('exe')) {
+                return 'exe';
+            }
+            return 'generic';
+        }
+
+        /* 4. INITIALIZATION */
         async function init() {
             lucide.createIcons();
             if (!currentDocId) {
-                alert("No Document ID specified.");
+                alert("No document specified in URL.");
                 return;
             }
 
@@ -550,7 +858,7 @@
                     folderDocId = currentDocId;
                     const fileIds = docData.Files || [];
                     if (fileIds.length === 0) {
-                        alert("The folder is empty.");
+                        alert("This folder has no files.");
                         return;
                     }
                     await loadFolderGallery(fileIds, fileIds[0]);
@@ -569,8 +877,8 @@
                     loadCurrentItem();
                 }
             } catch (err) {
-                console.error("Error loading document:", err);
-                alert("Failed to load file.");
+                console.error("Init error:", err);
+                alert("Database error loading files.");
             }
         }
 
@@ -583,12 +891,12 @@
                         galleryItems.push({ id: snap.id, data: snap.data() });
                     }
                 } catch (e) {
-                    console.error("Failed loading item:", id);
+                    console.error("Error reading doc id:", id);
                 }
             }
 
             if (galleryItems.length === 0) {
-                alert("No accessible files found in this collection.");
+                alert("No accessible files found.");
                 return;
             }
 
@@ -599,57 +907,45 @@
             loadCurrentItem();
         }
 
-        /* 5. ROLE & PERMISSIONS CHECK */
+        /* 5. ACCESS CHECK */
         function evaluateAccess(data) {
-            const ownerEmail = (data.Email || "").toLowerCase();
-            const accessObj = data.Access || {};
-            const editors = (accessObj.Editor || []).map(e => (e || "").toLowerCase());
-            const viewers = (accessObj.Viewer || []).map(e => (e || "").toLowerCase());
-            const commentators = (accessObj.Commentator || []).map(e => (e || "").toLowerCase());
+            const owner = (data.Email || "").toLowerCase();
+            const access = data.Access || {};
+            const editors = (access.Editor || []).map(e => (e || "").toLowerCase());
+            const viewers = (access.Viewer || []).map(e => (e || "").toLowerCase());
+            const commentators = (access.Commentator || []).map(e => (e || "").toLowerCase());
 
-            if (userEmail === ownerEmail) return 'Owner';
+            if (userEmail === owner) return 'Owner';
             if (editors.includes(userEmail)) return 'Editor';
             if (viewers.includes(userEmail) || commentators.includes(userEmail)) return 'Viewer';
             return 'None';
         }
 
-        /* 6. MIME & EXTENSION CLASSIFIER */
-        function getFileType(docData) {
-            const explicitType = (docData.Type || "").toLowerCase();
-            const fileName = (docData.Name || "").toLowerCase();
-            const fileUrl = (docData.File || "").toLowerCase();
-
-            if (explicitType.includes('img') || explicitType.includes('image') || fileName.match(/\.(jpg|jpeg|png|webp|gif|svg)$/)) {
-                return 'image';
-            }
-            if (explicitType.includes('video') || fileName.match(/\.(mp4|webm|ogg|mov|mkv)$/)) {
-                return 'video';
-            }
-            if (explicitType.includes('pdf') || fileName.endsWith('.pdf')) {
-                return 'pdf';
-            }
-            if (fileName.match(/\.(docx|doc|pptx|ppt|xlsx|xls)$/)) {
-                return 'office';
-            }
-            if (fileName.endsWith('.exe') || explicitType.includes('exe')) {
-                return 'exe';
-            }
-            return 'binary';
+        /* 6. DISPATCH VIEWERS */
+        function hideAllViewers() {
+            mainImage.style.display = 'none';
+            pdfWrapper.style.display = 'none';
+            docxWrapper.style.display = 'none';
+            videoWrapper.style.display = 'none';
+            genericWrapper.style.display = 'none';
+            mainVideo.pause();
+            mainVideo.src = '';
+            menuPopover.classList.remove('active');
         }
 
-        /* 7. DYNAMIC CONTENT RENDERING */
-        function loadCurrentItem() {
+        async function loadCurrentItem() {
+            hideAllViewers();
             const current = galleryItems[currentIndex];
             currentDocId = current.id;
             currentDocData = current.data;
 
             userRole = evaluateAccess(currentDocData);
             if (userRole === 'None') {
-                alert("Access Denied: You do not have permission to view this file.");
+                alert("Access Denied: You do not have permission for this file.");
                 return;
             }
 
-            // Password Protection
+            // Password Check
             if (currentDocData.Password && currentDocData.Password.trim() !== "" && userRole !== 'Owner') {
                 if (sessionStorage.getItem(`auth_${currentDocId}`) !== 'true') {
                     showPasswordModal();
@@ -657,88 +953,274 @@
                 }
             }
 
-            // Access Control Rules on Buttons
+            // Role constraints (Viewer cannot download or delete)
             if (userRole === 'Viewer') {
                 btnDownload.style.display = 'none';
                 btnDelete.style.display = 'none';
-                btnDirectDownload.style.display = 'none';
             } else {
                 btnDownload.style.display = 'flex';
                 btnDelete.style.display = 'flex';
-                btnDirectDownload.style.display = 'block';
             }
 
-            // Set Top Information
-            fileTitle.innerText = currentDocData.Name || "Unnamed File";
-            fileSubtitle.innerText = `${currentIndex + 1} of ${galleryItems.length}`;
+            const category = getCategory(currentDocData);
+            fileTitle.innerText = currentDocData.Name || "File";
+            fileBadge.innerText = category.toUpperCase();
+            fileIndexSubtitle.innerText = `${currentIndex + 1} of ${galleryItems.length}`;
 
-            // Reset Viewers
-            hideAllViewers();
             loader.style.display = 'block';
 
-            const fileType = getFileType(currentDocData);
-            const fileUrl = currentDocData.File;
-
-            // Render view depending on file type
-            switch (fileType) {
-                case 'image':
-                    imageViewer.src = fileUrl;
-                    imageViewer.onload = () => {
-                        loader.style.display = 'none';
-                        imageViewer.style.display = 'block';
-                    };
-                    break;
-
-                case 'video':
-                    videoViewer.src = fileUrl;
-                    videoViewer.onloadeddata = () => {
-                        loader.style.display = 'none';
-                        videoViewer.style.display = 'block';
-                    };
-                    break;
-
-                case 'pdf':
-                    docViewer.src = fileUrl;
-                    docViewer.onload = () => {
-                        loader.style.display = 'none';
-                        docViewer.style.display = 'block';
-                    };
-                    break;
-
-                case 'office': // .docx, .xlsx, .pptx rendered via Microsoft Office Online Viewer
-                    docViewer.src = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
-                    docViewer.onload = () => {
-                        loader.style.display = 'none';
-                        docViewer.style.display = 'block';
-                    };
-                    break;
-
-                case 'exe':
-                case 'binary':
-                default:
-                    loader.style.display = 'none';
-                    binaryViewer.style.display = 'flex';
-                    binaryFileName.innerText = currentDocData.Name || "Executable File";
-                    binaryFileSize.innerText = currentDocData.Type ? `Type: ${currentDocData.Type}` : "Binary Executable";
-                    break;
+            try {
+                switch(category) {
+                    case 'image':
+                        await renderImage(currentDocData.File);
+                        break;
+                    case 'pdf':
+                        await renderPDF(currentDocData.File);
+                        break;
+                    case 'docx':
+                        await renderDocx(currentDocData.File);
+                        break;
+                    case 'video':
+                        await renderVideo(currentDocData.File);
+                        break;
+                    default:
+                        renderGeneric(currentDocData, category);
+                        break;
+                }
+            } catch (err) {
+                console.error("Renderer error:", err);
+                renderGeneric(currentDocData, category);
+            } finally {
+                loader.style.display = 'none';
             }
 
             updateActiveThumb();
             lucide.createIcons();
         }
 
-        function hideAllViewers() {
-            imageViewer.style.display = 'none';
-            imageViewer.src = '';
-            videoViewer.style.display = 'none';
-            videoViewer.pause();
-            videoViewer.src = '';
-            docViewer.style.display = 'none';
-            docViewer.src = '';
-            binaryViewer.style.display = 'none';
+        /* --- 6.1 IMAGE RENDERER --- */
+        function renderImage(url) {
+            return new Promise((resolve, reject) => {
+                mainImage.src = url;
+                mainImage.onload = () => {
+                    mainImage.style.display = 'block';
+                    resetZoom();
+                    resolve();
+                };
+                mainImage.onerror = reject;
+            });
         }
 
-        /* 8. THUMBNAIL FILMSTRIP */
+        /* --- 6.2 CUSTOM PDF RENDERER (NO CHROME NATIVE EMBED) --- */
+        let pdfDoc = null, pdfPageNum = 1, pdfScale = 1.3;
+        async function renderPDF(url) {
+            pdfWrapper.style.display = 'flex';
+            pdfDoc = await pdfjsLib.getDocument(url).promise;
+            pdfPageNum = 1;
+            document.getElementById('pdfPageIndicator').innerText = `${pdfPageNum} / ${pdfDoc.numPages}`;
+            await drawPdfPage(pdfPageNum);
+        }
+
+        async function drawPdfPage(num) {
+            const page = await pdfDoc.getPage(num);
+            const viewport = page.getViewport({ scale: pdfScale });
+            const canvas = pdfCanvas;
+            const ctx = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+            document.getElementById('pdfPageIndicator').innerText = `${pdfPageNum} / ${pdfDoc.numPages}`;
+        }
+
+        document.getElementById('btnPdfNext').onclick = (e) => {
+            e.stopPropagation();
+            if (pdfDoc && pdfPageNum < pdfDoc.numPages) {
+                pdfPageNum++;
+                drawPdfPage(pdfPageNum);
+            }
+        };
+
+        document.getElementById('btnPdfPrev').onclick = (e) => {
+            e.stopPropagation();
+            if (pdfDoc && pdfPageNum > 1) {
+                pdfPageNum--;
+                drawPdfPage(pdfPageNum);
+            }
+        };
+
+        document.getElementById('btnPdfZoomIn').onclick = (e) => {
+            e.stopPropagation();
+            pdfScale += 0.2;
+            drawPdfPage(pdfPageNum);
+        };
+
+        document.getElementById('btnPdfZoomOut').onclick = (e) => {
+            e.stopPropagation();
+            if (pdfScale > 0.6) {
+                pdfScale -= 0.2;
+                drawPdfPage(pdfPageNum);
+            }
+        };
+
+        /* --- 6.3 DOCX RENDERER --- */
+        async function renderDocx(url) {
+            docxWrapper.style.display = 'block';
+            docxRenderTarget.innerHTML = '';
+            const res = await fetch(url);
+            const blob = await res.blob();
+            await window.docx.renderAsync(blob, docxRenderTarget);
+        }
+
+        /* --- 6.4 VIDEO PLAYER (SAMSUNG STYLE WITH MKV / AUDIO / SUBTITLES) --- */
+        const playPauseIcon = document.getElementById('playPauseIcon');
+        const centerPlayIcon = document.getElementById('centerPlayIcon');
+        const videoSeekBar = document.getElementById('videoSeekBar');
+        const videoCurrentTime = document.getElementById('videoCurrentTime');
+        const videoDuration = document.getElementById('videoDuration');
+
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        async function renderVideo(url) {
+            videoWrapper.style.display = 'flex';
+            mainVideo.src = url;
+            mainVideo.load();
+        }
+
+        mainVideo.onloadedmetadata = () => {
+            videoDuration.innerText = formatTime(mainVideo.duration);
+            videoSeekBar.max = mainVideo.duration;
+        };
+
+        mainVideo.ontimeupdate = () => {
+            videoSeekBar.value = mainVideo.currentTime;
+            videoCurrentTime.innerText = formatTime(mainVideo.currentTime);
+        };
+
+        function togglePlay() {
+            if (mainVideo.paused) {
+                mainVideo.play();
+                playPauseIcon.setAttribute('data-lucide', 'pause');
+                centerPlayIcon.setAttribute('data-lucide', 'pause');
+            } else {
+                mainVideo.pause();
+                playPauseIcon.setAttribute('data-lucide', 'play');
+                centerPlayIcon.setAttribute('data-lucide', 'play');
+            }
+            lucide.createIcons();
+        }
+
+        document.getElementById('btnPlayPause').onclick = (e) => { e.stopPropagation(); togglePlay(); };
+        document.getElementById('btnCenterPlay').onclick = (e) => { e.stopPropagation(); togglePlay(); };
+        
+        videoSeekBar.oninput = () => {
+            mainVideo.currentTime = videoSeekBar.value;
+        };
+
+        // Video Audio Track Switcher
+        document.getElementById('btnAudioTrack').onclick = (e) => {
+            e.stopPropagation();
+            menuPopover.innerHTML = '<div class="menu-popover-title">Audio Stream</div>';
+            if (mainVideo.audioTracks && mainVideo.audioTracks.length > 0) {
+                for (let i = 0; i < mainVideo.audioTracks.length; i++) {
+                    const track = mainVideo.audioTracks[i];
+                    const item = document.createElement('button');
+                    item.className = `menu-popover-item ${track.enabled ? 'selected' : ''}`;
+                    item.innerText = track.label || `Track ${i + 1} (${track.language || 'Default'})`;
+                    item.onclick = () => {
+                        for (let j = 0; j < mainVideo.audioTracks.length; j++) {
+                            mainVideo.audioTracks[j].enabled = (j === i);
+                        }
+                        menuPopover.classList.remove('active');
+                    };
+                    menuPopover.appendChild(item);
+                }
+            } else {
+                menuPopover.innerHTML += '<div class="menu-popover-item selected">Default Audio</div>';
+            }
+            menuPopover.classList.toggle('active');
+        };
+
+        // Subtitles Track Switcher
+        document.getElementById('btnSubtitles').onclick = (e) => {
+            e.stopPropagation();
+            menuPopover.innerHTML = '<div class="menu-popover-title">Subtitles</div>';
+            const offBtn = document.createElement('button');
+            offBtn.className = 'menu-popover-item selected';
+            offBtn.innerText = 'Off';
+            offBtn.onclick = () => {
+                for (let i = 0; i < mainVideo.textTracks.length; i++) {
+                    mainVideo.textTracks[i].mode = 'disabled';
+                }
+                menuPopover.classList.remove('active');
+            };
+            menuPopover.appendChild(offBtn);
+
+            if (mainVideo.textTracks && mainVideo.textTracks.length > 0) {
+                for (let i = 0; i < mainVideo.textTracks.length; i++) {
+                    const track = mainVideo.textTracks[i];
+                    const item = document.createElement('button');
+                    item.className = 'menu-popover-item';
+                    item.innerText = track.label || `Subtitle ${i + 1} (${track.language})`;
+                    item.onclick = () => {
+                        for (let j = 0; j < mainVideo.textTracks.length; j++) {
+                            mainVideo.textTracks[j].mode = (j === i) ? 'showing' : 'disabled';
+                        }
+                        menuPopover.classList.remove('active');
+                    };
+                    menuPopover.appendChild(item);
+                }
+            }
+            menuPopover.classList.toggle('active');
+        };
+
+        // Playback Speed
+        document.getElementById('btnSpeed').onclick = (e) => {
+            e.stopPropagation();
+            menuPopover.innerHTML = '<div class="menu-popover-title">Playback Speed</div>';
+            const speeds = [0.5, 1.0, 1.25, 1.5, 2.0];
+            speeds.forEach(s => {
+                const item = document.createElement('button');
+                item.className = `menu-popover-item ${mainVideo.playbackRate === s ? 'selected' : ''}`;
+                item.innerText = `${s}x`;
+                item.onclick = () => {
+                    mainVideo.playbackRate = s;
+                    menuPopover.classList.remove('active');
+                };
+                menuPopover.appendChild(item);
+            });
+            menuPopover.classList.toggle('active');
+        };
+
+        document.getElementById('btnFullscreen').onclick = (e) => {
+            e.stopPropagation();
+            if (!document.fullscreenElement) {
+                videoWrapper.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen().catch(() => {});
+            }
+        };
+
+        /* --- 6.5 GENERIC / EXE PREVIEW --- */
+        function renderGeneric(data, category) {
+            genericWrapper.style.display = 'flex';
+            document.getElementById('genericFileName').innerText = data.Name || "Binary file";
+            const iconBox = document.getElementById('genericIconContainer');
+            
+            if (category === 'exe') {
+                iconBox.innerHTML = '<i data-lucide="app-window" style="width: 44px; height: 44px;"></i>';
+                document.getElementById('genericFileDesc').innerText = 'Windows Executable file. Click Download to install on your computer.';
+            } else {
+                iconBox.innerHTML = '<i data-lucide="file" style="width: 44px; height: 44px;"></i>';
+                document.getElementById('genericFileDesc').innerText = 'Document archive or binary file ready for download.';
+            }
+        }
+
+        /* 7. FILMSTRIP */
         function renderFilmstrip() {
             filmstrip.innerHTML = '';
             if (galleryItems.length <= 1) {
@@ -748,56 +1230,61 @@
             filmstrip.style.display = 'flex';
 
             galleryItems.forEach((item, index) => {
-                const thumb = document.createElement('div');
-                thumb.className = `thumb ${index === currentIndex ? 'active' : ''}`;
-                
-                const type = getFileType(item.data);
-                if (type === 'image') {
-                    thumb.innerHTML = `<img src="${item.data.File}" alt="${item.data.Name}">`;
-                } else if (type === 'video') {
-                    thumb.innerHTML = `<i data-lucide="video" style="width:20px;height:20px;"></i>`;
-                } else if (type === 'pdf' || type === 'office') {
-                    thumb.innerHTML = `<i data-lucide="file-text" style="width:20px;height:20px;"></i>`;
+                const box = document.createElement('div');
+                box.className = `thumb-box ${index === currentIndex ? 'active' : ''}`;
+                const cat = getCategory(item.data);
+
+                if (cat === 'image') {
+                    box.innerHTML = `<img src="${item.data.File}" alt="${item.data.Name}">`;
+                } else if (cat === 'pdf') {
+                    box.innerHTML = `<i data-lucide="file-text"></i>`;
+                } else if (cat === 'docx') {
+                    box.innerHTML = `<i data-lucide="file-type-2"></i>`;
+                } else if (cat === 'video') {
+                    box.innerHTML = `<i data-lucide="play-circle"></i>`;
+                } else if (cat === 'exe') {
+                    box.innerHTML = `<i data-lucide="app-window"></i>`;
                 } else {
-                    thumb.innerHTML = `<i data-lucide="terminal" style="width:20px;height:20px;"></i>`;
+                    box.innerHTML = `<i data-lucide="file"></i>`;
                 }
 
-                thumb.onclick = (e) => {
+                box.onclick = (e) => {
                     e.stopPropagation();
                     currentIndex = index;
                     loadCurrentItem();
                 };
-                filmstrip.appendChild(thumb);
+                filmstrip.appendChild(box);
             });
             lucide.createIcons();
         }
 
         function updateActiveThumb() {
-            const thumbs = filmstrip.querySelectorAll('.thumb');
-            thumbs.forEach((t, i) => {
+            const boxes = filmstrip.querySelectorAll('.thumb-box');
+            boxes.forEach((b, i) => {
                 if (i === currentIndex) {
-                    t.classList.add('active');
-                    t.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                    b.classList.add('active');
+                    b.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                 } else {
-                    t.classList.remove('active');
+                    b.classList.remove('active');
                 }
             });
         }
 
-        /* 9. PASSWORD UNLOCK */
+        /* 8. PASSWORD UNLOCK */
         function showPasswordModal() {
-            passwordModal.classList.add('active');
+            document.getElementById('passwordModal').classList.add('active');
             document.getElementById('passwordInput').value = '';
             document.getElementById('passwordInput').focus();
         }
 
         document.getElementById('btnUnlock').onclick = () => {
-            if (document.getElementById('passwordInput').value === currentDocData.Password) {
+            const val = document.getElementById('passwordInput').value;
+            if (val === currentDocData.Password) {
                 sessionStorage.setItem(`auth_${currentDocId}`, 'true');
-                passwordModal.classList.remove('active');
+                document.getElementById('passwordModal').classList.remove('active');
                 loadCurrentItem();
             } else {
-                alert("Incorrect password.");
+                alert("Incorrect password!");
             }
         };
 
@@ -806,27 +1293,26 @@
             else window.location.href = '1.html';
         };
 
-        /* 10. DOWNLOAD, DELETE, SHARE ACTIONS */
-        async function triggerDownload() {
+        /* 9. ACTIONS: DOWNLOAD, DELETE, SHARE */
+        btnDownload.onclick = async (e) => {
+            e.stopPropagation();
             if (userRole !== 'Owner' && userRole !== 'Editor') return;
+
             try {
-                const response = await fetch(currentDocData.File);
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
+                const res = await fetch(currentDocData.File);
+                const blob = await res.blob();
+                const u = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
+                a.href = u;
                 a.download = currentDocData.Name || `download_${Date.now()}`;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
-                window.URL.revokeObjectURL(url);
-            } catch (err) {
+                window.URL.revokeObjectURL(u);
+            } catch {
                 window.open(currentDocData.File, '_blank');
             }
-        }
-
-        btnDownload.onclick = triggerDownload;
-        btnDirectDownload.onclick = triggerDownload;
+        };
 
         btnDelete.onclick = async (e) => {
             e.stopPropagation();
@@ -840,7 +1326,6 @@
                         Files: arrayRemove(currentDocId)
                     });
                 }
-                alert("Deleted successfully.");
                 galleryItems.splice(currentIndex, 1);
                 if (galleryItems.length === 0) {
                     window.history.back();
@@ -850,8 +1335,7 @@
                     loadCurrentItem();
                 }
             } catch (err) {
-                console.error("Delete failed:", err);
-                alert("Could not delete file.");
+                alert("Failed to delete.");
             }
         };
 
@@ -861,59 +1345,67 @@
             if (navigator.share) {
                 try {
                     await navigator.share({
-                        title: currentDocData.Name || 'Shared File',
-                        text: 'Shared file from Perplexity Drive',
+                        title: currentDocData.Name || 'Drive File',
                         url: shareUrl
                     });
-                } catch(e) {}
+                } catch {}
             } else {
                 navigator.clipboard.writeText(shareUrl);
-                alert("Link copied to clipboard!");
+                alert("Link copied!");
             }
         };
 
-        /* 11. DETAILS SHEET & UI CONTROLS */
+        /* 10. DETAILS & UI CONTROLS */
         document.getElementById('btnInfo').onclick = (e) => {
             e.stopPropagation();
             document.getElementById('detailName').innerText = currentDocData.Name || '-';
             document.getElementById('detailOwner').innerText = currentDocData.Email || '-';
             document.getElementById('detailRole').innerText = userRole;
-            document.getElementById('detailType').innerText = currentDocData.Type || getFileType(currentDocData).toUpperCase();
-            infoSheet.classList.add('active');
+            document.getElementById('detailType').innerText = currentDocData.Type || getCategory(currentDocData).toUpperCase();
+            document.getElementById('infoSheet').classList.add('active');
         };
 
-        document.getElementById('btnCloseSheet').onclick = () => infoSheet.classList.remove('active');
+        document.getElementById('btnCloseSheet').onclick = () => {
+            document.getElementById('infoSheet').classList.remove('active');
+        };
+
         document.getElementById('btnBack').onclick = () => {
             if (window.history.length > 1) window.history.back();
             else window.location.href = '1.html';
         };
 
-        // Tap screen to toggle clean immersive UI
+        // Screen tap toggles UI immersion
         document.getElementById('viewerContainer').addEventListener('click', (e) => {
-            if (e.target.tagName !== 'VIDEO' && e.target.tagName !== 'BUTTON') {
-                document.body.classList.toggle('ui-hidden');
-                infoSheet.classList.remove('active');
-            }
+            if (e.target.closest('#videoControls') || e.target.closest('#pdfControls')) return;
+            document.body.classList.toggle('ui-hidden');
+            menuPopover.classList.remove('active');
+            document.getElementById('infoSheet').classList.remove('active');
         });
 
-        // Swipe Navigation
-        let startX = 0;
+        // Swipe left/right gesture to switch files (when not zoomed)
+        let touchStartX = 0, touchEndX = 0;
         document.getElementById('viewerContainer').addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
+            if (e.touches.length === 1) touchStartX = e.touches[0].clientX;
         }, { passive: true });
 
         document.getElementById('viewerContainer').addEventListener('touchend', (e) => {
-            let endX = e.changedTouches[0].clientX;
-            if (startX - endX > 60 && currentIndex < galleryItems.length - 1) {
-                currentIndex++;
-                loadCurrentItem();
-            } else if (endX - startX > 60 && currentIndex > 0) {
-                currentIndex--;
-                loadCurrentItem();
+            if (e.changedTouches.length === 1) {
+                touchEndX = e.changedTouches[0].clientX;
+                if (touchStartX - touchEndX > 60 && currentIndex < galleryItems.length - 1) {
+                    currentIndex++;
+                    loadCurrentItem();
+                } else if (touchEndX - touchStartX > 60 && currentIndex > 0) {
+                    currentIndex--;
+                    loadCurrentItem();
+                }
             }
         }, { passive: true });
 
-        // Start Viewer
+        function resetZoom() {
+            mainImage.style.transform = 'translate(0px, 0px) scale(1)';
+        }
+
+        // Run
         init();
     </script>
 </body>
