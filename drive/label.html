@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labels - Cloud Workspace</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --surface-color: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #f3f4f6;
+            --hover-bg: #f9fafb;
+            --accent: #10a37f;
+            --sidebar-width: 64px;
+        }
+
+        body.dark {
+            --bg-color: #0d0d0d;
+            --surface-color: #171717;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border-color: #262626;
+            --hover-bg: #1f1f1f;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        aside.sidebar {
+            width: var(--sidebar-width);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            gap: 20px;
+            flex-shrink: 0;
+            background: var(--surface-color);
+        }
+
+        .side-icon {
+            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; color: var(--text-secondary); cursor: pointer; text-decoration: none; transition: all 0.15s;
+        }
+        .side-icon:hover, .side-icon.active { background-color: var(--hover-bg); color: var(--text-primary); }
+        .side-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+
+        main.content-area { flex-grow: 1; padding: 36px 48px; max-width: 1200px; }
+        .top-row { margin-bottom: 24px; }
+        .page-title { font-size: 22px; font-weight: 600; }
+
+        /* Filter Chips */
+        .filter-chips { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .chip {
+            padding: 6px 14px; border-radius: 9999px; background: var(--hover-bg);
+            font-size: 13px; cursor: pointer; color: var(--text-secondary); border: 1px solid var(--border-color);
+        }
+        .chip.active { background: var(--text-primary); color: var(--bg-color); font-weight: 500; }
+
+        .data-table { width: 100%; border-collapse: collapse; }
+        .table-head {
+            display: grid; grid-template-columns: 3.5fr 2fr 1.5fr 40px;
+            padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--text-secondary); border-bottom: 1px solid var(--border-color);
+        }
+        .table-row {
+            display: grid; grid-template-columns: 3.5fr 2fr 1.5fr 40px; align-items: center;
+            padding: 14px 16px; border-bottom: 1px solid var(--border-color); font-size: 14px; transition: background 0.15s;
+        }
+        .table-row:hover { background-color: var(--hover-bg); }
+
+        .file-title-cell { display: flex; align-items: center; gap: 12px; overflow: hidden; }
+        .file-icon-box {
+            width: 36px; height: 36px; border-radius: 8px; background: var(--hover-bg);
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .file-icon-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+        .file-name { font-weight: 500; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .label-pill {
+            font-size: 12px; padding: 2px 8px; border-radius: 4px; background: rgba(16,163,127,0.12); color: var(--accent);
+        }
+
+        @media(max-width: 768px) {
+            aside.sidebar { display: none; }
+            main.content-area { padding: 20px 16px; }
+            .table-head { display: none; }
+            .table-row { grid-template-columns: 1fr auto; }
+        }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <a href="home.html" class="side-icon" title="Home">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+    </a>
+    <a href="1.html" class="side-icon" title="All Files">
+        <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+    </a>
+    <a href="share.html" class="side-icon" title="Shared with Me">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+    </a>
+    <a href="label.html" class="side-icon active" title="Labels">
+        <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+    </a>
+    <div class="side-icon" id="themeToggleBtn" title="Toggle Theme" style="margin-top: auto;">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line></svg>
+    </div>
+</aside>
+
+<main class="content-area">
+    <div class="top-row">
+        <div class="page-title">Labeled Files</div>
+    </div>
+
+    <div class="filter-chips" id="filterChips">
+        <span class="chip active" data-label="all">All Labels</span>
+    </div>
+
+    <div class="data-table">
+        <div class="table-head">
+            <div>Name</div>
+            <div>Label</div>
+            <div>Owner</div>
+            <div></div>
+        </div>
+        <div id="labeledContent">
+            <div style="padding: 16px 0; color: var(--text-secondary);">Loading labels...</div>
+        </div>
+    </div>
+</main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
+        authDomain: "cloud-computer-4891a.firebaseapp.com",
+        projectId: "cloud-computer-4891a",
+        storageBucket: "cloud-computer-4891a.firebasestorage.app",
+        messagingSenderId: "744203234287",
+        appId: "1:744203234287:web:81d943ae9b75fd77dce41a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Theme Logic
+    function syncTheme() {
+        const isDark = localStorage.getItem('theme_mode') === 'dark' || 
+            (!localStorage.getItem('theme_mode') && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.body.classList.toggle("dark", isDark);
+    }
+    syncTheme();
+
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        const isDark = document.body.classList.toggle("dark");
+        localStorage.setItem('theme_mode', isDark ? 'dark' : 'light');
+    });
+
+    const user = JSON.parse(localStorage.getItem('active_user') || '{}');
+    if (!user.Email) window.location.href = "1.html";
+
+    let allLabeledFiles = [];
+
+    async function loadLabels() {
+        const container = document.getElementById('labeledContent');
+        const chipsContainer = document.getElementById('filterChips');
+
+        try {
+            const q = query(collection(db, "Cloud Drive"), where("Email", "==", user.Email));
+            const snap = await getDocs(q);
+
+            allLabeledFiles = [];
+            const labelsSet = new Set();
+
+            snap.forEach(d => {
+                const data = d.data();
+                if (data.Label) {
+                    allLabeledFiles.push(data);
+                    labelsSet.add(data.Label);
+                }
+            });
+
+            // Populate filter chips
+            labelsSet.forEach(lbl => {
+                const chip = document.createElement('span');
+                chip.className = 'chip';
+                chip.innerText = lbl;
+                chip.dataset.label = lbl;
+                chip.onclick = () => filterBy(lbl, chip);
+                chipsContainer.appendChild(chip);
+            });
+
+            renderList(allLabeledFiles);
+        } catch(e) {
+            console.error(e);
+            container.innerHTML = `<div style="color:red; padding:16px 0;">Error fetching labeled records.</div>`;
+        }
+    }
+
+    function filterBy(lbl, element) {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        element.classList.add('active');
+        const filtered = lbl === 'all' ? allLabeledFiles : allLabeledFiles.filter(f => f.Label === lbl);
+        renderList(filtered);
+    }
+
+    document.querySelector('.chip[data-label="all"]').onclick = function() {
+        filterBy('all', this);
+    };
+
+    function renderList(list) {
+        const container = document.getElementById('labeledContent');
+        container.innerHTML = "";
+
+        if (list.length === 0) {
+            container.innerHTML = `<div style="padding:24px 0; color:var(--text-secondary);">No labeled files found.</div>`;
+            return;
+        }
+
+        list.forEach(item => {
+            const isImg = (item.Type || '').includes('img');
+            const row = document.createElement('div');
+            row.className = 'table-row';
+            row.innerHTML = `
+                <div class="file-title-cell">
+                    <div class="file-icon-box">${isImg ? `<img src="${item.File}">` : '📄'}</div>
+                    <span class="file-name">${item.Name || 'Untitled'}</span>
+                </div>
+                <div><span class="label-pill">${item.Label}</span></div>
+                <div>${item.Email}</div>
+                <div><button style="background:none; border:none; cursor:pointer;" onclick="window.open('${item.File}', '_blank')">↗️</button></div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    loadLabels();
+</script>
+</body>
+</html>
