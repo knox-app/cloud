@@ -3,34 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Knowledge base - All Files</title>
+    <title>Knowledge base - Cloud Workspace</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
-            --bg-color: #ffffff;
-            --surface-color: #ffffff;
-            --text-primary: #111827;
-            --text-secondary: #6b7280;
-            --border-color: #f3f4f6;
-            --hover-bg: #f9fafb;
-            --btn-dark-bg: #0d0d0d;
-            --btn-dark-text: #ffffff;
-            --accent: #10a37f;
-            --danger: #ef4444;
-            --sidebar-width: 64px;
-        }
-
-        body.dark {
             --bg-color: #0d0d0d;
             --surface-color: #171717;
             --text-primary: #f9fafb;
             --text-secondary: #9ca3af;
             --border-color: #262626;
             --hover-bg: #1f1f1f;
-            --btn-dark-bg: #ffffff;
-            --btn-dark-text: #0d0d0d;
+            --btn-bg: #ffffff;
+            --btn-text: #0d0d0d;
             --accent: #10a37f;
-            --danger: #f87171;
+            --danger: #ef4444;
+            --sidebar-width: 64px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -42,6 +29,7 @@
             min-height: 100vh;
         }
 
+        /* Sidebar */
         aside.sidebar {
             width: var(--sidebar-width);
             border-right: 1px solid var(--border-color);
@@ -53,99 +41,197 @@
             flex-shrink: 0;
             background: var(--surface-color);
         }
-
         .side-icon {
-            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
-            border-radius: 8px; color: var(--text-secondary); cursor: pointer; text-decoration: none; transition: all 0.15s;
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; color: var(--text-secondary);
+            cursor: pointer; text-decoration: none; transition: 0.15s;
         }
-        .side-icon:hover, .side-icon.active { background-color: var(--hover-bg); color: var(--text-primary); }
+        .side-icon.active, .side-icon:hover { background-color: var(--hover-bg); color: var(--text-primary); }
         .side-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
 
-        main.content-area { flex-grow: 1; padding: 36px 48px; max-width: 1200px; position: relative; }
-        .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .page-title { font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        /* Content */
+        main.content-area {
+            flex-grow: 1;
+            padding: 36px 48px;
+            max-width: 1200px;
+        }
+
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .breadcrumbs {
+            font-size: 22px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
         .btn-pill {
-            background-color: var(--btn-dark-bg);
-            color: var(--btn-dark-text);
+            background-color: var(--btn-bg);
+            color: var(--btn-text);
             border: none;
             padding: 10px 18px;
             border-radius: 9999px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             text-decoration: none;
         }
 
-        .search-container { position: relative; max-width: 360px; margin-bottom: 24px; }
-        .search-container svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; stroke: var(--text-secondary); stroke-width: 2; fill: none; }
+        .search-container {
+            position: relative;
+            max-width: 360px;
+            margin-bottom: 24px;
+        }
+        .search-container svg {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            width: 16px; height: 16px; stroke: var(--text-secondary); stroke-width: 2; fill: none;
+        }
         .search-input {
-            width: 100%; padding: 10px 14px 10px 38px; border-radius: 9999px; border: 1px solid var(--border-color);
-            background: var(--surface-color); font-size: 14px; color: var(--text-primary); outline: none;
+            width: 100%;
+            padding: 10px 14px 10px 38px;
+            border-radius: 9999px;
+            border: 1px solid var(--border-color);
+            background: var(--surface-color);
+            font-size: 14px;
+            color: var(--text-primary);
+            outline: none;
         }
 
+        /* Drag Overlay */
+        .drag-overlay {
+            position: fixed; inset: 0; background: rgba(16, 163, 127, 0.08);
+            border: 2px dashed var(--accent); display: none; justify-content: center;
+            align-items: center; z-index: 1000; pointer-events: none;
+        }
+        .drag-overlay.active { display: flex; }
+
+        /* Table */
         .data-table { width: 100%; border-collapse: collapse; }
         .table-head {
-            display: grid; grid-template-columns: 3.5fr 2fr 1.5fr 1fr 40px;
-            padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--text-secondary); border-bottom: 1px solid var(--border-color);
+            display: grid;
+            grid-template-columns: 3.5fr 1.5fr 1.5fr 1.5fr 40px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
         }
         .table-row {
-            display: grid; grid-template-columns: 3.5fr 2fr 1.5fr 1fr 40px; align-items: center;
-            padding: 14px 16px; border-bottom: 1px solid var(--border-color); font-size: 14px; transition: background 0.15s;
+            display: grid;
+            grid-template-columns: 3.5fr 1.5fr 1.5fr 1.5fr 40px;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            transition: 0.15s;
         }
         .table-row:hover { background-color: var(--hover-bg); }
 
-        .file-title-cell { display: flex; align-items: center; gap: 12px; overflow: hidden; }
-        .file-icon-box {
-            width: 36px; height: 36px; border-radius: 8px; background: var(--hover-bg);
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-secondary);
+        .file-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
         }
-        .file-icon-box svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; }
-        .file-icon-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+        .file-icon-box {
+            width: 36px; height: 36px; border-radius: 8px; background: #222;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            color: var(--text-secondary); overflow: hidden;
+        }
+        .file-icon-box img { width: 100%; height: 100%; object-fit: cover; }
+        .file-icon-box svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
-        .file-name { font-weight: 500; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .label-tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(16,163,127,0.12); color: var(--accent); margin-left: 6px; }
+        .file-info { display: flex; flex-direction: column; overflow: hidden; }
+        .file-name {
+            font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;
+        }
+        .file-subtext { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
 
+        .label-pill {
+            display: inline-block;
+            background: #27272a;
+            color: #d4d4d8;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            margin-top: 4px;
+            width: fit-content;
+        }
+
+        /* 3-Dots Dropdown */
         .actions-cell { position: relative; text-align: right; }
-        .btn-dots { background: none; border: none; padding: 6px; border-radius: 6px; cursor: pointer; color: var(--text-secondary); }
+        .btn-dots {
+            background: none; border: none; padding: 6px; border-radius: 6px;
+            cursor: pointer; color: var(--text-secondary); display: flex;
+        }
+        .btn-dots:hover { background: var(--border-color); color: var(--text-primary); }
+        .btn-dots svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+
         .action-dropdown {
             position: absolute; right: 0; top: 32px; background: var(--surface-color);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.12); border-radius: 12px; width: 190px; padding: 6px 0; z-index: 100; display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid var(--border-color);
+            width: 190px; padding: 6px 0; z-index: 100; display: none; text-align: left;
         }
         .action-dropdown.active { display: block; }
         .dropdown-item {
-            padding: 9px 16px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 10px; color: var(--text-primary);
+            padding: 9px 14px; font-size: 13px; cursor: pointer; display: flex;
+            align-items: center; gap: 8px; color: var(--text-primary);
         }
         .dropdown-item:hover { background: var(--hover-bg); }
         .dropdown-item.danger { color: var(--danger); }
+        .dropdown-item svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
-        /* Modal Styles */
+        /* Minimal Borderless Modals */
         .modal-shade {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
-            display: flex; justify-content: center; align-items: center; z-index: 500; visibility: hidden; opacity: 0; transition: opacity 0.2s; padding: 16px;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            display: flex; justify-content: center; align-items: center; z-index: 500;
+            visibility: hidden; opacity: 0; transition: 0.2s; padding: 16px;
         }
         .modal-shade.active { visibility: visible; opacity: 1; }
-        .modal-box { background: var(--surface-color); border-radius: 20px; width: 100%; max-width: 480px; padding: 28px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .clean-input {
-            width: 100%; padding: 12px 14px; background: var(--hover-bg); border: none; border-radius: 10px; color: var(--text-primary); font-size: 14px; outline: none; margin-bottom: 14px;
+
+        .modal-box {
+            background: var(--surface-color); border-radius: 20px; width: 100%;
+            max-width: 480px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
         }
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        }
+        .modal-title { font-size: 18px; font-weight: 600; }
+        .modal-close { background: none; border: none; cursor: pointer; color: var(--text-secondary); }
+        .modal-close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+        .clean-input {
+            width: 100%; padding: 12px 16px; background: #222; border: none;
+            border-radius: 10px; color: var(--text-primary); font-size: 14px; outline: none; margin-bottom: 14px;
+        }
+
+        .detail-row {
+            display: flex; justify-content: space-between; padding: 10px 0;
+            border-bottom: 1px solid var(--border-color); font-size: 13px;
+        }
 
         .toast-popup {
             position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            background: #111827; color: #fff; padding: 10px 22px; border-radius: 9999px; font-size: 13px; display: none; z-index: 2000;
+            background: #222; color: #fff; padding: 10px 20px; border-radius: 9999px;
+            font-size: 13px; display: none; z-index: 2000;
         }
 
         @media(max-width: 768px) {
             aside.sidebar { display: none; }
             main.content-area { padding: 20px 16px; }
             .table-head { display: none; }
-            .table-row { grid-template-columns: 1fr auto 30px; }
-            .cell-format, .cell-pass { display: none; }
+            .table-row { grid-template-columns: 1fr auto 30px; gap: 8px; }
+            .col-format, .col-label { display: none; }
         }
     </style>
 </head>
@@ -158,23 +244,20 @@
     <a href="1.html" class="side-icon active" title="Knowledge Base">
         <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
     </a>
-    <a href="share.html" class="side-icon" title="Shared with Me">
-        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-    </a>
-    <a href="label.html" class="side-icon" title="Labels">
-        <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-    </a>
-    <div class="side-icon" id="themeToggleBtn" title="Toggle Theme" style="margin-top: auto;">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line></svg>
-    </div>
 </aside>
+
+<div class="drag-overlay" id="dragOverlay">
+    <div style="background:#171717; padding:20px 30px; border-radius:12px;">Drop files to upload instantly</div>
+</div>
 
 <main class="content-area">
     <div class="top-row">
-        <div class="page-title" id="breadcrumbArea">Knowledge base</div>
-        <div style="display: flex; gap: 8px;">
-            <button class="btn-pill" id="uploadBtn">+ Upload</button>
-            <button class="btn-pill" id="folderBtn" style="background: var(--hover-bg); color: var(--text-primary);">+ Folder</button>
+        <div class="breadcrumbs" id="breadcrumbArea">
+            <span>Knowledge base</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-pill" id="btnUpload">+ Upload</button>
+            <button class="btn-pill" id="btnNewFolder" style="background:#222; color:#fff;">+ Folder</button>
         </div>
     </div>
 
@@ -182,15 +265,15 @@
 
     <div class="search-container">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" id="searchInput" class="search-input" placeholder="Search files...">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search knowledge bases">
     </div>
 
     <div class="data-table">
         <div class="table-head">
             <div>Name</div>
-            <div>Access</div>
-            <div class="cell-format">Format</div>
-            <div class="cell-pass">Password</div>
+            <div>Uploaded by</div>
+            <div class="col-format">Format</div>
+            <div class="col-label">Label</div>
             <div></div>
         </div>
         <div id="tableContent"></div>
@@ -201,8 +284,8 @@
 <div class="modal-shade" id="detailsModal">
     <div class="modal-box">
         <div class="modal-header">
-            <h3>Details</h3>
-            <button class="btn-dots" id="closeDetailsModal">&times;</button>
+            <div class="modal-title">Item Details</div>
+            <button class="modal-close" onclick="closeModal('detailsModal')">✕</button>
         </div>
         <div id="detailsContent"></div>
     </div>
@@ -210,22 +293,57 @@
 
 <!-- Rename Modal -->
 <div class="modal-shade" id="renameModal">
-    <div class="modal-box" style="max-width: 380px;">
-        <div class="modal-header"><h3>Rename</h3></div>
-        <input type="text" id="renameInput" class="clean-input" placeholder="Enter new name...">
-        <div style="display:flex; justify-content:flex-end; gap:8px;">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">Rename</div>
+            <button class="modal-close" onclick="closeModal('renameModal')">✕</button>
+        </div>
+        <input type="text" id="renameInput" class="clean-input">
+        <div style="display:flex; justify-content:flex-end;">
             <button class="btn-pill" id="btnSaveRename">Save</button>
         </div>
     </div>
 </div>
 
-<!-- Labels Modal -->
+<!-- Label Modal -->
 <div class="modal-shade" id="labelModal">
-    <div class="modal-box" style="max-width: 380px;">
-        <div class="modal-header"><h3>Assign Label</h3></div>
-        <input type="text" id="labelInput" class="clean-input" placeholder="e.g. Work, Invoice, Personal">
-        <div style="display:flex; justify-content:flex-end; gap:8px;">
-            <button class="btn-pill" id="btnSaveLabel">Apply</button>
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">Set Custom Label</div>
+            <button class="modal-close" onclick="closeModal('labelModal')">✕</button>
+        </div>
+        <input type="text" id="labelInput" class="clean-input" placeholder="e.g. Work, Personal, Invoices">
+        <div style="display:flex; justify-content:flex-end;">
+            <button class="btn-pill" id="btnSaveLabel">Save Label</button>
+        </div>
+    </div>
+</div>
+
+<!-- Password Modal -->
+<div class="modal-shade" id="passModal">
+    <div class="modal-box" style="max-width:360px;">
+        <div class="modal-header">
+            <div class="modal-title">Locked Item</div>
+            <button class="modal-close" onclick="closeModal('passModal')">✕</button>
+        </div>
+        <input type="password" id="passInput" class="clean-input" placeholder="Enter password">
+        <div style="display:flex; justify-content:flex-end;">
+            <button class="btn-pill" id="btnUnlock">Unlock</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Folder Modal (Allows Nested creation) -->
+<div class="modal-shade" id="folderModal">
+    <div class="modal-box" style="max-width:380px;">
+        <div class="modal-header">
+            <div class="modal-title">Create Folder</div>
+            <button class="modal-close" onclick="closeModal('folderModal')">✕</button>
+        </div>
+        <input type="text" id="folderNameInput" class="clean-input" placeholder="Folder name">
+        <input type="text" id="folderPassInput" class="clean-input" placeholder="Password (Optional)">
+        <div style="display:flex; justify-content:flex-end;">
+            <button class="btn-pill" id="btnSubmitFolder">Create</button>
         </div>
     </div>
 </div>
@@ -235,7 +353,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { 
-        getFirestore, collection, query, where, getDocs, or, doc, updateDoc, deleteDoc, addDoc, arrayUnion 
+        getFirestore, collection, query, where, getDocs, or,
+        doc, updateDoc, deleteDoc, addDoc, arrayUnion 
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -248,40 +367,63 @@
     };
 
     const IMGBB_API_KEY = "80c452b9a4b80f240ada316f23078d2c";
+    const UPLOADCARE_PUB_KEY = "demopublickey";
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Theme Logic
-    function syncTheme() {
-        const isDark = localStorage.getItem('theme_mode') === 'dark' || 
-            (!localStorage.getItem('theme_mode') && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        document.body.classList.toggle("dark", isDark);
-    }
-    syncTheme();
-
-    document.getElementById('themeToggleBtn').addEventListener('click', () => {
-        const isDark = document.body.classList.toggle("dark");
-        localStorage.setItem('theme_mode', isDark ? 'dark' : 'light');
-    });
-
-    const user = JSON.parse(localStorage.getItem('active_user') || '{}');
-    if (!user.Email) window.location.href = "1.html";
-    const userEmail = user.Email;
+    let currentUser = null;
+    try { currentUser = JSON.parse(localStorage.getItem('active_user')); } catch(e){}
+    if(!currentUser) window.location.href = "1.html";
+    const userEmail = currentUser.Email;
 
     function showToast(msg) {
         const t = document.getElementById('toast');
         t.innerText = msg;
         t.style.display = 'block';
-        setTimeout(() => t.style.display = 'none', 2500);
+        setTimeout(() => t.style.display = 'none', 2600);
     }
 
-    let currentFolderId = null;
-    let currentFolderName = "";
-    let activeItem = null;
+    window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
+    // Breadcrumb State Supporting Infinite Nested Folders
+    let folderHierarchy = []; // Stack of { id, name }
+
+    function updateBreadcrumb() {
+        const area = document.getElementById('breadcrumbArea');
+        if (folderHierarchy.length === 0) {
+            area.innerHTML = `<span>Knowledge base</span>`;
+        } else {
+            let html = `<span style="color:var(--text-secondary); cursor:pointer;" id="navRoot">Knowledge base</span>`;
+            folderHierarchy.forEach((f, idx) => {
+                html += ` <span style="color:var(--text-secondary);">/</span> `;
+                if (idx === folderHierarchy.length - 1) {
+                    html += `<span>${f.name}</span>`;
+                } else {
+                    html += `<span style="color:var(--text-secondary); cursor:pointer;" class="nav-folder" data-idx="${idx}">${f.name}</span>`;
+                }
+            });
+            area.innerHTML = html;
+
+            document.getElementById('navRoot')?.addEventListener('click', () => {
+                folderHierarchy = [];
+                loadDrive();
+            });
+            document.querySelectorAll('.nav-folder').forEach(el => {
+                el.addEventListener('click', () => {
+                    const targetIdx = parseInt(el.getAttribute('data-idx'));
+                    folderHierarchy = folderHierarchy.slice(0, targetIdx + 1);
+                    loadDrive();
+                });
+            });
+        }
+    }
+
+    // Main Drive Content Loader
     async function loadDrive() {
+        updateBreadcrumb();
         const container = document.getElementById('tableContent');
-        container.innerHTML = `<div style="padding:20px 0; color:var(--text-secondary);">Loading...</div>`;
+        container.innerHTML = `<div style="padding: 24px 0; color: var(--text-secondary);">Loading records...</div>`;
 
         try {
             const q = query(
@@ -289,169 +431,309 @@
                 or(
                     where("Email", "==", userEmail),
                     where("Access.Viewer", "array-contains", userEmail),
+                    where("Access.Commentator", "array-contains", userEmail),
                     where("Access.Editor", "array-contains", userEmail)
                 )
             );
 
             const snap = await getDocs(q);
-            const folders = [];
-            const files = [];
-
-            snap.forEach(d => {
-                const data = { id: d.id, ...d.data() };
-                if (data.Folder === "True") folders.push(data);
-                else files.push(data);
-            });
+            const allItems = [];
+            snap.forEach(d => allItems.push({ id: d.id, ...d.data() }));
 
             container.innerHTML = "";
-            let items = currentFolderId ? files.filter(f => (folders.find(x => x.id === currentFolderId)?.Files || []).includes(f.id)) : [...folders, ...files];
+            let renderList = [];
 
-            if (items.length === 0) {
-                container.innerHTML = `<div style="padding:24px 0; color:var(--text-secondary);">No files found.</div>`;
+            if (folderHierarchy.length === 0) {
+                // Find all items assigned inside any folder
+                const inFolderSet = new Set();
+                allItems.filter(i => i.Folder === "True").forEach(f => {
+                    if (Array.isArray(f.Files)) f.Files.forEach(id => inFolderSet.add(id));
+                });
+                renderList = allItems.filter(i => !inFolderSet.has(i.id));
+            } else {
+                const currentFolder = allItems.find(i => i.id === folderHierarchy[folderHierarchy.length - 1].id);
+                const fileIds = (currentFolder && Array.isArray(currentFolder.Files)) ? currentFolder.Files : [];
+                renderList = allItems.filter(i => fileIds.includes(i.id));
+            }
+
+            if (renderList.length === 0) {
+                container.innerHTML = `<div style="padding: 32px 0; color: var(--text-secondary);">This folder is empty.</div>`;
                 return;
             }
 
-            items.forEach(item => renderRow(item));
+            renderList.forEach(item => renderRow(item));
         } catch(e) {
             console.error(e);
-            container.innerHTML = `<div style="color:var(--danger); padding:16px 0;">Error loading records.</div>`;
+            container.innerHTML = `<div style="padding: 20px 0; color: var(--danger);">Failed to load workspace.</div>`;
         }
     }
 
     function renderRow(item) {
         const container = document.getElementById('tableContent');
         const isFolder = item.Folder === "True";
-        const isImg = (item.Type || '').includes('img');
-        const name = item.Name || (item.File ? item.File.split('/').pop() : 'Untitled');
+        const name = item.Name || item.File?.split('/').pop() || "Untitled";
+        const isImg = (item.Type || "").includes("img") || (item.Type || "").includes("jpg") || (item.Type || "").includes("png");
+
+        // Per-User Label Resolution
+        const userLabel = (item.Label && item.Label[userEmail]) ? item.Label[userEmail] : "";
 
         const row = document.createElement('div');
         row.className = 'table-row';
         row.innerHTML = `
-            <div class="file-title-cell">
-                <div class="file-icon-box">${isFolder ? '📁' : (isImg ? `<img src="${item.File}">` : '📄')}</div>
-                <span class="file-name">${name}</span>
-                ${item.Label ? `<span class="label-tag">${item.Label}</span>` : ''}
+            <div class="file-cell">
+                <div class="file-icon-box">
+                    ${isFolder ? `<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>` : 
+                      isImg ? `<img src="${item.File}">` : `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>`}
+                </div>
+                <div class="file-info">
+                    <span class="file-name" title="${name}">${name}</span>
+                    <span class="file-subtext">${item.Email}</span>
+                </div>
             </div>
-            <div>${item.Email === userEmail ? 'Personal' : 'Shared'}</div>
-            <div class="cell-format">${isFolder ? 'Folder' : (item.Type || 'File')}</div>
-            <div class="cell-pass">${item.Password ? '🔒 Yes' : 'No'}</div>
+            <div style="color: var(--text-secondary); font-size: 13px;">${item.Email === userEmail ? 'Me' : item.Email}</div>
+            <div class="col-format" style="color: var(--text-secondary); font-size: 13px;">${isFolder ? 'Folder' : (item.Type || '.file')}</div>
+            <div class="col-label">${userLabel ? `<span class="label-pill">${userLabel}</span>` : `<span style="color:var(--text-secondary); font-size:12px;">-</span>`}</div>
             <div class="actions-cell">
                 <button class="btn-dots">···</button>
                 <div class="action-dropdown">
-                    <div class="dropdown-item opt-rename">✏️ Rename</div>
-                    <div class="dropdown-item opt-label">🏷️ Add Label</div>
                     <div class="dropdown-item opt-details">ℹ️ Details</div>
+                    <div class="dropdown-item opt-label">🏷️ Custom Label</div>
+                    <div class="dropdown-item opt-rename">✏️ Rename</div>
                     <div class="dropdown-item danger opt-delete">🗑️ Delete</div>
                 </div>
             </div>
         `;
 
+        const dotsBtn = row.querySelector('.btn-dots');
         const dropdown = row.querySelector('.action-dropdown');
-        row.querySelector('.btn-dots').onclick = (e) => {
+
+        dotsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             document.querySelectorAll('.action-dropdown').forEach(d => d !== dropdown && d.classList.remove('active'));
             dropdown.classList.toggle('active');
-        };
+        });
 
-        row.querySelector('.file-name').onclick = () => {
-            if (isFolder) {
-                currentFolderId = item.id;
-                loadDrive();
+        // Click to Open (Folder / File) & Log to Recent
+        row.querySelector('.file-name').addEventListener('click', () => {
+            if (item.Password) {
+                promptPass(item.Password, () => openItem(item, isFolder, name));
             } else {
-                trackRecent(item);
-                window.open(item.File, '_blank');
+                openItem(item, isFolder, name);
             }
-        };
+        });
 
-        row.querySelector('.opt-rename').onclick = () => openRename(item);
-        row.querySelector('.opt-label').onclick = () => openLabel(item);
-        row.querySelector('.opt-details').onclick = () => showDetails(item);
-        row.querySelector('.opt-delete').onclick = async () => {
-            if (confirm("Delete file?")) {
+        // Action Handlers
+        row.querySelector('.opt-details').addEventListener('click', () => openDetails(item, isFolder, name));
+        row.querySelector('.opt-label').addEventListener('click', () => openLabelModal(item));
+        row.querySelector('.opt-rename').addEventListener('click', () => openRename(item));
+        row.querySelector('.opt-delete').addEventListener('click', async () => {
+            if (confirm(`Delete permanently?`)) {
                 await deleteDoc(doc(db, "Cloud Drive", item.id));
-                showToast("Deleted");
+                showToast("Item deleted");
                 loadDrive();
             }
-        };
+        });
 
         container.appendChild(row);
     }
 
-    function trackRecent(item) {
-        let recents = JSON.parse(localStorage.getItem('recent_files') || '[]');
+    function openItem(item, isFolder, name) {
+        // Log to Recent Storage
+        let recents = JSON.parse(localStorage.getItem(`recent_opened_${userEmail}`) || '[]');
         recents = recents.filter(r => r.id !== item.id);
-        recents.unshift({ ...item, openedAt: new Date().toISOString() });
-        localStorage.setItem('recent_files', JSON.stringify(recents.slice(0, 15)));
+        const now = new Date();
+        recents.unshift({
+            id: item.id,
+            date: now.toLocaleDateString(),
+            time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        localStorage.setItem(`recent_opened_${userEmail}`, JSON.stringify(recents.slice(0, 15)));
+
+        if (isFolder) {
+            folderHierarchy.push({ id: item.id, name: item.Name });
+            loadDrive();
+        } else {
+            window.open(item.File, '_blank');
+        }
     }
 
-    // Modal Actions
-    function showDetails(item) {
+    // Details Modal
+    function openDetails(item, isFolder, name) {
+        const viewers = item.Access?.Viewer || [];
+        const editors = item.Access?.Editor || [];
+        const commenters = item.Access?.Commentator || [];
+        const accessStr = [item.Email, ...viewers, ...editors, ...commenters].join(', ');
+
         document.getElementById('detailsContent').innerHTML = `
-            <div class="detail-row"><span>Name</span><span>${item.Name || 'Untitled'}</span></div>
-            <div class="detail-row"><span>Type</span><span>${item.Type || 'File'}</span></div>
-            <div class="detail-row"><span>Owner</span><span>${item.Email}</span></div>
-            <div class="detail-row"><span>Label</span><span>${item.Label || 'None'}</span></div>
-            <div class="detail-row"><span>Upload Date</span><span>${item.CreatedAt ? new Date(item.CreatedAt).toLocaleDateString() : 'Recent'}</span></div>
+            <div class="detail-row"><span>Name</span><strong>${name}</strong></div>
+            <div class="detail-row"><span>Type</span><strong>${isFolder ? 'Folder' : (item.Type || '.file')}</strong></div>
+            <div class="detail-row"><span>Owner</span><strong>${item.Email}</strong></div>
+            <div class="detail-row"><span>Size</span><strong>${item.Size ? (item.Size / (1024*1024)).toFixed(2) + ' MB' : 'Standard'}</strong></div>
+            <div class="detail-row"><span>Uploaded</span><strong>${item.UploadedAt || 'Recently'}</strong></div>
+            <div class="detail-row"><span>Access</span><strong style="max-width:240px; text-align:right;">${accessStr}</strong></div>
         `;
         document.getElementById('detailsModal').classList.add('active');
     }
-    document.getElementById('closeDetailsModal').onclick = () => document.getElementById('detailsModal').classList.remove('active');
 
+    // Rename (File & Folder)
+    let activeItem = null;
     function openRename(item) {
         activeItem = item;
-        document.getElementById('renameInput').value = item.Name || '';
+        document.getElementById('renameInput').value = item.Name || item.File?.split('/').pop() || "";
         document.getElementById('renameModal').classList.add('active');
     }
-    document.getElementById('btnSaveRename').onclick = async () => {
-        const val = document.getElementById('renameInput').value.trim();
-        if (val && activeItem) {
-            await updateDoc(doc(db, "Cloud Drive", activeItem.id), { Name: val });
-            document.getElementById('renameModal').classList.remove('active');
-            showToast("Renamed");
+    document.getElementById('btnSaveRename').addEventListener('click', async () => {
+        const newName = document.getElementById('renameInput').value.trim();
+        if (newName && activeItem) {
+            await updateDoc(doc(db, "Cloud Drive", activeItem.id), { Name: newName });
+            closeModal('renameModal');
+            showToast("Renamed successfully");
             loadDrive();
         }
-    };
+    });
 
-    function openLabel(item) {
+    // Label Management
+    function openLabelModal(item) {
         activeItem = item;
-        document.getElementById('labelInput').value = item.Label || '';
+        document.getElementById('labelInput').value = (item.Label && item.Label[userEmail]) || "";
         document.getElementById('labelModal').classList.add('active');
     }
-    document.getElementById('btnSaveLabel').onclick = async () => {
-        const val = document.getElementById('labelInput').value.trim();
+    document.getElementById('btnSaveLabel').addEventListener('click', async () => {
+        const labelVal = document.getElementById('labelInput').value.trim();
         if (activeItem) {
-            await updateDoc(doc(db, "Cloud Drive", activeItem.id), { Label: val });
-            document.getElementById('labelModal').classList.remove('active');
+            await updateDoc(doc(db, "Cloud Drive", activeItem.id), {
+                [`Label.${userEmail}`]: labelVal
+            });
+            closeModal('labelModal');
             showToast("Label updated");
             loadDrive();
         }
-    };
+    });
 
-    // Upload & Folder triggers
-    const fileInput = document.getElementById('fileInput');
-    document.getElementById('uploadBtn').onclick = () => fileInput.click();
-    fileInput.onchange = async (e) => {
-        for (const file of e.target.files) {
-            showToast(`Uploading ${file.name}...`);
-            const fd = new FormData();
-            fd.append('image', file);
-            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: fd });
-            const j = await res.json();
-            await addDoc(collection(db, "Cloud Drive"), {
-                Email: userEmail,
-                File: j.data.url,
-                Name: file.name,
-                Type: ".img",
-                Size: file.size,
-                CreatedAt: new Date().toISOString(),
-                Access: { Viewer: [], Editor: [] }
-            });
+    // Password Challenge
+    let passTarget = "";
+    let passCallback = null;
+    function promptPass(password, callback) {
+        passTarget = password;
+        passCallback = callback;
+        document.getElementById('passInput').value = "";
+        document.getElementById('passModal').classList.add('active');
+    }
+    document.getElementById('btnUnlock').addEventListener('click', () => {
+        if (document.getElementById('passInput').value === passTarget) {
+            closeModal('passModal');
+            if (passCallback) passCallback();
+        } else {
+            showToast("Incorrect password!");
         }
-        showToast("Uploaded successfully");
-        loadDrive();
-    };
+    });
 
-    window.onclick = () => document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('active'));
+    // Create Nested Folder
+    document.getElementById('btnNewFolder').addEventListener('click', () => {
+        document.getElementById('folderNameInput').value = "";
+        document.getElementById('folderPassInput').value = "";
+        document.getElementById('folderModal').classList.add('active');
+    });
+    document.getElementById('btnSubmitFolder').addEventListener('click', async () => {
+        const name = document.getElementById('folderNameInput').value.trim();
+        const pass = document.getElementById('folderPassInput').value.trim();
+        if (name) {
+            const newDoc = await addDoc(collection(db, "Cloud Drive"), {
+                Email: userEmail,
+                Folder: "True",
+                Name: name,
+                Password: pass,
+                Files: [],
+                UploadedAt: new Date().toLocaleDateString(),
+                Access: { Viewer: [], Commentator: [], Editor: [] }
+            });
+
+            // If created inside a subfolder, add reference
+            if (folderHierarchy.length > 0) {
+                const parentId = folderHierarchy[folderHierarchy.length - 1].id;
+                await updateDoc(doc(db, "Cloud Drive", parentId), {
+                    Files: arrayUnion(newDoc.id)
+                });
+            }
+
+            closeModal('folderModal');
+            showToast("Folder created");
+            loadDrive();
+        }
+    });
+
+    // Direct Multi-File Upload & Drag-and-Drop
+    const fileInput = document.getElementById('fileInput');
+    document.getElementById('btnUpload').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => { if(e.target.files.length) uploadBatch(e.target.files); });
+
+    const dragOverlay = document.getElementById('dragOverlay');
+    window.addEventListener('dragover', (e) => { e.preventDefault(); dragOverlay.classList.add('active'); });
+    window.addEventListener('dragleave', (e) => { if (e.clientX === 0 && e.clientY === 0) dragOverlay.classList.remove('active'); });
+    window.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dragOverlay.classList.remove('active');
+        if (e.dataTransfer.files.length) uploadBatch(e.dataTransfer.files);
+    });
+
+    async function uploadBatch(files) {
+        showToast(`Uploading ${files.length} item(s)...`);
+        for (const file of files) {
+            if (file.size > 50 * 1024 * 1024) continue;
+            let fileUrl = "";
+            let fileType = "";
+            if (file.type.startsWith('image/')) {
+                const fd = new FormData(); fd.append('image', file);
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: fd });
+                const j = await res.json();
+                fileUrl = j.data.url;
+                fileType = ".img";
+            } else {
+                const fd = new FormData();
+                fd.append('UPLOADCARE_PUB_KEY', UPLOADCARE_PUB_KEY);
+                fd.append('UPLOADCARE_STORE', '1');
+                fd.append('file', file);
+                const res = await fetch('https://upload.uploadcare.com/base/', { method: 'POST', body: fd });
+                const j = await res.json();
+                fileUrl = `https://ucarecdn.com/${j.file}/${encodeURIComponent(file.name)}`;
+                const ext = file.name.split('.').pop();
+                fileType = ext ? `.${ext.toLowerCase()}` : '.file';
+            }
+
+            const newDoc = await addDoc(collection(db, "Cloud Drive"), {
+                Email: userEmail,
+                File: fileUrl,
+                Type: fileType,
+                Name: file.name,
+                Size: file.size,
+                UploadedAt: new Date().toLocaleDateString(),
+                Password: "",
+                Access: { Viewer: [], Commentator: [], Editor: [] }
+            });
+
+            if (folderHierarchy.length > 0) {
+                const parentId = folderHierarchy[folderHierarchy.length - 1].id;
+                await updateDoc(doc(db, "Cloud Drive", parentId), { Files: arrayUnion(newDoc.id) });
+            }
+        }
+        showToast("Upload completed!");
+        loadDrive();
+    }
+
+    // Dismiss active menus on window click
+    window.addEventListener('click', () => {
+        document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('active'));
+    });
+
+    // Search
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        document.querySelectorAll('.table-row').forEach(row => {
+            const name = row.querySelector('.file-name').innerText.toLowerCase();
+            row.style.display = name.includes(val) ? 'grid' : 'none';
+        });
+    });
+
     loadDrive();
 </script>
 </body>
