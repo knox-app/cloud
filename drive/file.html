@@ -3,34 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gallery Viewer</title>
+    <title>Gallery</title>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --bg-color: #0b0c0e;
-            --surface-color: rgba(22, 24, 29, 0.85);
-            --surface-border: rgba(255, 255, 255, 0.1);
-            --text-primary: #f5f6f8;
-            --text-secondary: #9aa0a6;
-            --accent-color: #3b82f6;
-            --accent-danger: #ef4444;
-            --badge-bg: rgba(255, 255, 255, 0.12);
-            --bottom-bar-bg: rgba(18, 20, 24, 0.9);
-            --icon-color: #e5e7eb;
-            --icon-hover: #ffffff;
-        }
-
-        body.light {
-            --bg-color: #f4f5f8;
-            --surface-color: rgba(255, 255, 255, 0.9);
-            --surface-border: rgba(0, 0, 0, 0.08);
-            --text-primary: #111827;
-            --text-secondary: #6b7280;
-            --accent-color: #2563eb;
-            --accent-danger: #dc2626;
-            --badge-bg: rgba(0, 0, 0, 0.06);
-            --bottom-bar-bg: rgba(255, 255, 255, 0.92);
-            --icon-color: #374151;
-            --icon-hover: #111827;
+            --bg-color: #000000;
+            --surface-color: rgba(26, 26, 26, 0.85);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent-color: #2196f3;
+            --danger-color: #ff5252;
+            --overlay-bg: rgba(0, 0, 0, 0.65);
+            --border-radius-pill: 30px;
         }
 
         * {
@@ -39,523 +24,411 @@
             padding: 0;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
             height: 100vh;
-            width: 100vw;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            justify-content: space-between;
         }
 
-        /* Top Navigation Header */
-        header {
-            position: absolute;
+        /* Top Bar */
+        .top-bar {
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 64px;
+            height: 60px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 16px;
-            background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
-            z-index: 20;
-            transition: opacity 0.3s ease;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            z-index: 50;
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
-        body.light header {
-            background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, transparent 100%);
-        }
-
-        .header-left, .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .header-title-box {
+        .top-bar .info-group {
             display: flex;
             flex-direction: column;
+            margin-left: 12px;
+            overflow: hidden;
         }
 
-        .header-title {
+        .info-group .title {
             font-size: 16px;
             font-weight: 600;
-            max-width: 240px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            max-width: 200px;
         }
 
-        .header-subtitle {
-            font-size: 11px;
+        .info-group .subtitle {
+            font-size: 12px;
             color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .folder-badge {
-            background: var(--badge-bg);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            text-transform: uppercase;
         }
 
         .icon-btn {
-            background: transparent;
+            background: none;
             border: none;
-            outline: none;
-            color: var(--icon-color);
+            color: var(--text-primary);
             cursor: pointer;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            padding: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.2s, color 0.2s, transform 0.1s;
-        }
-
-        .icon-btn:hover {
-            background-color: var(--badge-bg);
-            color: var(--icon-hover);
+            border-radius: 50%;
+            transition: background 0.2s;
         }
 
         .icon-btn:active {
-            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.15);
         }
 
-        .icon-btn svg {
-            width: 22px;
-            height: 22px;
-            fill: currentColor;
+        .icon-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
         }
 
-        /* Main Image Stage */
-        main {
-            flex: 1;
+        /* Main Viewport */
+        .viewer-container {
             position: relative;
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
+            touch-action: none;
         }
 
-        .image-wrapper {
-            position: relative;
+        .main-image {
             max-width: 100%;
             max-height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            object-fit: contain;
+            transition: transform 0.1s ease-out;
+            will-change: transform;
             cursor: grab;
         }
 
-        #mainImage {
-            max-width: 100vw;
-            max-height: calc(100vh - 170px);
-            object-fit: contain;
-            border-radius: 8px;
-            transition: transform 0.25s cubic-bezier(0.2, 0, 0.2, 1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-
-        /* Chevrons */
-        .nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--surface-color);
-            border: 1px solid var(--surface-border);
-            color: var(--text-primary);
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 10;
-            backdrop-filter: blur(12px);
-            transition: opacity 0.2s, background 0.2s;
-            opacity: 0.7;
-        }
-
-        .nav-btn:hover {
-            opacity: 1;
-            background: var(--badge-bg);
-        }
-
-        .nav-prev { left: 16px; }
-        .nav-next { right: 16px; }
-
-        /* Bottom Controls & Carousel */
-        .bottom-container {
-            position: absolute;
+        /* Bottom Controls Bar (Samsung Gallery style) */
+        .bottom-bar {
+            position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            z-index: 20;
-            background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);
-            padding-bottom: 16px;
-            transition: opacity 0.3s ease;
+            background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%);
+            padding-bottom: env(safe-area-inset-bottom, 16px);
+            z-index: 50;
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
-        body.light .bottom-container {
-            background: linear-gradient(0deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 70%, transparent 100%);
-        }
-
-        /* Filmstrip Thumbnails */
-        .filmstrip-wrapper {
+        /* Thumbnail Strip */
+        .filmstrip-container {
             width: 100%;
-            max-width: 650px;
             overflow-x: auto;
-            padding: 8px 16px;
+            white-space: nowrap;
+            padding: 10px 16px;
             display: flex;
             gap: 8px;
-            scrollbar-width: none;
+            scroll-behavior: smooth;
             -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
-        .filmstrip-wrapper::-webkit-scrollbar {
+        .filmstrip-container::-webkit-scrollbar {
             display: none;
         }
 
-        .thumb-item {
-            width: 52px;
-            height: 52px;
+        .thumb {
+            width: 48px;
+            height: 48px;
             border-radius: 8px;
-            overflow: hidden;
-            flex-shrink: 0;
+            object-fit: cover;
+            opacity: 0.5;
+            transition: opacity 0.2s, transform 0.2s, border 0.2s;
             cursor: pointer;
             border: 2px solid transparent;
-            opacity: 0.55;
-            transition: transform 0.2s, opacity 0.2s, border-color 0.2s;
-            background: #1e2025;
+            flex-shrink: 0;
         }
 
-        .thumb-item.active {
+        .thumb.active {
             opacity: 1;
-            border-color: var(--accent-color);
             transform: scale(1.08);
+            border-color: var(--accent-color);
         }
 
-        .thumb-item:hover {
-            opacity: 0.9;
-        }
-
-        .thumb-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Action Dock */
-        .action-dock {
+        .actions-group {
             display: flex;
-            align-items: center;
-            gap: 24px;
-            background: var(--bottom-bar-bg);
-            border: 1px solid var(--surface-border);
-            padding: 8px 26px;
-            border-radius: 35px;
-            backdrop-filter: blur(15px);
-            margin-top: 6px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            justify-content: space-around;
+            width: 100%;
+            max-width: 450px;
+            padding: 8px 0;
         }
 
-        .action-dock .action-btn {
+        .action-item {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 4px;
-            background: none;
-            border: none;
-            color: var(--icon-color);
+            color: var(--text-primary);
             font-size: 11px;
             cursor: pointer;
-            transition: color 0.2s, transform 0.1s;
+            background: none;
+            border: none;
         }
 
-        .action-dock .action-btn:hover {
-            color: var(--accent-color);
+        .action-item span {
+            color: var(--text-secondary);
         }
 
-        .action-dock .action-btn.delete-btn:hover {
-            color: var(--accent-danger);
-        }
-
-        .action-dock .action-btn:active {
-            transform: scale(0.9);
-        }
-
-        .action-dock .action-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
-        }
-
-        .hide-ui header,
-        .hide-ui .bottom-container,
-        .hide-ui .nav-btn {
+        /* Hidden UI State */
+        .ui-hidden .top-bar {
             opacity: 0;
+            transform: translateY(-100%);
+            pointer-events: none;
+        }
+
+        .ui-hidden .bottom-bar {
+            opacity: 0;
+            transform: translateY(100%);
             pointer-events: none;
         }
 
         /* Modals & Dialogs */
-        .modal-backdrop {
+        .modal {
             position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.7);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay-bg);
+            backdrop-filter: blur(12px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 100;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.25s ease;
-            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease;
         }
 
-        .modal-backdrop.active {
+        .modal.active {
             opacity: 1;
             pointer-events: auto;
         }
 
-        .modal-box {
-            background: var(--surface-color);
-            border: 1px solid var(--surface-border);
-            border-radius: 20px;
+        .modal-card {
+            background: #1e1e1e;
             width: 90%;
             max-width: 380px;
+            border-radius: 24px;
             padding: 24px;
-            color: var(--text-primary);
+            color: #fff;
             text-align: center;
-            transform: scale(0.95);
-            transition: transform 0.25s ease;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #333;
         }
 
-        .modal-backdrop.active .modal-box {
-            transform: scale(1);
+        .modal-card h2 {
+            font-size: 20px;
+            margin-bottom: 8px;
         }
 
-        .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
-        .modal-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.4; }
-        .modal-input {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid var(--surface-border);
-            background: var(--badge-bg);
-            color: var(--text-primary);
-            outline: none;
+        .modal-card p {
             font-size: 14px;
+            color: var(--text-secondary);
             margin-bottom: 20px;
         }
 
-        .modal-actions { display: flex; gap: 10px; }
-        .modal-btn {
+        .modal-card input {
+            width: 100%;
+            padding: 14px;
+            background: #2b2b2b;
+            border: 1px solid #444;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-card input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-buttons button {
             flex: 1;
             padding: 12px;
-            border-radius: 25px;
+            border-radius: 20px;
             border: none;
-            cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
+            cursor: pointer;
         }
 
-        .btn-cancel { background: var(--badge-bg); color: var(--text-primary); }
-        .btn-primary { background: var(--accent-color); color: #ffffff; }
-        .btn-danger { background: var(--accent-danger); color: #ffffff; }
+        .btn-confirm {
+            background: var(--accent-color);
+            color: #fff;
+        }
 
-        .toast {
+        .btn-cancel {
+            background: #333;
+            color: #bbb;
+        }
+
+        /* Info Details Sheet */
+        .sheet {
             position: fixed;
-            top: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-20px);
-            background: var(--surface-color);
-            color: var(--text-primary);
-            border: 1px solid var(--surface-border);
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 500;
-            z-index: 200;
-            opacity: 0;
-            pointer-events: none;
-            transition: transform 0.25s ease, opacity 0.25s ease;
-            backdrop-filter: blur(10px);
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1c1c1e;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding: 24px;
+            z-index: 101;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+            max-width: 500px;
+            margin: 0 auto;
         }
 
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
+        .sheet.active {
+            transform: translateY(0);
         }
 
-        .info-row {
+        .sheet-header {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            font-size: 13px;
-            border-bottom: 1px solid var(--surface-border);
-            text-align: left;
+            align-items: center;
+            margin-bottom: 16px;
         }
-        .info-label { color: var(--text-secondary); }
-        .info-val { font-weight: 500; word-break: break-all; max-width: 60%; text-align: right; }
 
+        .sheet-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-size: 14px;
+        }
+
+        .sheet-row span:first-child { color: var(--text-secondary); }
+
+        /* Spinner */
         .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--accent-color);
+            border-radius: 50%;
             width: 40px;
             height: 40px;
-            border: 3px solid var(--surface-border);
-            border-top-color: var(--accent-color);
-            border-radius: 50%;
             animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        #loaderContainer {
             position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            z-index: 30;
-            background: var(--bg-color);
         }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div id="loaderContainer">
-        <div class="spinner"></div>
-        <p style="font-size: 13px; color: var(--text-secondary);" id="loaderText">Loading...</p>
-    </div>
-
-    <!-- Header -->
-    <header>
-        <div class="header-left">
-            <button class="icon-btn" id="backBtn" title="Back">
-                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    <!-- TOP APP BAR -->
+    <div class="top-bar" id="topBar">
+        <div style="display: flex; align-items: center;">
+            <button class="icon-btn" id="btnBack">
+                <i data-lucide="arrow-left"></i>
             </button>
-            <div class="header-title-box">
-                <span class="header-title" id="imageTitle">Image</span>
-                <span class="header-subtitle">
-                    <span id="folderTag" class="folder-badge" style="display:none;">Folder</span>
-                    <span id="imageOwner">Perplexity Cloud</span>
-                </span>
+            <div class="info-group">
+                <span class="title" id="imageTitle">Loading...</span>
+                <span class="subtitle" id="imageSubtitle">Perplexity Drive</span>
             </div>
         </div>
-        <div class="header-right">
-            <button class="icon-btn" id="infoBtn" title="Details">
-                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-            </button>
-            <button class="icon-btn" id="fullscreenBtn" title="Toggle Fullscreen">
-                <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+        <div style="display: flex; align-items: center; gap: 4px;">
+            <button class="icon-btn" id="btnInfo" title="Details">
+                <i data-lucide="info"></i>
             </button>
         </div>
-    </header>
+    </div>
 
-    <!-- Main Viewport -->
-    <main id="mainContainer">
-        <button class="nav-btn nav-prev" id="prevBtn" title="Previous Image">
-            <svg style="width:24px;height:24px;fill:currentColor;" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-        </button>
+    <!-- MAIN IMAGE CONTAINER -->
+    <div class="viewer-container" id="viewerContainer">
+        <div class="spinner" id="loader"></div>
+        <img class="main-image" id="mainImage" src="" alt="Gallery Image" style="display: none;">
+    </div>
 
-        <div class="image-wrapper" id="imageWrapper">
-            <img id="mainImage" src="" alt="" style="display: none;">
-        </div>
-
-        <button class="nav-btn nav-next" id="nextBtn" title="Next Image">
-            <svg style="width:24px;height:24px;fill:currentColor;" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-        </button>
-    </main>
-
-    <!-- Bottom Controls & Carousel -->
-    <div class="bottom-container">
-        <!-- Filmstrip thumbnails -->
-        <div class="filmstrip-wrapper" id="filmstripWrapper"></div>
-
-        <!-- Action dock -->
-        <div class="action-dock" id="actionDock">
-            <button class="action-btn" id="shareBtn">
-                <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+    <!-- BOTTOM BAR & THUMBNAIL FILMSTRIP -->
+    <div class="bottom-bar" id="bottomBar">
+        <div class="filmstrip-container" id="filmstrip"></div>
+        <div class="actions-group">
+            <button class="action-item" id="btnShare">
+                <i data-lucide="share-2"></i>
                 <span>Share</span>
             </button>
-
-            <!-- Download Button: Visible for Owner & Editor, Hidden for Viewer -->
-            <button class="action-btn" id="downloadBtn" style="display: none;">
-                <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+            <button class="action-item" id="btnDownload">
+                <i data-lucide="download"></i>
                 <span>Download</span>
             </button>
-
-            <!-- Delete Button: Visible for Owner & Editor -->
-            <button class="action-btn delete-btn" id="deleteBtn" style="display: none;">
-                <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                <span>Delete</span>
+            <button class="action-item" id="btnDelete">
+                <i data-lucide="trash-2" style="color: var(--danger-color);"></i>
+                <span style="color: var(--danger-color);">Delete</span>
             </button>
         </div>
     </div>
 
-    <!-- Password Modal -->
-    <div class="modal-backdrop" id="passwordModal">
-        <div class="modal-box">
-            <h3 class="modal-title">Protected Content</h3>
-            <p class="modal-desc">This item requires a password to unlock and view.</p>
-            <input type="password" id="passwordInput" class="modal-input" placeholder="Enter password">
-            <div class="modal-actions">
-                <button class="modal-btn btn-cancel" id="pwdCancelBtn">Cancel</button>
-                <button class="modal-btn btn-primary" id="pwdSubmitBtn">Unlock</button>
+    <!-- PASSWORD MODAL -->
+    <div class="modal" id="passwordModal">
+        <div class="modal-card">
+            <h2>Protected Image</h2>
+            <p>This file is password protected. Enter the password to unlock.</p>
+            <input type="password" id="passwordInput" placeholder="Password">
+            <div class="modal-buttons">
+                <button class="btn-cancel" id="btnCancelPass">Go Back</button>
+                <button class="btn-confirm" id="btnUnlock">Unlock</button>
             </div>
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal-backdrop" id="deleteModal">
-        <div class="modal-box">
-            <h3 class="modal-title">Delete Item?</h3>
-            <p class="modal-desc">Are you sure you want to permanently delete this from your Cloud Drive?</p>
-            <div class="modal-actions">
-                <button class="modal-btn btn-cancel" id="cancelDeleteBtn">Cancel</button>
-                <button class="modal-btn btn-danger" id="confirmDeleteBtn">Delete</button>
-            </div>
+    <!-- DETAILS INFO SHEET -->
+    <div class="sheet" id="infoSheet">
+        <div class="sheet-header">
+            <h3>Image Details</h3>
+            <button class="icon-btn" id="btnCloseSheet"><i data-lucide="x"></i></button>
         </div>
+        <div class="sheet-row"><span>Name</span><span id="detailName">-</span></div>
+        <div class="sheet-row"><span>Owner</span><span id="detailOwner">-</span></div>
+        <div class="sheet-row"><span>Access Role</span><span id="detailRole">-</span></div>
+        <div class="sheet-row"><span>Type</span><span id="detailType">-</span></div>
     </div>
 
-    <!-- Info / Details Modal -->
-    <div class="modal-backdrop" id="infoModal">
-        <div class="modal-box">
-            <h3 class="modal-title">Details</h3>
-            <div id="infoContent" style="margin: 15px 0;"></div>
-            <div class="modal-actions">
-                <button class="modal-btn btn-primary" id="closeInfoBtn">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="toast" id="toast">Notice message</div>
-
-    <!-- Firebase SDK & Logic -->
+    <!-- FIREBASE SDK & MODULE SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, collection, getDocs, deleteDoc, updateDoc, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            deleteDoc, 
+            updateDoc, 
+            arrayRemove 
+        } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // Provided Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
             authDomain: "cloud-computer-4891a.firebaseapp.com",
@@ -569,484 +442,404 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // State
-        const urlParams = new URLSearchParams(window.location.search);
-        let requestedId = urlParams.get('id');
-        const theme = urlParams.get('theme') ? urlParams.get('theme').toLowerCase() : null;
-
-        let activeUser = null;
-        let parentFolderDoc = null; // Stored if requested ID is a folder
-        let galleryList = [];
-        let currentIndex = -1;
-        let currentImageDoc = null;
-        let isZoomed = false;
-
-        /* ================= THEME HANDLER ================= */
-        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-        function applyTheme() {
-            if (theme === "light" || theme === "l") {
-                document.body.classList.add("light");
-            } else if (theme === "dark" || theme === "d") {
-                document.body.classList.remove("light");
-            } else {
-                if (!mediaQuery.matches) {
-                    document.body.classList.add("light");
-                } else {
-                    document.body.classList.remove("light");
-                }
-            }
-        }
-        applyTheme();
-        mediaQuery.addEventListener("change", () => { if (!theme) applyTheme(); });
-
-        /* ================= AUTH CHECK ================= */
-        try {
-            const rawUser = localStorage.getItem('active_user');
-            if (rawUser) {
-                activeUser = JSON.parse(rawUser);
-            }
-        } catch (e) {
-            console.error("Failed to parse active user", e);
-        }
-
-        if (!activeUser || !activeUser.Email) {
+        /* 1. AUTHENTICATION & SESSION VERIFICATION */
+        const activeUserRaw = localStorage.getItem('active_user');
+        if (!activeUserRaw) {
             window.location.href = `1.html?continue=${encodeURIComponent(window.location.href)}`;
         }
+        const activeUser = JSON.parse(activeUserRaw || '{}');
+        const userEmail = (activeUser.Email || "").toLowerCase();
 
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2800);
-        }
+        /* 2. URL PARAMETERS */
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentDocId = urlParams.get('id');
+        let folderDocId = urlParams.get('folder');
 
-        /* ================= PERMISSION CHECKER ================= */
-        function checkPermissions(docData) {
-            if (!docData) return { isOwner: false, isEditor: false, isViewer: false };
+        /* 3. APP STATE */
+        let currentDocData = null;
+        let galleryItems = []; // Array of { id, data }
+        let currentIndex = 0;
+        let userRole = 'None'; // 'Owner', 'Editor', 'Viewer', 'None'
 
-            const userEmail = (activeUser.Email || "").toLowerCase().trim();
-            const ownerEmail = (docData.Email || "").toLowerCase().trim();
+        // DOM References
+        const topBar = document.getElementById('topBar');
+        const bottomBar = document.getElementById('bottomBar');
+        const mainImage = document.getElementById('mainImage');
+        const loader = document.getElementById('loader');
+        const filmstrip = document.getElementById('filmstrip');
+        const imageTitle = document.getElementById('imageTitle');
+        const imageSubtitle = document.getElementById('imageSubtitle');
+        const passwordModal = document.getElementById('passwordModal');
+        const infoSheet = document.getElementById('infoSheet');
 
-            const isOwner = userEmail === ownerEmail;
-            let isEditor = isOwner;
-            let isViewer = isOwner;
+        // Buttons
+        const btnDownload = document.getElementById('btnDownload');
+        const btnDelete = document.getElementById('btnDelete');
+        const btnShare = document.getElementById('btnShare');
 
-            if (docData.Access) {
-                if (Array.isArray(docData.Access.Editor)) {
-                    if (docData.Access.Editor.map(e => (e||'').toLowerCase().trim()).includes(userEmail)) {
-                        isEditor = true;
-                    }
-                }
-                if (Array.isArray(docData.Access.Viewer)) {
-                    if (docData.Access.Viewer.map(e => (e||'').toLowerCase().trim()).includes(userEmail)) {
-                        isViewer = true;
-                    }
-                }
-                if (Array.isArray(docData.Access.Commentator)) {
-                    if (docData.Access.Commentator.map(e => (e||'').toLowerCase().trim()).includes(userEmail)) {
-                        isViewer = true;
-                    }
-                }
-            }
-
-            if (isEditor) isViewer = true;
-            return { isOwner, isEditor, isViewer };
-        }
-
-        /* ================= CHECK IF DOCUMENT IS FOLDER ================= */
-        function isFolder(data) {
-            return data && (data.Folder === "True" || data.Folder === "true" || data.Folder === true || Array.isArray(data.Files));
-        }
-
-        /* ================= LOAD TARGET BY ID ================= */
-        async function loadTarget() {
-            if (!requestedId) {
-                document.getElementById('loaderText').innerText = "No item specified in URL (?id=...)";
+        /* 4. INITIALIZATION */
+        async function init() {
+            lucide.createIcons();
+            if (!currentDocId) {
+                alert("No Document ID specified.");
                 return;
             }
 
-            document.getElementById('loaderContainer').style.display = 'flex';
-
             try {
-                const targetRef = doc(db, "Cloud Drive", requestedId);
-                const targetSnap = await getDoc(targetRef);
+                const docRef = doc(db, "Cloud Drive", currentDocId);
+                const snapshot = await getDoc(docRef);
 
-                if (!targetSnap.exists()) {
-                    alert("Requested item not found.");
-                    document.getElementById('loaderContainer').style.display = 'none';
+                if (!snapshot.exists()) {
+                    alert("File not found.");
                     return;
                 }
 
-                const targetData = targetSnap.data();
-                const perms = checkPermissions(targetData);
+                const docData = snapshot.data();
 
-                if (!perms.isViewer) {
-                    alert("Access Denied: You do not have permission to view this item.");
-                    document.getElementById('loaderContainer').style.display = 'none';
-                    return;
-                }
-
-                // Password Check for Target
-                if (targetData.Password && targetData.Password.trim() !== "" && !perms.isOwner) {
-                    await promptPassword(targetData.Password);
-                }
-
-                // CHECK: Is this target a Folder?
-                if (isFolder(targetData)) {
-                    parentFolderDoc = { id: targetSnap.id, ...targetData };
-                    document.getElementById('folderTag').style.display = 'inline-block';
-                    document.getElementById('folderTag').innerText = targetData.Name || "Folder";
-                    
-                    const fileIds = Array.isArray(targetData.Files) ? targetData.Files : [];
-                    await loadFolderFiles(fileIds, perms);
-                } else {
-                    // Single File Target
-                    parentFolderDoc = null;
-                    document.getElementById('folderTag').style.display = 'none';
-                    await loadSingleFileAndSiblings(targetSnap.id, targetData);
-                }
-
-            } catch (err) {
-                console.error("Initialization error:", err);
-                alert("Error connecting to database.");
-            } finally {
-                document.getElementById('loaderContainer').style.display = 'none';
-            }
-        }
-
-        /* ================= LOAD FOLDER FILES ================= */
-        async function loadFolderFiles(fileIds, folderPerms) {
-            galleryList = [];
-            
-            for (const fId of fileIds) {
-                try {
-                    const fSnap = await getDoc(doc(db, "Cloud Drive", fId));
-                    if (fSnap.exists()) {
-                        const fData = fSnap.data();
-                        // If file is inside an accessible folder, inherit viewing
-                        galleryList.push({ id: fSnap.id, ...fData, folderInheritedPerms: folderPerms });
+                // If the targeted ID is a Folder, load its files
+                if (docData.Folder === "True" || docData.Folder === true) {
+                    folderDocId = currentDocId;
+                    const fileIds = docData.Files || [];
+                    if (fileIds.length === 0) {
+                        alert("The folder is empty.");
+                        return;
                     }
-                } catch (e) {
-                    console.error("Error fetching file in folder:", fId, e);
-                }
-            }
-
-            if (galleryList.length > 0) {
-                renderFilmstrip();
-                selectImage(0);
-            } else {
-                document.getElementById('imageTitle').innerText = parentFolderDoc.Name || "Folder Empty";
-                document.getElementById('imageOwner').innerText = parentFolderDoc.Email || "";
-                document.getElementById('mainImage').style.display = 'none';
-                showToast("Folder contains no images.");
-            }
-        }
-
-        /* ================= LOAD SINGLE FILE & ITS CONTEXT ================= */
-        async function loadSingleFileAndSiblings(fileId, fileData) {
-            galleryList = [{ id: fileId, ...fileData }];
-
-            // Search for other accessible files to populate gallery strip
-            try {
-                const querySnap = await getDocs(collection(db, "Cloud Drive"));
-                galleryList = [];
-                querySnap.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    if (!isFolder(data)) {
-                        const p = checkPermissions(data);
-                        if (p.isViewer) {
-                            galleryList.push({ id: docSnap.id, ...data });
+                    await loadFolderGallery(fileIds, fileIds[0]);
+                } else {
+                    // It's a single image
+                    if (folderDocId) {
+                        // Load folder context
+                        const folderRef = doc(db, "Cloud Drive", folderDocId);
+                        const folderSnap = await getDoc(folderRef);
+                        if (folderSnap.exists()) {
+                            const fData = folderSnap.data();
+                            await loadFolderGallery(fData.Files || [], currentDocId);
+                            return;
                         }
                     }
-                });
-            } catch (e) {
-                console.error("Error loading siblings:", e);
+                    // Standalone image without folder
+                    await displaySingleItem(currentDocId, docData);
+                }
+            } catch (err) {
+                console.error("Error loading document:", err);
+                alert("Failed to load file.");
             }
+        }
+
+        async function loadFolderGallery(fileIds, selectId) {
+            galleryItems = [];
+            for (let id of fileIds) {
+                try {
+                    const snap = await getDoc(doc(db, "Cloud Drive", id));
+                    if (snap.exists()) {
+                        galleryItems.push({ id: snap.id, data: snap.data() });
+                    }
+                } catch (e) {
+                    console.error("Failed to load child doc:", id);
+                }
+            }
+
+            if (galleryItems.length === 0) {
+                alert("No accessible images found in this collection.");
+                return;
+            }
+
+            currentIndex = galleryItems.findIndex(item => item.id === selectId);
+            if (currentIndex === -1) currentIndex = 0;
 
             renderFilmstrip();
-            const targetIdx = galleryList.findIndex(item => item.id === fileId);
-            selectImage(targetIdx >= 0 ? targetIdx : 0);
+            loadCurrentItem();
         }
 
-        /* ================= RENDER FILMSTRIP ================= */
-        function renderFilmstrip() {
-            const filmstrip = document.getElementById('filmstripWrapper');
-            filmstrip.innerHTML = '';
+        async function displaySingleItem(id, data) {
+            galleryItems = [{ id, data }];
+            currentIndex = 0;
+            renderFilmstrip();
+            loadCurrentItem();
+        }
 
-            galleryList.forEach((item, index) => {
-                const thumb = document.createElement('div');
-                thumb.className = `thumb-item ${index === currentIndex ? 'active' : ''}`;
-                thumb.innerHTML = `<img src="${item.File || ''}" alt="${item.Name || ''}" loading="lazy">`;
-                
-                thumb.addEventListener('click', (e) => {
+        /* 5. ROLE & ACCESS CONTROL EVALUATION */
+        function evaluateAccess(data) {
+            const ownerEmail = (data.Email || "").toLowerCase();
+            const accessObj = data.Access || {};
+            
+            const editors = (accessObj.Editor || []).map(e => (e || "").toLowerCase());
+            const viewers = (accessObj.Viewer || []).map(e => (e || "").toLowerCase());
+            const commentators = (accessObj.Commentator || []).map(e => (e || "").toLowerCase());
+
+            if (userEmail === ownerEmail) {
+                return 'Owner';
+            } else if (editors.includes(userEmail)) {
+                return 'Editor';
+            } else if (viewers.includes(userEmail) || commentators.includes(userEmail)) {
+                return 'Viewer';
+            }
+            return 'None';
+        }
+
+        /* 6. RENDER LOGIC */
+        function loadCurrentItem() {
+            const current = galleryItems[currentIndex];
+            currentDocId = current.id;
+            currentDocData = current.data;
+
+            // Security Check
+            userRole = evaluateAccess(currentDocData);
+            if (userRole === 'None') {
+                alert("Access Denied: You do not have permission to view this image.");
+                return;
+            }
+
+            // Check Password Requirement
+            if (currentDocData.Password && currentDocData.Password.trim() !== "" && userRole !== 'Owner') {
+                if (sessionStorage.getItem(`auth_${currentDocId}`) !== 'true') {
+                    showPasswordModal();
+                    return;
+                }
+            }
+
+            // Apply Permission Restrictions on Buttons
+            if (userRole === 'Viewer') {
+                btnDownload.style.display = 'none';
+                btnDelete.style.display = 'none';
+            } else {
+                btnDownload.style.display = 'flex';
+                btnDelete.style.display = 'flex';
+            }
+
+            // Render Header Info
+            imageTitle.innerText = currentDocData.Name || "Image";
+            imageSubtitle.innerText = `${currentIndex + 1} of ${galleryItems.length}`;
+
+            // Load Main Image
+            loader.style.display = 'block';
+            mainImage.style.display = 'none';
+            resetZoom();
+
+            const img = new Image();
+            img.src = currentDocData.File;
+            img.onload = () => {
+                mainImage.src = img.src;
+                loader.style.display = 'none';
+                mainImage.style.display = 'block';
+            };
+            img.onerror = () => {
+                loader.style.display = 'none';
+                alert("Failed to load image resource.");
+            };
+
+            updateActiveThumb();
+        }
+
+        function renderFilmstrip() {
+            filmstrip.innerHTML = '';
+            if (galleryItems.length <= 1) {
+                filmstrip.style.display = 'none';
+                return;
+            }
+            filmstrip.style.display = 'flex';
+
+            galleryItems.forEach((item, index) => {
+                const thumb = document.createElement('img');
+                thumb.className = `thumb ${index === currentIndex ? 'active' : ''}`;
+                thumb.src = item.data.File;
+                thumb.alt = item.data.Name;
+                thumb.onclick = (e) => {
                     e.stopPropagation();
-                    selectImage(index);
-                });
+                    currentIndex = index;
+                    loadCurrentItem();
+                };
                 filmstrip.appendChild(thumb);
             });
-
-            // Scroll active into view
-            const activeThumb = filmstrip.querySelector('.thumb-item.active');
-            if (activeThumb) {
-                activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-            }
         }
 
-        /* ================= SELECT & DISPLAY IMAGE ================= */
-        function selectImage(index) {
-            if (index < 0 || index >= galleryList.length) return;
-            currentIndex = index;
-            currentImageDoc = galleryList[index];
-
-            // Permissions: Combine image's own permissions or folder-inherited permissions
-            const docPerms = checkPermissions(currentImageDoc);
-            const folderPerms = currentImageDoc.folderInheritedPerms || (parentFolderDoc ? checkPermissions(parentFolderDoc) : null);
-            
-            const effectiveOwner = docPerms.isOwner || (folderPerms && folderPerms.isOwner);
-            const effectiveEditor = docPerms.isEditor || (folderPerms && folderPerms.isEditor);
-
-            // Display Info
-            document.getElementById('imageTitle').innerText = currentImageDoc.Name || 'Untitled';
-            document.getElementById('imageOwner').innerText = currentImageDoc.Email || (parentFolderDoc ? parentFolderDoc.Email : 'Cloud Drive');
-
-            const img = document.getElementById('mainImage');
-            img.style.display = 'block';
-            img.src = currentImageDoc.File || '';
-            img.alt = currentImageDoc.Name || 'Image';
-
-            // Role based actions
-            const downloadBtn = document.getElementById('downloadBtn');
-            const deleteBtn = document.getElementById('deleteBtn');
-
-            if (effectiveOwner || effectiveEditor) {
-                downloadBtn.style.display = 'flex';
-                deleteBtn.style.display = 'flex';
-            } else {
-                downloadBtn.style.display = 'none';
-                deleteBtn.style.display = 'none';
-            }
-
-            // Reset zoom
-            isZoomed = false;
-            img.style.transform = 'scale(1)';
-
-            // Update active state in thumbnail strip
-            document.querySelectorAll('.thumb-item').forEach((el, idx) => {
-                el.classList.toggle('active', idx === currentIndex);
+        function updateActiveThumb() {
+            const thumbs = filmstrip.querySelectorAll('.thumb');
+            thumbs.forEach((t, i) => {
+                if (i === currentIndex) {
+                    t.classList.add('active');
+                    t.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                } else {
+                    t.classList.remove('active');
+                }
             });
         }
 
-        /* ================= PASSWORD PROMPT ================= */
-        function promptPassword(expectedPassword) {
-            return new Promise((resolve) => {
-                const modal = document.getElementById('passwordModal');
-                const input = document.getElementById('passwordInput');
-                input.value = '';
-                modal.classList.add('active');
-                input.focus();
+        /* 7. PASSWORD MODAL LOGIC */
+        function showPasswordModal() {
+            passwordModal.classList.add('active');
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordInput').focus();
+        }
 
-                const submitBtn = document.getElementById('pwdSubmitBtn');
-                const cancelBtn = document.getElementById('pwdCancelBtn');
+        document.getElementById('btnUnlock').onclick = () => {
+            const passEntered = document.getElementById('passwordInput').value;
+            if (passEntered === currentDocData.Password) {
+                sessionStorage.setItem(`auth_${currentDocId}`, 'true');
+                passwordModal.classList.remove('active');
+                loadCurrentItem();
+            } else {
+                alert("Incorrect password.");
+            }
+        };
 
-                const onSubmit = () => {
-                    if (input.value === expectedPassword) {
-                        modal.classList.remove('active');
-                        cleanup();
-                        resolve(true);
-                    } else {
-                        alert("Incorrect password!");
-                    }
-                };
+        document.getElementById('btnCancelPass').onclick = () => {
+            if (window.history.length > 1) window.history.back();
+            else window.location.href = '1.html';
+        };
 
-                const onCancel = () => {
-                    modal.classList.remove('active');
-                    cleanup();
-                    history.back();
-                };
+        /* 8. ACTIONS: DOWNLOAD, DELETE, SHARE */
+        btnDownload.onclick = async (e) => {
+            e.stopPropagation();
+            if (userRole !== 'Owner' && userRole !== 'Editor') return;
 
-                function cleanup() {
-                    submitBtn.removeEventListener('click', onSubmit);
-                    cancelBtn.removeEventListener('click', onCancel);
+            try {
+                const response = await fetch(currentDocData.File);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = currentDocData.Name || `image_${Date.now()}.jpg`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error("Download failed:", err);
+                window.open(currentDocData.File, '_blank');
+            }
+        };
+
+        btnDelete.onclick = async (e) => {
+            e.stopPropagation();
+            if (userRole !== 'Owner' && userRole !== 'Editor') return;
+
+            if (!confirm(`Are you sure you want to delete "${currentDocData.Name}"?`)) return;
+
+            try {
+                // Delete doc from Cloud Drive
+                await deleteDoc(doc(db, "Cloud Drive", currentDocId));
+
+                // If inside a folder, remove reference from parent folder array
+                if (folderDocId) {
+                    await updateDoc(doc(db, "Cloud Drive", folderDocId), {
+                        Files: arrayRemove(currentDocId)
+                    });
                 }
 
-                submitBtn.addEventListener('click', onSubmit);
-                cancelBtn.addEventListener('click', onCancel);
-            });
-        }
-
-        /* ================= GALLERY CHEVRONS ================= */
-        document.getElementById('prevBtn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (galleryList.length <= 1) return;
-            let idx = currentIndex - 1;
-            if (idx < 0) idx = galleryList.length - 1;
-            selectImage(idx);
-        });
-
-        document.getElementById('nextBtn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (galleryList.length <= 1) return;
-            let idx = (currentIndex + 1) % galleryList.length;
-            selectImage(idx);
-        });
-
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') document.getElementById('prevBtn').click();
-            if (e.key === 'ArrowRight') document.getElementById('nextBtn').click();
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('active'));
-            }
-        });
-
-        /* ================= ZOOM & TOGGLE UI ================= */
-        document.getElementById('mainContainer').addEventListener('click', (e) => {
-            if (e.target.closest('.nav-btn') || e.target.closest('.action-dock')) return;
-            document.body.classList.toggle('hide-ui');
-        });
-
-        document.getElementById('mainImage').addEventListener('dblclick', (e) => {
-            e.stopPropagation();
-            isZoomed = !isZoomed;
-            document.getElementById('mainImage').style.transform = isZoomed ? 'scale(2)' : 'scale(1)';
-        });
-
-        /* ================= ACTIONS: DOWNLOAD ================= */
-        document.getElementById('downloadBtn').addEventListener('click', async (e) => {
-            e.stopPropagation();
-            if (!currentImageDoc || !currentImageDoc.File) return;
-
-            showToast("Downloading image...");
-            try {
-                const response = await fetch(currentImageDoc.File);
-                const blob = await response.blob();
-                const blobUrl = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = (currentImageDoc.Name || 'image') + (currentImageDoc.Type || '.jpg');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(blobUrl);
-                showToast("Download started");
+                alert("File deleted successfully.");
+                galleryItems.splice(currentIndex, 1);
+                
+                if (galleryItems.length === 0) {
+                    if (window.history.length > 1) window.history.back();
+                    else window.location.href = "1.html";
+                } else {
+                    if (currentIndex >= galleryItems.length) currentIndex = galleryItems.length - 1;
+                    renderFilmstrip();
+                    loadCurrentItem();
+                }
             } catch (err) {
-                console.error("Direct fetch download failed:", err);
-                window.open(currentImageDoc.File, '_blank');
+                console.error("Delete error:", err);
+                alert("Failed to delete file.");
             }
-        });
+        };
 
-        /* ================= ACTIONS: SHARE ================= */
-        document.getElementById('shareBtn').addEventListener('click', async (e) => {
+        btnShare.onclick = async (e) => {
             e.stopPropagation();
             const shareUrl = window.location.href;
             if (navigator.share) {
                 try {
                     await navigator.share({
-                        title: currentImageDoc?.Name || 'Shared Image',
-                        text: 'View image in Cloud Drive',
+                        title: currentDocData.Name || 'Shared Image',
+                        text: 'View this image on Perplexity Drive',
                         url: shareUrl
                     });
-                } catch (e) {}
+                } catch (err) {
+                    console.log('Share canceled');
+                }
             } else {
                 navigator.clipboard.writeText(shareUrl);
-                showToast("Link copied to clipboard!");
+                alert("Link copied to clipboard!");
             }
-        });
+        };
 
-        /* ================= ACTIONS: DELETE ================= */
-        const deleteModal = document.getElementById('deleteModal');
-        document.getElementById('deleteBtn').addEventListener('click', (e) => {
+        /* 9. DETAILS MODAL (INFO SHEET) */
+        document.getElementById('btnInfo').onclick = (e) => {
             e.stopPropagation();
-            deleteModal.classList.add('active');
+            document.getElementById('detailName').innerText = currentDocData.Name || '-';
+            document.getElementById('detailOwner').innerText = currentDocData.Email || '-';
+            document.getElementById('detailRole').innerText = userRole;
+            document.getElementById('detailType').innerText = currentDocData.Type || 'Image';
+            infoSheet.classList.add('active');
+        };
+
+        document.getElementById('btnCloseSheet').onclick = () => {
+            infoSheet.classList.remove('active');
+        };
+
+        document.getElementById('btnBack').onclick = () => {
+            if (window.history.length > 1) window.history.back();
+            else window.location.href = '1.html';
+        };
+
+        /* 10. UI IMMERSION & GESTURE CONTROLS */
+        let scale = 1, lastScale = 1;
+        let posX = 0, posY = 0;
+        let startX = 0, startY = 0;
+        let isDragging = false;
+
+        const container = document.getElementById('viewerContainer');
+
+        // Toggle UI header/footer on simple tap
+        container.addEventListener('click', (e) => {
+            if (isDragging) return;
+            document.body.classList.toggle('ui-hidden');
+            infoSheet.classList.remove('active');
         });
 
-        document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
-            deleteModal.classList.remove('active');
-        });
+        function resetZoom() {
+            scale = 1;
+            posX = 0;
+            posY = 0;
+            updateTransform();
+        }
 
-        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
-            if (!currentImageDoc) return;
-            try {
-                const docIdToDelete = currentImageDoc.id;
+        function updateTransform() {
+            mainImage.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+        }
 
-                // 1. Delete document from Firestore
-                await deleteDoc(doc(db, "Cloud Drive", docIdToDelete));
+        // Swipe Left/Right Gesture to Change Photos
+        let touchStartX = 0;
+        let touchEndX = 0;
 
-                // 2. If it is part of a parent folder, remove reference from parent's Files array
-                if (parentFolderDoc && parentFolderDoc.id) {
-                    try {
-                        await updateDoc(doc(db, "Cloud Drive", parentFolderDoc.id), {
-                            Files: arrayRemove(docIdToDelete)
-                        });
-                    } catch (err) {
-                        console.error("Could not remove file ID from parent folder:", err);
-                    }
-                }
-
-                deleteModal.classList.remove('active');
-                showToast("Item deleted");
-
-                // Update gallery
-                galleryList.splice(currentIndex, 1);
-                if (galleryList.length > 0) {
-                    renderFilmstrip();
-                    selectImage(Math.min(currentIndex, galleryList.length - 1));
-                } else {
-                    document.getElementById('mainImage').style.display = 'none';
-                    document.getElementById('imageTitle').innerText = "Empty";
-                    renderFilmstrip();
-                    showToast("No files remaining.");
-                }
-            } catch (err) {
-                console.error("Delete failed:", err);
-                alert("Failed to delete item.");
+        container.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                touchStartX = e.touches[0].clientX;
             }
-        });
+        }, { passive: true });
 
-        /* ================= ACTIONS: DETAILS ================= */
-        const infoModal = document.getElementById('infoModal');
-        document.getElementById('infoBtn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!currentImageDoc) return;
-
-            const targetData = parentFolderDoc || currentImageDoc;
-            const viewers = targetData.Access?.Viewer ? targetData.Access.Viewer.join(', ') : 'None';
-            const editors = targetData.Access?.Editor ? targetData.Access.Editor.join(', ') : 'Owner only';
-
-            document.getElementById('infoContent').innerHTML = `
-                <div class="info-row"><span class="info-label">Title</span><span class="info-val">${currentImageDoc.Name || 'Untitled'}</span></div>
-                ${parentFolderDoc ? `<div class="info-row"><span class="info-label">Folder</span><span class="info-val">${parentFolderDoc.Name || 'Folder'}</span></div>` : ''}
-                <div class="info-row"><span class="info-label">Type</span><span class="info-val">${currentImageDoc.Type || (parentFolderDoc ? 'Folder Image' : 'Image')}</span></div>
-                <div class="info-row"><span class="info-label">Owner</span><span class="info-val">${targetData.Email || 'Unknown'}</span></div>
-                <div class="info-row"><span class="info-label">Editors</span><span class="info-val">${editors}</span></div>
-                <div class="info-row"><span class="info-label">Viewers</span><span class="info-val">${viewers}</span></div>
-            `;
-            infoModal.classList.add('active');
-        });
-
-        document.getElementById('closeInfoBtn').addEventListener('click', () => {
-            infoModal.classList.remove('active');
-        });
-
-        /* ================= FULLSCREEN & BACK ================= */
-        document.getElementById('fullscreenBtn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            } else {
-                document.exitFullscreen().catch(() => {});
+        container.addEventListener('touchend', (e) => {
+            if (scale === 1 && e.changedTouches.length === 1) {
+                touchEndX = e.changedTouches[0].clientX;
+                handleSwipe();
             }
-        });
+        }, { passive: true });
 
-        document.getElementById('backBtn').addEventListener('click', () => {
-            if (window.history.length > 1) {
-                history.back();
-            } else {
-                window.location.href = 'index.html';
+        function handleSwipe() {
+            const threshold = 50;
+            if (touchStartX - touchEndX > threshold && currentIndex < galleryItems.length - 1) {
+                // Next image
+                currentIndex++;
+                loadCurrentItem();
+            } else if (touchEndX - touchStartX > threshold && currentIndex > 0) {
+                // Prev image
+                currentIndex--;
+                loadCurrentItem();
             }
-        });
+        }
 
-        // Start
-        loadTarget();
+        // Initialize App
+        init();
     </script>
 </body>
 </html>
