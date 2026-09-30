@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gallery</title>
+    <title>Universal Cloud Viewer</title>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --bg-color: #000000;
+            --bg-color: #0c0c0d;
             --surface-color: rgba(26, 26, 26, 0.85);
             --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
+            --text-secondary: #9e9e9e;
             --accent-color: #2196f3;
             --danger-color: #ff5252;
-            --overlay-bg: rgba(0, 0, 0, 0.65);
-            --border-radius-pill: 30px;
+            --overlay-bg: rgba(0, 0, 0, 0.75);
         }
 
         * {
@@ -28,7 +27,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
             height: 100vh;
@@ -49,7 +48,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 16px;
-            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
             z-index: 50;
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
@@ -92,11 +91,6 @@
             background: rgba(255, 255, 255, 0.15);
         }
 
-        .icon-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
         /* Main Viewport */
         .viewer-container {
             position: relative;
@@ -104,10 +98,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
             width: 100vw;
             height: 100vh;
-            touch-action: none;
+            overflow: hidden;
         }
 
         .main-image {
@@ -116,10 +109,82 @@
             object-fit: contain;
             transition: transform 0.1s ease-out;
             will-change: transform;
-            cursor: grab;
         }
 
-        /* Bottom Controls Bar (Samsung Gallery style) */
+        /* Document / IFrame Viewer for PDF & DOCX */
+        .doc-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding-top: 60px;
+            padding-bottom: 120px;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        /* Generic Executable & Binary File Card */
+        .file-card-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: #18181b;
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid #2e2e33;
+            max-width: 340px;
+            width: 85%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .file-card-icon {
+            width: 72px;
+            height: 72px;
+            background: #27272a;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+            color: var(--accent-color);
+        }
+
+        .file-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            word-break: break-all;
+        }
+
+        .file-card-type {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .file-card-btn {
+            background: var(--accent-color);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 20px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .file-card-btn:active {
+            opacity: 0.8;
+        }
+
+        /* Bottom Controls Bar */
         .bottom-bar {
             position: fixed;
             bottom: 0;
@@ -128,7 +193,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%);
+            background: linear-gradient(0deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%);
             padding-bottom: env(safe-area-inset-bottom, 16px);
             z-index: 50;
             transition: opacity 0.3s ease, transform 0.3s ease;
@@ -151,22 +216,39 @@
             display: none;
         }
 
-        .thumb {
-            width: 48px;
-            height: 48px;
+        .thumb-box {
+            width: 50px;
+            height: 50px;
             border-radius: 8px;
-            object-fit: cover;
+            overflow: hidden;
             opacity: 0.5;
             transition: opacity 0.2s, transform 0.2s, border 0.2s;
             cursor: pointer;
             border: 2px solid transparent;
             flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #222;
         }
 
-        .thumb.active {
+        .thumb-box.active {
             opacity: 1;
             transform: scale(1.08);
             border-color: var(--accent-color);
+        }
+
+        .thumb-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .thumb-box .thumb-badge {
+            font-size: 10px;
+            font-weight: 700;
+            color: #ddd;
+            text-transform: uppercase;
         }
 
         .actions-group {
@@ -206,7 +288,7 @@
             pointer-events: none;
         }
 
-        /* Modals & Dialogs */
+        /* Password Modal */
         .modal {
             position: fixed;
             top: 0;
@@ -284,17 +366,10 @@
             cursor: pointer;
         }
 
-        .btn-confirm {
-            background: var(--accent-color);
-            color: #fff;
-        }
+        .btn-confirm { background: var(--accent-color); color: #fff; }
+        .btn-cancel { background: #333; color: #bbb; }
 
-        .btn-cancel {
-            background: #333;
-            color: #bbb;
-        }
-
-        /* Info Details Sheet */
+        /* Details Sheet */
         .sheet {
             position: fixed;
             bottom: 0;
@@ -311,9 +386,7 @@
             margin: 0 auto;
         }
 
-        .sheet.active {
-            transform: translateY(0);
-        }
+        .sheet.active { transform: translateY(0); }
 
         .sheet-header {
             display: flex;
@@ -348,15 +421,15 @@
 </head>
 <body>
 
-    <!-- TOP APP BAR -->
+    <!-- TOP BAR -->
     <div class="top-bar" id="topBar">
         <div style="display: flex; align-items: center;">
             <button class="icon-btn" id="btnBack">
                 <i data-lucide="arrow-left"></i>
             </button>
             <div class="info-group">
-                <span class="title" id="imageTitle">Loading...</span>
-                <span class="subtitle" id="imageSubtitle">Perplexity Drive</span>
+                <span class="title" id="fileTitle">Loading...</span>
+                <span class="subtitle" id="fileSubtitle">Perplexity Cloud</span>
             </div>
         </div>
         <div style="display: flex; align-items: center; gap: 4px;">
@@ -366,13 +439,14 @@
         </div>
     </div>
 
-    <!-- MAIN IMAGE CONTAINER -->
+    <!-- MAIN VIEWER CONTAINER -->
     <div class="viewer-container" id="viewerContainer">
         <div class="spinner" id="loader"></div>
-        <img class="main-image" id="mainImage" src="" alt="Gallery Image" style="display: none;">
+        <!-- Dynamic content: img, iframe, or binary card injected via JavaScript -->
+        <div id="mediaSlot" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"></div>
     </div>
 
-    <!-- BOTTOM BAR & THUMBNAIL FILMSTRIP -->
+    <!-- BOTTOM CONTROLS & FILMSTRIP -->
     <div class="bottom-bar" id="bottomBar">
         <div class="filmstrip-container" id="filmstrip"></div>
         <div class="actions-group">
@@ -394,7 +468,7 @@
     <!-- PASSWORD MODAL -->
     <div class="modal" id="passwordModal">
         <div class="modal-card">
-            <h2>Protected Image</h2>
+            <h2>Protected File</h2>
             <p>This file is password protected. Enter the password to unlock.</p>
             <input type="password" id="passwordInput" placeholder="Password">
             <div class="modal-buttons">
@@ -404,10 +478,10 @@
         </div>
     </div>
 
-    <!-- DETAILS INFO SHEET -->
+    <!-- INFO SHEET -->
     <div class="sheet" id="infoSheet">
         <div class="sheet-header">
-            <h3>Image Details</h3>
+            <h3>File Details</h3>
             <button class="icon-btn" id="btnCloseSheet"><i data-lucide="x"></i></button>
         </div>
         <div class="sheet-row"><span>Name</span><span id="detailName">-</span></div>
@@ -416,7 +490,7 @@
         <div class="sheet-row"><span>Type</span><span id="detailType">-</span></div>
     </div>
 
-    <!-- FIREBASE SDK & MODULE SCRIPT -->
+    <!-- JAVASCRIPT LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { 
@@ -428,7 +502,6 @@
             arrayRemove 
         } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Provided Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
             authDomain: "cloud-computer-4891a.firebaseapp.com",
@@ -442,7 +515,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        /* 1. AUTHENTICATION & SESSION VERIFICATION */
+        // 1. Session Validation
         const activeUserRaw = localStorage.getItem('active_user');
         if (!activeUserRaw) {
             window.location.href = `1.html?continue=${encodeURIComponent(window.location.href)}`;
@@ -450,38 +523,35 @@
         const activeUser = JSON.parse(activeUserRaw || '{}');
         const userEmail = (activeUser.Email || "").toLowerCase();
 
-        /* 2. URL PARAMETERS */
+        // 2. Query Parameters
         const urlParams = new URLSearchParams(window.location.search);
         let currentDocId = urlParams.get('id');
         let folderDocId = urlParams.get('folder');
 
-        /* 3. APP STATE */
+        // State Variables
         let currentDocData = null;
-        let galleryItems = []; // Array of { id, data }
+        let galleryItems = [];
         let currentIndex = 0;
-        let userRole = 'None'; // 'Owner', 'Editor', 'Viewer', 'None'
+        let userRole = 'None';
 
-        // DOM References
-        const topBar = document.getElementById('topBar');
-        const bottomBar = document.getElementById('bottomBar');
-        const mainImage = document.getElementById('mainImage');
+        // DOM elements
         const loader = document.getElementById('loader');
+        const mediaSlot = document.getElementById('mediaSlot');
         const filmstrip = document.getElementById('filmstrip');
-        const imageTitle = document.getElementById('imageTitle');
-        const imageSubtitle = document.getElementById('imageSubtitle');
+        const fileTitle = document.getElementById('fileTitle');
+        const fileSubtitle = document.getElementById('fileSubtitle');
         const passwordModal = document.getElementById('passwordModal');
         const infoSheet = document.getElementById('infoSheet');
 
-        // Buttons
         const btnDownload = document.getElementById('btnDownload');
         const btnDelete = document.getElementById('btnDelete');
         const btnShare = document.getElementById('btnShare');
 
-        /* 4. INITIALIZATION */
+        /* Initialize */
         async function init() {
             lucide.createIcons();
             if (!currentDocId) {
-                alert("No Document ID specified.");
+                alert("No Document ID specified in URL.");
                 return;
             }
 
@@ -490,43 +560,38 @@
                 const snapshot = await getDoc(docRef);
 
                 if (!snapshot.exists()) {
-                    alert("File not found.");
+                    alert("File does not exist.");
                     return;
                 }
 
                 const docData = snapshot.data();
 
-                // If the targeted ID is a Folder, load its files
                 if (docData.Folder === "True" || docData.Folder === true) {
                     folderDocId = currentDocId;
                     const fileIds = docData.Files || [];
                     if (fileIds.length === 0) {
-                        alert("The folder is empty.");
+                        alert("Folder is empty.");
                         return;
                     }
-                    await loadFolderGallery(fileIds, fileIds[0]);
+                    await loadFolderCollection(fileIds, fileIds[0]);
                 } else {
-                    // It's a single image
                     if (folderDocId) {
-                        // Load folder context
                         const folderRef = doc(db, "Cloud Drive", folderDocId);
                         const folderSnap = await getDoc(folderRef);
                         if (folderSnap.exists()) {
-                            const fData = folderSnap.data();
-                            await loadFolderGallery(fData.Files || [], currentDocId);
+                            await loadFolderCollection(folderSnap.data().Files || [], currentDocId);
                             return;
                         }
                     }
-                    // Standalone image without folder
                     await displaySingleItem(currentDocId, docData);
                 }
             } catch (err) {
-                console.error("Error loading document:", err);
-                alert("Failed to load file.");
+                console.error("Fetch error:", err);
+                alert("Failed to load cloud drive items.");
             }
         }
 
-        async function loadFolderGallery(fileIds, selectId) {
+        async function loadFolderCollection(fileIds, selectId) {
             galleryItems = [];
             for (let id of fileIds) {
                 try {
@@ -535,70 +600,69 @@
                         galleryItems.push({ id: snap.id, data: snap.data() });
                     }
                 } catch (e) {
-                    console.error("Failed to load child doc:", id);
+                    console.error("Child read error:", id);
                 }
             }
 
             if (galleryItems.length === 0) {
-                alert("No accessible images found in this collection.");
+                alert("No files accessible in this collection.");
                 return;
             }
 
-            currentIndex = galleryItems.findIndex(item => item.id === selectId);
+            currentIndex = galleryItems.findIndex(i => i.id === selectId);
             if (currentIndex === -1) currentIndex = 0;
 
             renderFilmstrip();
-            loadCurrentItem();
+            renderActiveFile();
         }
 
         async function displaySingleItem(id, data) {
             galleryItems = [{ id, data }];
             currentIndex = 0;
             renderFilmstrip();
-            loadCurrentItem();
+            renderActiveFile();
         }
 
-        /* 5. ROLE & ACCESS CONTROL EVALUATION */
-        function evaluateAccess(data) {
-            const ownerEmail = (data.Email || "").toLowerCase();
-            const accessObj = data.Access || {};
-            
-            const editors = (accessObj.Editor || []).map(e => (e || "").toLowerCase());
-            const viewers = (accessObj.Viewer || []).map(e => (e || "").toLowerCase());
-            const commentators = (accessObj.Commentator || []).map(e => (e || "").toLowerCase());
+        function evaluateRole(data) {
+            const owner = (data.Email || "").toLowerCase();
+            const access = data.Access || {};
+            const editors = (access.Editor || []).map(e => (e || "").toLowerCase());
+            const viewers = (access.Viewer || []).map(e => (e || "").toLowerCase());
+            const commentators = (access.Commentator || []).map(e => (e || "").toLowerCase());
 
-            if (userEmail === ownerEmail) {
-                return 'Owner';
-            } else if (editors.includes(userEmail)) {
-                return 'Editor';
-            } else if (viewers.includes(userEmail) || commentators.includes(userEmail)) {
-                return 'Viewer';
-            }
+            if (userEmail === owner) return 'Owner';
+            if (editors.includes(userEmail)) return 'Editor';
+            if (viewers.includes(userEmail) || commentators.includes(userEmail)) return 'Viewer';
             return 'None';
         }
 
-        /* 6. RENDER LOGIC */
-        function loadCurrentItem() {
-            const current = galleryItems[currentIndex];
-            currentDocId = current.id;
-            currentDocData = current.data;
+        function getFileExtension(name = '', type = '') {
+            if (type.startsWith('.')) return type.toLowerCase().replace('.', '');
+            const extFromName = name.split('.').pop();
+            return extFromName ? extFromName.toLowerCase() : 'unknown';
+        }
 
-            // Security Check
-            userRole = evaluateAccess(currentDocData);
+        /* Main File Renderer */
+        function renderActiveFile() {
+            const item = galleryItems[currentIndex];
+            currentDocId = item.id;
+            currentDocData = item.data;
+
+            userRole = evaluateRole(currentDocData);
             if (userRole === 'None') {
-                alert("Access Denied: You do not have permission to view this image.");
+                alert("Access Denied: You do not have permission to access this resource.");
                 return;
             }
 
-            // Check Password Requirement
+            // Password Protection check
             if (currentDocData.Password && currentDocData.Password.trim() !== "" && userRole !== 'Owner') {
                 if (sessionStorage.getItem(`auth_${currentDocId}`) !== 'true') {
-                    showPasswordModal();
+                    showPasswordPrompt();
                     return;
                 }
             }
 
-            // Apply Permission Restrictions on Buttons
+            // Permissions
             if (userRole === 'Viewer') {
                 btnDownload.style.display = 'none';
                 btnDelete.style.display = 'none';
@@ -607,30 +671,75 @@
                 btnDelete.style.display = 'flex';
             }
 
-            // Render Header Info
-            imageTitle.innerText = currentDocData.Name || "Image";
-            imageSubtitle.innerText = `${currentIndex + 1} of ${galleryItems.length}`;
+            fileTitle.innerText = currentDocData.Name || "File Viewer";
+            fileSubtitle.innerText = `${currentIndex + 1} of ${galleryItems.length}`;
 
-            // Load Main Image
+            // Reset media slot
+            mediaSlot.innerHTML = '';
             loader.style.display = 'block';
-            mainImage.style.display = 'none';
-            resetZoom();
 
-            const img = new Image();
-            img.src = currentDocData.File;
-            img.onload = () => {
-                mainImage.src = img.src;
+            const fileUrl = currentDocData.File;
+            const ext = getFileExtension(currentDocData.Name, currentDocData.Type);
+
+            // 1. PDF Handling
+            if (ext === 'pdf') {
+                const iframe = document.createElement('iframe');
+                iframe.className = 'doc-iframe';
+                iframe.src = `${fileUrl}#toolbar=0&navpanes=0`;
+                iframe.onload = () => { loader.style.display = 'none'; };
+                mediaSlot.appendChild(iframe);
+            }
+            // 2. Word / DOCX Handling
+            else if (ext === 'docx' || ext === 'doc') {
+                const iframe = document.createElement('iframe');
+                iframe.className = 'doc-iframe';
+                // Render via Microsoft Office Web Viewer
+                iframe.src = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+                iframe.onload = () => { loader.style.display = 'none'; };
+                mediaSlot.appendChild(iframe);
+            }
+            // 3. Executable (.EXE, .MSI, .BAT, .ZIP, etc.)
+            else if (['exe', 'msi', 'apk', 'zip', 'rar', 'bin'].includes(ext)) {
                 loader.style.display = 'none';
-                mainImage.style.display = 'block';
-            };
-            img.onerror = () => {
-                loader.style.display = 'none';
-                alert("Failed to load image resource.");
-            };
+                const card = document.createElement('div');
+                card.className = 'file-card-preview';
+                card.innerHTML = `
+                    <div class="file-card-icon">
+                        <i data-lucide="terminal" style="width: 36px; height: 36px;"></i>
+                    </div>
+                    <div class="file-card-title">${currentDocData.Name || 'Executable Application'}</div>
+                    <div class="file-card-type">Binary Executable (${ext})</div>
+                    ${(userRole === 'Owner' || userRole === 'Editor') ? `
+                        <button class="file-card-btn" id="btnCardDownload">
+                            <i data-lucide="download"></i> Download & Run
+                        </button>
+                    ` : '<div style="font-size: 13px; color: var(--text-secondary);">View Only Mode</div>'}
+                `;
+                mediaSlot.appendChild(card);
+                lucide.createIcons();
+
+                const cardBtn = document.getElementById('btnCardDownload');
+                if (cardBtn) cardBtn.onclick = () => btnDownload.click();
+            }
+            // 4. Default: Image Handling
+            else {
+                const img = document.createElement('img');
+                img.className = 'main-image';
+                img.src = fileUrl;
+                img.onload = () => {
+                    loader.style.display = 'none';
+                };
+                img.onerror = () => {
+                    loader.style.display = 'none';
+                    alert("Error displaying image.");
+                };
+                mediaSlot.appendChild(img);
+            }
 
             updateActiveThumb();
         }
 
+        /* Filmstrip Renderer */
         function renderFilmstrip() {
             filmstrip.innerHTML = '';
             if (galleryItems.length <= 1) {
@@ -640,21 +749,28 @@
             filmstrip.style.display = 'flex';
 
             galleryItems.forEach((item, index) => {
-                const thumb = document.createElement('img');
-                thumb.className = `thumb ${index === currentIndex ? 'active' : ''}`;
-                thumb.src = item.data.File;
-                thumb.alt = item.data.Name;
-                thumb.onclick = (e) => {
+                const box = document.createElement('div');
+                box.className = `thumb-box ${index === currentIndex ? 'active' : ''}`;
+
+                const ext = getFileExtension(item.data.Name, item.data.Type);
+
+                if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'img'].includes(ext)) {
+                    box.innerHTML = `<img src="${item.data.File}" alt="">`;
+                } else {
+                    box.innerHTML = `<span class="thumb-badge">${ext}</span>`;
+                }
+
+                box.onclick = (e) => {
                     e.stopPropagation();
                     currentIndex = index;
-                    loadCurrentItem();
+                    renderActiveFile();
                 };
-                filmstrip.appendChild(thumb);
+                filmstrip.appendChild(box);
             });
         }
 
         function updateActiveThumb() {
-            const thumbs = filmstrip.querySelectorAll('.thumb');
+            const thumbs = filmstrip.querySelectorAll('.thumb-box');
             thumbs.forEach((t, i) => {
                 if (i === currentIndex) {
                     t.classList.add('active');
@@ -665,19 +781,19 @@
             });
         }
 
-        /* 7. PASSWORD MODAL LOGIC */
-        function showPasswordModal() {
+        /* Password Modal */
+        function showPasswordPrompt() {
             passwordModal.classList.add('active');
             document.getElementById('passwordInput').value = '';
             document.getElementById('passwordInput').focus();
         }
 
         document.getElementById('btnUnlock').onclick = () => {
-            const passEntered = document.getElementById('passwordInput').value;
-            if (passEntered === currentDocData.Password) {
+            const val = document.getElementById('passwordInput').value;
+            if (val === currentDocData.Password) {
                 sessionStorage.setItem(`auth_${currentDocId}`, 'true');
                 passwordModal.classList.remove('active');
-                loadCurrentItem();
+                renderActiveFile();
             } else {
                 alert("Incorrect password.");
             }
@@ -688,24 +804,24 @@
             else window.location.href = '1.html';
         };
 
-        /* 8. ACTIONS: DOWNLOAD, DELETE, SHARE */
+        /* Actions */
         btnDownload.onclick = async (e) => {
             e.stopPropagation();
             if (userRole !== 'Owner' && userRole !== 'Editor') return;
 
             try {
-                const response = await fetch(currentDocData.File);
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
+                const res = await fetch(currentDocData.File);
+                const blob = await res.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = currentDocData.Name || `image_${Date.now()}.jpg`;
+                a.href = blobUrl;
+                a.download = currentDocData.Name || `download_${Date.now()}`;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
-                window.URL.revokeObjectURL(url);
+                window.URL.revokeObjectURL(blobUrl);
             } catch (err) {
-                console.error("Download failed:", err);
+                // Fallback for CORS restricted origins
                 window.open(currentDocData.File, '_blank');
             }
         };
@@ -713,33 +829,30 @@
         btnDelete.onclick = async (e) => {
             e.stopPropagation();
             if (userRole !== 'Owner' && userRole !== 'Editor') return;
-
-            if (!confirm(`Are you sure you want to delete "${currentDocData.Name}"?`)) return;
+            if (!confirm(`Are you sure you want to permanently delete "${currentDocData.Name}"?`)) return;
 
             try {
-                // Delete doc from Cloud Drive
                 await deleteDoc(doc(db, "Cloud Drive", currentDocId));
 
-                // If inside a folder, remove reference from parent folder array
                 if (folderDocId) {
                     await updateDoc(doc(db, "Cloud Drive", folderDocId), {
                         Files: arrayRemove(currentDocId)
                     });
                 }
 
-                alert("File deleted successfully.");
+                alert("File successfully deleted.");
                 galleryItems.splice(currentIndex, 1);
-                
+
                 if (galleryItems.length === 0) {
                     if (window.history.length > 1) window.history.back();
                     else window.location.href = "1.html";
                 } else {
                     if (currentIndex >= galleryItems.length) currentIndex = galleryItems.length - 1;
                     renderFilmstrip();
-                    loadCurrentItem();
+                    renderActiveFile();
                 }
             } catch (err) {
-                console.error("Delete error:", err);
+                console.error("Delete failed:", err);
                 alert("Failed to delete file.");
             }
         };
@@ -750,26 +863,24 @@
             if (navigator.share) {
                 try {
                     await navigator.share({
-                        title: currentDocData.Name || 'Shared Image',
-                        text: 'View this image on Perplexity Drive',
+                        title: currentDocData.Name || 'Shared Resource',
+                        text: 'Access file on Perplexity Drive',
                         url: shareUrl
                     });
-                } catch (err) {
-                    console.log('Share canceled');
-                }
+                } catch (err) {}
             } else {
                 navigator.clipboard.writeText(shareUrl);
                 alert("Link copied to clipboard!");
             }
         };
 
-        /* 9. DETAILS MODAL (INFO SHEET) */
+        /* Details Modal */
         document.getElementById('btnInfo').onclick = (e) => {
             e.stopPropagation();
             document.getElementById('detailName').innerText = currentDocData.Name || '-';
             document.getElementById('detailOwner').innerText = currentDocData.Email || '-';
             document.getElementById('detailRole').innerText = userRole;
-            document.getElementById('detailType').innerText = currentDocData.Type || 'Image';
+            document.getElementById('detailType').innerText = currentDocData.Type || getFileExtension(currentDocData.Name);
             infoSheet.classList.add('active');
         };
 
@@ -782,63 +893,15 @@
             else window.location.href = '1.html';
         };
 
-        /* 10. UI IMMERSION & GESTURE CONTROLS */
-        let scale = 1, lastScale = 1;
-        let posX = 0, posY = 0;
-        let startX = 0, startY = 0;
-        let isDragging = false;
-
-        const container = document.getElementById('viewerContainer');
-
-        // Toggle UI header/footer on simple tap
-        container.addEventListener('click', (e) => {
-            if (isDragging) return;
-            document.body.classList.toggle('ui-hidden');
-            infoSheet.classList.remove('active');
+        // Tap on viewport toggles UI overlay
+        document.getElementById('viewerContainer').addEventListener('click', (e) => {
+            if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+                document.body.classList.toggle('ui-hidden');
+                infoSheet.classList.remove('active');
+            }
         });
 
-        function resetZoom() {
-            scale = 1;
-            posX = 0;
-            posY = 0;
-            updateTransform();
-        }
-
-        function updateTransform() {
-            mainImage.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
-        }
-
-        // Swipe Left/Right Gesture to Change Photos
-        let touchStartX = 0;
-        let touchEndX = 0;
-
-        container.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) {
-                touchStartX = e.touches[0].clientX;
-            }
-        }, { passive: true });
-
-        container.addEventListener('touchend', (e) => {
-            if (scale === 1 && e.changedTouches.length === 1) {
-                touchEndX = e.changedTouches[0].clientX;
-                handleSwipe();
-            }
-        }, { passive: true });
-
-        function handleSwipe() {
-            const threshold = 50;
-            if (touchStartX - touchEndX > threshold && currentIndex < galleryItems.length - 1) {
-                // Next image
-                currentIndex++;
-                loadCurrentItem();
-            } else if (touchEndX - touchStartX > threshold && currentIndex > 0) {
-                // Prev image
-                currentIndex--;
-                loadCurrentItem();
-            }
-        }
-
-        // Initialize App
+        // Initialize Application
         init();
     </script>
 </body>
