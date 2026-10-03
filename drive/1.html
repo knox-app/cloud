@@ -105,6 +105,7 @@
             transition: opacity 0.2s;
         }
         .btn-pill:hover { opacity: 0.9; }
+        .btn-pill:disabled { opacity: 0.4; cursor: not-allowed; }
 
         /* Search input bar */
         .search-container {
@@ -223,11 +224,22 @@
             font-size: 12px;
             color: var(--text-secondary);
             margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
-        .badge-access {
-            font-size: 12px;
-            color: var(--text-secondary);
+        /* Label Badges */
+        .label-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 1px 7px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
         }
 
         /* 3-Dots Dropdown */
@@ -343,6 +355,15 @@
             font-size: 13px;
         }
 
+        .viewer-notice {
+            background: #fffbeb;
+            color: #92400e;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 14px;
+        }
+
         /* Toast Feedback */
         .toast-popup {
             position: fixed;
@@ -359,7 +380,7 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         }
 
-        /* Detail List styling */
+        /* Detail List */
         .details-grid {
             display: flex;
             flex-direction: column;
@@ -369,18 +390,19 @@
         .details-item {
             display: flex;
             justify-content: space-between;
-            padding: 6px 0;
+            align-items: center;
+            padding: 8px 0;
             border-bottom: 1px solid var(--border-color);
         }
         .details-label { color: var(--text-secondary); }
         .details-val { font-weight: 500; text-align: right; max-width: 260px; overflow-wrap: break-word; }
 
-        /* Responsive view for Mobile */
+        /* Responsive Mobile Layout */
         @media (max-width: 768px) {
             aside.sidebar { display: none; }
             main.content-area { padding: 20px 16px; width: 100%; }
             .table-head { display: none; }
-            /* Mobile: Only Icon/Name, Update Date and 3 dots */
+            /* Mobile requirement: icon + name, update date, 3 dots */
             .table-row {
                 grid-template-columns: 1fr auto 32px;
                 gap: 12px;
@@ -461,19 +483,27 @@
                 <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
-        <div class="input-group">
-            <label>Invite User</label>
-            <div style="display: flex; gap: 8px;">
-                <input type="email" id="inviteEmailInput" class="clean-input" placeholder="user@example.com">
-                <select id="inviteRoleSelect" class="clean-input" style="width: 170px;">
-                    <option value="Editor">Editor</option>
-                    <option value="Viewer">Viewer</option>
-                    <option value="Commenter">Commenter</option>
-                    <option value="Transfer">Transfer Ownership</option>
-                </select>
-                <button class="btn-pill" id="btnAddAccess" style="padding: 0 16px;">Add</button>
+
+        <div id="viewerOnlyNotice" class="viewer-notice" style="display: none;">
+            You have View-Only access. You cannot invite members or alter access permissions.
+        </div>
+
+        <div id="accessControlsArea">
+            <div class="input-group">
+                <label>Invite User</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="email" id="inviteEmailInput" class="clean-input" placeholder="user@example.com">
+                    <select id="inviteRoleSelect" class="clean-input" style="width: 170px;">
+                        <option value="Editor">Editor</option>
+                        <option value="Viewer">Viewer</option>
+                        <option value="Commenter">Commenter</option>
+                        <option value="Transfer">Transfer Ownership</option>
+                    </select>
+                    <button class="btn-pill" id="btnAddAccess" style="padding: 0 16px;">Add</button>
+                </div>
             </div>
         </div>
+
         <div class="input-group">
             <label>Collaborators with Access</label>
             <div id="accessListContainer" style="max-height: 180px; overflow-y: auto;"></div>
@@ -508,9 +538,9 @@
     </div>
 </div>
 
-<!-- Modal: Details -->
+<!-- Modal: Details with Label Editor -->
 <div class="modal-shade" id="detailsModal">
-    <div class="modal-box" style="max-width: 420px;">
+    <div class="modal-box" style="max-width: 440px;">
         <div class="modal-header">
             <div class="modal-title">Item Details</div>
             <button class="modal-close" id="closeDetailsModal">
@@ -518,6 +548,13 @@
             </button>
         </div>
         <div class="details-grid" id="detailsContent"></div>
+        <div class="input-group" style="margin-top: 16px;">
+            <label>Edit Labels (comma separated)</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="detailsLabelInput" class="clean-input" placeholder="e.g. MN Admin, Board MN">
+                <button class="btn-pill" id="btnSaveLabels" style="padding: 0 16px;">Save</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -570,7 +607,11 @@
         </div>
         <div class="input-group">
             <label>Folder Name</label>
-            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. Finance, Projects">
+            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. My First Folder">
+        </div>
+        <div class="input-group">
+            <label>Labels (Optional, comma-separated)</label>
+            <input type="text" id="newFolderLabels" class="clean-input" placeholder="e.g. MN Admin, Board MN">
         </div>
         <div class="input-group">
             <label>Folder Password (Optional)</label>
@@ -606,10 +647,10 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { 
         getFirestore, collection, query, where, getDocs, or,
-        doc, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove 
+        doc, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove, getDoc 
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // Firebase Configuration matching Cloud-Computer project
+    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
         authDomain: "cloud-computer-4891a.firebaseapp.com",
@@ -625,7 +666,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Auth verification
+    // Verify Active User
     let currentUser = null;
     try { currentUser = JSON.parse(localStorage.getItem('active_user')); } catch(e){}
     if (!currentUser || !currentUser.Email) {
@@ -638,7 +679,7 @@
         window.location.href = "1.html";
     });
 
-    // Helper: Toast
+    // Custom Toast
     function showToast(msg) {
         const t = document.getElementById('toastPopup');
         t.innerText = msg;
@@ -646,7 +687,7 @@
         setTimeout(() => { t.style.display = 'none'; }, 2600);
     }
 
-    // Helper: Formatted Date/Time e.g., "12:40:00 PM , 1-OCT-2026"
+    // Standardized Timestamp: "12:31:20 PM , 3-OCT-2026"
     function formatFirestoreDate() {
         const d = new Date();
         const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
@@ -680,8 +721,20 @@
         return { label: "Document", icon: SVG_ICONS.doc };
     }
 
-    // State Variables for Nested Folders
-    let folderHierarchy = []; // Stack of { id, name }
+    // Role Checker Helper
+    function getUserRoleForItem(item) {
+        if (item.Email === userEmail) return "Owner";
+        if (item.Access?.Editor && item.Access.Editor.includes(userEmail)) return "Editor";
+        if (item.Access?.Commenter && item.Access.Commenter.includes(userEmail)) return "Commenter";
+        if (item.Access?.Commentator && item.Access.Commentator.includes(userEmail)) return "Commenter";
+        if (item.Access?.Viewer && item.Access.Viewer.includes(userEmail)) return "Viewer";
+        // Inherited role check
+        if (item._inheritedRole) return item._inheritedRole;
+        return "Viewer";
+    }
+
+    // Breadcrumb & Folder Hierarchy State
+    let folderHierarchy = [];
     let allWorkspaceDocs = [];
     let allFolderDocs = [];
 
@@ -719,29 +772,53 @@
         }
     }
 
-    // Primary Database Fetch
+    // Inherited Permissions & Complete Database Query Loader
     async function loadDrive() {
         renderBreadcrumb();
         const container = document.getElementById('tableContent');
         container.innerHTML = `<div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading items...</div>`;
 
         try {
+            // Retrieve all items owned by or directly shared with user
             const q = query(
                 collection(db, "Cloud Drive"),
                 or(
                     where("Email", "==", userEmail),
                     where("Access.Viewer", "array-contains", userEmail),
                     where("Access.Commenter", "array-contains", userEmail),
+                    where("Access.Commentator", "array-contains", userEmail),
                     where("Access.Editor", "array-contains", userEmail)
                 )
             );
 
             const snap = await getDocs(q);
-            const items = [];
+            const itemsMap = new Map();
+
             snap.forEach(docSnap => {
-                items.push({ id: docSnap.id, ...docSnap.data() });
+                itemsMap.set(docSnap.id, { id: docSnap.id, ...docSnap.data() });
             });
 
+            // Feature 1: Inherited folder permissions
+            // Fetch any child documents inside accessible folders even if they don't have separate access set
+            const missingChildIds = new Set();
+            for (const [id, item] of itemsMap.entries()) {
+                if (item.Folder === "True" && Array.isArray(item.File)) {
+                    item.File.forEach(childId => {
+                        if (!itemsMap.has(childId)) missingChildIds.add(childId);
+                    });
+                }
+            }
+
+            for (const childId of missingChildIds) {
+                try {
+                    const childSnap = await getDoc(doc(db, "Cloud Drive", childId));
+                    if (childSnap.exists()) {
+                        itemsMap.set(childSnap.id, { id: childSnap.id, ...childSnap.data() });
+                    }
+                } catch(err){}
+            }
+
+            const items = Array.from(itemsMap.values());
             allWorkspaceDocs = items;
             allFolderDocs = items.filter(d => d.Folder === "True");
             container.innerHTML = "";
@@ -750,17 +827,26 @@
             let renderItems = [];
 
             if (!currId) {
-                // Root: items not nested in any folder's File array
+                // Root view: items not in any parent's File array
                 const assignedChildIds = new Set();
                 allFolderDocs.forEach(f => {
                     if (Array.isArray(f.File)) f.File.forEach(id => assignedChildIds.add(id));
                 });
                 renderItems = items.filter(i => !assignedChildIds.has(i.id));
             } else {
-                // Nested Folder: items specified in active folder's File array
+                // Nested Folder view: items matching parent folder's File array
                 const activeFolder = allFolderDocs.find(f => f.id === currId);
                 const assignedIds = (activeFolder && Array.isArray(activeFolder.File)) ? activeFolder.File : [];
-                renderItems = items.filter(i => assignedIds.includes(i.id));
+                const parentRole = activeFolder ? getUserRoleForItem(activeFolder) : "Viewer";
+
+                renderItems = items.filter(i => assignedIds.includes(i.id)).map(item => {
+                    // Inherit parent folder access role if direct is not Owner/Editor
+                    const directRole = getUserRoleForItem(item);
+                    return {
+                        ...item,
+                        _inheritedRole: (directRole === "Owner" || directRole === "Editor") ? directRole : parentRole
+                    };
+                });
             }
 
             if (renderItems.length === 0) {
@@ -768,7 +854,6 @@
                 return;
             }
 
-            // Render folders first, then files
             renderItems.sort((a, b) => (b.Folder === "True" ? 1 : 0) - (a.Folder === "True" ? 1 : 0));
             renderItems.forEach(item => renderRow(item));
         } catch(e) {
@@ -785,6 +870,10 @@
         const updated = item.Updated || "Recently";
         const ownerEmail = item.Email || userEmail;
 
+        // Render Labels as badges
+        const labels = Array.isArray(item.Label) ? item.Label : [];
+        let labelsHtml = labels.map(lbl => `<span class="label-badge">${lbl}</span>`).join(' ');
+
         const row = document.createElement('div');
         row.className = 'table-row';
         row.innerHTML = `
@@ -792,7 +881,10 @@
                 <div class="file-icon-box">${format.icon}</div>
                 <div class="file-info-col">
                     <span class="file-name" title="${name}">${name}</span>
-                    <span class="file-subtext">${item.Password ? '🔒 Protected' : ''}</span>
+                    <div class="file-subtext">
+                        ${item.Password ? '<span>🔒 Protected</span>' : ''}
+                        ${labelsHtml}
+                    </div>
                 </div>
             </div>
             <div class="cell-uploader" style="font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ownerEmail}</div>
@@ -801,7 +893,7 @@
             <div class="actions-cell">
                 <button class="btn-dots">${SVG_ICONS.dots}</button>
                 <div class="action-dropdown">
-                    <div class="dropdown-item opt-download">${SVG_ICONS.download} Download</div>
+                    ${!isFolder ? `<div class="dropdown-item opt-download">${SVG_ICONS.download} Download</div>` : ''}
                     <div class="dropdown-item opt-rename">${SVG_ICONS.edit} Rename</div>
                     ${!isFolder ? `<div class="dropdown-item opt-share">${SVG_ICONS.share} Share</div>` : ''}
                     <div class="dropdown-item opt-access">${SVG_ICONS.users} Manage Access</div>
@@ -821,7 +913,7 @@
             dropdown.classList.toggle('active');
         });
 
-        // Open item
+        // Click to Open
         row.querySelector('.file-name').addEventListener('click', () => {
             if (item.Password) {
                 promptPasswordAuth(item.Password, () => openItem(item, isFolder, name));
@@ -830,12 +922,12 @@
             }
         });
 
-        // Action Handlers
-        row.querySelector('.opt-download').addEventListener('click', () => handleDownload(item));
-        row.querySelector('.opt-rename').addEventListener('click', () => openRenameModal(item));
+        // Event Listeners for Menus
         if (!isFolder) {
+            row.querySelector('.opt-download').addEventListener('click', () => handleActualDownload(item));
             row.querySelector('.opt-share').addEventListener('click', () => openShareModal(item));
         }
+        row.querySelector('.opt-rename').addEventListener('click', () => openRenameModal(item));
         row.querySelector('.opt-access').addEventListener('click', () => openAccessModal(item));
         row.querySelector('.opt-move').addEventListener('click', () => openMoveModal(item));
         row.querySelector('.opt-details').addEventListener('click', () => openDetailsModal(item));
@@ -849,7 +941,6 @@
             folderHierarchy.push({ id: item.id, name: name });
             loadDrive();
         } else {
-            // Update LastOpened
             updateDoc(doc(db, "Cloud Drive", item.id), {
                 LastOpened: new Date().toISOString(),
                 LastOpenedBy: userEmail
@@ -863,7 +954,7 @@
         document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('active'));
     });
 
-    // 1. Password Prompt Modal
+    // Password Challenge
     const passModal = document.getElementById('passwordAuthModal');
     let passSuccessCallback = null;
     let expectedPass = "";
@@ -885,30 +976,46 @@
         }
     });
 
-    // 2. Download Action
-    function handleDownload(item) {
-        if (item.Folder === "True") {
-            showToast("Preparing folder metadata...");
-            const folderInfo = JSON.stringify(item, null, 2);
-            const blob = new Blob([folderInfo], { type: "application/json" });
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = `${item.Name || 'Folder'}_data.json`;
+    // Feature 2: Actual File Download (Blob based, without opening new tab)
+    async function handleActualDownload(item) {
+        if (!item.File) return;
+        showToast(`Starting download: ${item.Name || 'file'}...`);
+        try {
+            const response = await fetch(item.File);
+            if (!response.ok) throw new Error("Network response error");
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = blobUrl;
+            a.download = item.Name || 'download';
+            document.body.appendChild(a);
             a.click();
-        } else {
-            const a = document.createElement("a");
+            window.URL.revokeObjectURL(blobUrl);
+            document.body.removeChild(a);
+            showToast("Download completed");
+        } catch (err) {
+            // Fallback for strict CORS CDNs
+            const a = document.createElement('a');
             a.href = item.File;
-            a.download = item.Name || "download";
-            a.target = "_blank";
+            a.download = item.Name || 'download';
+            a.target = '_self';
+            document.body.appendChild(a);
             a.click();
-            showToast("Download started");
+            document.body.removeChild(a);
+            showToast("Download initiated");
         }
     }
 
-    // 3. Rename Modal
+    // Rename Modal
     let targetRenameItem = null;
     const renameModal = document.getElementById('renameModal');
     function openRenameModal(item) {
+        const role = getUserRoleForItem(item);
+        if (role === "Viewer") {
+            showToast("Viewers cannot rename items");
+            return;
+        }
         targetRenameItem = item;
         document.getElementById('renameInput').value = item.Name || '';
         renameModal.classList.add('active');
@@ -927,12 +1034,17 @@
         }
     });
 
-    // 4. Details Modal
+    // Feature 3: Details Modal with Label display and editing
     const detailsModal = document.getElementById('detailsModal');
+    let targetDetailsItem = null;
+
     function openDetailsModal(item) {
+        targetDetailsItem = item;
         const isFolder = item.Folder === "True";
         const format = getFormatInfo(item.Type, isFolder);
         const locationPath = folderHierarchy.length > 0 ? folderHierarchy.map(h => h.name).join(' / ') : 'Root Directory';
+        const labels = Array.isArray(item.Label) ? item.Label : [];
+        const labelsList = labels.length > 0 ? labels.map(l => `<span class="label-badge">${l}</span>`).join(' ') : 'None';
 
         const content = document.getElementById('detailsContent');
         content.innerHTML = `
@@ -941,31 +1053,73 @@
             <div class="details-item"><span class="details-label">Date (Updated)</span><span class="details-val">${item.Updated || 'N/A'}</span></div>
             <div class="details-item"><span class="details-label">Location</span><span class="details-val">${locationPath}</span></div>
             <div class="details-item"><span class="details-label">Owner</span><span class="details-val">${item.Email || userEmail}</span></div>
+            <div class="details-item"><span class="details-label">Labels</span><span class="details-val">${labelsList}</span></div>
         `;
+        document.getElementById('detailsLabelInput').value = labels.join(', ');
         detailsModal.classList.add('active');
     }
     document.getElementById('closeDetailsModal').addEventListener('click', () => detailsModal.classList.remove('active'));
 
-    // 5. Manage Access Modal
+    document.getElementById('btnSaveLabels').addEventListener('click', async () => {
+        if (!targetDetailsItem) return;
+        const role = getUserRoleForItem(targetDetailsItem);
+        if (role === "Viewer") {
+            showToast("Viewers cannot modify labels");
+            return;
+        }
+
+        const rawLabels = document.getElementById('detailsLabelInput').value;
+        const labelsArray = rawLabels.split(',').map(s => s.trim()).filter(Boolean);
+
+        await updateDoc(doc(db, "Cloud Drive", targetDetailsItem.id), {
+            Label: labelsArray,
+            Updated: formatFirestoreDate()
+        });
+
+        showToast("Labels updated");
+        detailsModal.classList.remove('active');
+        loadDrive();
+    });
+
+    // Feature 1: Manage Access Modal with strict Viewer restrictions
     const accessModal = document.getElementById('accessModal');
     let targetAccessItem = null;
     let localAccessState = { Viewer: [], Commenter: [], Editor: [] };
 
     function openAccessModal(item) {
         targetAccessItem = item;
+        const userRole = getUserRoleForItem(item);
+        const isViewerOnly = (userRole === "Viewer");
+
         const access = item.Access || {};
         localAccessState = {
             Viewer: [...(access.Viewer || [])],
             Commenter: [...(access.Commenter || access.Commentator || [])],
             Editor: [...(access.Editor || [])]
         };
-        renderAccessList();
+
+        // Viewer lock out
+        const viewerNotice = document.getElementById('viewerOnlyNotice');
+        const accessControls = document.getElementById('accessControlsArea');
+        const saveBtn = document.getElementById('btnSaveAccess');
+
+        if (isViewerOnly) {
+            viewerNotice.style.display = 'block';
+            accessControls.style.display = 'none';
+            saveBtn.style.display = 'none';
+        } else {
+            viewerNotice.style.display = 'none';
+            accessControls.style.display = 'block';
+            saveBtn.style.display = 'inline-block';
+        }
+
+        renderAccessList(isViewerOnly);
         accessModal.classList.add('active');
     }
 
     document.getElementById('closeAccessModal').addEventListener('click', () => accessModal.classList.remove('active'));
 
-    function renderAccessList() {
+    function renderAccessList(isViewerOnly) {
         const c = document.getElementById('accessListContainer');
         c.innerHTML = `
             <div class="user-access-row">
@@ -981,13 +1135,15 @@
                     <span>${email}</span>
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <span style="font-size: 11px; color: var(--text-secondary);">${role}</span>
-                        <span style="cursor: pointer; color: var(--danger); font-size:16px;" data-role="${role}" data-idx="${idx}">&times;</span>
+                        ${!isViewerOnly ? `<span style="cursor: pointer; color: var(--danger); font-size:16px;" data-role="${role}" data-idx="${idx}">&times;</span>` : ''}
                     </div>
                 `;
-                div.querySelector('span[data-role]').addEventListener('click', () => {
-                    localAccessState[role].splice(idx, 1);
-                    renderAccessList();
-                });
+                if (!isViewerOnly) {
+                    div.querySelector('span[data-role]')?.addEventListener('click', () => {
+                        localAccessState[role].splice(idx, 1);
+                        renderAccessList(false);
+                    });
+                }
                 c.appendChild(div);
             });
         });
@@ -1017,7 +1173,7 @@
         });
         localAccessState[role].push(email);
         document.getElementById('inviteEmailInput').value = "";
-        renderAccessList();
+        renderAccessList(false);
     });
 
     document.getElementById('btnSaveAccess').addEventListener('click', async () => {
@@ -1026,12 +1182,12 @@
             Access: localAccessState,
             Updated: formatFirestoreDate()
         });
-        showToast("Permissions updated");
+        showToast("Permissions saved");
         accessModal.classList.remove('active');
         loadDrive();
     });
 
-    // 6. Share & Convert to PDF
+    // Share & Image-to-PDF Conversion
     const shareModal = document.getElementById('shareModal');
     let targetShareItem = null;
 
@@ -1046,7 +1202,7 @@
         const choice = document.getElementById('shareFormatChoice').value;
 
         if (choice === 'pdf') {
-            showToast("Converting to PDF...");
+            showToast("Converting image to PDF...");
             try {
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF();
@@ -1065,8 +1221,7 @@
                     }
                 };
             } catch(e) {
-                showToast("Conversion failed, sharing URL");
-                navigator.share ? navigator.share({ title: targetShareItem.Name, url: targetShareItem.File }) : null;
+                if (navigator.share) navigator.share({ title: targetShareItem.Name, url: targetShareItem.File });
             }
         } else if (choice === 'image' && navigator.canShare) {
             try {
@@ -1093,17 +1248,22 @@
         }
     });
 
-    // 7. Move / Organise Modal
+    // Move / Organise Modal
     const moveModal = document.getElementById('moveModal');
     let targetMoveItem = null;
 
     function openMoveModal(item) {
+        const role = getUserRoleForItem(item);
+        if (role === "Viewer") {
+            showToast("Viewers cannot move items");
+            return;
+        }
+
         targetMoveItem = item;
         const select = document.getElementById('moveDestinationSelect');
         document.getElementById('moveModalTitle').innerText = item.Folder === "True" ? "Organise Folder" : "Move File";
         select.innerHTML = `<option value="root">Root Directory</option>`;
         
-        // Exclude current item if it's a folder to prevent moving into itself
         allFolderDocs.forEach(f => {
             if (f.id !== item.id) {
                 select.innerHTML += `<option value="${f.id}">${f.Name || 'Untitled Folder'}</option>`;
@@ -1117,7 +1277,7 @@
         if (!targetMoveItem) return;
         const destFolderId = document.getElementById('moveDestinationSelect').value;
 
-        // Remove from any current parent folder
+        // Remove from current parent
         for (const f of allFolderDocs) {
             if (Array.isArray(f.File) && f.File.includes(targetMoveItem.id)) {
                 await updateDoc(doc(db, "Cloud Drive", f.id), {
@@ -1127,7 +1287,7 @@
             }
         }
 
-        // Add to new folder if not root
+        // Add to new folder
         if (destFolderId !== "root") {
             await updateDoc(doc(db, "Cloud Drive", destFolderId), {
                 File: arrayUnion(targetMoveItem.id),
@@ -1135,15 +1295,20 @@
             });
         }
 
-        showToast("Item moved successfully");
+        showToast("Moved successfully");
         moveModal.classList.remove('active');
         loadDrive();
     });
 
-    // 8. Delete Action
+    // Delete Item
     async function handleDelete(item) {
+        const role = getUserRoleForItem(item);
+        if (role === "Viewer") {
+            showToast("Viewers cannot delete items");
+            return;
+        }
+
         if (confirm(`Permanently delete "${item.Name || 'item'}"?`)) {
-            // Remove from parent folders' File list if any
             for (const f of allFolderDocs) {
                 if (Array.isArray(f.File) && f.File.includes(item.id)) {
                     await updateDoc(doc(db, "Cloud Drive", f.id), {
@@ -1157,10 +1322,11 @@
         }
     }
 
-    // 9. Create Folder Modal (supports nested folders)
+    // Create Folder Modal with Label support
     const folderModal = document.getElementById('folderModal');
     document.getElementById('newFolderTriggerBtn').addEventListener('click', () => {
         document.getElementById('newFolderName').value = "";
+        document.getElementById('newFolderLabels').value = "";
         document.getElementById('newFolderPassword').value = "";
         folderModal.classList.add('active');
     });
@@ -1168,7 +1334,10 @@
 
     document.getElementById('btnCreateFolder').addEventListener('click', async () => {
         const name = document.getElementById('newFolderName').value.trim();
+        const rawLabels = document.getElementById('newFolderLabels').value;
         const pass = document.getElementById('newFolderPassword').value.trim();
+        const labelsArray = rawLabels.split(',').map(s => s.trim()).filter(Boolean);
+
         if (name) {
             const newDoc = await addDoc(collection(db, "Cloud Drive"), {
                 Email: userEmail,
@@ -1176,7 +1345,8 @@
                 Name: name,
                 Password: pass,
                 File: [],
-                Customize: { Colour: "Red" },
+                Label: labelsArray,
+                Customize: { Colour: "Green" },
                 Updated: formatFirestoreDate(),
                 Access: { Viewer: [], Commenter: [], Editor: [] }
             });
@@ -1195,7 +1365,7 @@
         }
     });
 
-    // 10. File Upload (Native & Drag/Drop)
+    // Batch Upload with Labels initialization
     const nativeFileInput = document.getElementById('nativeFileInput');
     document.getElementById('uploadTriggerBtn').addEventListener('click', () => nativeFileInput.click());
     nativeFileInput.addEventListener('change', (e) => {
@@ -1253,6 +1423,7 @@
                     Type: fileType,
                     Name: file.name,
                     Password: "",
+                    Label: [],
                     LastOpened: new Date().toISOString(),
                     LastOpenedBy: userEmail,
                     Updated: formatFirestoreDate(),
@@ -1279,11 +1450,11 @@
         const val = e.target.value.toLowerCase();
         document.querySelectorAll('.table-row').forEach(row => {
             const name = row.querySelector('.file-name').innerText.toLowerCase();
-            row.style.display = name.includes(val) ? 'grid' : 'none';
+            const labels = row.querySelector('.file-subtext').innerText.toLowerCase();
+            row.style.display = (name.includes(val) || labels.includes(val)) ? 'grid' : 'none';
         });
     });
 
-    // Initial Load
     loadDrive();
 </script>
 </body>
