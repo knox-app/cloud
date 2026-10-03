@@ -18,7 +18,24 @@
             --btn-dark-text: #ffffff;
             --accent: #10a37f;
             --danger: #ef4444;
+            --tag-bg: #e5e7eb;
+            --tag-text: #374151;
             --sidebar-width: 64px;
+        }
+
+        body.dark {
+            --bg-color: #0d0d0d;
+            --surface-color: #171717;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border-color: #262626;
+            --hover-bg: #1f1f1f;
+            --btn-dark-bg: #ffffff;
+            --btn-dark-text: #0d0d0d;
+            --accent: #10a37f;
+            --danger: #f87171;
+            --tag-bg: #2d2d2d;
+            --tag-text: #d1d5db;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,6 +47,7 @@
             display: flex;
             min-height: 100vh;
             overflow-x: hidden;
+            transition: background-color 0.2s, color 0.2s;
         }
 
         /* Sidebar */
@@ -40,7 +58,7 @@
             flex-direction: column;
             align-items: center;
             padding: 20px 0;
-            gap: 20px;
+            gap: 16px;
             flex-shrink: 0;
             background: var(--surface-color);
         }
@@ -65,8 +83,8 @@
         /* Main Viewport */
         main.content-area {
             flex-grow: 1;
-            padding: 36px 48px;
-            max-width: 1200px;
+            padding: 32px 40px;
+            max-width: 1240px;
             position: relative;
         }
 
@@ -74,7 +92,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
             gap: 12px;
         }
@@ -93,9 +111,9 @@
             background-color: var(--btn-dark-bg);
             color: var(--btn-dark-text);
             border: none;
-            padding: 10px 18px;
+            padding: 9px 16px;
             border-radius: 9999px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             display: inline-flex;
@@ -105,13 +123,12 @@
             transition: opacity 0.2s;
         }
         .btn-pill:hover { opacity: 0.9; }
-        .btn-pill:disabled { opacity: 0.4; cursor: not-allowed; }
 
         /* Search input bar */
         .search-container {
             position: relative;
-            max-width: 360px;
-            margin-bottom: 24px;
+            max-width: 380px;
+            margin-bottom: 20px;
         }
         .search-container svg {
             position: absolute;
@@ -126,15 +143,46 @@
         }
         .search-input {
             width: 100%;
-            padding: 10px 14px 10px 38px;
+            padding: 9px 14px 9px 38px;
             border-radius: 9999px;
             border: 1px solid var(--border-color);
             background: var(--surface-color);
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-primary);
             outline: none;
         }
         .search-input:focus { border-color: var(--text-secondary); }
+
+        /* Multi-selection bar */
+        .selection-toolbar {
+            position: sticky;
+            top: 10px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            z-index: 10;
+        }
+        .selection-toolbar.active { display: flex; }
+
+        /* Tags / Labels */
+        .label-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 7px;
+            background: var(--tag-bg);
+            color: var(--tag-text);
+            border-radius: 6px;
+            font-size: 11px;
+            margin-right: 4px;
+            margin-top: 2px;
+            font-weight: 500;
+        }
 
         /* Drag & Drop Surface */
         .drag-overlay {
@@ -168,8 +216,8 @@
 
         .table-head {
             display: grid;
-            grid-template-columns: 3.2fr 1.8fr 1.5fr 1.8fr 40px;
-            padding: 12px 16px;
+            grid-template-columns: 40px 3.2fr 1.8fr 1.5fr 1.8fr 40px;
+            padding: 10px 16px;
             font-size: 13px;
             font-weight: 500;
             color: var(--text-secondary);
@@ -178,14 +226,17 @@
 
         .table-row {
             display: grid;
-            grid-template-columns: 3.2fr 1.8fr 1.5fr 1.8fr 40px;
+            grid-template-columns: 40px 3.2fr 1.8fr 1.5fr 1.8fr 40px;
             align-items: center;
-            padding: 12px 16px;
+            padding: 10px 16px;
             border-bottom: 1px solid var(--border-color);
             font-size: 14px;
             transition: background-color 0.15s;
+            user-select: none;
         }
         .table-row:hover { background-color: var(--hover-bg); }
+        .table-row.selected { background-color: rgba(16, 163, 127, 0.08); }
+        .table-row.keyboard-focused { outline: 2px solid var(--accent); outline-offset: -2px; }
 
         .file-title-cell {
             display: flex;
@@ -220,26 +271,10 @@
             white-space: nowrap;
             cursor: pointer;
         }
-        .file-subtext {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 2px;
+        .file-labels {
             display: flex;
-            align-items: center;
-            gap: 6px;
             flex-wrap: wrap;
-        }
-
-        /* Label Badges */
-        .label-badge {
-            display: inline-flex;
-            align-items: center;
-            background: #f1f5f9;
-            color: #475569;
-            padding: 1px 7px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 500;
+            margin-top: 3px;
         }
 
         /* 3-Dots Dropdown */
@@ -263,16 +298,17 @@
             right: 0;
             top: 32px;
             background: var(--surface-color);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.14);
             border-radius: 12px;
-            width: 180px;
+            width: 190px;
             padding: 6px 0;
             z-index: 100;
             display: none;
+            border: 1px solid var(--border-color);
         }
         .action-dropdown.active { display: block; }
         .dropdown-item {
-            padding: 9px 16px;
+            padding: 8px 16px;
             font-size: 13px;
             cursor: pointer;
             display: flex;
@@ -288,7 +324,7 @@
         .modal-shade {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.45);
             backdrop-filter: blur(4px);
             display: flex;
             justify-content: center;
@@ -305,19 +341,20 @@
             background: var(--surface-color);
             border-radius: 20px;
             width: 100%;
-            max-width: 500px;
+            max-width: 480px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            padding: 28px;
+            padding: 26px;
             position: relative;
+            border: 1px solid var(--border-color);
         }
 
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
-        .modal-title { font-size: 18px; font-weight: 600; }
+        .modal-title { font-size: 17px; font-weight: 600; }
         .modal-close {
             background: none;
             border: none;
@@ -326,7 +363,7 @@
         }
         .modal-close svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
 
-        .input-group { margin-bottom: 16px; }
+        .input-group { margin-bottom: 15px; }
         .input-group label {
             display: block;
             font-size: 12px;
@@ -336,12 +373,12 @@
         }
         .clean-input {
             width: 100%;
-            padding: 11px 14px;
+            padding: 10px 14px;
             background: var(--hover-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px;
             color: var(--text-primary);
-            font-size: 14px;
+            font-size: 13px;
             outline: none;
         }
         .clean-input:focus { border-color: var(--text-secondary); }
@@ -350,18 +387,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 8px 0;
             border-bottom: 1px solid var(--border-color);
             font-size: 13px;
-        }
-
-        .viewer-notice {
-            background: #fffbeb;
-            color: #92400e;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            margin-bottom: 14px;
         }
 
         /* Toast Feedback */
@@ -372,7 +400,7 @@
             transform: translateX(-50%);
             background: #111827;
             color: #ffffff;
-            padding: 10px 22px;
+            padding: 9px 20px;
             border-radius: 9999px;
             font-size: 13px;
             display: none;
@@ -380,36 +408,25 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         }
 
-        /* Detail List */
-        .details-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            font-size: 14px;
-        }
-        .details-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
+        /* Detail List styling */
+        .details-grid { display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
+        .details-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-color); }
         .details-label { color: var(--text-secondary); }
         .details-val { font-weight: 500; text-align: right; max-width: 260px; overflow-wrap: break-word; }
 
-        /* Responsive Mobile Layout */
+        /* Responsive view for Mobile */
         @media (max-width: 768px) {
             aside.sidebar { display: none; }
-            main.content-area { padding: 20px 16px; width: 100%; }
+            main.content-area { padding: 18px 14px; width: 100%; }
             .table-head { display: none; }
-            /* Mobile requirement: icon + name, update date, 3 dots */
+            /* Mobile View: Icon/Name, Update Date and 3 dots only */
             .table-row {
-                grid-template-columns: 1fr auto 32px;
-                gap: 12px;
-                padding: 12px 0;
+                grid-template-columns: 24px 1fr auto 30px;
+                gap: 8px;
+                padding: 10px 0;
             }
             .cell-uploader, .cell-format { display: none; }
-            .cell-date { font-size: 12px; color: var(--text-secondary); }
+            .cell-date { font-size: 11px; color: var(--text-secondary); text-align: right; }
             .modal-box { padding: 20px; border-radius: 16px; }
         }
     </style>
@@ -420,6 +437,9 @@
 <aside class="sidebar">
     <div class="side-icon active" title="Cloud Drive">
         <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+    </div>
+    <div class="side-icon" id="themeToggleBtn" title="Toggle Theme (Shift+T then D/L)">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
     </div>
     <div class="side-icon" id="logoutSideBtn" title="Sign Out">
         <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -434,34 +454,46 @@
     </div>
 </div>
 
-<!-- Main Area -->
+<!-- Main Content Area -->
 <main class="content-area">
     <div class="top-row">
         <div class="page-title" id="breadcrumbArea">
             <span>Cloud Drive</span>
         </div>
-        <div style="display: flex; gap: 10px;">
-            <button class="btn-pill" id="uploadTriggerBtn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn-pill" id="uploadTriggerBtn" title="Upload (Shift+U)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Upload
             </button>
-            <button class="btn-pill" id="newFolderTriggerBtn" style="background: var(--hover-bg); color: var(--text-primary);">
+            <button class="btn-pill" id="newFolderTriggerBtn" style="background: var(--hover-bg); color: var(--text-primary); border: 1px solid var(--border-color);" title="New Folder (Shift+C)">
                 + Folder
             </button>
         </div>
     </div>
 
-    <!-- Hidden Native Multiple File Input -->
+    <!-- Multi-Selection Action Bar -->
+    <div class="selection-toolbar" id="selectionToolbar">
+        <span id="selectedCountText" style="font-weight: 500; font-size: 13px;">0 Selected</span>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn-pill" id="btnMultiDownload" style="background: var(--hover-bg); color: var(--text-primary);">Download Files</button>
+            <button class="btn-pill" id="btnMultiMove" style="background: var(--hover-bg); color: var(--text-primary);">Move (Shift+M)</button>
+            <button class="btn-pill" id="btnMultiDelete" style="background: var(--danger); color: #fff;">Delete (Shift+D)</button>
+            <button class="btn-pill" id="btnCancelSelect" style="background: transparent; color: var(--text-secondary); border: none;">Esc</button>
+        </div>
+    </div>
+
+    <!-- Hidden Native File Input -->
     <input type="file" id="nativeFileInput" multiple style="display: none;">
 
     <div class="search-container">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" id="searchInput" class="search-input" placeholder="Search Cloud Drive">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search files, folders or labels (Shift+F)">
     </div>
 
-    <!-- Files & Folders Table -->
+    <!-- Table -->
     <div class="data-table">
         <div class="table-head">
+            <div><input type="checkbox" id="selectAllCheckbox"></div>
             <div>Name</div>
             <div class="cell-uploader">Owner</div>
             <div class="cell-format">Format</div>
@@ -483,33 +515,51 @@
                 <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
-
-        <div id="viewerOnlyNotice" class="viewer-notice" style="display: none;">
-            You have View-Only access. You cannot invite members or alter access permissions.
-        </div>
-
-        <div id="accessControlsArea">
-            <div class="input-group">
-                <label>Invite User</label>
-                <div style="display: flex; gap: 8px;">
-                    <input type="email" id="inviteEmailInput" class="clean-input" placeholder="user@example.com">
-                    <select id="inviteRoleSelect" class="clean-input" style="width: 170px;">
-                        <option value="Editor">Editor</option>
-                        <option value="Viewer">Viewer</option>
-                        <option value="Commenter">Commenter</option>
-                        <option value="Transfer">Transfer Ownership</option>
-                    </select>
-                    <button class="btn-pill" id="btnAddAccess" style="padding: 0 16px;">Add</button>
-                </div>
+        <div class="input-group" id="inviteSection">
+            <label>Invite User</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="email" id="inviteEmailInput" class="clean-input" placeholder="user@example.com">
+                <select id="inviteRoleSelect" class="clean-input" style="width: 170px;">
+                    <option value="Editor">Editor</option>
+                    <option value="Viewer">Viewer</option>
+                    <option value="Commenter">Commenter</option>
+                    <option value="Transfer">Transfer Ownership</option>
+                </select>
+                <button class="btn-pill" id="btnAddAccess" style="padding: 0 16px;">Add</button>
             </div>
         </div>
-
         <div class="input-group">
             <label>Collaborators with Access</label>
             <div id="accessListContainer" style="max-height: 180px; overflow-y: auto;"></div>
         </div>
         <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
             <button class="btn-pill" id="btnSaveAccess">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Labels / Tags -->
+<div class="modal-shade" id="labelModal">
+    <div class="modal-box" style="max-width: 400px;">
+        <div class="modal-header">
+            <div class="modal-title">Manage Labels</div>
+            <button class="modal-close" id="closeLabelModal">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="input-group">
+            <label>Add New Label</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="newLabelInput" class="clean-input" placeholder="e.g. MN Admin, Finance">
+                <button class="btn-pill" id="btnAddLabel">Add</button>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Current Labels</label>
+            <div id="currentLabelsList" style="display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px;"></div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
+            <button class="btn-pill" id="btnSaveLabels">Done</button>
         </div>
     </div>
 </div>
@@ -533,14 +583,14 @@
         </div>
         <div style="display: flex; gap: 10px; margin-top: 20px;">
             <button class="btn-pill" id="btnExecuteShare" style="flex: 1; justify-content: center;">Share via Device</button>
-            <button class="btn-pill" id="btnCopyShareLink" style="background: var(--hover-bg); color: var(--text-primary);">Copy Link</button>
+            <button class="btn-pill" id="btnCopyShareLink" style="background: var(--hover-bg); color: var(--text-primary); border: 1px solid var(--border-color);">Copy Link</button>
         </div>
     </div>
 </div>
 
-<!-- Modal: Details with Label Editor -->
+<!-- Modal: Details -->
 <div class="modal-shade" id="detailsModal">
-    <div class="modal-box" style="max-width: 440px;">
+    <div class="modal-box" style="max-width: 420px;">
         <div class="modal-header">
             <div class="modal-title">Item Details</div>
             <button class="modal-close" id="closeDetailsModal">
@@ -548,13 +598,6 @@
             </button>
         </div>
         <div class="details-grid" id="detailsContent"></div>
-        <div class="input-group" style="margin-top: 16px;">
-            <label>Edit Labels (comma separated)</label>
-            <div style="display: flex; gap: 8px;">
-                <input type="text" id="detailsLabelInput" class="clean-input" placeholder="e.g. MN Admin, Board MN">
-                <button class="btn-pill" id="btnSaveLabels" style="padding: 0 16px;">Save</button>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -607,15 +650,11 @@
         </div>
         <div class="input-group">
             <label>Folder Name</label>
-            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. My First Folder">
-        </div>
-        <div class="input-group">
-            <label>Labels (Optional, comma-separated)</label>
-            <input type="text" id="newFolderLabels" class="clean-input" placeholder="e.g. MN Admin, Board MN">
+            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. MN Admin, Finance">
         </div>
         <div class="input-group">
             <label>Folder Password (Optional)</label>
-            <input type="text" id="newFolderPassword" class="clean-input" placeholder="Optional protection">
+            <input type="text" id="newFolderPassword" class="clean-input" placeholder="Optional password lock">
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button class="btn-pill" id="btnCreateFolder">Create</button>
@@ -647,7 +686,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { 
         getFirestore, collection, query, where, getDocs, or,
-        doc, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove, getDoc 
+        doc, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove 
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     // Firebase Config
@@ -666,7 +705,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Verify Active User
+    // Auth check
     let currentUser = null;
     try { currentUser = JSON.parse(localStorage.getItem('active_user')); } catch(e){}
     if (!currentUser || !currentUser.Email) {
@@ -674,12 +713,27 @@
     }
     const userEmail = currentUser.Email;
 
+    // Theme Management
+    function setTheme(dark) {
+        if (dark) {
+            document.body.classList.add('dark');
+            localStorage.setItem('drive_theme', 'dark');
+        } else {
+            document.body.classList.remove('dark');
+            localStorage.setItem('drive_theme', 'light');
+        }
+    }
+    if (localStorage.getItem('drive_theme') === 'dark') setTheme(true);
+
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        setTheme(!document.body.classList.contains('dark'));
+    });
+
     document.getElementById('logoutSideBtn').addEventListener('click', () => {
         localStorage.removeItem('active_user');
         window.location.href = "1.html";
     });
 
-    // Custom Toast
     function showToast(msg) {
         const t = document.getElementById('toastPopup');
         t.innerText = msg;
@@ -687,7 +741,6 @@
         setTimeout(() => { t.style.display = 'none'; }, 2600);
     }
 
-    // Standardized Timestamp: "12:31:20 PM , 3-OCT-2026"
     function formatFirestoreDate() {
         const d = new Date();
         const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
@@ -695,7 +748,6 @@
         return `${timeStr} , ${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
     }
 
-    // SVG Registry
     const SVG_ICONS = {
         folder: `<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
         image: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
@@ -709,7 +761,8 @@
         edit: `<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
         users: `<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
         move: `<svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg>`,
-        info: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
+        info: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
+        tag: `<svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`
     };
 
     function getFormatInfo(typeStr, isFolder) {
@@ -721,25 +774,43 @@
         return { label: "Document", icon: SVG_ICONS.doc };
     }
 
-    // Role Checker Helper
-    function getUserRoleForItem(item) {
-        if (item.Email === userEmail) return "Owner";
-        if (item.Access?.Editor && item.Access.Editor.includes(userEmail)) return "Editor";
-        if (item.Access?.Commenter && item.Access.Commenter.includes(userEmail)) return "Commenter";
-        if (item.Access?.Commentator && item.Access.Commentator.includes(userEmail)) return "Commenter";
-        if (item.Access?.Viewer && item.Access.Viewer.includes(userEmail)) return "Viewer";
-        // Inherited role check
-        if (item._inheritedRole) return item._inheritedRole;
-        return "Viewer";
-    }
-
-    // Breadcrumb & Folder Hierarchy State
+    // State Variables
     let folderHierarchy = [];
     let allWorkspaceDocs = [];
     let allFolderDocs = [];
+    let currentRenderedItems = [];
+    let selectedItemIds = new Set();
+    let keyboardFocusedIndex = -1;
 
     function getCurrentFolderId() {
         return folderHierarchy.length > 0 ? folderHierarchy[folderHierarchy.length - 1].id : null;
+    }
+
+    function getCurrentParentFolder() {
+        const cid = getCurrentFolderId();
+        return cid ? allFolderDocs.find(f => f.id === cid) : null;
+    }
+
+    // Role helper with Parent Folder Access Inheritance
+    function getUserRole(item) {
+        if (item.Email === userEmail) return 'Owner';
+        const acc = item.Access || {};
+        if (acc.Editor?.includes(userEmail)) return 'Editor';
+        if (acc.Commenter?.includes(userEmail) || acc.Commentator?.includes(userEmail)) return 'Commenter';
+        if (acc.Viewer?.includes(userEmail)) return 'Viewer';
+
+        // Check Inheritance from parent folder hierarchy
+        for (const f of folderHierarchy) {
+            const pDoc = allFolderDocs.find(x => x.id === f.id);
+            if (pDoc) {
+                if (pDoc.Email === userEmail) return 'Owner';
+                const pAcc = pDoc.Access || {};
+                if (pAcc.Editor?.includes(userEmail)) return 'Editor';
+                if (pAcc.Commenter?.includes(userEmail) || pAcc.Commentator?.includes(userEmail)) return 'Commenter';
+                if (pAcc.Viewer?.includes(userEmail)) return 'Viewer';
+            }
+        }
+        return 'Viewer';
     }
 
     function renderBreadcrumb() {
@@ -772,14 +843,17 @@
         }
     }
 
-    // Inherited Permissions & Complete Database Query Loader
+    // Database Fetch
     async function loadDrive() {
         renderBreadcrumb();
+        selectedItemIds.clear();
+        updateSelectionToolbar();
+        keyboardFocusedIndex = -1;
+
         const container = document.getElementById('tableContent');
         container.innerHTML = `<div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading items...</div>`;
 
         try {
-            // Retrieve all items owned by or directly shared with user
             const q = query(
                 collection(db, "Cloud Drive"),
                 or(
@@ -792,33 +866,11 @@
             );
 
             const snap = await getDocs(q);
-            const itemsMap = new Map();
-
+            const items = [];
             snap.forEach(docSnap => {
-                itemsMap.set(docSnap.id, { id: docSnap.id, ...docSnap.data() });
+                items.push({ id: docSnap.id, ...docSnap.data() });
             });
 
-            // Feature 1: Inherited folder permissions
-            // Fetch any child documents inside accessible folders even if they don't have separate access set
-            const missingChildIds = new Set();
-            for (const [id, item] of itemsMap.entries()) {
-                if (item.Folder === "True" && Array.isArray(item.File)) {
-                    item.File.forEach(childId => {
-                        if (!itemsMap.has(childId)) missingChildIds.add(childId);
-                    });
-                }
-            }
-
-            for (const childId of missingChildIds) {
-                try {
-                    const childSnap = await getDoc(doc(db, "Cloud Drive", childId));
-                    if (childSnap.exists()) {
-                        itemsMap.set(childSnap.id, { id: childSnap.id, ...childSnap.data() });
-                    }
-                } catch(err){}
-            }
-
-            const items = Array.from(itemsMap.values());
             allWorkspaceDocs = items;
             allFolderDocs = items.filter(d => d.Folder === "True");
             container.innerHTML = "";
@@ -827,27 +879,18 @@
             let renderItems = [];
 
             if (!currId) {
-                // Root view: items not in any parent's File array
                 const assignedChildIds = new Set();
                 allFolderDocs.forEach(f => {
                     if (Array.isArray(f.File)) f.File.forEach(id => assignedChildIds.add(id));
                 });
                 renderItems = items.filter(i => !assignedChildIds.has(i.id));
             } else {
-                // Nested Folder view: items matching parent folder's File array
                 const activeFolder = allFolderDocs.find(f => f.id === currId);
                 const assignedIds = (activeFolder && Array.isArray(activeFolder.File)) ? activeFolder.File : [];
-                const parentRole = activeFolder ? getUserRoleForItem(activeFolder) : "Viewer";
-
-                renderItems = items.filter(i => assignedIds.includes(i.id)).map(item => {
-                    // Inherit parent folder access role if direct is not Owner/Editor
-                    const directRole = getUserRoleForItem(item);
-                    return {
-                        ...item,
-                        _inheritedRole: (directRole === "Owner" || directRole === "Editor") ? directRole : parentRole
-                    };
-                });
+                renderItems = items.filter(i => assignedIds.includes(i.id));
             }
+
+            currentRenderedItems = renderItems;
 
             if (renderItems.length === 0) {
                 container.innerHTML = `<div style="padding: 32px 0; color: var(--text-secondary); font-size: 14px;">No files or folders found here.</div>`;
@@ -855,36 +898,44 @@
             }
 
             renderItems.sort((a, b) => (b.Folder === "True" ? 1 : 0) - (a.Folder === "True" ? 1 : 0));
-            renderItems.forEach(item => renderRow(item));
+            renderItems.forEach((item, idx) => renderRow(item, idx));
         } catch(e) {
             console.error(e);
             container.innerHTML = `<div style="padding: 20px 0; color: var(--danger);">Failed to load Cloud Drive.</div>`;
         }
     }
 
-    function renderRow(item) {
+    function renderRow(item, index) {
         const container = document.getElementById('tableContent');
         const isFolder = item.Folder === "True";
         const name = item.Name || (item.File ? item.File.split('/').pop() : 'Untitled');
         const format = getFormatInfo(item.Type, isFolder);
         const updated = item.Updated || "Recently";
         const ownerEmail = item.Email || userEmail;
+        const role = getUserRole(item);
+        const isViewer = (role === 'Viewer');
 
-        // Render Labels as badges
-        const labels = Array.isArray(item.Label) ? item.Label : [];
-        let labelsHtml = labels.map(lbl => `<span class="label-badge">${lbl}</span>`).join(' ');
+        // Inherit labels if file inside folder
+        let labels = Array.isArray(item.Label) ? [...item.Label] : [];
+        if (!isFolder && labels.length === 0 && folderHierarchy.length > 0) {
+            const p = getCurrentParentFolder();
+            if (p && Array.isArray(p.Label)) labels = [...p.Label];
+        }
+
+        const labelsHtml = labels.map(l => `<span class="label-badge">${l}</span>`).join('');
 
         const row = document.createElement('div');
         row.className = 'table-row';
+        row.setAttribute('data-id', item.id);
+        row.setAttribute('data-index', index);
+
         row.innerHTML = `
+            <div><input type="checkbox" class="row-checkbox" data-id="${item.id}"></div>
             <div class="file-title-cell">
                 <div class="file-icon-box">${format.icon}</div>
                 <div class="file-info-col">
                     <span class="file-name" title="${name}">${name}</span>
-                    <div class="file-subtext">
-                        ${item.Password ? '<span>🔒 Protected</span>' : ''}
-                        ${labelsHtml}
-                    </div>
+                    <div class="file-labels">${labelsHtml}</div>
                 </div>
             </div>
             <div class="cell-uploader" style="font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ownerEmail}</div>
@@ -894,15 +945,22 @@
                 <button class="btn-dots">${SVG_ICONS.dots}</button>
                 <div class="action-dropdown">
                     ${!isFolder ? `<div class="dropdown-item opt-download">${SVG_ICONS.download} Download</div>` : ''}
-                    <div class="dropdown-item opt-rename">${SVG_ICONS.edit} Rename</div>
+                    ${!isViewer ? `<div class="dropdown-item opt-rename">${SVG_ICONS.edit} Rename</div>` : ''}
                     ${!isFolder ? `<div class="dropdown-item opt-share">${SVG_ICONS.share} Share</div>` : ''}
                     <div class="dropdown-item opt-access">${SVG_ICONS.users} Manage Access</div>
-                    <div class="dropdown-item opt-move">${SVG_ICONS.move} ${isFolder ? 'Organise' : 'Move'}</div>
+                    <div class="dropdown-item opt-label">${SVG_ICONS.tag} Label</div>
+                    ${!isViewer ? `<div class="dropdown-item opt-move">${SVG_ICONS.move} ${isFolder ? 'Organise' : 'Move'}</div>` : ''}
                     <div class="dropdown-item opt-details">${SVG_ICONS.info} Details</div>
-                    <div class="dropdown-item danger opt-delete">${SVG_ICONS.trash} Delete</div>
+                    ${!isViewer ? `<div class="dropdown-item danger opt-delete">${SVG_ICONS.trash} Delete</div>` : ''}
                 </div>
             </div>
         `;
+
+        const chk = row.querySelector('.row-checkbox');
+        chk.addEventListener('change', (e) => {
+            e.stopPropagation();
+            toggleSelectItem(item.id, chk.checked);
+        });
 
         const dotsBtn = row.querySelector('.btn-dots');
         const dropdown = row.querySelector('.action-dropdown');
@@ -913,7 +971,7 @@
             dropdown.classList.toggle('active');
         });
 
-        // Click to Open
+        // Open
         row.querySelector('.file-name').addEventListener('click', () => {
             if (item.Password) {
                 promptPasswordAuth(item.Password, () => openItem(item, isFolder, name));
@@ -922,16 +980,19 @@
             }
         });
 
-        // Event Listeners for Menus
+        // Action Handlers
         if (!isFolder) {
-            row.querySelector('.opt-download').addEventListener('click', () => handleActualDownload(item));
-            row.querySelector('.opt-share').addEventListener('click', () => openShareModal(item));
+            row.querySelector('.opt-download')?.addEventListener('click', () => directDownloadFile(item.File, item.Name));
+            row.querySelector('.opt-share')?.addEventListener('click', () => openShareModal(item));
         }
-        row.querySelector('.opt-rename').addEventListener('click', () => openRenameModal(item));
-        row.querySelector('.opt-access').addEventListener('click', () => openAccessModal(item));
-        row.querySelector('.opt-move').addEventListener('click', () => openMoveModal(item));
-        row.querySelector('.opt-details').addEventListener('click', () => openDetailsModal(item));
-        row.querySelector('.opt-delete').addEventListener('click', () => handleDelete(item));
+        if (!isViewer) {
+            row.querySelector('.opt-rename')?.addEventListener('click', () => openRenameModal(item));
+            row.querySelector('.opt-move')?.addEventListener('click', () => openMoveModal(item));
+            row.querySelector('.opt-delete')?.addEventListener('click', () => handleDelete(item));
+        }
+        row.querySelector('.opt-access')?.addEventListener('click', () => openAccessModal(item));
+        row.querySelector('.opt-label')?.addEventListener('click', () => openLabelModal(item));
+        row.querySelector('.opt-details')?.addEventListener('click', () => openDetailsModal(item));
 
         container.appendChild(row);
     }
@@ -949,12 +1010,37 @@
         }
     }
 
+    // Direct Browser Download (Forces file download, no tab opening)
+    async function directDownloadFile(url, fileName) {
+        showToast("Starting download...");
+        try {
+            const res = await fetch(url);
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = fileName || 'download';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+            showToast("Download complete");
+        } catch(e) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName || 'download';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    }
+
     // Dismiss Dropdowns
     window.addEventListener('click', () => {
         document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('active'));
     });
 
-    // Password Challenge
+    // Password Prompt Modal
     const passModal = document.getElementById('passwordAuthModal');
     let passSuccessCallback = null;
     let expectedPass = "";
@@ -976,46 +1062,92 @@
         }
     });
 
-    // Feature 2: Actual File Download (Blob based, without opening new tab)
-    async function handleActualDownload(item) {
-        if (!item.File) return;
-        showToast(`Starting download: ${item.Name || 'file'}...`);
-        try {
-            const response = await fetch(item.File);
-            if (!response.ok) throw new Error("Network response error");
-            const blob = await response.blob();
-            const blobUrl = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = blobUrl;
-            a.download = item.Name || 'download';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(blobUrl);
-            document.body.removeChild(a);
-            showToast("Download completed");
-        } catch (err) {
-            // Fallback for strict CORS CDNs
-            const a = document.createElement('a');
-            a.href = item.File;
-            a.download = item.Name || 'download';
-            a.target = '_self';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            showToast("Download initiated");
+    // Multi-Selection State & Actions
+    function toggleSelectItem(id, isSelected) {
+        if (isSelected) selectedItemIds.add(id);
+        else selectedItemIds.delete(id);
+        
+        const row = document.querySelector(`.table-row[data-id="${id}"]`);
+        if (row) {
+            row.classList.toggle('selected', isSelected);
+            const chk = row.querySelector('.row-checkbox');
+            if (chk) chk.checked = isSelected;
+        }
+        updateSelectionToolbar();
+    }
+
+    function updateSelectionToolbar() {
+        const bar = document.getElementById('selectionToolbar');
+        const countText = document.getElementById('selectedCountText');
+        const selectAllChk = document.getElementById('selectAllCheckbox');
+
+        if (selectedItemIds.size > 0) {
+            bar.classList.add('active');
+            countText.innerText = `${selectedItemIds.size} Selected`;
+        } else {
+            bar.classList.remove('active');
+        }
+
+        if (selectAllChk && currentRenderedItems.length > 0) {
+            selectAllChk.checked = (selectedItemIds.size === currentRenderedItems.length);
         }
     }
+
+    document.getElementById('selectAllCheckbox').addEventListener('change', (e) => {
+        const check = e.target.checked;
+        currentRenderedItems.forEach(item => toggleSelectItem(item.id, check));
+    });
+
+    document.getElementById('btnCancelSelect').addEventListener('click', () => {
+        selectedItemIds.clear();
+        document.querySelectorAll('.row-checkbox').forEach(c => c.checked = false);
+        document.querySelectorAll('.table-row').forEach(r => r.classList.remove('selected'));
+        updateSelectionToolbar();
+    });
+
+    // Multi Delete
+    document.getElementById('btnMultiDelete').addEventListener('click', async () => {
+        if (selectedItemIds.size === 0) return;
+        if (confirm(`Delete ${selectedItemIds.size} selected item(s)?`)) {
+            for (const id of selectedItemIds) {
+                const item = allWorkspaceDocs.find(d => d.id === id);
+                if (item && getUserRole(item) !== 'Viewer') {
+                    for (const f of allFolderDocs) {
+                        if (Array.isArray(f.File) && f.File.includes(id)) {
+                            await updateDoc(doc(db, "Cloud Drive", f.id), { File: arrayRemove(id) });
+                        }
+                    }
+                    await deleteDoc(doc(db, "Cloud Drive", id));
+                }
+            }
+            showToast("Selected items deleted");
+            loadDrive();
+        }
+    });
+
+    // Multi Download (Files only)
+    document.getElementById('btnMultiDownload').addEventListener('click', async () => {
+        const filesToDownload = currentRenderedItems.filter(i => selectedItemIds.has(i.id) && i.Folder !== "True");
+        if (filesToDownload.length === 0) {
+            showToast("No files selected to download");
+            return;
+        }
+        showToast(`Downloading ${filesToDownload.length} files...`);
+        for (const f of filesToDownload) {
+            await directDownloadFile(f.File, f.Name);
+        }
+    });
+
+    // Multi Move
+    document.getElementById('btnMultiMove').addEventListener('click', () => {
+        if (selectedItemIds.size === 0) return;
+        openMoveModal(null, true);
+    });
 
     // Rename Modal
     let targetRenameItem = null;
     const renameModal = document.getElementById('renameModal');
     function openRenameModal(item) {
-        const role = getUserRoleForItem(item);
-        if (role === "Viewer") {
-            showToast("Viewers cannot rename items");
-            return;
-        }
         targetRenameItem = item;
         document.getElementById('renameInput').value = item.Name || '';
         renameModal.classList.add('active');
@@ -1034,17 +1166,12 @@
         }
     });
 
-    // Feature 3: Details Modal with Label display and editing
+    // Details Modal
     const detailsModal = document.getElementById('detailsModal');
-    let targetDetailsItem = null;
-
     function openDetailsModal(item) {
-        targetDetailsItem = item;
         const isFolder = item.Folder === "True";
         const format = getFormatInfo(item.Type, isFolder);
         const locationPath = folderHierarchy.length > 0 ? folderHierarchy.map(h => h.name).join(' / ') : 'Root Directory';
-        const labels = Array.isArray(item.Label) ? item.Label : [];
-        const labelsList = labels.length > 0 ? labels.map(l => `<span class="label-badge">${l}</span>`).join(' ') : 'None';
 
         const content = document.getElementById('detailsContent');
         content.innerHTML = `
@@ -1053,43 +1180,81 @@
             <div class="details-item"><span class="details-label">Date (Updated)</span><span class="details-val">${item.Updated || 'N/A'}</span></div>
             <div class="details-item"><span class="details-label">Location</span><span class="details-val">${locationPath}</span></div>
             <div class="details-item"><span class="details-label">Owner</span><span class="details-val">${item.Email || userEmail}</span></div>
-            <div class="details-item"><span class="details-label">Labels</span><span class="details-val">${labelsList}</span></div>
+            <div class="details-item"><span class="details-label">Labels</span><span class="details-val">${(item.Label || []).join(', ') || 'None'}</span></div>
         `;
-        document.getElementById('detailsLabelInput').value = labels.join(', ');
         detailsModal.classList.add('active');
     }
     document.getElementById('closeDetailsModal').addEventListener('click', () => detailsModal.classList.remove('active'));
 
-    document.getElementById('btnSaveLabels').addEventListener('click', async () => {
-        if (!targetDetailsItem) return;
-        const role = getUserRoleForItem(targetDetailsItem);
-        if (role === "Viewer") {
-            showToast("Viewers cannot modify labels");
+    // Labels Modal
+    const labelModal = document.getElementById('labelModal');
+    let targetLabelItem = null;
+    let localLabels = [];
+
+    function openLabelModal(item) {
+        targetLabelItem = item;
+        localLabels = Array.isArray(item.Label) ? [...item.Label] : [];
+        const isViewer = (getUserRole(item) === 'Viewer');
+        document.getElementById('newLabelInput').disabled = isViewer;
+        document.getElementById('btnAddLabel').disabled = isViewer;
+        document.getElementById('btnSaveLabels').disabled = isViewer;
+        renderLabelBadges(isViewer);
+        labelModal.classList.add('active');
+    }
+
+    document.getElementById('closeLabelModal').addEventListener('click', () => labelModal.classList.remove('active'));
+
+    function renderLabelBadges(isViewer) {
+        const list = document.getElementById('currentLabelsList');
+        list.innerHTML = "";
+        if (localLabels.length === 0) {
+            list.innerHTML = `<span style="color:var(--text-secondary); font-size:12px;">No labels added.</span>`;
             return;
         }
+        localLabels.forEach((l, idx) => {
+            const badge = document.createElement('span');
+            badge.className = 'label-badge';
+            badge.style.padding = '4px 8px';
+            badge.innerHTML = `${l} ${!isViewer ? `<span style="cursor:pointer; margin-left:4px; color:var(--danger);" data-idx="${idx}">&times;</span>` : ''}`;
+            if (!isViewer) {
+                badge.querySelector('span')?.addEventListener('click', () => {
+                    localLabels.splice(idx, 1);
+                    renderLabelBadges(isViewer);
+                });
+            }
+            list.appendChild(badge);
+        });
+    }
 
-        const rawLabels = document.getElementById('detailsLabelInput').value;
-        const labelsArray = rawLabels.split(',').map(s => s.trim()).filter(Boolean);
+    document.getElementById('btnAddLabel').addEventListener('click', () => {
+        const txt = document.getElementById('newLabelInput').value.trim();
+        if (txt && !localLabels.includes(txt)) {
+            localLabels.push(txt);
+            document.getElementById('newLabelInput').value = "";
+            renderLabelBadges(false);
+        }
+    });
 
-        await updateDoc(doc(db, "Cloud Drive", targetDetailsItem.id), {
-            Label: labelsArray,
+    document.getElementById('btnSaveLabels').addEventListener('click', async () => {
+        if (!targetLabelItem) return;
+        await updateDoc(doc(db, "Cloud Drive", targetLabelItem.id), {
+            Label: localLabels,
             Updated: formatFirestoreDate()
         });
-
         showToast("Labels updated");
-        detailsModal.classList.remove('active');
+        labelModal.classList.remove('active');
         loadDrive();
     });
 
-    // Feature 1: Manage Access Modal with strict Viewer restrictions
+    // Manage Access Modal (Viewer cannot modify)
     const accessModal = document.getElementById('accessModal');
     let targetAccessItem = null;
     let localAccessState = { Viewer: [], Commenter: [], Editor: [] };
 
     function openAccessModal(item) {
         targetAccessItem = item;
-        const userRole = getUserRoleForItem(item);
-        const isViewerOnly = (userRole === "Viewer");
+        const role = getUserRole(item);
+        const isViewer = (role === 'Viewer');
 
         const access = item.Access || {};
         localAccessState = {
@@ -1098,33 +1263,21 @@
             Editor: [...(access.Editor || [])]
         };
 
-        // Viewer lock out
-        const viewerNotice = document.getElementById('viewerOnlyNotice');
-        const accessControls = document.getElementById('accessControlsArea');
-        const saveBtn = document.getElementById('btnSaveAccess');
+        document.getElementById('inviteSection').style.display = isViewer ? 'none' : 'block';
+        document.getElementById('btnSaveAccess').style.display = isViewer ? 'none' : 'block';
 
-        if (isViewerOnly) {
-            viewerNotice.style.display = 'block';
-            accessControls.style.display = 'none';
-            saveBtn.style.display = 'none';
-        } else {
-            viewerNotice.style.display = 'none';
-            accessControls.style.display = 'block';
-            saveBtn.style.display = 'inline-block';
-        }
-
-        renderAccessList(isViewerOnly);
+        renderAccessList(isViewer);
         accessModal.classList.add('active');
     }
 
     document.getElementById('closeAccessModal').addEventListener('click', () => accessModal.classList.remove('active'));
 
-    function renderAccessList(isViewerOnly) {
+    function renderAccessList(isViewer) {
         const c = document.getElementById('accessListContainer');
         c.innerHTML = `
             <div class="user-access-row">
                 <span>${targetAccessItem.Email || userEmail} <strong>(Owner)</strong></span>
-                <span style="font-size: 12px; color: var(--accent); font-weight:600;">Owner</span>
+                <span style="font-size: 11px; color: var(--accent); font-weight:600;">Owner</span>
             </div>
         `;
         ['Editor', 'Viewer', 'Commenter'].forEach(role => {
@@ -1135,13 +1288,13 @@
                     <span>${email}</span>
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <span style="font-size: 11px; color: var(--text-secondary);">${role}</span>
-                        ${!isViewerOnly ? `<span style="cursor: pointer; color: var(--danger); font-size:16px;" data-role="${role}" data-idx="${idx}">&times;</span>` : ''}
+                        ${!isViewer ? `<span style="cursor: pointer; color: var(--danger); font-size:16px;" data-role="${role}" data-idx="${idx}">&times;</span>` : ''}
                     </div>
                 `;
-                if (!isViewerOnly) {
+                if (!isViewer) {
                     div.querySelector('span[data-role]')?.addEventListener('click', () => {
                         localAccessState[role].splice(idx, 1);
-                        renderAccessList(false);
+                        renderAccessList(isViewer);
                     });
                 }
                 c.appendChild(div);
@@ -1155,7 +1308,7 @@
         if (!email) return;
 
         if (role === 'Transfer') {
-            if (confirm(`Transfer full ownership to ${email}? You will no longer be the owner.`)) {
+            if (confirm(`Transfer ownership to ${email}? You will lose owner access.`)) {
                 await updateDoc(doc(db, "Cloud Drive", targetAccessItem.id), {
                     Email: email,
                     Access: { Viewer: [], Commenter: [], Editor: [] },
@@ -1182,12 +1335,12 @@
             Access: localAccessState,
             Updated: formatFirestoreDate()
         });
-        showToast("Permissions saved");
+        showToast("Permissions updated");
         accessModal.classList.remove('active');
         loadDrive();
     });
 
-    // Share & Image-to-PDF Conversion
+    // Share Modal
     const shareModal = document.getElementById('shareModal');
     let targetShareItem = null;
 
@@ -1202,7 +1355,7 @@
         const choice = document.getElementById('shareFormatChoice').value;
 
         if (choice === 'pdf') {
-            showToast("Converting image to PDF...");
+            showToast("Converting to PDF...");
             try {
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF();
@@ -1217,11 +1370,11 @@
                         await navigator.share({ files: [file], title: targetShareItem.Name });
                     } else {
                         pdf.save(`${targetShareItem.Name || 'Document'}.pdf`);
-                        showToast("PDF downloaded");
+                        showToast("PDF saved");
                     }
                 };
             } catch(e) {
-                if (navigator.share) navigator.share({ title: targetShareItem.Name, url: targetShareItem.File });
+                navigator.share ? navigator.share({ title: targetShareItem.Name, url: targetShareItem.File }) : null;
             }
         } else if (choice === 'image' && navigator.canShare) {
             try {
@@ -1251,48 +1404,42 @@
     // Move / Organise Modal
     const moveModal = document.getElementById('moveModal');
     let targetMoveItem = null;
+    let isBatchMove = false;
 
-    function openMoveModal(item) {
-        const role = getUserRoleForItem(item);
-        if (role === "Viewer") {
-            showToast("Viewers cannot move items");
-            return;
-        }
-
+    function openMoveModal(item, batch = false) {
         targetMoveItem = item;
+        isBatchMove = batch;
         const select = document.getElementById('moveDestinationSelect');
-        document.getElementById('moveModalTitle').innerText = item.Folder === "True" ? "Organise Folder" : "Move File";
+        document.getElementById('moveModalTitle').innerText = batch ? "Move Selected Items" : (item.Folder === "True" ? "Organise Folder" : "Move File");
         select.innerHTML = `<option value="root">Root Directory</option>`;
         
         allFolderDocs.forEach(f => {
-            if (f.id !== item.id) {
-                select.innerHTML += `<option value="${f.id}">${f.Name || 'Untitled Folder'}</option>`;
-            }
+            if (!batch && f.id === item?.id) return;
+            select.innerHTML += `<option value="${f.id}">${f.Name || 'Untitled Folder'}</option>`;
         });
         moveModal.classList.add('active');
     }
     document.getElementById('closeMoveModal').addEventListener('click', () => moveModal.classList.remove('active'));
 
     document.getElementById('btnConfirmMove').addEventListener('click', async () => {
-        if (!targetMoveItem) return;
         const destFolderId = document.getElementById('moveDestinationSelect').value;
+        const moveIds = isBatchMove ? Array.from(selectedItemIds) : [targetMoveItem.id];
 
-        // Remove from current parent
-        for (const f of allFolderDocs) {
-            if (Array.isArray(f.File) && f.File.includes(targetMoveItem.id)) {
-                await updateDoc(doc(db, "Cloud Drive", f.id), {
-                    File: arrayRemove(targetMoveItem.id),
+        for (const id of moveIds) {
+            for (const f of allFolderDocs) {
+                if (Array.isArray(f.File) && f.File.includes(id)) {
+                    await updateDoc(doc(db, "Cloud Drive", f.id), {
+                        File: arrayRemove(id),
+                        Updated: formatFirestoreDate()
+                    });
+                }
+            }
+            if (destFolderId !== "root") {
+                await updateDoc(doc(db, "Cloud Drive", destFolderId), {
+                    File: arrayUnion(id),
                     Updated: formatFirestoreDate()
                 });
             }
-        }
-
-        // Add to new folder
-        if (destFolderId !== "root") {
-            await updateDoc(doc(db, "Cloud Drive", destFolderId), {
-                File: arrayUnion(targetMoveItem.id),
-                Updated: formatFirestoreDate()
-            });
         }
 
         showToast("Moved successfully");
@@ -1300,14 +1447,8 @@
         loadDrive();
     });
 
-    // Delete Item
+    // Delete Single Item
     async function handleDelete(item) {
-        const role = getUserRoleForItem(item);
-        if (role === "Viewer") {
-            showToast("Viewers cannot delete items");
-            return;
-        }
-
         if (confirm(`Permanently delete "${item.Name || 'item'}"?`)) {
             for (const f of allFolderDocs) {
                 if (Array.isArray(f.File) && f.File.includes(item.id)) {
@@ -1322,11 +1463,10 @@
         }
     }
 
-    // Create Folder Modal with Label support
+    // Create Folder
     const folderModal = document.getElementById('folderModal');
     document.getElementById('newFolderTriggerBtn').addEventListener('click', () => {
         document.getElementById('newFolderName').value = "";
-        document.getElementById('newFolderLabels').value = "";
         document.getElementById('newFolderPassword').value = "";
         folderModal.classList.add('active');
     });
@@ -1334,10 +1474,7 @@
 
     document.getElementById('btnCreateFolder').addEventListener('click', async () => {
         const name = document.getElementById('newFolderName').value.trim();
-        const rawLabels = document.getElementById('newFolderLabels').value;
         const pass = document.getElementById('newFolderPassword').value.trim();
-        const labelsArray = rawLabels.split(',').map(s => s.trim()).filter(Boolean);
-
         if (name) {
             const newDoc = await addDoc(collection(db, "Cloud Drive"), {
                 Email: userEmail,
@@ -1345,7 +1482,7 @@
                 Name: name,
                 Password: pass,
                 File: [],
-                Label: labelsArray,
+                Label: [],
                 Customize: { Colour: "Green" },
                 Updated: formatFirestoreDate(),
                 Access: { Viewer: [], Commenter: [], Editor: [] }
@@ -1365,7 +1502,7 @@
         }
     });
 
-    // Batch Upload with Labels initialization
+    // Batch File Upload
     const nativeFileInput = document.getElementById('nativeFileInput');
     document.getElementById('uploadTriggerBtn').addEventListener('click', () => nativeFileInput.click());
     nativeFileInput.addEventListener('change', (e) => {
@@ -1417,13 +1554,18 @@
                     fileType = ext || "Document";
                 }
 
+                // Inherit labels from folder if uploading inside one
+                let parentLabels = [];
+                const p = getCurrentParentFolder();
+                if (p && Array.isArray(p.Label)) parentLabels = [...p.Label];
+
                 const newDoc = await addDoc(collection(db, "Cloud Drive"), {
                     Email: userEmail,
                     File: fileUrl,
                     Type: fileType,
                     Name: file.name,
                     Password: "",
-                    Label: [],
+                    Label: parentLabels,
                     LastOpened: new Date().toISOString(),
                     LastOpenedBy: userEmail,
                     Updated: formatFirestoreDate(),
@@ -1445,16 +1587,145 @@
         loadDrive();
     }
 
-    // Search Filter
+    // Search Filter (Names & Labels)
     document.getElementById('searchInput').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
         document.querySelectorAll('.table-row').forEach(row => {
             const name = row.querySelector('.file-name').innerText.toLowerCase();
-            const labels = row.querySelector('.file-subtext').innerText.toLowerCase();
+            const labels = row.querySelector('.file-labels').innerText.toLowerCase();
             row.style.display = (name.includes(val) || labels.includes(val)) ? 'grid' : 'none';
         });
     });
 
+    // ==========================================
+    // KEYBOARD SHORTCUTS CONTROLLER
+    // ==========================================
+    let themeKeySequence = [];
+    let themeTimer = null;
+
+    window.addEventListener('keydown', (e) => {
+        const tag = e.target.tagName.toLowerCase();
+        const isTyping = (tag === 'input' || tag === 'textarea' || tag === 'select');
+
+        // Escape: Closes all modals / cancels selection
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-shade').forEach(m => m.classList.remove('active'));
+            selectedItemIds.clear();
+            document.querySelectorAll('.row-checkbox').forEach(c => c.checked = false);
+            document.querySelectorAll('.table-row').forEach(r => r.classList.remove('selected'));
+            updateSelectionToolbar();
+            return;
+        }
+
+        if (isTyping) return;
+
+        // Shift + F -> Focus search
+        if (e.shiftKey && (e.key === 'F' || e.key === 'f')) {
+            e.preventDefault();
+            const s = document.getElementById('searchInput');
+            s.focus();
+            s.select();
+            return;
+        }
+
+        // Shift + C -> Create Folder
+        if (e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+            e.preventDefault();
+            document.getElementById('newFolderTriggerBtn').click();
+            return;
+        }
+
+        // Shift + U -> File Upload
+        if (e.shiftKey && (e.key === 'U' || e.key === 'u')) {
+            e.preventDefault();
+            nativeFileInput.click();
+            return;
+        }
+
+        // Shift + S -> Toggle Multi-select mode / Multi-select all or delete if active
+        if (e.shiftKey && (e.key === 'S' || e.key === 's')) {
+            e.preventDefault();
+            if (selectedItemIds.size > 0) {
+                // Delete selected
+                document.getElementById('btnMultiDelete').click();
+            } else {
+                // Select all
+                currentRenderedItems.forEach(item => toggleSelectItem(item.id, true));
+            }
+            return;
+        }
+
+        // Shift + D -> Delete selected items
+        if (e.shiftKey && (e.key === 'D' || e.key === 'd')) {
+            e.preventDefault();
+            if (selectedItemIds.size > 0) {
+                document.getElementById('btnMultiDelete').click();
+            }
+            return;
+        }
+
+        // Shift + M -> Move selected
+        if (e.shiftKey && (e.key === 'M' || e.key === 'm')) {
+            e.preventDefault();
+            if (selectedItemIds.size > 0) {
+                document.getElementById('btnMultiMove').click();
+            }
+            return;
+        }
+
+        // Theme Switch Sequence: Shift+T followed by D or L
+        if (e.shiftKey && (e.key === 'T' || e.key === 't')) {
+            themeKeySequence = ['T'];
+            clearTimeout(themeTimer);
+            themeTimer = setTimeout(() => { themeKeySequence = []; }, 1500);
+            return;
+        }
+        if (themeKeySequence[0] === 'T') {
+            if (e.key === 'd' || e.key === 'D') {
+                setTheme(true);
+                showToast("Dark theme enabled");
+                themeKeySequence = [];
+                return;
+            } else if (e.key === 'l' || e.key === 'L') {
+                setTheme(false);
+                showToast("Light theme enabled");
+                themeKeySequence = [];
+                return;
+            }
+        }
+
+        // Arrow Key Navigation & Space Selection
+        const rows = document.querySelectorAll('.table-row');
+        if (rows.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            keyboardFocusedIndex = Math.min(keyboardFocusedIndex + 1, rows.length - 1);
+            updateKeyboardFocus(rows);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            keyboardFocusedIndex = Math.max(keyboardFocusedIndex - 1, 0);
+            updateKeyboardFocus(rows);
+        } else if (e.key === ' ' || e.code === 'Space') {
+            if (keyboardFocusedIndex >= 0 && keyboardFocusedIndex < rows.length) {
+                e.preventDefault();
+                const id = rows[keyboardFocusedIndex].getAttribute('data-id');
+                const isSelected = selectedItemIds.has(id);
+                toggleSelectItem(id, !isSelected);
+            }
+        }
+    });
+
+    function updateKeyboardFocus(rows) {
+        rows.forEach(r => r.classList.remove('keyboard-focused'));
+        if (keyboardFocusedIndex >= 0 && keyboardFocusedIndex < rows.length) {
+            const target = rows[keyboardFocusedIndex];
+            target.classList.add('keyboard-focused');
+            target.scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    // Initial Load
     loadDrive();
 </script>
 </body>
