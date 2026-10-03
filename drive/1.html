@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cloud Drive</title>
-    <!-- jsPDF & JSZip for image conversions and folder downloads -->
+    <!-- jsPDF for Image-to-PDF conversion -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
             --bg-color: #ffffff;
@@ -47,15 +46,15 @@
         }
 
         .side-icon {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 8px;
+            border-radius: 10px;
             color: var(--text-secondary);
             cursor: pointer;
-            transition: background 0.15s, color 0.15s;
+            transition: all 0.2s;
         }
         .side-icon:hover, .side-icon.active {
             background-color: var(--hover-bg);
@@ -76,6 +75,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .page-title {
@@ -88,19 +89,11 @@
             flex-wrap: wrap;
         }
 
-        .breadcrumb-item {
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: color 0.15s;
-        }
-        .breadcrumb-item:hover { color: var(--text-primary); }
-        .breadcrumb-item.active { color: var(--text-primary); font-weight: 600; cursor: default; }
-
         .btn-pill {
             background-color: var(--btn-dark-bg);
             color: var(--btn-dark-text);
-            border: 1px solid transparent;
-            padding: 9px 16px;
+            border: none;
+            padding: 10px 18px;
             border-radius: 9999px;
             font-size: 14px;
             font-weight: 500;
@@ -109,16 +102,11 @@
             align-items: center;
             gap: 8px;
             text-decoration: none;
-            transition: opacity 0.2s, background-color 0.2s;
+            transition: opacity 0.2s;
         }
         .btn-pill:hover { opacity: 0.9; }
-        .btn-pill.secondary {
-            background: var(--hover-bg);
-            color: var(--text-primary);
-            border-color: var(--border-color);
-        }
 
-        /* Search input */
+        /* Search input bar */
         .search-container {
             position: relative;
             max-width: 360px;
@@ -147,7 +135,7 @@
         }
         .search-input:focus { border-color: var(--text-secondary); }
 
-        /* Drag & Drop Overlay */
+        /* Drag & Drop Surface */
         .drag-overlay {
             position: fixed;
             inset: 0;
@@ -171,7 +159,7 @@
             gap: 12px;
         }
 
-        /* Data Table */
+        /* Table Layout */
         .data-table {
             width: 100%;
             border-collapse: collapse;
@@ -179,7 +167,7 @@
 
         .table-head {
             display: grid;
-            grid-template-columns: 3.5fr 2fr 1.5fr 1fr 40px;
+            grid-template-columns: 3.2fr 1.8fr 1.5fr 1.8fr 40px;
             padding: 12px 16px;
             font-size: 13px;
             font-weight: 500;
@@ -189,7 +177,7 @@
 
         .table-row {
             display: grid;
-            grid-template-columns: 3.5fr 2fr 1.5fr 1fr 40px;
+            grid-template-columns: 3.2fr 1.8fr 1.5fr 1.8fr 40px;
             align-items: center;
             padding: 12px 16px;
             border-bottom: 1px solid var(--border-color);
@@ -203,6 +191,8 @@
             align-items: center;
             gap: 12px;
             overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .file-icon-box {
             width: 36px;
@@ -229,11 +219,15 @@
             white-space: nowrap;
             cursor: pointer;
         }
-        .file-name:hover { text-decoration: underline; }
         .file-subtext {
             font-size: 12px;
             color: var(--text-secondary);
             margin-top: 2px;
+        }
+
+        .badge-access {
+            font-size: 12px;
+            color: var(--text-secondary);
         }
 
         /* 3-Dots Dropdown */
@@ -258,13 +252,11 @@
             top: 32px;
             background: var(--surface-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-            border: 1px solid var(--border-color);
             border-radius: 12px;
-            width: 190px;
+            width: 180px;
             padding: 6px 0;
             z-index: 100;
             display: none;
-            text-align: left;
         }
         .action-dropdown.active { display: block; }
         .dropdown-item {
@@ -301,7 +293,7 @@
             background: var(--surface-color);
             border-radius: 20px;
             width: 100%;
-            max-width: 480px;
+            max-width: 500px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             padding: 28px;
             position: relative;
@@ -313,7 +305,7 @@
             align-items: center;
             margin-bottom: 20px;
         }
-        .modal-title { font-size: 17px; font-weight: 600; }
+        .modal-title { font-size: 18px; font-weight: 600; }
         .modal-close {
             background: none;
             border: none;
@@ -321,29 +313,6 @@
             color: var(--text-secondary);
         }
         .modal-close svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
-
-        .tab-bar {
-            display: flex;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 20px;
-        }
-        .tab-link {
-            padding: 10px 16px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            border-bottom: 2px solid transparent;
-            cursor: pointer;
-            background: none;
-            border-top: none; border-left: none; border-right: none;
-        }
-        .tab-link.active {
-            color: var(--text-primary);
-            border-bottom-color: var(--text-primary);
-        }
-
-        .tab-pane { display: none; }
-        .tab-pane.active { display: block; }
 
         .input-group { margin-bottom: 16px; }
         .input-group label {
@@ -369,22 +338,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 9px 0;
+            padding: 10px 0;
             border-bottom: 1px solid var(--border-color);
             font-size: 13px;
         }
 
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 13.5px;
-        }
-        .detail-label { color: var(--text-secondary); }
-        .detail-val { font-weight: 500; text-align: right; max-width: 60%; word-break: break-all; }
-
-        /* Toast Popup */
+        /* Toast Feedback */
         .toast-popup {
             position: fixed;
             bottom: 24px;
@@ -400,29 +359,42 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         }
 
-        /* Mobile Version Styling */
+        /* Detail List styling */
+        .details-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 14px;
+        }
+        .details-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .details-label { color: var(--text-secondary); }
+        .details-val { font-weight: 500; text-align: right; max-width: 260px; overflow-wrap: break-word; }
+
+        /* Responsive view for Mobile */
         @media (max-width: 768px) {
             aside.sidebar { display: none; }
             main.content-area { padding: 20px 16px; width: 100%; }
             .table-head { display: none; }
+            /* Mobile: Only Icon/Name, Update Date and 3 dots */
             .table-row {
-                grid-template-columns: 1fr 100px 30px;
-                gap: 8px;
+                grid-template-columns: 1fr auto 32px;
+                gap: 12px;
                 padding: 12px 0;
             }
-            .cell-owner, .cell-password { display: none; }
-            .file-subtext { display: none; }
-            .cell-date { font-size: 12px; color: var(--text-secondary); text-align: right; }
-            .modal-box { padding: 22px; border-radius: 16px; }
-        }
-        @media (min-width: 769px) {
-            .cell-date-mobile { display: none; }
+            .cell-uploader, .cell-format { display: none; }
+            .cell-date { font-size: 12px; color: var(--text-secondary); }
+            .modal-box { padding: 20px; border-radius: 16px; }
         }
     </style>
 </head>
 <body>
 
-<!-- Sidebar -->
+<!-- Workspace Sidebar -->
 <aside class="sidebar">
     <div class="side-icon active" title="Cloud Drive">
         <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
@@ -432,7 +404,7 @@
     </div>
 </aside>
 
-<!-- Drag & Drop Surface -->
+<!-- Drag Overlay -->
 <div class="drag-overlay" id="dragOverlay">
     <div class="drag-overlay-card">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
@@ -440,122 +412,137 @@
     </div>
 </div>
 
-<!-- Main Content Area -->
+<!-- Main Area -->
 <main class="content-area">
     <div class="top-row">
         <div class="page-title" id="breadcrumbArea">
-            <span class="breadcrumb-item active">Cloud Drive</span>
+            <span>Cloud Drive</span>
         </div>
         <div style="display: flex; gap: 10px;">
             <button class="btn-pill" id="uploadTriggerBtn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Upload
             </button>
-            <button class="btn-pill secondary" id="newFolderTriggerBtn">
+            <button class="btn-pill" id="newFolderTriggerBtn" style="background: var(--hover-bg); color: var(--text-primary);">
                 + Folder
             </button>
         </div>
     </div>
 
+    <!-- Hidden Native Multiple File Input -->
     <input type="file" id="nativeFileInput" multiple style="display: none;">
 
     <div class="search-container">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" id="searchInput" class="search-input" placeholder="Search files and folders">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search Cloud Drive">
     </div>
 
+    <!-- Files & Folders Table -->
     <div class="data-table">
         <div class="table-head">
             <div>Name</div>
-            <div class="cell-owner">Updated</div>
-            <div>Format / Type</div>
-            <div class="cell-password">Password</div>
+            <div class="cell-uploader">Owner</div>
+            <div class="cell-format">Format</div>
+            <div class="cell-date">Updated</div>
             <div></div>
         </div>
         <div id="tableContent">
-            <div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading workspace...</div>
+            <div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading Cloud Drive...</div>
         </div>
     </div>
 </main>
 
-<!-- Modal: Share & Manage Access -->
-<div class="modal-shade" id="shareAccessModal">
+<!-- Modal: Manage Access -->
+<div class="modal-shade" id="accessModal">
     <div class="modal-box">
         <div class="modal-header">
-            <div class="modal-title" id="shareModalTitle">Share & Access</div>
+            <div class="modal-title">Manage Access</div>
+            <button class="modal-close" id="closeAccessModal">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="input-group">
+            <label>Invite User</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="email" id="inviteEmailInput" class="clean-input" placeholder="user@example.com">
+                <select id="inviteRoleSelect" class="clean-input" style="width: 170px;">
+                    <option value="Editor">Editor</option>
+                    <option value="Viewer">Viewer</option>
+                    <option value="Commenter">Commenter</option>
+                    <option value="Transfer">Transfer Ownership</option>
+                </select>
+                <button class="btn-pill" id="btnAddAccess" style="padding: 0 16px;">Add</button>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Collaborators with Access</label>
+            <div id="accessListContainer" style="max-height: 180px; overflow-y: auto;"></div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
+            <button class="btn-pill" id="btnSaveAccess">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Share & Format Conversion -->
+<div class="modal-shade" id="shareModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">Share Item</div>
             <button class="modal-close" id="closeShareModal">
                 <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
-
-        <div class="tab-bar">
-            <button class="tab-link active" id="tabShareBtn">Share</button>
-            <button class="tab-link" id="tabAccessBtn">Manage Access</button>
+        <div class="input-group">
+            <label>Choose Share Format</label>
+            <select id="shareFormatChoice" class="clean-input">
+                <option value="url">Share as Web Link (URL)</option>
+                <option value="image">Share as Image File</option>
+                <option value="pdf">Convert Image to PDF & Share (.pdf)</option>
+            </select>
         </div>
-
-        <!-- Share Pane -->
-        <div class="tab-pane active" id="paneShare">
-            <div class="input-group" id="shareFormatGroup">
-                <label>Export & Share Format</label>
-                <select id="shareFormatSelect" class="clean-input">
-                    <option value="original">Original Image / File</option>
-                    <option value="pdf">Convert Image to PDF (.pdf)</option>
-                </select>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 24px;">
-                <button class="btn-pill" id="btnDeviceShare" style="flex: 1; justify-content: center;">Share Direct</button>
-                <button class="btn-pill secondary" id="btnCopyLink">Copy Link</button>
-            </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn-pill" id="btnExecuteShare" style="flex: 1; justify-content: center;">Share via Device</button>
+            <button class="btn-pill" id="btnCopyShareLink" style="background: var(--hover-bg); color: var(--text-primary);">Copy Link</button>
         </div>
+    </div>
+</div>
 
-        <!-- Manage Access Pane -->
-        <div class="tab-pane" id="paneAccess">
-            <div class="input-group">
-                <label>Ask for Email ID & Role</label>
-                <div style="display: flex; gap: 8px;">
-                    <input type="email" id="inviteEmailInput" class="clean-input" placeholder="user@perplexity.com">
-                    <select id="inviteRoleSelect" class="clean-input" style="width: 140px;">
-                        <option value="Viewer">Viewer</option>
-                        <option value="Commentator">Commenter</option>
-                        <option value="Editor">Editor</option>
-                        <option value="Transfer Ownership">Transfer Ownership</option>
-                    </select>
-                    <button class="btn-pill" id="btnApplyAccess" style="padding: 0 16px;">Add</button>
-                </div>
-            </div>
-            <div class="input-group">
-                <label>People with access</label>
-                <div id="accessListContainer" style="max-height: 160px; overflow-y: auto;"></div>
-            </div>
-            <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-                <button class="btn-pill" id="btnSavePermissions">Save</button>
-            </div>
+<!-- Modal: Details -->
+<div class="modal-shade" id="detailsModal">
+    <div class="modal-box" style="max-width: 420px;">
+        <div class="modal-header">
+            <div class="modal-title">Item Details</div>
+            <button class="modal-close" id="closeDetailsModal">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
         </div>
+        <div class="details-grid" id="detailsContent"></div>
     </div>
 </div>
 
 <!-- Modal: Move / Organise -->
 <div class="modal-shade" id="moveModal">
-    <div class="modal-box" style="max-width: 400px;">
+    <div class="modal-box" style="max-width: 420px;">
         <div class="modal-header">
-            <div class="modal-title" id="moveModalTitle">Move / Organise</div>
+            <div class="modal-title" id="moveModalTitle">Move Item</div>
             <button class="modal-close" id="closeMoveModal">
                 <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
         <div class="input-group">
             <label>Select Destination Folder</label>
-            <select id="destinationFolderSelect" class="clean-input"></select>
+            <select id="moveDestinationSelect" class="clean-input"></select>
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
-            <button class="btn-pill" id="btnSubmitMove">Move Here</button>
+            <button class="btn-pill" id="btnConfirmMove">Move Here</button>
         </div>
     </div>
 </div>
 
 <!-- Modal: Rename -->
 <div class="modal-shade" id="renameModal">
-    <div class="modal-box" style="max-width: 380px;">
+    <div class="modal-box" style="max-width: 400px;">
         <div class="modal-header">
             <div class="modal-title">Rename</div>
             <button class="modal-close" id="closeRenameModal">
@@ -567,28 +554,12 @@
             <input type="text" id="renameInput" class="clean-input">
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
-            <button class="btn-pill" id="btnSubmitRename">Save</button>
+            <button class="btn-pill" id="btnSubmitRename">Rename</button>
         </div>
     </div>
 </div>
 
-<!-- Modal: Details -->
-<div class="modal-shade" id="detailsModal">
-    <div class="modal-box" style="max-width: 420px;">
-        <div class="modal-header">
-            <div class="modal-title">Details</div>
-            <button class="modal-close" id="closeDetailsModal">
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-        </div>
-        <div id="detailsContent"></div>
-        <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-            <button class="btn-pill secondary" id="btnCloseDetailsBtn">Close</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Folder Creation -->
+<!-- Modal: Create Folder -->
 <div class="modal-shade" id="folderModal">
     <div class="modal-box" style="max-width: 400px;">
         <div class="modal-header">
@@ -599,11 +570,11 @@
         </div>
         <div class="input-group">
             <label>Folder Name</label>
-            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. My First Folder">
+            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. Finance, Projects">
         </div>
         <div class="input-group">
             <label>Folder Password (Optional)</label>
-            <input type="text" id="newFolderPassword" class="clean-input" placeholder="Lock this folder">
+            <input type="text" id="newFolderPassword" class="clean-input" placeholder="Optional protection">
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button class="btn-pill" id="btnCreateFolder">Create</button>
@@ -615,13 +586,13 @@
 <div class="modal-shade" id="passwordAuthModal">
     <div class="modal-box" style="max-width: 360px;">
         <div class="modal-header">
-            <div class="modal-title">Enter Password</div>
+            <div class="modal-title">Password Required</div>
             <button class="modal-close" id="closePassModal">
                 <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
         <div class="input-group">
-            <input type="password" id="authPasswordInput" class="clean-input" placeholder="Password required">
+            <input type="password" id="authPasswordInput" class="clean-input" placeholder="Enter password to open">
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button class="btn-pill" id="btnSubmitAuth">Unlock</button>
@@ -638,7 +609,7 @@
         doc, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove 
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // 1. Firebase Initialization
+    // Firebase Configuration matching Cloud-Computer project
     const firebaseConfig = {
         apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
         authDomain: "cloud-computer-4891a.firebaseapp.com",
@@ -654,7 +625,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Authentication Verification
+    // Auth verification
     let currentUser = null;
     try { currentUser = JSON.parse(localStorage.getItem('active_user')); } catch(e){}
     if (!currentUser || !currentUser.Email) {
@@ -667,21 +638,23 @@
         window.location.href = "1.html";
     });
 
+    // Helper: Toast
     function showToast(msg) {
         const t = document.getElementById('toastPopup');
         t.innerText = msg;
         t.style.display = 'block';
-        setTimeout(() => { t.style.display = 'none'; }, 2800);
+        setTimeout(() => { t.style.display = 'none'; }, 2600);
     }
 
-    function getFormattedTimestamp() {
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    // Helper: Formatted Date/Time e.g., "12:40:00 PM , 1-OCT-2026"
+    function formatFirestoreDate() {
+        const d = new Date();
+        const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
         const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-        const dateStr = `${now.getDate()}-${months[now.getMonth()]}-${now.getFullYear()}`;
-        return `${timeStr} , ${dateStr}`;
+        return `${timeStr} , ${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
     }
 
+    // SVG Registry
     const SVG_ICONS = {
         folder: `<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
         image: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
@@ -689,66 +662,68 @@
         doc: `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`,
         video: `<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>`,
         dots: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>`,
+        trash: `<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
+        share: `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>`,
         download: `<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`,
         edit: `<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
-        share: `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>`,
-        lock: `<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`,
+        users: `<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
         move: `<svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg>`,
-        info: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
-        trash: `<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`
+        info: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
     };
 
     function getFormatInfo(typeStr, isFolder) {
         if (isFolder) return { label: "Folder", icon: SVG_ICONS.folder };
         const t = (typeStr || "").toLowerCase();
-        if (t.includes("img") || t.includes("png") || t.includes("jpg") || t.includes("jpeg")) return { label: "Image", icon: SVG_ICONS.image };
+        if (t.includes("img") || t.includes("png") || t.includes("jpg") || t.includes("jpeg") || t.includes("image")) return { label: "Image", icon: SVG_ICONS.image };
         if (t.includes("pdf")) return { label: "PDF", icon: SVG_ICONS.pdf };
         if (t.includes("mp4") || t.includes("mkv") || t.includes("video")) return { label: "Video", icon: SVG_ICONS.video };
         return { label: "Document", icon: SVG_ICONS.doc };
     }
 
-    // State Variables
+    // State Variables for Nested Folders
     let folderHierarchy = []; // Stack of { id, name }
-    let rawItems = [];
+    let allWorkspaceDocs = [];
+    let allFolderDocs = [];
 
     function getCurrentFolderId() {
         return folderHierarchy.length > 0 ? folderHierarchy[folderHierarchy.length - 1].id : null;
     }
 
-    function renderBreadcrumbs() {
+    function renderBreadcrumb() {
         const area = document.getElementById('breadcrumbArea');
         if (folderHierarchy.length === 0) {
-            area.innerHTML = `<span class="breadcrumb-item active">Cloud Drive</span>`;
+            area.innerHTML = `<span>Cloud Drive</span>`;
         } else {
-            let html = `<span class="breadcrumb-item" data-index="-1">Cloud Drive</span>`;
+            let html = `<span style="color: var(--text-secondary); cursor: pointer;" id="bc-root">Cloud Drive</span>`;
             folderHierarchy.forEach((item, index) => {
-                const isLast = index === folderHierarchy.length - 1;
-                html += ` <span style="color: var(--text-secondary);">/</span> `;
-                if (isLast) {
-                    html += `<span class="breadcrumb-item active">${item.name}</span>`;
+                html += ` <span style="color: var(--text-secondary); font-weight: 400;">/</span> `;
+                if (index === folderHierarchy.length - 1) {
+                    html += `<span>${item.name}</span>`;
                 } else {
-                    html += `<span class="breadcrumb-item" data-index="${index}">${item.name}</span>`;
+                    html += `<span style="color: var(--text-secondary); cursor: pointer;" class="bc-crumb" data-idx="${index}">${item.name}</span>`;
                 }
             });
             area.innerHTML = html;
-            area.querySelectorAll('.breadcrumb-item[data-index]').forEach(el => {
+
+            document.getElementById('bc-root')?.addEventListener('click', () => {
+                folderHierarchy = [];
+                loadDrive();
+            });
+            document.querySelectorAll('.bc-crumb').forEach(el => {
                 el.addEventListener('click', () => {
-                    const idx = parseInt(el.getAttribute('data-index'));
-                    if (idx === -1) {
-                        folderHierarchy = [];
-                    } else {
-                        folderHierarchy = folderHierarchy.slice(0, idx + 1);
-                    }
+                    const idx = parseInt(el.getAttribute('data-idx'));
+                    folderHierarchy = folderHierarchy.slice(0, idx + 1);
                     loadDrive();
                 });
             });
         }
     }
 
+    // Primary Database Fetch
     async function loadDrive() {
-        renderBreadcrumbs();
+        renderBreadcrumb();
         const container = document.getElementById('tableContent');
-        container.innerHTML = `<div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading workspace...</div>`;
+        container.innerHTML = `<div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading items...</div>`;
 
         try {
             const q = query(
@@ -756,58 +731,59 @@
                 or(
                     where("Email", "==", userEmail),
                     where("Access.Viewer", "array-contains", userEmail),
-                    where("Access.Commentator", "array-contains", userEmail),
+                    where("Access.Commenter", "array-contains", userEmail),
                     where("Access.Editor", "array-contains", userEmail)
                 )
             );
 
             const snap = await getDocs(q);
-            rawItems = [];
+            const items = [];
             snap.forEach(docSnap => {
-                rawItems.push({ id: docSnap.id, ...docSnap.data() });
+                items.push({ id: docSnap.id, ...docSnap.data() });
             });
 
+            allWorkspaceDocs = items;
+            allFolderDocs = items.filter(d => d.Folder === "True");
             container.innerHTML = "";
-            const currentFolderId = getCurrentFolderId();
 
-            let visibleItems = [];
+            const currId = getCurrentFolderId();
+            let renderItems = [];
 
-            if (!currentFolderId) {
-                // Find IDs contained inside other folders
-                const childIds = new Set();
-                rawItems.forEach(item => {
-                    if (item.Folder === "True" && Array.isArray(item.File)) {
-                        item.File.forEach(id => childIds.add(id));
-                    }
+            if (!currId) {
+                // Root: items not nested in any folder's File array
+                const assignedChildIds = new Set();
+                allFolderDocs.forEach(f => {
+                    if (Array.isArray(f.File)) f.File.forEach(id => assignedChildIds.add(id));
                 });
-                // Visible at root: not inside any folder's File array
-                visibleItems = rawItems.filter(item => !childIds.has(item.id));
+                renderItems = items.filter(i => !assignedChildIds.has(i.id));
             } else {
-                const activeFolder = rawItems.find(i => i.id === currentFolderId);
+                // Nested Folder: items specified in active folder's File array
+                const activeFolder = allFolderDocs.find(f => f.id === currId);
                 const assignedIds = (activeFolder && Array.isArray(activeFolder.File)) ? activeFolder.File : [];
-                visibleItems = rawItems.filter(i => assignedIds.includes(i.id));
+                renderItems = items.filter(i => assignedIds.includes(i.id));
             }
 
-            if (visibleItems.length === 0) {
-                container.innerHTML = `<div style="padding: 32px 0; color: var(--text-secondary); font-size: 14px;">No files or folders here.</div>`;
+            if (renderItems.length === 0) {
+                container.innerHTML = `<div style="padding: 32px 0; color: var(--text-secondary); font-size: 14px;">No files or folders found here.</div>`;
                 return;
             }
 
-            // Folders first, then files
-            visibleItems.sort((a, b) => (b.Folder === "True" ? 1 : 0) - (a.Folder === "True" ? 1 : 0));
-            visibleItems.forEach(item => renderTableRow(item));
-        } catch(err) {
-            console.error(err);
-            container.innerHTML = `<div style="padding: 20px 0; color: var(--danger);">Failed to load workspace.</div>`;
+            // Render folders first, then files
+            renderItems.sort((a, b) => (b.Folder === "True" ? 1 : 0) - (a.Folder === "True" ? 1 : 0));
+            renderItems.forEach(item => renderRow(item));
+        } catch(e) {
+            console.error(e);
+            container.innerHTML = `<div style="padding: 20px 0; color: var(--danger);">Failed to load Cloud Drive.</div>`;
         }
     }
 
-    function renderTableRow(item) {
+    function renderRow(item) {
         const container = document.getElementById('tableContent');
         const isFolder = item.Folder === "True";
-        const name = item.Name || 'Untitled';
+        const name = item.Name || (item.File ? item.File.split('/').pop() : 'Untitled');
         const format = getFormatInfo(item.Type, isFolder);
-        const updatedDate = item.Updated || 'N/A';
+        const updated = item.Updated || "Recently";
+        const ownerEmail = item.Email || userEmail;
 
         const row = document.createElement('div');
         row.className = 'table-row';
@@ -816,19 +792,19 @@
                 <div class="file-icon-box">${format.icon}</div>
                 <div class="file-info-col">
                     <span class="file-name" title="${name}">${name}</span>
-                    <span class="file-subtext">${item.Email}</span>
+                    <span class="file-subtext">${item.Password ? '🔒 Protected' : ''}</span>
                 </div>
             </div>
-            <div class="cell-owner" style="font-size: 13px; color: var(--text-secondary);">${updatedDate}</div>
-            <div style="font-size: 13px; color: var(--text-secondary);">${format.label}</div>
-            <div class="cell-password" style="font-size: 13px; color: var(--text-secondary);">${item.Password ? '🔒 Locked' : 'None'}</div>
+            <div class="cell-uploader" style="font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ownerEmail}</div>
+            <div class="cell-format" style="font-size: 13px; color: var(--text-secondary);">${format.label}</div>
+            <div class="cell-date" style="font-size: 13px; color: var(--text-secondary);">${updated}</div>
             <div class="actions-cell">
                 <button class="btn-dots">${SVG_ICONS.dots}</button>
                 <div class="action-dropdown">
                     <div class="dropdown-item opt-download">${SVG_ICONS.download} Download</div>
                     <div class="dropdown-item opt-rename">${SVG_ICONS.edit} Rename</div>
-                    <div class="dropdown-item opt-share">${SVG_ICONS.share} Share</div>
-                    <div class="dropdown-item opt-manage-access">${SVG_ICONS.lock} Manage Access</div>
+                    ${!isFolder ? `<div class="dropdown-item opt-share">${SVG_ICONS.share} Share</div>` : ''}
+                    <div class="dropdown-item opt-access">${SVG_ICONS.users} Manage Access</div>
                     <div class="dropdown-item opt-move">${SVG_ICONS.move} ${isFolder ? 'Organise' : 'Move'}</div>
                     <div class="dropdown-item opt-details">${SVG_ICONS.info} Details</div>
                     <div class="dropdown-item danger opt-delete">${SVG_ICONS.trash} Delete</div>
@@ -845,16 +821,22 @@
             dropdown.classList.toggle('active');
         });
 
-        // Open item handler (with password check & LastOpened tracking)
+        // Open item
         row.querySelector('.file-name').addEventListener('click', () => {
-            handleItemOpen(item);
+            if (item.Password) {
+                promptPasswordAuth(item.Password, () => openItem(item, isFolder, name));
+            } else {
+                openItem(item, isFolder, name);
+            }
         });
 
-        // Dropdown actions
+        // Action Handlers
         row.querySelector('.opt-download').addEventListener('click', () => handleDownload(item));
         row.querySelector('.opt-rename').addEventListener('click', () => openRenameModal(item));
-        row.querySelector('.opt-share').addEventListener('click', () => openShareModal(item, 'share'));
-        row.querySelector('.opt-manage-access').addEventListener('click', () => openShareModal(item, 'access'));
+        if (!isFolder) {
+            row.querySelector('.opt-share').addEventListener('click', () => openShareModal(item));
+        }
+        row.querySelector('.opt-access').addEventListener('click', () => openAccessModal(item));
         row.querySelector('.opt-move').addEventListener('click', () => openMoveModal(item));
         row.querySelector('.opt-details').addEventListener('click', () => openDetailsModal(item));
         row.querySelector('.opt-delete').addEventListener('click', () => handleDelete(item));
@@ -862,33 +844,26 @@
         container.appendChild(row);
     }
 
-    async function handleItemOpen(item) {
-        const isFolder = item.Folder === "True";
-        const proceed = async () => {
-            if (!isFolder) {
-                try {
-                    await updateDoc(doc(db, "Cloud Drive", item.id), {
-                        LastOpened: new Date().toISOString(),
-                        LastOpenedBy: userEmail
-                    });
-                } catch(e) {}
-                if (item.File && typeof item.File === "string") {
-                    window.open(item.File, '_blank');
-                }
-            } else {
-                folderHierarchy.push({ id: item.id, name: item.Name });
-                loadDrive();
-            }
-        };
-
-        if (item.Password) {
-            promptPasswordAuth(item.Password, proceed);
+    function openItem(item, isFolder, name) {
+        if (isFolder) {
+            folderHierarchy.push({ id: item.id, name: name });
+            loadDrive();
         } else {
-            proceed();
+            // Update LastOpened
+            updateDoc(doc(db, "Cloud Drive", item.id), {
+                LastOpened: new Date().toISOString(),
+                LastOpenedBy: userEmail
+            }).catch(() => {});
+            window.open(item.File, '_blank');
         }
     }
 
-    // Password Challenge
+    // Dismiss Dropdowns
+    window.addEventListener('click', () => {
+        document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('active'));
+    });
+
+    // 1. Password Prompt Modal
     const passModal = document.getElementById('passwordAuthModal');
     let passSuccessCallback = null;
     let expectedPass = "";
@@ -910,197 +885,107 @@
         }
     });
 
-    // Download Handler
-    async function handleDownload(item) {
-        const isFolder = item.Folder === "True";
-        if (isFolder) {
-            showToast("Packaging folder into ZIP...");
-            try {
-                const zip = new JSZip();
-                const assignedIds = Array.isArray(item.File) ? item.File : [];
-                const childFiles = rawItems.filter(f => assignedIds.includes(f.id) && f.Folder !== "True");
-
-                for (const cf of childFiles) {
-                    if (cf.File) {
-                        const response = await fetch(cf.File);
-                        const blob = await response.blob();
-                        zip.file(cf.Name || 'file', blob);
-                    }
-                }
-                const content = await zip.generateAsync({ type: "blob" });
-                const a = document.createElement("a");
-                a.href = URL.createObjectURL(content);
-                a.download = `${item.Name || 'folder'}.zip`;
-                a.click();
-            } catch(e) {
-                showToast("Download failed");
-            }
+    // 2. Download Action
+    function handleDownload(item) {
+        if (item.Folder === "True") {
+            showToast("Preparing folder metadata...");
+            const folderInfo = JSON.stringify(item, null, 2);
+            const blob = new Blob([folderInfo], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = `${item.Name || 'Folder'}_data.json`;
+            a.click();
         } else {
-            if (!item.File) return;
-            try {
-                const response = await fetch(item.File);
-                const blob = await response.blob();
-                const a = document.createElement("a");
-                a.href = URL.createObjectURL(blob);
-                a.download = item.Name || "download";
-                a.click();
-            } catch(e) {
-                window.open(item.File, '_blank');
-            }
+            const a = document.createElement("a");
+            a.href = item.File;
+            a.download = item.Name || "download";
+            a.target = "_blank";
+            a.click();
+            showToast("Download started");
         }
     }
 
-    // Rename Handler
+    // 3. Rename Modal
+    let targetRenameItem = null;
     const renameModal = document.getElementById('renameModal');
-    let itemToRename = null;
     function openRenameModal(item) {
-        itemToRename = item;
-        document.getElementById('renameInput').value = item.Name || "";
+        targetRenameItem = item;
+        document.getElementById('renameInput').value = item.Name || '';
         renameModal.classList.add('active');
     }
     document.getElementById('closeRenameModal').addEventListener('click', () => renameModal.classList.remove('active'));
     document.getElementById('btnSubmitRename').addEventListener('click', async () => {
         const newName = document.getElementById('renameInput').value.trim();
-        if (newName && itemToRename) {
-            await updateDoc(doc(db, "Cloud Drive", itemToRename.id), {
+        if (newName && targetRenameItem) {
+            await updateDoc(doc(db, "Cloud Drive", targetRenameItem.id), {
                 Name: newName,
-                Updated: getFormattedTimestamp()
+                Updated: formatFirestoreDate()
             });
-            renameModal.classList.remove('active');
             showToast("Renamed successfully");
+            renameModal.classList.remove('active');
             loadDrive();
         }
     });
 
-    // Move / Organise Handler
-    const moveModal = document.getElementById('moveModal');
-    let itemToMove = null;
-    function openMoveModal(item) {
-        itemToMove = item;
-        const select = document.getElementById('destinationFolderSelect');
-        select.innerHTML = `<option value="__root__">Cloud Drive (Root)</option>`;
-
-        // Populate available folders (excluding self and children if folder)
-        const availableFolders = rawItems.filter(i => i.Folder === "True" && i.id !== item.id);
-        availableFolders.forEach(f => {
-            select.innerHTML += `<option value="${f.id}">${f.Name}</option>`;
-        });
-
-        document.getElementById('moveModalTitle').innerText = item.Folder === "True" ? "Organise Folder" : "Move File";
-        moveModal.classList.add('active');
-    }
-    document.getElementById('closeMoveModal').addEventListener('click', () => moveModal.classList.remove('active'));
-    document.getElementById('btnSubmitMove').addEventListener('click', async () => {
-        if (!itemToMove) return;
-        const targetFolderId = document.getElementById('destinationFolderSelect').value;
-
-        // 1. Remove from all existing parent folders
-        for (const f of rawItems.filter(i => i.Folder === "True")) {
-            if (Array.isArray(f.File) && f.File.includes(itemToMove.id)) {
-                await updateDoc(doc(db, "Cloud Drive", f.id), {
-                    File: arrayRemove(itemToMove.id)
-                });
-            }
-        }
-
-        // 2. Add to new target folder if not root
-        if (targetFolderId !== "__root__") {
-            await updateDoc(doc(db, "Cloud Drive", targetFolderId), {
-                File: arrayUnion(itemToMove.id)
-            });
-        }
-
-        moveModal.classList.remove('active');
-        showToast("Moved successfully");
-        loadDrive();
-    });
-
-    // Details Modal
+    // 4. Details Modal
     const detailsModal = document.getElementById('detailsModal');
     function openDetailsModal(item) {
         const isFolder = item.Folder === "True";
         const format = getFormatInfo(item.Type, isFolder);
-        
-        let locationName = "Cloud Drive (Root)";
-        const parentFolder = rawItems.find(f => f.Folder === "True" && Array.isArray(f.File) && f.File.includes(item.id));
-        if (parentFolder) locationName = parentFolder.Name;
+        const locationPath = folderHierarchy.length > 0 ? folderHierarchy.map(h => h.name).join(' / ') : 'Root Directory';
 
-        const html = `
-            <div class="detail-row"><span class="detail-label">Name</span><span class="detail-val">${item.Name || 'Untitled'}</span></div>
-            <div class="detail-row"><span class="detail-label">Type</span><span class="detail-val">${format.label}</span></div>
-            <div class="detail-row"><span class="detail-label">Owner</span><span class="detail-val">${item.Email}</span></div>
-            <div class="detail-row"><span class="detail-label">Location</span><span class="detail-val">${locationName}</span></div>
-            <div class="detail-row"><span class="detail-label">Updated</span><span class="detail-val">${item.Updated || 'N/A'}</span></div>
-            <div class="detail-row"><span class="detail-label">Last Opened</span><span class="detail-val">${item.LastOpened ? new Date(item.LastOpened).toLocaleString() : 'N/A'}</span></div>
-            <div class="detail-row"><span class="detail-label">Password Protected</span><span class="detail-val">${item.Password ? 'Yes' : 'No'}</span></div>
+        const content = document.getElementById('detailsContent');
+        content.innerHTML = `
+            <div class="details-item"><span class="details-label">Name</span><span class="details-val">${item.Name || 'Untitled'}</span></div>
+            <div class="details-item"><span class="details-label">Type</span><span class="details-val">${format.label}</span></div>
+            <div class="details-item"><span class="details-label">Date (Updated)</span><span class="details-val">${item.Updated || 'N/A'}</span></div>
+            <div class="details-item"><span class="details-label">Location</span><span class="details-val">${locationPath}</span></div>
+            <div class="details-item"><span class="details-label">Owner</span><span class="details-val">${item.Email || userEmail}</span></div>
         `;
-        document.getElementById('detailsContent').innerHTML = html;
         detailsModal.classList.add('active');
     }
     document.getElementById('closeDetailsModal').addEventListener('click', () => detailsModal.classList.remove('active'));
-    document.getElementById('btnCloseDetailsBtn').addEventListener('click', () => detailsModal.classList.remove('active'));
 
-    // Share & Manage Access
-    const shareModal = document.getElementById('shareAccessModal');
-    const tabShareBtn = document.getElementById('tabShareBtn');
-    const tabAccessBtn = document.getElementById('tabAccessBtn');
-    const paneShare = document.getElementById('paneShare');
-    const paneAccess = document.getElementById('paneAccess');
-    let activeItem = null;
-    let accessState = { Viewer: [], Commentator: [], Editor: [] };
+    // 5. Manage Access Modal
+    const accessModal = document.getElementById('accessModal');
+    let targetAccessItem = null;
+    let localAccessState = { Viewer: [], Commenter: [], Editor: [] };
 
-    tabShareBtn.addEventListener('click', () => {
-        tabShareBtn.classList.add('active');
-        tabAccessBtn.classList.remove('active');
-        paneShare.classList.add('active');
-        paneAccess.classList.remove('active');
-    });
-    tabAccessBtn.addEventListener('click', () => {
-        tabAccessBtn.classList.add('active');
-        tabShareBtn.classList.remove('active');
-        paneAccess.classList.add('active');
-        paneShare.classList.remove('active');
-    });
-
-    function openShareModal(item, initialTab = 'share') {
-        activeItem = item;
-        accessState = {
-            Viewer: [...(item.Access?.Viewer || [])],
-            Commentator: [...(item.Access?.Commentator || [])],
-            Editor: [...(item.Access?.Editor || [])]
+    function openAccessModal(item) {
+        targetAccessItem = item;
+        const access = item.Access || {};
+        localAccessState = {
+            Viewer: [...(access.Viewer || [])],
+            Commenter: [...(access.Commenter || access.Commentator || [])],
+            Editor: [...(access.Editor || [])]
         };
         renderAccessList();
-
-        if (initialTab === 'access') {
-            tabAccessBtn.click();
-        } else {
-            tabShareBtn.click();
-        }
-        shareModal.classList.add('active');
+        accessModal.classList.add('active');
     }
-    document.getElementById('closeShareModal').addEventListener('click', () => shareModal.classList.remove('active'));
+
+    document.getElementById('closeAccessModal').addEventListener('click', () => accessModal.classList.remove('active'));
 
     function renderAccessList() {
         const c = document.getElementById('accessListContainer');
         c.innerHTML = `
             <div class="user-access-row">
-                <span>${activeItem.Email} (Owner)</span>
-                <span style="font-size: 11px; color: var(--accent); font-weight: 600;">Owner</span>
+                <span>${targetAccessItem.Email || userEmail} <strong>(Owner)</strong></span>
+                <span style="font-size: 12px; color: var(--accent); font-weight:600;">Owner</span>
             </div>
         `;
-        ['Editor', 'Commentator', 'Viewer'].forEach(role => {
-            (accessState[role] || []).forEach((email, idx) => {
+        ['Editor', 'Viewer', 'Commenter'].forEach(role => {
+            localAccessState[role].forEach((email, idx) => {
                 const div = document.createElement('div');
                 div.className = 'user-access-row';
                 div.innerHTML = `
                     <span>${email}</span>
                     <div style="display: flex; gap: 8px; align-items: center;">
-                        <span style="font-size: 11px; color: var(--text-secondary);">${role === 'Commentator' ? 'Commenter' : role}</span>
-                        <span style="cursor: pointer; color: var(--danger); font-size: 16px;" data-role="${role}" data-idx="${idx}">&times;</span>
+                        <span style="font-size: 11px; color: var(--text-secondary);">${role}</span>
+                        <span style="cursor: pointer; color: var(--danger); font-size:16px;" data-role="${role}" data-idx="${idx}">&times;</span>
                     </div>
                 `;
                 div.querySelector('span[data-role]').addEventListener('click', () => {
-                    accessState[role].splice(idx, 1);
+                    localAccessState[role].splice(idx, 1);
                     renderAccessList();
                 });
                 c.appendChild(div);
@@ -1108,118 +993,171 @@
         });
     }
 
-    // Add Collaborator & Transfer Ownership
-    document.getElementById('btnApplyAccess').addEventListener('click', async () => {
+    document.getElementById('btnAddAccess').addEventListener('click', async () => {
         const email = document.getElementById('inviteEmailInput').value.trim();
         const role = document.getElementById('inviteRoleSelect').value;
         if (!email) return;
 
-        if (role === 'Transfer Ownership') {
-            if (confirm(`Transfer ownership to ${email}? You will lose owner privileges.`)) {
-                await updateDoc(doc(db, "Cloud Drive", activeItem.id), {
+        if (role === 'Transfer') {
+            if (confirm(`Transfer full ownership to ${email}? You will no longer be the owner.`)) {
+                await updateDoc(doc(db, "Cloud Drive", targetAccessItem.id), {
                     Email: email,
-                    Updated: getFormattedTimestamp()
+                    Access: { Viewer: [], Commenter: [], Editor: [] },
+                    Updated: formatFirestoreDate()
                 });
                 showToast("Ownership transferred");
-                shareModal.classList.remove('active');
+                accessModal.classList.remove('active');
                 loadDrive();
             }
             return;
         }
 
-        ['Viewer', 'Commentator', 'Editor'].forEach(r => {
-            accessState[r] = accessState[r].filter(e => e !== email);
+        ['Viewer', 'Commenter', 'Editor'].forEach(r => {
+            localAccessState[r] = localAccessState[r].filter(e => e !== email);
         });
-        accessState[role].push(email);
+        localAccessState[role].push(email);
         document.getElementById('inviteEmailInput').value = "";
         renderAccessList();
     });
 
-    document.getElementById('btnSavePermissions').addEventListener('click', async () => {
-        if (!activeItem) return;
-        await updateDoc(doc(db, "Cloud Drive", activeItem.id), { 
-            Access: accessState,
-            Updated: getFormattedTimestamp()
+    document.getElementById('btnSaveAccess').addEventListener('click', async () => {
+        if (!targetAccessItem) return;
+        await updateDoc(doc(db, "Cloud Drive", targetAccessItem.id), { 
+            Access: localAccessState,
+            Updated: formatFirestoreDate()
         });
-        showToast("Access permissions updated");
-        shareModal.classList.remove('active');
+        showToast("Permissions updated");
+        accessModal.classList.remove('active');
         loadDrive();
     });
 
-    // Direct Image / File Sharing
-    document.getElementById('btnDeviceShare').addEventListener('click', async () => {
-        if (!activeItem) return;
-        const fmt = document.getElementById('shareFormatSelect').value;
+    // 6. Share & Convert to PDF
+    const shareModal = document.getElementById('shareModal');
+    let targetShareItem = null;
 
-        if (activeItem.File && typeof activeItem.File === 'string') {
+    function openShareModal(item) {
+        targetShareItem = item;
+        shareModal.classList.add('active');
+    }
+    document.getElementById('closeShareModal').addEventListener('click', () => shareModal.classList.remove('active'));
+
+    document.getElementById('btnExecuteShare').addEventListener('click', async () => {
+        if (!targetShareItem) return;
+        const choice = document.getElementById('shareFormatChoice').value;
+
+        if (choice === 'pdf') {
+            showToast("Converting to PDF...");
             try {
-                if (fmt === 'pdf' && getFormatInfo(activeItem.Type).label === 'Image') {
-                    showToast("Converting image to PDF...");
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF();
-                    const img = new Image();
-                    img.crossOrigin = "anonymous";
-                    img.src = activeItem.File;
-                    img.onload = async () => {
-                        pdf.addImage(img, 'JPEG', 15, 30, 180, 160);
-                        const blob = pdf.output('blob');
-                        const file = new File([blob], `${activeItem.Name || 'Document'}.pdf`, { type: 'application/pdf' });
-                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                            await navigator.share({ files: [file], title: activeItem.Name });
-                        } else {
-                            pdf.save(`${activeItem.Name || 'Document'}.pdf`);
-                        }
-                    };
-                } else {
-                    const res = await fetch(activeItem.File);
-                    const blob = await res.blob();
-                    const file = new File([blob], activeItem.Name || 'share_file', { type: blob.type });
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = targetShareItem.File;
+                img.onload = async () => {
+                    pdf.addImage(img, 'JPEG', 15, 20, 180, 160);
+                    const blob = pdf.output('blob');
+                    const file = new File([blob], `${targetShareItem.Name || 'Document'}.pdf`, { type: 'application/pdf' });
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({ files: [file], title: activeItem.Name });
-                    } else if (navigator.share) {
-                        await navigator.share({ title: activeItem.Name, url: activeItem.File });
+                        await navigator.share({ files: [file], title: targetShareItem.Name });
                     } else {
-                        navigator.clipboard.writeText(activeItem.File);
-                        showToast("Link copied to clipboard");
+                        pdf.save(`${targetShareItem.Name || 'Document'}.pdf`);
+                        showToast("PDF downloaded");
                     }
-                }
+                };
             } catch(e) {
-                if (navigator.share) {
-                    navigator.share({ title: activeItem.Name, url: activeItem.File });
-                } else {
-                    navigator.clipboard.writeText(activeItem.File);
-                    showToast("Link copied");
-                }
+                showToast("Conversion failed, sharing URL");
+                navigator.share ? navigator.share({ title: targetShareItem.Name, url: targetShareItem.File }) : null;
+            }
+        } else if (choice === 'image' && navigator.canShare) {
+            try {
+                const res = await fetch(targetShareItem.File);
+                const blob = await res.blob();
+                const file = new File([blob], targetShareItem.Name || "image.png", { type: blob.type });
+                await navigator.share({ files: [file], title: targetShareItem.Name });
+            } catch(e) {
+                if (navigator.share) await navigator.share({ title: targetShareItem.Name, url: targetShareItem.File });
+            }
+        } else {
+            if (navigator.share) {
+                await navigator.share({ title: targetShareItem.Name, url: targetShareItem.File });
+            } else {
+                navigator.clipboard.writeText(targetShareItem.File);
+                showToast("Link copied to clipboard");
             }
         }
     });
 
-    document.getElementById('btnCopyLink').addEventListener('click', () => {
-        if (activeItem && activeItem.File && typeof activeItem.File === 'string') {
-            navigator.clipboard.writeText(activeItem.File).then(() => showToast("Link copied"));
-        } else {
-            showToast("Direct link unavailable for this item");
+    document.getElementById('btnCopyShareLink').addEventListener('click', () => {
+        if (targetShareItem && targetShareItem.File) {
+            navigator.clipboard.writeText(targetShareItem.File).then(() => showToast("Link copied"));
         }
     });
 
-    // Delete Handler
+    // 7. Move / Organise Modal
+    const moveModal = document.getElementById('moveModal');
+    let targetMoveItem = null;
+
+    function openMoveModal(item) {
+        targetMoveItem = item;
+        const select = document.getElementById('moveDestinationSelect');
+        document.getElementById('moveModalTitle').innerText = item.Folder === "True" ? "Organise Folder" : "Move File";
+        select.innerHTML = `<option value="root">Root Directory</option>`;
+        
+        // Exclude current item if it's a folder to prevent moving into itself
+        allFolderDocs.forEach(f => {
+            if (f.id !== item.id) {
+                select.innerHTML += `<option value="${f.id}">${f.Name || 'Untitled Folder'}</option>`;
+            }
+        });
+        moveModal.classList.add('active');
+    }
+    document.getElementById('closeMoveModal').addEventListener('click', () => moveModal.classList.remove('active'));
+
+    document.getElementById('btnConfirmMove').addEventListener('click', async () => {
+        if (!targetMoveItem) return;
+        const destFolderId = document.getElementById('moveDestinationSelect').value;
+
+        // Remove from any current parent folder
+        for (const f of allFolderDocs) {
+            if (Array.isArray(f.File) && f.File.includes(targetMoveItem.id)) {
+                await updateDoc(doc(db, "Cloud Drive", f.id), {
+                    File: arrayRemove(targetMoveItem.id),
+                    Updated: formatFirestoreDate()
+                });
+            }
+        }
+
+        // Add to new folder if not root
+        if (destFolderId !== "root") {
+            await updateDoc(doc(db, "Cloud Drive", destFolderId), {
+                File: arrayUnion(targetMoveItem.id),
+                Updated: formatFirestoreDate()
+            });
+        }
+
+        showToast("Item moved successfully");
+        moveModal.classList.remove('active');
+        loadDrive();
+    });
+
+    // 8. Delete Action
     async function handleDelete(item) {
-        if (confirm(`Delete "${item.Name}" permanently?`)) {
-            await deleteDoc(doc(db, "Cloud Drive", item.id));
-            // Also clean up from parent folders
-            for (const f of rawItems.filter(i => i.Folder === "True")) {
+        if (confirm(`Permanently delete "${item.Name || 'item'}"?`)) {
+            // Remove from parent folders' File list if any
+            for (const f of allFolderDocs) {
                 if (Array.isArray(f.File) && f.File.includes(item.id)) {
                     await updateDoc(doc(db, "Cloud Drive", f.id), {
                         File: arrayRemove(item.id)
                     });
                 }
             }
+            await deleteDoc(doc(db, "Cloud Drive", item.id));
             showToast("Item deleted");
             loadDrive();
         }
     }
 
-    // Folder Creation
+    // 9. Create Folder Modal (supports nested folders)
     const folderModal = document.getElementById('folderModal');
     document.getElementById('newFolderTriggerBtn').addEventListener('click', () => {
         document.getElementById('newFolderName').value = "";
@@ -1227,11 +1165,11 @@
         folderModal.classList.add('active');
     });
     document.getElementById('closeFolderModal').addEventListener('click', () => folderModal.classList.remove('active'));
+
     document.getElementById('btnCreateFolder').addEventListener('click', async () => {
         const name = document.getElementById('newFolderName').value.trim();
         const pass = document.getElementById('newFolderPassword').value.trim();
         if (name) {
-            const currentFolderId = getCurrentFolderId();
             const newDoc = await addDoc(collection(db, "Cloud Drive"), {
                 Email: userEmail,
                 Folder: "True",
@@ -1239,14 +1177,15 @@
                 Password: pass,
                 File: [],
                 Customize: { Colour: "Red" },
-                Updated: getFormattedTimestamp(),
-                Access: { Viewer: [], Commentator: [], Editor: [] }
+                Updated: formatFirestoreDate(),
+                Access: { Viewer: [], Commenter: [], Editor: [] }
             });
 
-            if (currentFolderId) {
-                await updateDoc(doc(db, "Cloud Drive", currentFolderId), {
+            const currFolderId = getCurrentFolderId();
+            if (currFolderId) {
+                await updateDoc(doc(db, "Cloud Drive", currFolderId), {
                     File: arrayUnion(newDoc.id),
-                    Updated: getFormattedTimestamp()
+                    Updated: formatFirestoreDate()
                 });
             }
 
@@ -1256,7 +1195,7 @@
         }
     });
 
-    // Batch File Upload (ImgBB for images, Uploadcare for other documents)
+    // 10. File Upload (Native & Drag/Drop)
     const nativeFileInput = document.getElementById('nativeFileInput');
     document.getElementById('uploadTriggerBtn').addEventListener('click', () => nativeFileInput.click());
     nativeFileInput.addEventListener('change', (e) => {
@@ -1279,8 +1218,6 @@
 
     async function handleBatchUpload(files) {
         showToast(`Uploading ${files.length} file(s)...`);
-        const currentFolderId = getCurrentFolderId();
-
         for (const file of files) {
             if (file.size > 50 * 1024 * 1024) {
                 showToast(`Skipped ${file.name} (exceeds 50MB)`);
@@ -1290,6 +1227,7 @@
             try {
                 let fileUrl = "";
                 let fileType = "Document";
+
                 if (file.type.startsWith('image/')) {
                     const fd = new FormData();
                     fd.append('image', file);
@@ -1305,7 +1243,8 @@
                     const res = await fetch('https://upload.uploadcare.com/base/', { method: 'POST', body: fd });
                     const j = await res.json();
                     fileUrl = `https://ucarecdn.com/${j.file}/${encodeURIComponent(file.name)}`;
-                    fileType = file.type.includes('pdf') ? 'PDF' : 'Document';
+                    const ext = file.name.split('.').pop()?.toUpperCase();
+                    fileType = ext || "Document";
                 }
 
                 const newDoc = await addDoc(collection(db, "Cloud Drive"), {
@@ -1314,17 +1253,17 @@
                     Type: fileType,
                     Name: file.name,
                     Password: "",
-                    Folder: "False",
-                    Updated: getFormattedTimestamp(),
                     LastOpened: new Date().toISOString(),
                     LastOpenedBy: userEmail,
-                    Access: { Viewer: [], Commentator: [], Editor: [] }
+                    Updated: formatFirestoreDate(),
+                    Access: { Viewer: [], Commenter: [], Editor: [] }
                 });
 
-                if (currentFolderId) {
-                    await updateDoc(doc(db, "Cloud Drive", currentFolderId), {
+                const currFolderId = getCurrentFolderId();
+                if (currFolderId) {
+                    await updateDoc(doc(db, "Cloud Drive", currFolderId), {
                         File: arrayUnion(newDoc.id),
-                        Updated: getFormattedTimestamp()
+                        Updated: formatFirestoreDate()
                     });
                 }
             } catch(err) {
@@ -1344,10 +1283,7 @@
         });
     });
 
-    window.addEventListener('click', () => {
-        document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('active'));
-    });
-
+    // Initial Load
     loadDrive();
 </script>
 </body>
