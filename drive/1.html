@@ -118,13 +118,13 @@
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
             text-decoration: none;
             transition: opacity 0.2s;
             user-select: none;
         }
-        .btn-pill svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
         .btn-pill:hover { opacity: 0.9; }
+        .btn-pill svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; }
 
         /* Search input bar */
         .search-container {
@@ -155,7 +155,7 @@
         }
         .search-input:focus { border-color: var(--text-secondary); }
 
-        /* Multi-selection bar */
+        /* Multi-selection Toolbar */
         .selection-toolbar {
             position: sticky;
             top: 10px;
@@ -241,7 +241,6 @@
         .table-row.selected { background-color: rgba(16, 163, 127, 0.08); }
         .table-row.keyboard-focused { outline: 2px solid var(--accent); outline-offset: -2px; }
 
-        /* When Selection Mode is Activated */
         .selection-active .table-head {
             grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px;
         }
@@ -320,7 +319,7 @@
             background: var(--surface-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.14);
             border-radius: 12px;
-            width: 195px;
+            width: 190px;
             padding: 6px 0;
             z-index: 100;
             display: none;
@@ -339,6 +338,32 @@
         .dropdown-item:hover { background: var(--hover-bg); }
         .dropdown-item.danger { color: var(--danger); }
         .dropdown-item svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+        /* Empty State */
+        .empty-state-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 64px 20px;
+            text-align: center;
+        }
+        .empty-state-img {
+            width: 160px;
+            max-width: 80%;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+        .empty-state-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+        .empty-state-sub {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
 
         /* Modals */
         .modal-shade {
@@ -501,7 +526,7 @@
     <!-- Multi-Selection Action Bar with SVG Icons -->
     <div class="selection-toolbar" id="selectionToolbar">
         <span id="selectedCountText" style="font-weight: 500; font-size: 13px;">0 Selected</span>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 8px;">
             <button class="btn-pill" id="btnMultiDownload" style="background: var(--hover-bg); color: var(--text-primary);">
                 <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 Download Files
@@ -514,10 +539,7 @@
                 <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 Delete (Shift+D)
             </button>
-            <button class="btn-pill" id="btnCancelSelect" style="background: transparent; color: var(--text-secondary); border: none;">
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                Done
-            </button>
+            <button class="btn-pill" id="btnCancelSelect" style="background: transparent; color: var(--text-secondary); border: none;">Done</button>
         </div>
     </div>
 
@@ -545,7 +567,7 @@
     </div>
 </main>
 
-<!-- Modal: Manage Access (With Contributor Role) -->
+<!-- Modal: Manage Access (with Contributor Role) -->
 <div class="modal-shade" id="accessModal">
     <div class="modal-box">
         <div class="modal-header">
@@ -558,7 +580,7 @@
             <label>Invite User</label>
             <div style="display: flex; gap: 8px;">
                 <input type="email" id="inviteEmailInput" class="clean-input" placeholder="user@example.com">
-                <select id="inviteRoleSelect" class="clean-input" style="width: 175px;">
+                <select id="inviteRoleSelect" class="clean-input" style="width: 170px;">
                     <option value="Editor">Editor</option>
                     <option value="Contributor">Contributor</option>
                     <option value="Viewer">Viewer</option>
@@ -579,7 +601,7 @@
 </div>
 
 <!-- Modal: Folder Security (Password Protection) -->
-<div class="modal-shade" id="securityModal">
+<div class="modal-shade" id="folderSecurityModal">
     <div class="modal-box" style="max-width: 400px;">
         <div class="modal-header">
             <div class="modal-title">Folder Security</div>
@@ -591,8 +613,8 @@
             <label>Folder Password Protection</label>
             <input type="text" id="folderSecurityPasswordInput" class="clean-input" placeholder="Leave blank to remove password">
         </div>
-        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
-            <button class="btn-pill" id="btnSaveSecurity">Save Password</button>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+            <button class="btn-pill" id="btnSaveSecurity">Update Security</button>
         </div>
     </div>
 </div>
@@ -852,7 +874,6 @@
         return cid ? allFolderDocs.find(f => f.id === cid) : null;
     }
 
-    // Role helper with Contributor role support
     function getUserRole(item) {
         if (item.Email === userEmail) return 'Owner';
         const acc = item.Access || {};
@@ -955,8 +976,18 @@
 
             currentRenderedItems = renderItems;
 
+            // Empty state rendering
             if (renderItems.length === 0) {
-                container.innerHTML = `<div style="padding: 32px 0; color: var(--text-secondary); font-size: 14px;">No files or folders found here.</div>`;
+                const currentName = folderHierarchy.length > 0 ? folderHierarchy[folderHierarchy.length - 1].name : "";
+                const emptyTitle = currentName ? `No Files In Your ${currentName}` : "No Files In Your Drive";
+
+                container.innerHTML = `
+                    <div class="empty-state-container">
+                        <img class="empty-state-img" src="https://indus.sarvam.ai/studio/assets/empty-table.webp" alt="No items found">
+                        <div class="empty-state-title">${emptyTitle}</div>
+                        <div class="empty-state-sub">Upload files or create new folders to get started</div>
+                    </div>
+                `;
                 return;
             }
 
@@ -996,7 +1027,9 @@
             <div class="file-title-cell">
                 <div class="file-icon-box">${format.icon}</div>
                 <div class="file-info-col">
-                    <span class="file-name" title="${name}">${name}</span>
+                    <span class="file-name" title="${name}">
+                        ${name} ${item.Password ? '<span style="font-size:11px;">🔒</span>' : ''}
+                    </span>
                     <div class="file-labels">${labelsHtml}</div>
                 </div>
             </div>
@@ -1025,7 +1058,7 @@
             toggleSelectItem(item.id, chk.checked);
         });
 
-        // Long-press detection for mobile
+        // Mobile long-press
         let touchTimer = null;
         let touchMoved = false;
 
@@ -1064,18 +1097,18 @@
             }
         });
 
-        // Action Handlers
+        // Actions
         if (!isFolder) {
             row.querySelector('.opt-download')?.addEventListener('click', () => directDownloadFile(item.File, item.Name));
             row.querySelector('.opt-share')?.addEventListener('click', () => openShareModal(item));
+        }
+        if (isFolder && !isViewer) {
+            row.querySelector('.opt-security')?.addEventListener('click', () => openSecurityModal(item));
         }
         if (!isViewer) {
             row.querySelector('.opt-rename')?.addEventListener('click', () => openRenameModal(item));
             row.querySelector('.opt-move')?.addEventListener('click', () => openMoveModal(item));
             row.querySelector('.opt-delete')?.addEventListener('click', () => handleDelete(item));
-            if (isFolder) {
-                row.querySelector('.opt-security')?.addEventListener('click', () => openSecurityModal(item));
-            }
         }
         row.querySelector('.opt-access')?.addEventListener('click', () => openAccessModal(item));
         row.querySelector('.opt-label')?.addEventListener('click', () => openLabelModal(item));
@@ -1097,6 +1130,7 @@
         }
     }
 
+    // Direct Browser Download
     async function directDownloadFile(url, fileName) {
         showToast("Starting download...");
         try {
@@ -1147,9 +1181,7 @@
         }
     });
 
-    // ==========================================
-    // MULTI-SELECTION SYSTEM
-    // ==========================================
+    // Multi-Selection System
     function enterSelectionMode() {
         isSelectionMode = true;
         document.getElementById('dataTable').classList.add('selection-active');
@@ -1252,6 +1284,28 @@
         openMoveModal(null, true);
     });
 
+    // Security Modal (Folder Password)
+    const securityModal = document.getElementById('folderSecurityModal');
+    let targetSecurityItem = null;
+
+    function openSecurityModal(folderItem) {
+        targetSecurityItem = folderItem;
+        document.getElementById('folderSecurityPasswordInput').value = folderItem.Password || '';
+        securityModal.classList.add('active');
+    }
+    document.getElementById('closeSecurityModal').addEventListener('click', () => securityModal.classList.remove('active'));
+    document.getElementById('btnSaveSecurity').addEventListener('click', async () => {
+        if (!targetSecurityItem) return;
+        const pass = document.getElementById('folderSecurityPasswordInput').value.trim();
+        await updateDoc(doc(db, "Cloud Drive", targetSecurityItem.id), {
+            Password: pass,
+            Updated: formatFirestoreDate()
+        });
+        showToast(pass ? "Password protection enabled" : "Password protection removed");
+        securityModal.classList.remove('active');
+        loadDrive();
+    });
+
     // Rename Modal
     let targetRenameItem = null;
     const renameModal = document.getElementById('renameModal');
@@ -1288,34 +1342,12 @@
             <div class="details-item"><span class="details-label">Date (Updated)</span><span class="details-val">${item.Updated || 'N/A'}</span></div>
             <div class="details-item"><span class="details-label">Location</span><span class="details-val">${locationPath}</span></div>
             <div class="details-item"><span class="details-label">Owner</span><span class="details-val">${item.Email || userEmail}</span></div>
+            <div class="details-item"><span class="details-label">Password Protected</span><span class="details-val">${item.Password ? 'Yes' : 'No'}</span></div>
             <div class="details-item"><span class="details-label">Labels</span><span class="details-val">${(item.Label || []).join(', ') || 'None'}</span></div>
         `;
         detailsModal.classList.add('active');
     }
     document.getElementById('closeDetailsModal').addEventListener('click', () => detailsModal.classList.remove('active'));
-
-    // Folder Security Modal
-    const securityModal = document.getElementById('securityModal');
-    let targetSecurityFolder = null;
-
-    function openSecurityModal(item) {
-        targetSecurityFolder = item;
-        document.getElementById('folderSecurityPasswordInput').value = item.Password || "";
-        securityModal.classList.add('active');
-    }
-    document.getElementById('closeSecurityModal').addEventListener('click', () => securityModal.classList.remove('active'));
-
-    document.getElementById('btnSaveSecurity').addEventListener('click', async () => {
-        if (!targetSecurityFolder) return;
-        const pass = document.getElementById('folderSecurityPasswordInput').value.trim();
-        await updateDoc(doc(db, "Cloud Drive", targetSecurityFolder.id), {
-            Password: pass,
-            Updated: formatFirestoreDate()
-        });
-        showToast(pass ? "Password set successfully" : "Password protection removed");
-        securityModal.classList.remove('active');
-        loadDrive();
-    });
 
     // Labels Modal
     const labelModal = document.getElementById('labelModal');
@@ -1377,7 +1409,7 @@
         loadDrive();
     });
 
-    // Manage Access Modal (With Contributor Support)
+    // Manage Access Modal with Contributor Role
     const accessModal = document.getElementById('accessModal');
     let targetAccessItem = null;
     let localAccessState = { Viewer: [], Commenter: [], Contributor: [], Editor: [] };
@@ -1728,9 +1760,7 @@
         });
     });
 
-    // ==========================================
-    // KEYBOARD SHORTCUTS
-    // ==========================================
+    // Keyboard Shortcuts
     let themeKeySequence = [];
     let themeTimer = null;
 
