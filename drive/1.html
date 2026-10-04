@@ -121,7 +121,9 @@
             gap: 8px;
             text-decoration: none;
             transition: opacity 0.2s;
+            user-select: none;
         }
+        .btn-pill svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
         .btn-pill:hover { opacity: 0.9; }
 
         /* Search input bar */
@@ -153,7 +155,7 @@
         }
         .search-input:focus { border-color: var(--text-secondary); }
 
-        /* Multi-selection Toolbar */
+        /* Multi-selection bar */
         .selection-toolbar {
             position: sticky;
             top: 10px;
@@ -184,17 +186,7 @@
             font-weight: 500;
         }
 
-        .location-path-badge {
-            font-size: 11px;
-            color: var(--text-secondary);
-            background: var(--hover-bg);
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-top: 2px;
-            display: inline-block;
-        }
-
-        /* Drag Overlay */
+        /* Drag & Drop Surface */
         .drag-overlay {
             position: fixed;
             inset: 0;
@@ -218,16 +210,15 @@
             gap: 12px;
         }
 
-        /* Table Layout */
+        /* Table Dynamic Grid */
         .data-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        /* Default Layout: Checkbox hidden */
         .table-head {
             display: grid;
-            grid-template-columns: 3.5fr 1.8fr 1.5fr 1.8fr 40px;
+            grid-template-columns: 3.2fr 1.8fr 1.5fr 1.8fr 40px;
             padding: 10px 16px;
             font-size: 13px;
             font-weight: 500;
@@ -237,31 +228,35 @@
 
         .table-row {
             display: grid;
-            grid-template-columns: 3.5fr 1.8fr 1.5fr 1.8fr 40px;
+            grid-template-columns: 3.2fr 1.8fr 1.5fr 1.8fr 40px;
             align-items: center;
             padding: 10px 16px;
             border-bottom: 1px solid var(--border-color);
             font-size: 14px;
             transition: background-color 0.15s;
             user-select: none;
-            -webkit-user-select: none;
             -webkit-touch-callout: none;
         }
-
-        /* Selection Mode Layout: Checkbox visible */
-        .selection-active .table-head {
-            grid-template-columns: 36px 3.5fr 1.8fr 1.5fr 1.8fr 40px;
-        }
-        .selection-active .table-row {
-            grid-template-columns: 36px 3.5fr 1.8fr 1.5fr 1.8fr 40px;
-        }
-
-        .cell-checkbox { display: none; }
-        .selection-active .cell-checkbox { display: flex; align-items: center; }
-
         .table-row:hover { background-color: var(--hover-bg); }
         .table-row.selected { background-color: rgba(16, 163, 127, 0.08); }
         .table-row.keyboard-focused { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+        /* When Selection Mode is Activated */
+        .selection-active .table-head {
+            grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px;
+        }
+        .selection-active .table-row {
+            grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px;
+        }
+
+        .cell-checkbox {
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .selection-active .cell-checkbox {
+            display: flex;
+        }
 
         .file-title-cell {
             display: flex;
@@ -325,7 +320,7 @@
             background: var(--surface-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.14);
             border-radius: 12px;
-            width: 190px;
+            width: 195px;
             padding: 6px 0;
             z-index: 100;
             display: none;
@@ -444,14 +439,16 @@
             aside.sidebar { display: none; }
             main.content-area { padding: 18px 14px; width: 100%; }
             .table-head { display: none; }
+            
             .table-row {
                 grid-template-columns: 1fr auto 30px;
                 gap: 8px;
                 padding: 10px 0;
             }
             .selection-active .table-row {
-                grid-template-columns: 24px 1fr auto 30px;
+                grid-template-columns: 28px 1fr auto 30px;
             }
+
             .cell-uploader, .cell-format { display: none; }
             .cell-date { font-size: 11px; color: var(--text-secondary); text-align: right; }
             .modal-box { padding: 20px; border-radius: 16px; }
@@ -482,17 +479,17 @@
 </div>
 
 <!-- Main Content Area -->
-<main class="content-area">
+<main class="content-area" id="mainArea">
     <div class="top-row">
         <div class="page-title" id="breadcrumbArea">
             <span>Cloud Drive</span>
         </div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button class="btn-pill" id="btnToggleSelectMode" style="background: var(--hover-bg); color: var(--text-primary); border: 1px solid var(--border-color);" title="Select Multiple (Shift+S)">
-                Select Multiple
+        <div style="display: flex; gap: 8px;">
+            <button class="btn-pill" id="btnSelectModeToggle" style="background: var(--hover-bg); color: var(--text-primary); border: 1px solid var(--border-color);" title="Select Multiple (Shift+S)">
+                Select
             </button>
             <button class="btn-pill" id="uploadTriggerBtn" title="Upload (Shift+U)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Upload
             </button>
             <button class="btn-pill" id="newFolderTriggerBtn" style="background: var(--hover-bg); color: var(--text-primary); border: 1px solid var(--border-color);" title="New Folder (Shift+C)">
@@ -501,14 +498,26 @@
         </div>
     </div>
 
-    <!-- Multi-Selection Action Bar -->
+    <!-- Multi-Selection Action Bar with SVG Icons -->
     <div class="selection-toolbar" id="selectionToolbar">
         <span id="selectedCountText" style="font-weight: 500; font-size: 13px;">0 Selected</span>
-        <div style="display: flex; gap: 8px;">
-            <button class="btn-pill" id="btnMultiDownload" style="background: var(--hover-bg); color: var(--text-primary);">Download Files</button>
-            <button class="btn-pill" id="btnMultiMove" style="background: var(--hover-bg); color: var(--text-primary);">Move (Shift+M)</button>
-            <button class="btn-pill" id="btnMultiDelete" style="background: var(--danger); color: #fff;">Delete (Shift+D)</button>
-            <button class="btn-pill" id="btnCancelSelect" style="background: transparent; color: var(--text-secondary); border: none;">Done</button>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn-pill" id="btnMultiDownload" style="background: var(--hover-bg); color: var(--text-primary);">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download Files
+            </button>
+            <button class="btn-pill" id="btnMultiMove" style="background: var(--hover-bg); color: var(--text-primary);">
+                <svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg>
+                Move (Shift+M)
+            </button>
+            <button class="btn-pill" id="btnMultiDelete" style="background: var(--danger); color: #fff;">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                Delete (Shift+D)
+            </button>
+            <button class="btn-pill" id="btnCancelSelect" style="background: transparent; color: var(--text-secondary); border: none;">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                Done
+            </button>
         </div>
     </div>
 
@@ -517,11 +526,11 @@
 
     <div class="search-container">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" id="searchInput" class="search-input" placeholder="Deep Search across all files & folders (Shift+F)">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search files, folders or labels (Shift+F)">
     </div>
 
     <!-- Table -->
-    <div class="data-table" id="driveTableContainer">
+    <div class="data-table" id="dataTable">
         <div class="table-head">
             <div class="cell-checkbox"><input type="checkbox" id="selectAllCheckbox"></div>
             <div>Name</div>
@@ -536,7 +545,7 @@
     </div>
 </main>
 
-<!-- Modal: Manage Access -->
+<!-- Modal: Manage Access (With Contributor Role) -->
 <div class="modal-shade" id="accessModal">
     <div class="modal-box">
         <div class="modal-header">
@@ -549,8 +558,9 @@
             <label>Invite User</label>
             <div style="display: flex; gap: 8px;">
                 <input type="email" id="inviteEmailInput" class="clean-input" placeholder="user@example.com">
-                <select id="inviteRoleSelect" class="clean-input" style="width: 170px;">
+                <select id="inviteRoleSelect" class="clean-input" style="width: 175px;">
                     <option value="Editor">Editor</option>
+                    <option value="Contributor">Contributor</option>
                     <option value="Viewer">Viewer</option>
                     <option value="Commenter">Commenter</option>
                     <option value="Transfer">Transfer Ownership</option>
@@ -568,7 +578,26 @@
     </div>
 </div>
 
-<!-- Modal: Labels -->
+<!-- Modal: Folder Security (Password Protection) -->
+<div class="modal-shade" id="securityModal">
+    <div class="modal-box" style="max-width: 400px;">
+        <div class="modal-header">
+            <div class="modal-title">Folder Security</div>
+            <button class="modal-close" id="closeSecurityModal">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="input-group">
+            <label>Folder Password Protection</label>
+            <input type="text" id="folderSecurityPasswordInput" class="clean-input" placeholder="Leave blank to remove password">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+            <button class="btn-pill" id="btnSaveSecurity">Save Password</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Labels / Tags -->
 <div class="modal-shade" id="labelModal">
     <div class="modal-box" style="max-width: 400px;">
         <div class="modal-header">
@@ -580,7 +609,7 @@
         <div class="input-group">
             <label>Add New Label</label>
             <div style="display: flex; gap: 8px;">
-                <input type="text" id="newLabelInput" class="clean-input" placeholder="e.g. MN Admin, Board MN">
+                <input type="text" id="newLabelInput" class="clean-input" placeholder="e.g. MN Admin, Finance">
                 <button class="btn-pill" id="btnAddLabel">Add</button>
             </div>
         </div>
@@ -594,7 +623,7 @@
     </div>
 </div>
 
-<!-- Modal: Share -->
+<!-- Modal: Share & Format Conversion -->
 <div class="modal-shade" id="shareModal">
     <div class="modal-box">
         <div class="modal-header">
@@ -631,7 +660,7 @@
     </div>
 </div>
 
-<!-- Modal: Move -->
+<!-- Modal: Move / Organise -->
 <div class="modal-shade" id="moveModal">
     <div class="modal-box" style="max-width: 420px;">
         <div class="modal-header">
@@ -680,7 +709,7 @@
         </div>
         <div class="input-group">
             <label>Folder Name</label>
-            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. My First Folder">
+            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. MN Admin, Finance">
         </div>
         <div class="input-group">
             <label>Folder Password (Optional)</label>
@@ -792,7 +821,8 @@
         users: `<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
         move: `<svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg>`,
         info: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
-        tag: `<svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`
+        tag: `<svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`,
+        lock: `<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`
     };
 
     function getFormatInfo(typeStr, isFolder) {
@@ -812,7 +842,6 @@
     let selectedItemIds = new Set();
     let isSelectionMode = false;
     let keyboardFocusedIndex = -1;
-    let isSearchingActive = false;
 
     function getCurrentFolderId() {
         return folderHierarchy.length > 0 ? folderHierarchy[folderHierarchy.length - 1].id : null;
@@ -823,30 +852,23 @@
         return cid ? allFolderDocs.find(f => f.id === cid) : null;
     }
 
-    // Compute direct parent folder path for any doc ID
-    function getItemFolderPath(docId) {
-        for (const f of allFolderDocs) {
-            if (Array.isArray(f.File) && f.File.includes(docId)) {
-                return f.Name || 'Folder';
-            }
-        }
-        return 'Root';
-    }
-
-    // Access Role with Folder Inheritance
+    // Role helper with Contributor role support
     function getUserRole(item) {
         if (item.Email === userEmail) return 'Owner';
         const acc = item.Access || {};
         if (acc.Editor?.includes(userEmail)) return 'Editor';
+        if (acc.Contributor?.includes(userEmail)) return 'Contributor';
         if (acc.Commenter?.includes(userEmail) || acc.Commentator?.includes(userEmail)) return 'Commenter';
         if (acc.Viewer?.includes(userEmail)) return 'Viewer';
 
+        // Check Inheritance
         for (const f of folderHierarchy) {
             const pDoc = allFolderDocs.find(x => x.id === f.id);
             if (pDoc) {
                 if (pDoc.Email === userEmail) return 'Owner';
                 const pAcc = pDoc.Access || {};
                 if (pAcc.Editor?.includes(userEmail)) return 'Editor';
+                if (pAcc.Contributor?.includes(userEmail)) return 'Contributor';
                 if (pAcc.Commenter?.includes(userEmail) || pAcc.Commentator?.includes(userEmail)) return 'Commenter';
                 if (pAcc.Viewer?.includes(userEmail)) return 'Viewer';
             }
@@ -856,10 +878,6 @@
 
     function renderBreadcrumb() {
         const area = document.getElementById('breadcrumbArea');
-        if (isSearchingActive) {
-            area.innerHTML = `<span>Search Results</span>`;
-            return;
-        }
         if (folderHierarchy.length === 0) {
             area.innerHTML = `<span>Cloud Drive</span>`;
         } else {
@@ -888,9 +906,10 @@
         }
     }
 
-    // Main Data Fetch
+    // Database Fetch
     async function loadDrive() {
         renderBreadcrumb();
+        exitSelectionMode();
         keyboardFocusedIndex = -1;
 
         const container = document.getElementById('tableContent');
@@ -904,6 +923,7 @@
                     where("Access.Viewer", "array-contains", userEmail),
                     where("Access.Commenter", "array-contains", userEmail),
                     where("Access.Commentator", "array-contains", userEmail),
+                    where("Access.Contributor", "array-contains", userEmail),
                     where("Access.Editor", "array-contains", userEmail)
                 )
             );
@@ -948,7 +968,7 @@
         }
     }
 
-    function renderRow(item, index, showLocation = false) {
+    function renderRow(item, index) {
         const container = document.getElementById('tableContent');
         const isFolder = item.Folder === "True";
         const name = item.Name || (item.File ? item.File.split('/').pop() : 'Untitled');
@@ -965,20 +985,19 @@
         }
 
         const labelsHtml = labels.map(l => `<span class="label-badge">${l}</span>`).join('');
-        const locationPath = showLocation ? `<span class="location-path-badge">📁 in: ${getItemFolderPath(item.id)}</span>` : '';
 
         const row = document.createElement('div');
-        row.className = `table-row ${selectedItemIds.has(item.id) ? 'selected' : ''}`;
+        row.className = 'table-row';
         row.setAttribute('data-id', item.id);
         row.setAttribute('data-index', index);
 
         row.innerHTML = `
-            <div class="cell-checkbox"><input type="checkbox" class="row-checkbox" data-id="${item.id}" ${selectedItemIds.has(item.id) ? 'checked' : ''}></div>
+            <div class="cell-checkbox"><input type="checkbox" class="row-checkbox" data-id="${item.id}"></div>
             <div class="file-title-cell">
                 <div class="file-icon-box">${format.icon}</div>
                 <div class="file-info-col">
                     <span class="file-name" title="${name}">${name}</span>
-                    <div class="file-labels">${labelsHtml} ${locationPath}</div>
+                    <div class="file-labels">${labelsHtml}</div>
                 </div>
             </div>
             <div class="cell-uploader" style="font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ownerEmail}</div>
@@ -992,6 +1011,7 @@
                     ${!isFolder ? `<div class="dropdown-item opt-share">${SVG_ICONS.share} Share</div>` : ''}
                     <div class="dropdown-item opt-access">${SVG_ICONS.users} Manage Access</div>
                     <div class="dropdown-item opt-label">${SVG_ICONS.tag} Label</div>
+                    ${isFolder && !isViewer ? `<div class="dropdown-item opt-security">${SVG_ICONS.lock} Security</div>` : ''}
                     ${!isViewer ? `<div class="dropdown-item opt-move">${SVG_ICONS.move} ${isFolder ? 'Organise' : 'Move'}</div>` : ''}
                     <div class="dropdown-item opt-details">${SVG_ICONS.info} Details</div>
                     ${!isViewer ? `<div class="dropdown-item danger opt-delete">${SVG_ICONS.trash} Delete</div>` : ''}
@@ -999,26 +1019,30 @@
             </div>
         `;
 
-        // Checkbox click
         const chk = row.querySelector('.row-checkbox');
         chk.addEventListener('change', (e) => {
             e.stopPropagation();
             toggleSelectItem(item.id, chk.checked);
         });
 
-        // Mobile Long Press for Multi-selection
+        // Long-press detection for mobile
         let touchTimer = null;
-        row.addEventListener('touchstart', () => {
-            touchTimer = setTimeout(() => {
-                if (!isSelectionMode) setSelectionMode(true);
-                toggleSelectItem(item.id, true);
-                if (navigator.vibrate) navigator.vibrate(40);
-            }, 550);
-        }, { passive: true });
-        row.addEventListener('touchend', () => clearTimeout(touchTimer));
-        row.addEventListener('touchmove', () => clearTimeout(touchTimer));
+        let touchMoved = false;
 
-        // 3-Dots Dropdown
+        row.addEventListener('touchstart', (e) => {
+            touchMoved = false;
+            touchTimer = setTimeout(() => {
+                if (!touchMoved) {
+                    if (navigator.vibrate) navigator.vibrate(40);
+                    if (!isSelectionMode) enterSelectionMode();
+                    toggleSelectItem(item.id, !selectedItemIds.has(item.id));
+                }
+            }, 500);
+        }, { passive: true });
+
+        row.addEventListener('touchmove', () => { touchMoved = true; clearTimeout(touchTimer); });
+        row.addEventListener('touchend', () => clearTimeout(touchTimer));
+
         const dotsBtn = row.querySelector('.btn-dots');
         const dropdown = row.querySelector('.action-dropdown');
 
@@ -1028,10 +1052,8 @@
             dropdown.classList.toggle('active');
         });
 
-        // Click to Open (Or click to select if in selection mode)
-        row.querySelector('.file-name').addEventListener('click', (e) => {
+        row.querySelector('.file-name').addEventListener('click', () => {
             if (isSelectionMode) {
-                e.preventDefault();
                 toggleSelectItem(item.id, !selectedItemIds.has(item.id));
                 return;
             }
@@ -1051,6 +1073,9 @@
             row.querySelector('.opt-rename')?.addEventListener('click', () => openRenameModal(item));
             row.querySelector('.opt-move')?.addEventListener('click', () => openMoveModal(item));
             row.querySelector('.opt-delete')?.addEventListener('click', () => handleDelete(item));
+            if (isFolder) {
+                row.querySelector('.opt-security')?.addEventListener('click', () => openSecurityModal(item));
+            }
         }
         row.querySelector('.opt-access')?.addEventListener('click', () => openAccessModal(item));
         row.querySelector('.opt-label')?.addEventListener('click', () => openLabelModal(item));
@@ -1062,8 +1087,6 @@
     function openItem(item, isFolder, name) {
         if (isFolder) {
             folderHierarchy.push({ id: item.id, name: name });
-            document.getElementById('searchInput').value = "";
-            isSearchingActive = false;
             loadDrive();
         } else {
             updateDoc(doc(db, "Cloud Drive", item.id), {
@@ -1074,7 +1097,6 @@
         }
     }
 
-    // Direct Browser Download
     async function directDownloadFile(url, fileName) {
         showToast("Starting download...");
         try {
@@ -1103,7 +1125,7 @@
         document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('active'));
     });
 
-    // Password Challenge
+    // Password Prompt Modal
     const passModal = document.getElementById('passwordAuthModal');
     let passSuccessCallback = null;
     let expectedPass = "";
@@ -1125,32 +1147,37 @@
         }
     });
 
-    // Selection Mode Controller
-    function setSelectionMode(enable) {
-        isSelectionMode = enable;
-        const driveTable = document.getElementById('driveTableContainer');
-        const toolbar = document.getElementById('selectionToolbar');
-        const btnToggle = document.getElementById('btnToggleSelectMode');
-
-        if (enable) {
-            driveTable.classList.add('selection-active');
-            toolbar.classList.add('active');
-            btnToggle.style.display = 'none';
-        } else {
-            driveTable.classList.remove('selection-active');
-            toolbar.classList.remove('active');
-            btnToggle.style.display = 'inline-flex';
-            selectedItemIds.clear();
-            document.querySelectorAll('.row-checkbox').forEach(c => c.checked = false);
-            document.querySelectorAll('.table-row').forEach(r => r.classList.remove('selected'));
-        }
+    // ==========================================
+    // MULTI-SELECTION SYSTEM
+    // ==========================================
+    function enterSelectionMode() {
+        isSelectionMode = true;
+        document.getElementById('dataTable').classList.add('selection-active');
+        document.getElementById('selectionToolbar').classList.add('active');
+        document.getElementById('btnSelectModeToggle').innerText = "Cancel";
         updateSelectionToolbar();
     }
 
-    document.getElementById('btnToggleSelectMode').addEventListener('click', () => setSelectionMode(true));
-    document.getElementById('btnCancelSelect').addEventListener('click', () => setSelectionMode(false));
+    function exitSelectionMode() {
+        isSelectionMode = false;
+        selectedItemIds.clear();
+        document.getElementById('dataTable').classList.remove('selection-active');
+        document.getElementById('selectionToolbar').classList.remove('active');
+        document.getElementById('btnSelectModeToggle').innerText = "Select";
+        document.querySelectorAll('.row-checkbox').forEach(c => c.checked = false);
+        const selAll = document.getElementById('selectAllCheckbox');
+        if (selAll) selAll.checked = false;
+        document.querySelectorAll('.table-row').forEach(r => r.classList.remove('selected'));
+    }
+
+    document.getElementById('btnSelectModeToggle').addEventListener('click', () => {
+        if (isSelectionMode) exitSelectionMode();
+        else enterSelectionMode();
+    });
 
     function toggleSelectItem(id, isSelected) {
+        if (!isSelectionMode) enterSelectionMode();
+
         if (isSelected) selectedItemIds.add(id);
         else selectedItemIds.delete(id);
         
@@ -1169,7 +1196,7 @@
 
         countText.innerText = `${selectedItemIds.size} Selected`;
         if (selectAllChk && currentRenderedItems.length > 0) {
-            selectAllChk.checked = (selectedItemIds.size === currentRenderedItems.length && currentRenderedItems.length > 0);
+            selectAllChk.checked = (selectedItemIds.size === currentRenderedItems.length);
         }
     }
 
@@ -1177,6 +1204,8 @@
         const check = e.target.checked;
         currentRenderedItems.forEach(item => toggleSelectItem(item.id, check));
     });
+
+    document.getElementById('btnCancelSelect').addEventListener('click', () => exitSelectionMode());
 
     // Multi Delete
     document.getElementById('btnMultiDelete').addEventListener('click', async () => {
@@ -1197,14 +1226,13 @@
                 }
             }
             showToast("Selected items deleted");
-            setSelectionMode(false);
             loadDrive();
         }
     });
 
-    // Multi Download (Files only)
+    // Multi Download
     document.getElementById('btnMultiDownload').addEventListener('click', async () => {
-        const filesToDownload = allWorkspaceDocs.filter(i => selectedItemIds.has(i.id) && i.Folder !== "True");
+        const filesToDownload = currentRenderedItems.filter(i => selectedItemIds.has(i.id) && i.Folder !== "True");
         if (filesToDownload.length === 0) {
             showToast("No files selected to download");
             return;
@@ -1218,13 +1246,13 @@
     // Multi Move
     document.getElementById('btnMultiMove').addEventListener('click', () => {
         if (selectedItemIds.size === 0) {
-            showToast("No items selected");
+            showToast("No items selected to move");
             return;
         }
         openMoveModal(null, true);
     });
 
-    // Rename
+    // Rename Modal
     let targetRenameItem = null;
     const renameModal = document.getElementById('renameModal');
     function openRenameModal(item) {
@@ -1246,12 +1274,12 @@
         }
     });
 
-    // Details
+    // Details Modal
     const detailsModal = document.getElementById('detailsModal');
     function openDetailsModal(item) {
         const isFolder = item.Folder === "True";
         const format = getFormatInfo(item.Type, isFolder);
-        const locationPath = isSearchingActive ? getItemFolderPath(item.id) : (folderHierarchy.length > 0 ? folderHierarchy.map(h => h.name).join(' / ') : 'Root Directory');
+        const locationPath = folderHierarchy.length > 0 ? folderHierarchy.map(h => h.name).join(' / ') : 'Root Directory';
 
         const content = document.getElementById('detailsContent');
         content.innerHTML = `
@@ -1266,7 +1294,30 @@
     }
     document.getElementById('closeDetailsModal').addEventListener('click', () => detailsModal.classList.remove('active'));
 
-    // Labels
+    // Folder Security Modal
+    const securityModal = document.getElementById('securityModal');
+    let targetSecurityFolder = null;
+
+    function openSecurityModal(item) {
+        targetSecurityFolder = item;
+        document.getElementById('folderSecurityPasswordInput').value = item.Password || "";
+        securityModal.classList.add('active');
+    }
+    document.getElementById('closeSecurityModal').addEventListener('click', () => securityModal.classList.remove('active'));
+
+    document.getElementById('btnSaveSecurity').addEventListener('click', async () => {
+        if (!targetSecurityFolder) return;
+        const pass = document.getElementById('folderSecurityPasswordInput').value.trim();
+        await updateDoc(doc(db, "Cloud Drive", targetSecurityFolder.id), {
+            Password: pass,
+            Updated: formatFirestoreDate()
+        });
+        showToast(pass ? "Password set successfully" : "Password protection removed");
+        securityModal.classList.remove('active');
+        loadDrive();
+    });
+
+    // Labels Modal
     const labelModal = document.getElementById('labelModal');
     let targetLabelItem = null;
     let localLabels = [];
@@ -1326,10 +1377,10 @@
         loadDrive();
     });
 
-    // Manage Access
+    // Manage Access Modal (With Contributor Support)
     const accessModal = document.getElementById('accessModal');
     let targetAccessItem = null;
-    let localAccessState = { Viewer: [], Commenter: [], Editor: [] };
+    let localAccessState = { Viewer: [], Commenter: [], Contributor: [], Editor: [] };
 
     function openAccessModal(item) {
         targetAccessItem = item;
@@ -1340,6 +1391,7 @@
         localAccessState = {
             Viewer: [...(access.Viewer || [])],
             Commenter: [...(access.Commenter || access.Commentator || [])],
+            Contributor: [...(access.Contributor || [])],
             Editor: [...(access.Editor || [])]
         };
 
@@ -1360,7 +1412,7 @@
                 <span style="font-size: 11px; color: var(--accent); font-weight:600;">Owner</span>
             </div>
         `;
-        ['Editor', 'Viewer', 'Commenter'].forEach(role => {
+        ['Editor', 'Contributor', 'Viewer', 'Commenter'].forEach(role => {
             localAccessState[role].forEach((email, idx) => {
                 const div = document.createElement('div');
                 div.className = 'user-access-row';
@@ -1391,7 +1443,7 @@
             if (confirm(`Transfer ownership to ${email}? You will lose owner access.`)) {
                 await updateDoc(doc(db, "Cloud Drive", targetAccessItem.id), {
                     Email: email,
-                    Access: { Viewer: [], Commenter: [], Editor: [] },
+                    Access: { Viewer: [], Commenter: [], Contributor: [], Editor: [] },
                     Updated: formatFirestoreDate()
                 });
                 showToast("Ownership transferred");
@@ -1401,7 +1453,7 @@
             return;
         }
 
-        ['Viewer', 'Commenter', 'Editor'].forEach(r => {
+        ['Viewer', 'Commenter', 'Contributor', 'Editor'].forEach(r => {
             localAccessState[r] = localAccessState[r].filter(e => e !== email);
         });
         localAccessState[role].push(email);
@@ -1420,7 +1472,7 @@
         loadDrive();
     });
 
-    // Share
+    // Share Modal
     const shareModal = document.getElementById('shareModal');
     let targetShareItem = null;
 
@@ -1524,7 +1576,6 @@
 
         showToast("Moved successfully");
         moveModal.classList.remove('active');
-        setSelectionMode(false);
         loadDrive();
     });
 
@@ -1566,7 +1617,7 @@
                 Label: [],
                 Customize: { Colour: "Green" },
                 Updated: formatFirestoreDate(),
-                Access: { Viewer: [], Commenter: [], Editor: [] }
+                Access: { Viewer: [], Commenter: [], Contributor: [], Editor: [] }
             });
 
             const currFolderId = getCurrentFolderId();
@@ -1583,7 +1634,7 @@
         }
     });
 
-    // Upload
+    // Batch File Upload
     const nativeFileInput = document.getElementById('nativeFileInput');
     document.getElementById('uploadTriggerBtn').addEventListener('click', () => nativeFileInput.click());
     nativeFileInput.addEventListener('change', (e) => {
@@ -1649,7 +1700,7 @@
                     LastOpened: new Date().toISOString(),
                     LastOpenedBy: userEmail,
                     Updated: formatFirestoreDate(),
-                    Access: { Viewer: [], Commenter: [], Editor: [] }
+                    Access: { Viewer: [], Commenter: [], Contributor: [], Editor: [] }
                 });
 
                 const currFolderId = getCurrentFolderId();
@@ -1667,39 +1718,14 @@
         loadDrive();
     }
 
-    // ==========================================
-    // DEEP / GLOBAL SEARCH (Across all nested folders)
-    // ==========================================
+    // Search Filter
     document.getElementById('searchInput').addEventListener('input', (e) => {
-        const queryVal = e.target.value.trim().toLowerCase();
-        const container = document.getElementById('tableContent');
-
-        if (!queryVal) {
-            isSearchingActive = false;
-            loadDrive();
-            return;
-        }
-
-        isSearchingActive = true;
-        renderBreadcrumb();
-        container.innerHTML = "";
-
-        // Search entire workspace docs at all depths
-        const matched = allWorkspaceDocs.filter(docItem => {
-            const name = (docItem.Name || (docItem.File ? docItem.File.split('/').pop() : '')).toLowerCase();
-            const labels = (docItem.Label || []).join(' ').toLowerCase();
-            return name.includes(queryVal) || labels.includes(queryVal);
+        const val = e.target.value.toLowerCase();
+        document.querySelectorAll('.table-row').forEach(row => {
+            const name = row.querySelector('.file-name').innerText.toLowerCase();
+            const labels = row.querySelector('.file-labels').innerText.toLowerCase();
+            row.style.display = (name.includes(val) || labels.includes(val)) ? 'grid' : 'none';
         });
-
-        currentRenderedItems = matched;
-
-        if (matched.length === 0) {
-            container.innerHTML = `<div style="padding: 32px 0; color: var(--text-secondary); font-size: 14px;">No files or folders matching "${queryVal}".</div>`;
-            return;
-        }
-
-        matched.sort((a, b) => (b.Folder === "True" ? 1 : 0) - (a.Folder === "True" ? 1 : 0));
-        matched.forEach((item, idx) => renderRow(item, idx, true));
     });
 
     // ==========================================
@@ -1712,10 +1738,9 @@
         const tag = e.target.tagName.toLowerCase();
         const isTyping = (tag === 'input' || tag === 'textarea' || tag === 'select');
 
-        // Escape: Closes modals / exits selection mode
         if (e.key === 'Escape') {
             document.querySelectorAll('.modal-shade').forEach(m => m.classList.remove('active'));
-            if (isSelectionMode) setSelectionMode(false);
+            if (isSelectionMode) exitSelectionMode();
             return;
         }
 
@@ -1747,7 +1772,13 @@
         // Shift + S -> Toggle Multi-select mode
         if (e.shiftKey && (e.key === 'S' || e.key === 's')) {
             e.preventDefault();
-            setSelectionMode(!isSelectionMode);
+            if (!isSelectionMode) {
+                enterSelectionMode();
+            } else if (selectedItemIds.size > 0) {
+                document.getElementById('btnMultiDelete').click();
+            } else {
+                exitSelectionMode();
+            }
             return;
         }
 
@@ -1769,7 +1800,7 @@
             return;
         }
 
-        // Theme Switch Sequence: Shift+T followed by D or L
+        // Theme Switch Sequence
         if (e.shiftKey && (e.key === 'T' || e.key === 't')) {
             themeKeySequence = ['T'];
             clearTimeout(themeTimer);
@@ -1805,9 +1836,10 @@
         } else if (e.key === ' ' || e.code === 'Space') {
             if (keyboardFocusedIndex >= 0 && keyboardFocusedIndex < rows.length) {
                 e.preventDefault();
-                if (!isSelectionMode) setSelectionMode(true);
+                if (!isSelectionMode) enterSelectionMode();
                 const id = rows[keyboardFocusedIndex].getAttribute('data-id');
-                toggleSelectItem(id, !selectedItemIds.has(id));
+                const isSelected = selectedItemIds.has(id);
+                toggleSelectItem(id, !isSelected);
             }
         }
     });
