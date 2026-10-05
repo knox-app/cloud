@@ -20,7 +20,6 @@
             --danger: #ef4444;
             --tag-bg: #e5e7eb;
             --tag-text: #374151;
-            --chk-bg: #0d0d0d;
             --sidebar-width: 64px;
         }
 
@@ -37,7 +36,6 @@
             --danger: #f87171;
             --tag-bg: #2d2d2d;
             --tag-text: #d1d5db;
-            --chk-bg: #ffffff;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -120,12 +118,32 @@
             cursor: pointer;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             text-decoration: none;
             transition: opacity 0.2s;
             user-select: none;
         }
         .btn-pill:hover { opacity: 0.9; }
+
+        .btn-icon-pill {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+            background: var(--surface-color);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-icon-pill:hover { background: var(--hover-bg); }
+        .btn-icon-pill svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .btn-icon-pill.danger { color: var(--danger); }
+        .btn-icon-pill.danger:hover { background: rgba(239, 68, 68, 0.1); }
 
         /* Search input bar */
         .search-container {
@@ -156,68 +174,64 @@
         }
         .search-input:focus { border-color: var(--text-secondary); }
 
-        /* Multi-selection bar */
+        /* Multi-selection bar (Icons only) */
         .selection-toolbar {
             position: sticky;
             top: 10px;
             background: var(--surface-color);
             border: 1px solid var(--border-color);
             padding: 8px 16px;
-            border-radius: 12px;
+            border-radius: 9999px;
             display: none;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            z-index: 100;
         }
         .selection-toolbar.active { display: flex; }
 
-        .btn-icon-action {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 1px solid var(--border-color);
-            background: var(--hover-bg);
-            color: var(--text-primary);
-            cursor: pointer;
+        /* Circular Black Checkbox */
+        .custom-chk-label {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
         }
-        .btn-icon-action:hover { background: var(--border-color); }
-        .btn-icon-action.danger { color: var(--danger); }
-        .btn-icon-action svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
-
-        /* Circular Custom Black Checkbox */
-        .custom-chk {
-            appearance: none;
-            -webkit-appearance: none;
+        .custom-chk-label input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        .chk-circle {
             width: 19px;
             height: 19px;
-            border: 1.8px solid var(--text-secondary);
+            border: 1.5px solid var(--text-secondary);
             border-radius: 50%;
-            outline: none;
-            cursor: pointer;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
+            transition: all 0.15s;
             background: transparent;
-            transition: all 0.15s ease;
         }
-        .custom-chk:checked {
-            background-color: var(--chk-bg);
-            border-color: var(--chk-bg);
+        .custom-chk-label input:checked ~ .chk-circle {
+            background-color: var(--btn-dark-bg);
+            border-color: var(--btn-dark-bg);
         }
-        .custom-chk:checked::after {
-            content: '';
+        .chk-circle::after {
+            content: "";
+            display: none;
             width: 5px;
             height: 9px;
-            border: solid var(--surface-color);
+            border: solid var(--btn-dark-text);
             border-width: 0 2px 2px 0;
-            transform: rotate(45deg) translate(-1px, -1px);
+            transform: rotate(45deg);
+            margin-top: -2px;
+        }
+        .custom-chk-label input:checked ~ .chk-circle::after {
             display: block;
         }
 
@@ -284,14 +298,17 @@
             font-size: 14px;
             transition: background-color 0.15s;
             user-select: none;
-            -webkit-touch-callout: none;
-            cursor: pointer;
+            cursor: default;
         }
         .table-row:hover { background-color: var(--hover-bg); }
         .table-row.selected { background-color: rgba(16, 163, 127, 0.08); }
         .table-row.keyboard-focused { outline: 2px solid var(--accent); outline-offset: -2px; }
 
-        /* When Selection Mode is Activated */
+        /* In Selection Mode: Clicking anywhere selects */
+        .selection-active .table-row {
+            cursor: pointer;
+        }
+
         .selection-active .table-head {
             grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px;
         }
@@ -339,32 +356,12 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            cursor: pointer;
         }
         .file-labels {
             display: flex;
             flex-wrap: wrap;
             margin-top: 3px;
-        }
-
-        /* Empty State */
-        .empty-state-wrap {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 50px 20px;
-            text-align: center;
-        }
-        .empty-state-img {
-            max-width: 170px;
-            margin-bottom: 16px;
-            opacity: 0.9;
-        }
-        .empty-state-title {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 14px;
-            color: var(--text-primary);
         }
 
         /* 3-Dots Dropdown */
@@ -390,7 +387,7 @@
             background: var(--surface-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.14);
             border-radius: 12px;
-            width: 190px;
+            width: 195px;
             padding: 6px 0;
             z-index: 100;
             display: none;
@@ -409,6 +406,28 @@
         .dropdown-item:hover { background: var(--hover-bg); }
         .dropdown-item.danger { color: var(--danger); }
         .dropdown-item svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+        /* Empty State */
+        .empty-state-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 16px;
+            text-align: center;
+        }
+        .empty-state-card img {
+            width: 190px;
+            height: auto;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+        .empty-state-card .empty-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 14px;
+        }
 
         /* Modals */
         .modal-shade {
@@ -504,7 +523,7 @@
         .details-label { color: var(--text-secondary); }
         .details-val { font-weight: 500; text-align: right; max-width: 260px; overflow-wrap: break-word; }
 
-        /* Responsive view for Mobile */
+        /* Responsive Mobile Layout */
         @media (max-width: 768px) {
             aside.sidebar { display: none; }
             main.content-area { padding: 18px 14px; width: 100%; }
@@ -568,20 +587,20 @@
         </div>
     </div>
 
-    <!-- Multi-Selection Action Bar (SVG Icons Only) -->
+    <!-- Multi-Selection Action Bar (Icons Only) -->
     <div class="selection-toolbar" id="selectionToolbar">
         <span id="selectedCountText" style="font-weight: 500; font-size: 13px;">0 Selected</span>
         <div style="display: flex; gap: 8px; align-items: center;">
-            <button class="btn-icon-action" id="btnMultiDownload" title="Download Files">
+            <button class="btn-icon-pill" id="btnMultiDownload" title="Download Selected Files">
                 <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             </button>
-            <button class="btn-icon-action" id="btnMultiMove" title="Move (Shift+M)">
+            <button class="btn-icon-pill" id="btnMultiMove" title="Move (Shift+M)">
                 <svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg>
             </button>
-            <button class="btn-icon-action danger" id="btnMultiDelete" title="Delete (Shift+D)">
+            <button class="btn-icon-pill danger" id="btnMultiDelete" title="Delete (Shift+D)">
                 <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
-            <button class="btn-pill" id="btnCancelSelect" style="background: transparent; color: var(--text-secondary); border: none; padding: 6px 12px;">Done</button>
+            <button class="btn-pill" id="btnCancelSelect" style="background: transparent; color: var(--text-secondary); border: none; padding: 0 8px;">Done</button>
         </div>
     </div>
 
@@ -590,13 +609,18 @@
 
     <div class="search-container">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" id="searchInput" class="search-input" placeholder="Search across all files, folders or labels (Shift+F)">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search files, folders or labels (Shift+F)">
     </div>
 
     <!-- Table -->
     <div class="data-table" id="dataTable">
         <div class="table-head">
-            <div class="cell-checkbox"><input type="checkbox" id="selectAllCheckbox" class="custom-chk"></div>
+            <div class="cell-checkbox">
+                <label class="custom-chk-label">
+                    <input type="checkbox" id="selectAllCheckbox">
+                    <span class="chk-circle"></span>
+                </label>
+            </div>
             <div>Name</div>
             <div class="cell-uploader">Owner</div>
             <div class="cell-format">Format</div>
@@ -609,7 +633,26 @@
     </div>
 </main>
 
-<!-- Modal: Manage Access (With Contributor) -->
+<!-- Modal: Folder Security / Password -->
+<div class="modal-shade" id="securityModal">
+    <div class="modal-box" style="max-width: 400px;">
+        <div class="modal-header">
+            <div class="modal-title">Folder Security</div>
+            <button class="modal-close" id="closeSecurityModal">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="input-group">
+            <label>Set or Change Password (Leave blank to remove)</label>
+            <input type="text" id="folderSecurityPasswordInput" class="clean-input" placeholder="Enter folder password">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+            <button class="btn-pill" id="btnSaveFolderSecurity">Save Password</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Manage Access (with Contributor) -->
 <div class="modal-shade" id="accessModal">
     <div class="modal-box">
         <div class="modal-header">
@@ -625,8 +668,8 @@
                 <select id="inviteRoleSelect" class="clean-input" style="width: 170px;">
                     <option value="Editor">Editor</option>
                     <option value="Contributor">Contributor</option>
-                    <option value="Viewer">Viewer</option>
                     <option value="Commenter">Commenter</option>
+                    <option value="Viewer">Viewer</option>
                     <option value="Transfer">Transfer Ownership</option>
                 </select>
                 <button class="btn-pill" id="btnAddAccess" style="padding: 0 16px;">Add</button>
@@ -638,25 +681,6 @@
         </div>
         <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
             <button class="btn-pill" id="btnSaveAccess">Save Changes</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Security / Password for Folders -->
-<div class="modal-shade" id="securityModal">
-    <div class="modal-box" style="max-width: 380px;">
-        <div class="modal-header">
-            <div class="modal-title">Folder Security</div>
-            <button class="modal-close" id="closeSecurityModal">
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-        </div>
-        <div class="input-group">
-            <label>Folder Password (Leave blank to remove password)</label>
-            <input type="text" id="folderSecurityPassInput" class="clean-input" placeholder="Set or change password">
-        </div>
-        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
-            <button class="btn-pill" id="btnSaveSecurity">Update Security</button>
         </div>
     </div>
 </div>
@@ -916,7 +940,6 @@
         return cid ? allFolderDocs.find(f => f.id === cid) : null;
     }
 
-    // Permission check with Contributor and inherited parent folder access
     function getUserRole(item) {
         if (item.Email === userEmail) return 'Owner';
         const acc = item.Access || {};
@@ -925,9 +948,9 @@
         if (acc.Commenter?.includes(userEmail) || acc.Commentator?.includes(userEmail)) return 'Commenter';
         if (acc.Viewer?.includes(userEmail)) return 'Viewer';
 
-        // Check Inheritance from parent folders
-        for (let i = folderHierarchy.length - 1; i >= 0; i--) {
-            const pDoc = allFolderDocs.find(x => x.id === folderHierarchy[i].id);
+        // Check Inheritance
+        for (const f of folderHierarchy) {
+            const pDoc = allFolderDocs.find(x => x.id === f.id);
             if (pDoc) {
                 if (pDoc.Email === userEmail) return 'Owner';
                 const pAcc = pDoc.Access || {};
@@ -985,8 +1008,8 @@
                 or(
                     where("Email", "==", userEmail),
                     where("Access.Viewer", "array-contains", userEmail),
-                    where("Access.Commenter", "array-contains", userEmail),
                     where("Access.Contributor", "array-contains", userEmail),
+                    where("Access.Commenter", "array-contains", userEmail),
                     where("Access.Commentator", "array-contains", userEmail),
                     where("Access.Editor", "array-contains", userEmail)
                 )
@@ -1019,16 +1042,15 @@
 
             currentRenderedItems = renderItems;
 
-            // Empty State Handling
             if (renderItems.length === 0) {
-                const emptyTitle = folderHierarchy.length > 0 
-                    ? `No Files In Your ${folderHierarchy[folderHierarchy.length - 1].name}`
+                const emptyTitleText = currId 
+                    ? `No Files In Your ${folderHierarchy[folderHierarchy.length - 1].name}` 
                     : `No Files In Your Drive`;
 
                 container.innerHTML = `
-                    <div class="empty-state-wrap">
-                        <img src="https://indus.sarvam.ai/studio/assets/empty-table.webp" alt="Empty" class="empty-state-img">
-                        <div class="empty-state-title">${emptyTitle}</div>
+                    <div class="empty-state-card">
+                        <img src="https://indus.sarvam.ai/studio/assets/empty-table.webp" alt="Empty Drive">
+                        <div class="empty-title">${emptyTitleText}</div>
                         <button class="btn-pill" id="emptyAddFilesBtn">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             Add Files
@@ -1036,7 +1058,7 @@
                     </div>
                 `;
                 document.getElementById('emptyAddFilesBtn')?.addEventListener('click', () => {
-                    nativeFileInput.click();
+                    document.getElementById('nativeFileInput').click();
                 });
                 return;
             }
@@ -1072,8 +1094,35 @@
         row.setAttribute('data-id', item.id);
         row.setAttribute('data-index', index);
 
+        // Build 3-dots menu options based on role and folder type
+        let dropdownItemsHtml = '';
+        if (isViewer) {
+            // Viewers can ONLY see Details and Cancel their access (remove from drive)
+            dropdownItemsHtml = `
+                <div class="dropdown-item opt-details">${SVG_ICONS.info} Details</div>
+                <div class="dropdown-item danger opt-leave">${SVG_ICONS.trash} Remove from Drive</div>
+            `;
+        } else {
+            dropdownItemsHtml = `
+                ${!isFolder ? `<div class="dropdown-item opt-download">${SVG_ICONS.download} Download</div>` : ''}
+                <div class="dropdown-item opt-rename">${SVG_ICONS.edit} Rename</div>
+                ${!isFolder ? `<div class="dropdown-item opt-share">${SVG_ICONS.share} Share</div>` : ''}
+                ${isFolder ? `<div class="dropdown-item opt-security">${SVG_ICONS.lock} Security</div>` : ''}
+                <div class="dropdown-item opt-access">${SVG_ICONS.users} Manage Access</div>
+                <div class="dropdown-item opt-label">${SVG_ICONS.tag} Label</div>
+                <div class="dropdown-item opt-move">${SVG_ICONS.move} ${isFolder ? 'Organise' : 'Move'}</div>
+                <div class="dropdown-item opt-details">${SVG_ICONS.info} Details</div>
+                <div class="dropdown-item danger opt-delete">${SVG_ICONS.trash} Delete</div>
+            `;
+        }
+
         row.innerHTML = `
-            <div class="cell-checkbox"><input type="checkbox" class="row-checkbox custom-chk" data-id="${item.id}"></div>
+            <div class="cell-checkbox">
+                <label class="custom-chk-label">
+                    <input type="checkbox" class="row-checkbox" data-id="${item.id}">
+                    <span class="chk-circle"></span>
+                </label>
+            </div>
             <div class="file-title-cell">
                 <div class="file-icon-box">${format.icon}</div>
                 <div class="file-info-col">
@@ -1086,17 +1135,7 @@
             <div class="cell-date" style="font-size: 13px; color: var(--text-secondary);">${updated}</div>
             <div class="actions-cell">
                 <button class="btn-dots">${SVG_ICONS.dots}</button>
-                <div class="action-dropdown">
-                    ${!isFolder ? `<div class="dropdown-item opt-download">${SVG_ICONS.download} Download</div>` : ''}
-                    ${!isViewer ? `<div class="dropdown-item opt-rename">${SVG_ICONS.edit} Rename</div>` : ''}
-                    ${!isFolder ? `<div class="dropdown-item opt-share">${SVG_ICONS.share} Share</div>` : ''}
-                    ${!isViewer ? `<div class="dropdown-item opt-access">${SVG_ICONS.users} Manage Access</div>` : ''}
-                    ${isFolder && !isViewer ? `<div class="dropdown-item opt-security">${SVG_ICONS.lock} Security</div>` : ''}
-                    ${!isViewer ? `<div class="dropdown-item opt-label">${SVG_ICONS.tag} Label</div>` : ''}
-                    ${!isViewer ? `<div class="dropdown-item opt-move">${SVG_ICONS.move} ${isFolder ? 'Organise' : 'Move'}</div>` : ''}
-                    <div class="dropdown-item opt-details">${SVG_ICONS.info} Details</div>
-                    ${!isViewer ? `<div class="dropdown-item danger opt-delete">${SVG_ICONS.trash} Delete</div>` : ''}
-                </div>
+                <div class="action-dropdown">${dropdownItemsHtml}</div>
             </div>
         `;
 
@@ -1133,36 +1172,44 @@
             dropdown.classList.toggle('active');
         });
 
-        // Click on row: In selection mode, clicking anywhere selects/deselects. Otherwise opens the item.
+        // Row Click Handler: In Select Mode, clicking ANYWHERE on the row selects it
         row.addEventListener('click', (e) => {
-            if (e.target.closest('.actions-cell') || e.target.closest('.row-checkbox')) return;
+            if (e.target.closest('.btn-dots') || e.target.closest('.action-dropdown')) return;
 
             if (isSelectionMode) {
+                e.stopPropagation();
                 toggleSelectItem(item.id, !selectedItemIds.has(item.id));
                 return;
             }
 
-            if (item.Password) {
-                promptPasswordAuth(item.Password, () => openItem(item, isFolder, name));
-            } else {
-                openItem(item, isFolder, name);
+            // If regular click on filename or row
+            if (e.target.closest('.file-title-cell') || e.target === row) {
+                if (item.Password) {
+                    promptPasswordAuth(item.Password, () => openItem(item, isFolder, name));
+                } else {
+                    openItem(item, isFolder, name);
+                }
             }
         });
 
-        // Action Handlers
-        if (!isFolder) {
-            row.querySelector('.opt-download')?.addEventListener('click', () => directDownloadFile(item.File, item.Name));
-            row.querySelector('.opt-share')?.addEventListener('click', () => openShareModal(item));
-        }
-        if (!isViewer) {
+        // Action Bindings
+        if (isViewer) {
+            row.querySelector('.opt-details')?.addEventListener('click', () => openDetailsModal(item));
+            row.querySelector('.opt-leave')?.addEventListener('click', () => handleViewerLeave(item));
+        } else {
+            if (!isFolder) {
+                row.querySelector('.opt-download')?.addEventListener('click', () => directDownloadFile(item.File, item.Name));
+                row.querySelector('.opt-share')?.addEventListener('click', () => openShareModal(item));
+            } else {
+                row.querySelector('.opt-security')?.addEventListener('click', () => openSecurityModal(item));
+            }
             row.querySelector('.opt-rename')?.addEventListener('click', () => openRenameModal(item));
             row.querySelector('.opt-access')?.addEventListener('click', () => openAccessModal(item));
-            row.querySelector('.opt-security')?.addEventListener('click', () => openSecurityModal(item));
             row.querySelector('.opt-label')?.addEventListener('click', () => openLabelModal(item));
             row.querySelector('.opt-move')?.addEventListener('click', () => openMoveModal(item));
+            row.querySelector('.opt-details')?.addEventListener('click', () => openDetailsModal(item));
             row.querySelector('.opt-delete')?.addEventListener('click', () => handleDelete(item));
         }
-        row.querySelector('.opt-details')?.addEventListener('click', () => openDetailsModal(item));
 
         container.appendChild(row);
     }
@@ -1209,7 +1256,7 @@
         document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('active'));
     });
 
-    // Password Prompt Modal
+    // Password Challenge Modal
     const passModal = document.getElementById('passwordAuthModal');
     let passSuccessCallback = null;
     let expectedPass = "";
@@ -1229,6 +1276,28 @@
         } else {
             showToast("Incorrect password!");
         }
+    });
+
+    // Folder Security Modal (Password management for folders)
+    const securityModal = document.getElementById('securityModal');
+    let targetSecurityItem = null;
+
+    function openSecurityModal(item) {
+        targetSecurityItem = item;
+        document.getElementById('folderSecurityPasswordInput').value = item.Password || '';
+        securityModal.classList.add('active');
+    }
+    document.getElementById('closeSecurityModal').addEventListener('click', () => securityModal.classList.remove('active'));
+    document.getElementById('btnSaveFolderSecurity').addEventListener('click', async () => {
+        if (!targetSecurityItem) return;
+        const newPass = document.getElementById('folderSecurityPasswordInput').value.trim();
+        await updateDoc(doc(db, "Cloud Drive", targetSecurityItem.id), {
+            Password: newPass,
+            Updated: formatFirestoreDate()
+        });
+        showToast(newPass ? "Password protection enabled" : "Password protection removed");
+        securityModal.classList.remove('active');
+        loadDrive();
     });
 
     // ==========================================
@@ -1336,28 +1405,6 @@
         openMoveModal(null, true);
     });
 
-    // Folder Security Modal
-    const securityModal = document.getElementById('securityModal');
-    let targetSecurityItem = null;
-
-    function openSecurityModal(item) {
-        targetSecurityItem = item;
-        document.getElementById('folderSecurityPassInput').value = item.Password || "";
-        securityModal.classList.add('active');
-    }
-    document.getElementById('closeSecurityModal').addEventListener('click', () => securityModal.classList.remove('active'));
-    document.getElementById('btnSaveSecurity').addEventListener('click', async () => {
-        if (!targetSecurityItem) return;
-        const pass = document.getElementById('folderSecurityPassInput').value.trim();
-        await updateDoc(doc(db, "Cloud Drive", targetSecurityItem.id), {
-            Password: pass,
-            Updated: formatFirestoreDate()
-        });
-        showToast(pass ? "Password enabled" : "Password removed");
-        securityModal.classList.remove('active');
-        loadDrive();
-    });
-
     // Rename Modal
     let targetRenameItem = null;
     const renameModal = document.getElementById('renameModal');
@@ -1463,7 +1510,7 @@
     // Manage Access Modal (With Contributor)
     const accessModal = document.getElementById('accessModal');
     let targetAccessItem = null;
-    let localAccessState = { Viewer: [], Commenter: [], Contributor: [], Editor: [] };
+    let localAccessState = { Viewer: [], Contributor: [], Commenter: [], Editor: [] };
 
     function openAccessModal(item) {
         targetAccessItem = item;
@@ -1473,8 +1520,8 @@
         const access = item.Access || {};
         localAccessState = {
             Viewer: [...(access.Viewer || [])],
-            Commenter: [...(access.Commenter || access.Commentator || [])],
             Contributor: [...(access.Contributor || [])],
+            Commenter: [...(access.Commenter || access.Commentator || [])],
             Editor: [...(access.Editor || [])]
         };
 
@@ -1495,8 +1542,8 @@
                 <span style="font-size: 11px; color: var(--accent); font-weight:600;">Owner</span>
             </div>
         `;
-        ['Editor', 'Contributor', 'Viewer', 'Commenter'].forEach(role => {
-            (localAccessState[role] || []).forEach((email, idx) => {
+        ['Editor', 'Contributor', 'Commenter', 'Viewer'].forEach(role => {
+            localAccessState[role].forEach((email, idx) => {
                 const div = document.createElement('div');
                 div.className = 'user-access-row';
                 div.innerHTML = `
@@ -1526,7 +1573,7 @@
             if (confirm(`Transfer ownership to ${email}? You will lose owner access.`)) {
                 await updateDoc(doc(db, "Cloud Drive", targetAccessItem.id), {
                     Email: email,
-                    Access: { Viewer: [], Commenter: [], Contributor: [], Editor: [] },
+                    Access: { Viewer: [], Contributor: [], Commenter: [], Editor: [] },
                     Updated: formatFirestoreDate()
                 });
                 showToast("Ownership transferred");
@@ -1536,12 +1583,9 @@
             return;
         }
 
-        ['Viewer', 'Commenter', 'Contributor', 'Editor'].forEach(r => {
-            if (localAccessState[r]) {
-                localAccessState[r] = localAccessState[r].filter(e => e !== email);
-            }
+        ['Viewer', 'Contributor', 'Commenter', 'Editor'].forEach(r => {
+            localAccessState[r] = localAccessState[r].filter(e => e !== email);
         });
-        if (!localAccessState[role]) localAccessState[role] = [];
         localAccessState[role].push(email);
         document.getElementById('inviteEmailInput').value = "";
         renderAccessList(false);
@@ -1557,6 +1601,20 @@
         accessModal.classList.remove('active');
         loadDrive();
     });
+
+    // Viewer Cancel/Remove Access Handler
+    async function handleViewerLeave(item) {
+        if (confirm(`Remove "${item.Name || 'item'}" from your drive?`)) {
+            await updateDoc(doc(db, "Cloud Drive", item.id), {
+                "Access.Viewer": arrayRemove(userEmail),
+                "Access.Contributor": arrayRemove(userEmail),
+                "Access.Commenter": arrayRemove(userEmail),
+                "Access.Editor": arrayRemove(userEmail)
+            });
+            showToast("Removed from your drive");
+            loadDrive();
+        }
+    }
 
     // Share Modal
     const shareModal = document.getElementById('shareModal');
@@ -1665,7 +1723,7 @@
         loadDrive();
     });
 
-    // Delete Single Item
+    // Delete Single Item (Owner/Editor)
     async function handleDelete(item) {
         if (confirm(`Permanently delete "${item.Name || 'item'}"?`)) {
             for (const f of allFolderDocs) {
@@ -1703,7 +1761,7 @@
                 Label: [],
                 Customize: { Colour: "Green" },
                 Updated: formatFirestoreDate(),
-                Access: { Viewer: [], Commenter: [], Contributor: [], Editor: [] }
+                Access: { Viewer: [], Contributor: [], Commenter: [], Editor: [] }
             });
 
             const currFolderId = getCurrentFolderId();
@@ -1786,7 +1844,7 @@
                     LastOpened: new Date().toISOString(),
                     LastOpenedBy: userEmail,
                     Updated: formatFirestoreDate(),
-                    Access: { Viewer: [], Commenter: [], Contributor: [], Editor: [] }
+                    Access: { Viewer: [], Contributor: [], Commenter: [], Editor: [] }
                 });
 
                 const currFolderId = getCurrentFolderId();
@@ -1804,7 +1862,7 @@
         loadDrive();
     }
 
-    // Comprehensive Search across all workspace items & labels
+    // Full Search Across All Files, Nested Folders & Labels
     document.getElementById('searchInput').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase().trim();
         const container = document.getElementById('tableContent');
@@ -1816,22 +1874,23 @@
 
         const matches = allWorkspaceDocs.filter(item => {
             const name = (item.Name || '').toLowerCase();
-            const labels = (item.Label || []).join(' ').toLowerCase();
+            const labels = (Array.isArray(item.Label) ? item.Label.join(' ') : '').toLowerCase();
             return name.includes(val) || labels.includes(val);
         });
 
         container.innerHTML = "";
-        currentRenderedItems = matches;
-
         if (matches.length === 0) {
             container.innerHTML = `<div style="padding: 32px 0; color: var(--text-secondary); font-size: 14px; text-align: center;">No matching files or folders found.</div>`;
             return;
         }
 
+        currentRenderedItems = matches;
         matches.forEach((item, idx) => renderRow(item, idx));
     });
 
-    // Keyboard Shortcuts
+    // ==========================================
+    // KEYBOARD SHORTCUTS
+    // ==========================================
     let themeKeySequence = [];
     let themeTimer = null;
 
@@ -1901,7 +1960,7 @@
             return;
         }
 
-        // Theme Switch Sequence: Shift+T followed by D or L
+        // Theme Switch Sequence
         if (e.shiftKey && (e.key === 'T' || e.key === 't')) {
             themeKeySequence = ['T'];
             clearTimeout(themeTimer);
@@ -1922,7 +1981,7 @@
             }
         }
 
-        // Arrow Key Navigation & Space Selection
+        // Arrow Navigation & Space Key Selection
         const rows = document.querySelectorAll('.table-row');
         if (rows.length === 0) return;
 
