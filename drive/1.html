@@ -21,6 +21,9 @@
             --danger: #ef4444;
             --tag-bg: #e5e7eb;
             --tag-text: #374151;
+            --selection-bg: #111827;
+            --selection-text: #ffffff;
+            --selection-border: rgba(0, 0, 0, 0.08);
             --select-highlight: rgba(0, 0, 0, 0.05);
             --sidebar-width: 64px;
         }
@@ -39,6 +42,9 @@
             --danger: #f87171;
             --tag-bg: #2d2d2d;
             --tag-text: #d1d5db;
+            --selection-bg: #1e1e1e;
+            --selection-text: #f9fafb;
+            --selection-border: #333333;
             --select-highlight: rgba(255, 255, 255, 0.06);
         }
 
@@ -194,7 +200,7 @@
         }
         .view-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
-        /* Selection Toolbar */
+        /* Theme Adaptive Pill Selection Toolbar */
         .selection-toolbar {
             position: sticky;
             top: 10px;
@@ -246,7 +252,7 @@
         }
         .btn-done-select:hover { opacity: 0.7; }
 
-        /* Circular Black/White Checkbox */
+        /* Circular Checkbox */
         .custom-checkbox {
             width: 18px;
             height: 18px;
@@ -318,7 +324,11 @@
         }
 
         /* ================= LIST VIEW ================= */
-        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
         .table-head {
             display: grid;
             grid-template-columns: 3.2fr 1.8fr 1.5fr 1.8fr 40px;
@@ -328,6 +338,7 @@
             color: var(--text-secondary);
             border-bottom: 1px solid var(--border-color);
         }
+
         .table-row {
             display: grid;
             grid-template-columns: 3.2fr 1.8fr 1.5fr 1.8fr 40px;
@@ -343,10 +354,18 @@
         .table-row.selected { background-color: var(--select-highlight); }
         .table-row.keyboard-focused { outline: 2px solid var(--accent); outline-offset: -2px; }
 
-        .selection-active .table-head { grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px; }
-        .selection-active .table-row { grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px; }
+        .selection-active .table-head {
+            grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px;
+        }
+        .selection-active .table-row {
+            grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px;
+        }
 
-        .cell-checkbox { display: none; align-items: center; justify-content: center; }
+        .cell-checkbox {
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
         .selection-active .cell-checkbox { display: flex; }
 
         .file-title-cell {
@@ -412,7 +431,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         .grid-header-left {
             display: flex;
@@ -447,51 +466,41 @@
         }
         .selection-active .grid-card-checkbox { display: flex; }
 
-        /* Crisp Folder Graphic in Grid View */
+        /* High-Contrast Visible Folder Preview */
         .grid-folder-body {
             height: 86px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 4px 0;
-        }
-        .big-folder-wrapper {
             position: relative;
-            width: 88px;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         .big-folder-svg {
-            width: 100%;
-            height: 100%;
-            display: block;
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.08));
+            width: 96px;
+            height: 74px;
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.08));
         }
         .big-folder-badge-icon {
             position: absolute;
-            top: 55%;
+            top: 54%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 22px;
-            height: 22px;
+            width: 26px;
+            height: 26px;
             display: flex;
             align-items: center;
             justify-content: center;
             pointer-events: none;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
         }
         .big-folder-badge-icon svg {
             width: 22px;
             height: 22px;
-            stroke-width: 2;
+            stroke-width: 2.2;
             fill: none;
         }
 
         /* File Preview */
         .grid-file-preview {
-            height: 95px;
+            height: 100px;
             background: var(--surface-color);
             border-radius: 8px;
             border: 1px solid var(--border-color);
@@ -501,7 +510,11 @@
             justify-content: center;
             position: relative;
         }
-        .grid-file-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .grid-file-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
         .doc-mockup-page {
             width: 70%;
             height: 80%;
@@ -631,7 +644,7 @@
             font-size: 12px;
             font-weight: 500;
             color: var(--text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .clean-input {
             width: 100%;
@@ -654,16 +667,18 @@
             font-size: 13px;
         }
 
-        /* Preset Color Swatches */
+        /* Folder Customize Palette Grid (Matching Screenshot exactly) */
         .color-palette-grid {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
             gap: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
         }
         .color-swatch {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             cursor: pointer;
             border: 2px solid transparent;
@@ -673,26 +688,22 @@
             justify-content: center;
         }
         .color-swatch:hover { transform: scale(1.1); }
-        .color-swatch.active {
-            border-color: var(--text-primary);
-            box-shadow: 0 0 0 2px var(--surface-color);
-        }
+        .color-swatch.active { border-color: var(--text-primary); box-shadow: 0 0 0 2px var(--surface-color); }
 
-        /* 30 Icon Grid (6 columns x 5 rows) */
         .icon-palette-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
             gap: 8px;
-            max-height: 220px;
+            max-height: 230px;
             overflow-y: auto;
-            padding: 8px;
+            padding: 6px;
             border: 1px solid var(--border-color);
             border-radius: 12px;
             background: var(--hover-bg);
         }
         .icon-swatch {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -704,9 +715,9 @@
         .icon-swatch:hover, .icon-swatch.active {
             background: var(--surface-color);
             color: var(--text-primary);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .icon-swatch svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+        .icon-swatch svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
         /* Toast Feedback */
         .toast-popup {
@@ -724,7 +735,7 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         }
 
-        /* Details Modal */
+        /* Details */
         .details-grid { display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
         .details-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-color); }
         .details-label { color: var(--text-secondary); }
@@ -755,7 +766,7 @@
 </head>
 <body>
 
-<!-- Workspace Sidebar -->
+<!-- Sidebar -->
 <aside class="sidebar">
     <div class="side-icon active" title="Cloud Drive">
         <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
@@ -831,11 +842,29 @@
         </div>
     </div>
 
-    <!-- Workspace Container (List or Grid) -->
-    <div id="workspaceViewWrapper"></div>
+    <!-- Workspace Container -->
+    <div id="workspaceViewWrapper">
+        <div class="data-table" id="dataTable">
+            <div class="table-head">
+                <div class="cell-checkbox">
+                    <div class="custom-checkbox" id="selectAllCheckbox">
+                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                </div>
+                <div>Name</div>
+                <div class="cell-uploader">Owner</div>
+                <div class="cell-format">Format</div>
+                <div class="cell-date">Updated</div>
+                <div></div>
+            </div>
+            <div id="tableContent">
+                <div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading Cloud Drive...</div>
+            </div>
+        </div>
+    </div>
 </main>
 
-<!-- Modal: Folder Customize (30 Icons + Preset Palette) -->
+<!-- Modal: Folder Customize (14 Distinct Palette Colors + 30 Icons Exactly Matching Image) -->
 <div class="modal-shade" id="customizeModal">
     <div class="modal-box" style="max-width: 440px;">
         <div class="modal-header">
@@ -849,11 +878,11 @@
             <div class="color-palette-grid" id="colorPaletteGrid"></div>
         </div>
         <div class="input-group">
-            <label>Icon Badge (30 Options)</label>
+            <label>Icon</label>
             <div class="icon-palette-grid" id="iconPaletteGrid"></div>
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
-            <button class="btn-pill" id="btnSaveCustomize">Apply</button>
+            <button class="btn-pill" id="btnSaveCustomize">Apply Changes</button>
         </div>
     </div>
 </div>
@@ -1130,59 +1159,79 @@
         return `${timeStr} , ${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
     }
 
-    // Preset Color Palette from Screenshot
+    // Helper: calculate high-contrast icon color (White vs Dark Charcoal) based on folder background
+    function getContrastColor(hexColor) {
+        if (!hexColor || hexColor === '#FFFFFF' || hexColor.toLowerCase() === '#ffffff') return '#111827';
+        let hex = hexColor.replace('#', '');
+        if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+        const r = parseInt(hex.substring(0, 2), 16) || 0;
+        const g = parseInt(hex.substring(2, 4), 16) || 0;
+        const b = parseInt(hex.substring(4, 6), 16) || 0;
+        const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+        return (yiq >= 170) ? '#111827' : '#FFFFFF';
+    }
+
+    // Color Swatches from Image
     const FOLDER_COLORS = [
         { name: "White", hex: "#FFFFFF" },
-        { name: "Coral Red", hex: "#F26966" },
-        { name: "Orange", hex: "#EE8554" },
-        { name: "Yellow", hex: "#F6C954" },
-        { name: "Green", hex: "#6FC686" },
-        { name: "Blue", hex: "#468BFA" },
-        { name: "Purple", hex: "#A580F6" },
-        { name: "Pink", hex: "#F47DA6" }
+        { name: "Coral Red", hex: "#F2695C" },
+        { name: "Orange", hex: "#E98352" },
+        { name: "Yellow", hex: "#F3C44E" },
+        { name: "Green", hex: "#63C47E" },
+        { name: "Blue", hex: "#4C8BF5" },
+        { name: "Lavender", hex: "#A386F5" },
+        { name: "Pink", hex: "#EC7BAF" },
+        { name: "Teal", hex: "#2CB5A0" },
+        { name: "Cyan", hex: "#22B8E6" },
+        { name: "Amber", hex: "#D69E2E" },
+        { name: "Indigo", hex: "#667EEA" },
+        { name: "Brown", hex: "#8D6E63" },
+        { name: "Slate Gray", hex: "#94A3B8" }
     ];
 
-    // Exact 30 Icons from Screenshot 2 (5 rows x 6 columns)
+    // ==========================================
+    // ALL 30 ICONS (Matching Image 2: 5 Rows x 6 Columns)
+    // ==========================================
     const BADGE_ICONS = {
         // Row 1
         folder: `<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
-        dollar: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v10M15 9.5a2.5 2.5 0 0 0-2.5-2.5h-1a2.5 2.5 0 0 0 0 5h1a2.5 2.5 0 0 1 0 5h-1A2.5 2.5 0 0 1 9 14.5"></path></svg>`,
-        book: `<svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>`,
+        dollar: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="7" x2="12" y2="17"></line><path d="M15 9.5a2.5 2.5 0 0 0-5 0c0 1.5 1 2 2.5 2.5s2.5 1 2.5 2.5a2.5 2.5 0 0 1-5 0"></path></svg>`,
+        book: `<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"></rect><line x1="8" y1="3" x2="8" y2="21"></line></svg>`,
         cap: `<svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c0 3 6 3 6 3s6 0 6-3v-5"></path></svg>`,
         pencil: `<svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`,
-        quill: `<svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path></svg>`,
+        nib: `<svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>`,
 
         // Row 2
-        code: `<svg viewBox="0 0 24 24"><path d="M9 4c-3 0-4 2-4 4v2a2 2 0 0 1-2 2 2 2 0 0 1 2 2v2c0 2 1 4 4 4"></path><path d="M15 4c3 0 4 2 4 4v2a2 2 0 0 0 2 2 2 2 0 0 0-2 2v2c0 2-1 4-4 4"></path></svg>`,
+        code: `<svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`,
         terminal: `<svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>`,
         music: `<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`,
-        cupcake: `<svg viewBox="0 0 24 24"><path d="M6 10l1.5 10h9L18 10"></path><path d="M4 10a4 4 0 0 1 8-2 4 4 0 0 1 8 2z"></path><circle cx="12" cy="5" r="1.5"></circle></svg>`,
-        brush: `<svg viewBox="0 0 24 24"><path d="M18 2l4 4-10 10H8v-4L18 2z"></path><path d="M4 22c0-3 3-4 4-4"></path></svg>`,
+        cupcake: `<svg viewBox="0 0 24 24"><path d="M4 11h16l-2 10H6L4 11z"></path><path d="M4 11c0-2.2 1.8-4 4-4 .6 0 1.2.1 1.7.4C10.5 5.5 12.1 4 14 4c2.2 0 4 1.8 4 4 0 .3 0 .7-.1 1"></path></svg>`,
+        brush: `<svg viewBox="0 0 24 24"><path d="M18 2l4 4-10 10H8v-4L18 2z"></path><path d="M4 22c0-3 2-5 4-5"></path></svg>`,
         palette: `<svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>`,
 
         // Row 3
-        stethoscope: `<svg viewBox="0 0 24 24"><path d="M4.5 3v5a5.5 5.5 0 0 0 11 0V3"></path><path d="M10 13.5v3.5a3 3 0 0 0 3 3h1a3 3 0 0 0 3-3v-1"></path><circle cx="17" cy="14" r="2"></circle><line x1="3" y1="3" x2="6" y2="3"></line><line x1="14" y1="3" x2="17" y2="3"></line></svg>`,
-        flower: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4z"></path><path d="M22 12a4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4 4 4 0 0 1 4 4z"></path><path d="M12 22a4 4 0 0 1-4-4 4 4 0 0 1 4-4 4 4 0 0 1 4 4 4 4 0 0 1-4 4z"></path><path d="M2 12a4 4 0 0 1 4-4 4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4z"></path></svg>`,
-        lotus: `<svg viewBox="0 0 24 24"><path d="M12 3c1.5 3 2.5 6 2.5 9.5 0 3.5-1 5.5-2.5 6.5-1.5-1-2.5-3-2.5-6.5C9.5 9 10.5 6 12 3z"></path><path d="M12 19c3.5 0 8-3.5 8-8 0-2-1.5-4-3-4-2 0-3.5 2-5 5"></path><path d="M12 19c-3.5 0-8-3.5-8-8 0-2 1.5-4 3-4 2 0 3.5 2 5 5"></path></svg>`,
+        stethoscope: `<svg viewBox="0 0 24 24"><path d="M4.5 3v5a6 6 0 0 0 12 0V3"></path><line x1="3" y1="3" x2="6" y2="3"></line><line x1="15" y1="3" x2="18" y2="3"></line><path d="M10.5 14v4a3 3 0 0 0 6 0v-2"></path><circle cx="16.5" cy="16" r="2.5"></circle></svg>`,
+        flower: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2a4 4 0 0 0-4 4 4 4 0 0 0 8 0 4 4 0 0 0-4-4z"></path><path d="M22 12a4 4 0 0 0-4-4 4 4 0 0 0 0 8 4 4 0 0 0 4-4z"></path><path d="M12 22a4 4 0 0 0 4-4 4 4 0 0 0-8 0 4 4 0 0 0 4 4z"></path><path d="M2 12a4 4 0 0 0 4 4 4 4 0 0 0 0-8 4 4 0 0 0-4 4z"></path></svg>`,
+        lotus: `<svg viewBox="0 0 24 24"><path d="M12 3c-2 4-5 8-10 11 4 1 8 0 10-4 2 4 6 5 10 4-5-3-8-7-10-11z"></path><path d="M12 10c-1.5 3-4 6-7 7 3 1 6 .5 7-3 1 3.5 4 4 7 3-3-1-5.5-4-7-7z"></path></svg>`,
         briefcase: `<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`,
-        chart: `<svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9" rx="1"></rect><rect x="10" y="5" width="4" height="16" rx="1"></rect><rect x="17" y="9" width="4" height="12" rx="1"></rect></svg>`,
-        kettlebell: `<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="7"></circle><path d="M8 10V6a4 4 0 0 1 8 0v4"></path></svg>`,
+        chart: `<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
+        kettlebell: `<svg viewBox="0 0 24 24"><path d="M9 7V4a3 3 0 0 1 6 0v3"></path><circle cx="12" cy="14" r="7"></circle></svg>`,
 
         // Row 4
-        dumbbell: `<svg viewBox="0 0 24 24"><path d="M6 5v14M18 5v14M3 8v8M21 8v8M6 12h12"></path></svg>`,
-        notebook: `<svg viewBox="0 0 24 24"><rect x="5" y="3" width="15" height="18" rx="2"></rect><line x1="3" y1="7" x2="7" y2="7"></line><line x1="3" y1="12" x2="7" y2="12"></line><line x1="3" y1="17" x2="7" y2="17"></line></svg>`,
-        scale: `<svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><line x1="4" y1="7" x2="20" y2="7"></line><path d="M4 7l3 7h-6z"></path><path d="M20 7l3 7h-6z"></path></svg>`,
-        globe_stand: `<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="6"></circle><path d="M12 4a6 6 0 0 0-6 6c0 4 3 7 6 7s6-3 6-7"></path><path d="M12 17v4M8 21h8"></path></svg>`,
-        airplane: `<svg viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"></path></svg>`,
+        dumbbell: `<svg viewBox="0 0 24 24"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>`,
+        notebook: `<svg viewBox="0 0 24 24"><path d="M6 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6"></path><path d="M2 6h4M2 10h4M2 14h4M2 18h4"></path></svg>`,
+        scales: `<svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><path d="M5 21h14"></path><path d="M3 7h18"></path><path d="M3 7l3 7h-6l3-7zM21 7l3 7h-6l3-7z"></path></svg>`,
+        globeStand: `<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="7"></circle><path d="M12 17v4M8 21h8M19 10a7 7 0 0 1-14 0"></path></svg>`,
+        plane: `<svg viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"></path></svg>`,
         globe: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
 
         // Row 5
         wrench: `<svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`,
-        paw: `<svg viewBox="0 0 24 24"><circle cx="6.5" cy="9.5" r="2"></circle><circle cx="17.5" cy="9.5" r="2"></circle><circle cx="10" cy="5.5" r="2"></circle><circle cx="14" cy="5.5" r="2"></circle><path d="M12 13c-2.5 0-4.5 1.5-4.5 3.5 0 2 2 3.5 4.5 3.5s4.5-1.5 4.5-3.5c0-2-2-3.5-4.5-3.5z"></path></svg>`,
+        paw: `<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="4"></circle><circle cx="6.5" cy="9.5" r="2"></circle><circle cx="17.5" cy="9.5" r="2"></circle><circle cx="9" cy="5.5" r="1.8"></circle><circle cx="15" cy="5.5" r="1.8"></circle></svg>`,
         flask: `<svg viewBox="0 0 24 24"><path d="M10 2v7.31L4.15 19.89A2 2 0 0 0 5.86 23h12.28a2 2 0 0 0 1.71-3.11L14 9.31V2z"></path><line x1="8.5" y1="2" x2="15.5" y2="2"></line><line x1="14" y1="14" x2="10" y2="14"></line></svg>`,
-        brain: `<svg viewBox="0 0 24 24"><path d="M9.5 4a3.5 3.5 0 0 0-3.5 3.5c0 .4.1.8.2 1.2A3.5 3.5 0 0 0 4 12a3.5 3.5 0 0 0 2.2 3.3A3.5 3.5 0 0 0 9.5 19h1V4h-1z"></path><path d="M14.5 4a3.5 3.5 0 0 1 3.5 3.5c0 .4-.1.8-.2 1.2A3.5 3.5 0 0 1 20 12a3.5 3.5 0 0 1-2.2 3.3A3.5 3.5 0 0 1 14.5 19h-1V4h1z"></path></svg>`,
+        brain: `<svg viewBox="0 0 24 24"><path d="M9.5 4a3.5 3.5 0 0 0-3.5 3.5c0 .3.04.59.11.87A3.5 3.5 0 0 0 4 11.5c0 1.4.82 2.61 2 3.16V16a3.5 3.5 0 0 0 3.5 3.5h.5"></path><path d="M14.5 4a3.5 3.5 0 0 1 3.5 3.5c0 .3-.04.59-.11.87A3.5 3.5 0 0 1 20 11.5c0 1.4-.82 2.61-2 3.16V16a3.5 3.5 0 0 1-3.5 3.5h-.5"></path><path d="M12 4v16"></path></svg>`,
         heart: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`,
-        plant: `<svg viewBox="0 0 24 24"><path d="M7 15h10l-1.5 6h-7z"></path><path d="M12 15V8"></path><path d="M12 8c2-3 5-3 5 0 0 2-3 3-5 3"></path><path d="M12 10c-2-3-5-3-5 0 0 2 3 3 5 3"></path></svg>`
+        plant: `<svg viewBox="0 0 24 24"><path d="M7 21h10l-1-7H8l-1 7z"></path><path d="M12 14V7"></path><path d="M12 7c-2-3-5-3-5 0s3 3 5 0z"></path><path d="M12 9c2-3 5-3 5 0s-3 3-5 0z"></path></svg>`
     };
 
     const SVG_ICONS = {
@@ -1200,7 +1249,7 @@
         info: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
         tag: `<svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`,
         lock: `<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`,
-        customize: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`
+        customize: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`
     };
 
     function getFormatInfo(typeStr, isFolder) {
@@ -1401,7 +1450,7 @@
         }
 
         const labelsHtml = labels.map(l => `<span class="label-badge">${l}</span>`).join('');
-        const folderColor = item.Customize?.Colour || (isFolder ? '#F26966' : '');
+        const folderColor = item.Customize?.Colour || (isFolder ? '#F2695C' : '');
         const folderBadgeIconKey = item.Customize?.Icon || 'folder';
         const badgeIconSvg = isFolder ? (BADGE_ICONS[folderBadgeIconKey] || BADGE_ICONS.folder) : format.icon;
 
@@ -1450,6 +1499,7 @@
         return row;
     }
 
+    // Render Google Drive Grid View (With Perfectly Visible Badge Icons)
     function renderGridView(items, wrapper) {
         const grid = document.createElement('div');
         grid.className = 'grid-container';
@@ -1461,10 +1511,10 @@
             const format = getFormatInfo(item.Type, isFolder);
             const role = getUserRole(item);
             const isViewer = (role === 'Viewer');
-            const folderColor = item.Customize?.Colour || '#EE8554';
+            const folderColor = item.Customize?.Colour || '#E98352';
             const folderIconKey = item.Customize?.Icon || 'folder';
             const customIconSvg = BADGE_ICONS[folderIconKey] || BADGE_ICONS.folder;
-            const isWhiteFolder = (folderColor.toUpperCase() === '#FFFFFF');
+            const contrastColor = getContrastColor(folderColor);
 
             const card = document.createElement('div');
             card.className = 'grid-card';
@@ -1475,13 +1525,11 @@
             if (isFolder) {
                 previewHtml = `
                     <div class="grid-folder-body">
-                        <div class="big-folder-wrapper">
-                            <svg class="big-folder-svg" viewBox="0 0 24 24" fill="${folderColor}" stroke="${isWhiteFolder ? '#d1d5db' : 'none'}" stroke-width="${isWhiteFolder ? '0.5' : '0'}">
-                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                            </svg>
-                            <div class="big-folder-badge-icon" style="color: ${isWhiteFolder ? '#111827' : '#ffffff'};">
-                                ${customIconSvg}
-                            </div>
+                        <svg class="big-folder-svg" viewBox="0 0 24 24" fill="${folderColor}">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <div class="big-folder-badge-icon" style="color: ${contrastColor};">
+                            ${customIconSvg}
                         </div>
                     </div>
                 `;
@@ -1762,12 +1810,12 @@
     // Folder Customize Modal
     const customizeModal = document.getElementById('customizeModal');
     let targetCustomizeFolder = null;
-    let selectedColor = '#F26966';
+    let selectedColor = '#F2695C';
     let selectedIcon = 'folder';
 
     function openCustomizeModal(item) {
         targetCustomizeFolder = item;
-        selectedColor = item.Customize?.Colour || '#F26966';
+        selectedColor = item.Customize?.Colour || '#F2695C';
         selectedIcon = item.Customize?.Icon || 'folder';
         renderCustomizePalette();
         customizeModal.classList.add('active');
@@ -1782,7 +1830,6 @@
             const swatch = document.createElement('div');
             swatch.className = `color-swatch ${c.hex.toLowerCase() === selectedColor.toLowerCase() ? 'active' : ''}`;
             swatch.style.backgroundColor = c.hex;
-            if (c.hex === '#FFFFFF') swatch.style.border = '1.5px solid #d1d5db';
             swatch.title = c.name;
             swatch.addEventListener('click', () => {
                 selectedColor = c.hex;
@@ -1797,6 +1844,7 @@
             const swatch = document.createElement('div');
             swatch.className = `icon-swatch ${key === selectedIcon ? 'active' : ''}`;
             swatch.innerHTML = BADGE_ICONS[key];
+            swatch.title = key;
             swatch.addEventListener('click', () => {
                 selectedIcon = key;
                 renderCustomizePalette();
@@ -2126,7 +2174,7 @@
         loadDrive();
     });
 
-    // Delete Handlers
+    // Delete
     async function handleDelete(item, isViewer = false) {
         if (isViewer) {
             if (confirm(`Remove "${item.Name || 'item'}" from your drive?`)) {
@@ -2173,7 +2221,7 @@
                 Password: pass,
                 File: [],
                 Label: [],
-                Customize: { Colour: "#F26966", Icon: "folder" },
+                Customize: { Colour: "#F2695C", Icon: "folder" },
                 Updated: formatFirestoreDate(),
                 Access: { Viewer: [], Contributor: [], Commenter: [], Editor: [] }
             });
