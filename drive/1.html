@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -528,7 +529,7 @@
         }
         .doc-line { height: 4px; background: var(--border-color); border-radius: 2px; }
 
-        /* 3-Dots Dropdown */
+        /* 3-Dots Trigger */
         .actions-cell { position: relative; text-align: right; }
         .btn-dots {
             background: none;
@@ -544,21 +545,20 @@
         .btn-dots:hover { color: var(--text-primary); background: var(--border-color); }
         .btn-dots svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
 
-        .action-dropdown {
-            position: absolute;
-            right: 0;
-            top: 28px;
+        /* Desktop Context Dropdown (Floating) */
+        .desktop-action-dropdown {
+            position: fixed;
             background: var(--surface-color);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.14);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
             border-radius: 12px;
-            width: 195px;
+            width: 200px;
             padding: 6px 0;
-            z-index: 100;
+            z-index: 1000;
             display: none;
             border: 1px solid var(--border-color);
             text-align: left;
         }
-        .action-dropdown.active { display: block; }
+        .desktop-action-dropdown.active { display: block; }
         .dropdown-item {
             padding: 8px 16px;
             font-size: 13px;
@@ -570,7 +570,78 @@
         }
         .dropdown-item:hover { background: var(--hover-bg); }
         .dropdown-item.danger { color: var(--danger); }
-        .dropdown-item svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+        .dropdown-item svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+        /* Mobile Bottom Action Sheet (Fixes Clipping on Mobile) */
+        .bottom-sheet-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .bottom-sheet-backdrop.active { display: flex; opacity: 1; }
+
+        .bottom-sheet-card {
+            background: var(--surface-color);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 20px 20px 0 0;
+            padding: 16px 20px 32px 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.25);
+            transform: translateY(100%);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .bottom-sheet-backdrop.active .bottom-sheet-card {
+            transform: translateY(0);
+        }
+
+        .bottom-sheet-handle {
+            width: 36px;
+            height: 4px;
+            background: var(--text-secondary);
+            border-radius: 2px;
+            margin: 0 auto 14px auto;
+            opacity: 0.4;
+        }
+
+        .bottom-sheet-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 8px;
+        }
+        .bottom-sheet-title {
+            font-size: 15px;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .bottom-sheet-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background-color 0.1s;
+        }
+        .bottom-sheet-item:active { background: var(--hover-bg); }
+        .bottom-sheet-item.danger { color: var(--danger); }
+        .bottom-sheet-item svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
         /* Empty State */
         .empty-state-container {
@@ -604,7 +675,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 500;
+            z-index: 2500;
             visibility: hidden;
             opacity: 0;
             transition: opacity 0.2s;
@@ -667,7 +738,7 @@
             font-size: 13px;
         }
 
-        /* Enhanced Customize Modal (Matching Image 2) */
+        /* Enhanced Customize Modal */
         .customize-top-preview {
             display: flex;
             justify-content: center;
@@ -757,7 +828,7 @@
             border-radius: 9999px;
             font-size: 13px;
             display: none;
-            z-index: 2000;
+            z-index: 3000;
             box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         }
 
@@ -786,7 +857,7 @@
             .cell-date { font-size: 11px; color: var(--text-secondary); text-align: right; }
             .modal-box { padding: 20px; border-radius: 20px; }
             .selection-toolbar { padding: 6px 16px; }
-            .grid-container { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+            .grid-container { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
         }
     </style>
 </head>
@@ -890,20 +961,29 @@
     </div>
 </main>
 
-<!-- Enhanced Customize Modal (Matching Image 2 with Carousel & Live Top Preview) -->
+<!-- Desktop Floating Dropdown Menu -->
+<div class="desktop-action-dropdown" id="desktopDropdown"></div>
+
+<!-- Mobile Bottom Action Sheet (Fixes Clipping) -->
+<div class="bottom-sheet-backdrop" id="bottomSheetBackdrop">
+    <div class="bottom-sheet-card" id="bottomSheetCard">
+        <div class="bottom-sheet-handle"></div>
+        <div class="bottom-sheet-header">
+            <div id="bottomSheetHeaderIcon" style="width: 24px; height: 24px; display: flex; align-items: center;"></div>
+            <div class="bottom-sheet-title" id="bottomSheetHeaderTitle"></div>
+        </div>
+        <div id="bottomSheetActionsList"></div>
+    </div>
+</div>
+
+<!-- Enhanced Customize Modal -->
 <div class="modal-shade" id="customizeModal">
     <div class="modal-box">
-        <!-- Live Selected Icon Preview -->
         <div class="customize-top-preview">
             <div class="customize-top-preview-icon" id="customizePreviewIcon"></div>
         </div>
-
-        <!-- Color Carousel (Horizontal Scroll) -->
         <div class="color-carousel-wrap" id="colorCarouselWrap"></div>
-
-        <!-- 30 Clean Icons Grid (5 Rows x 6 Cols) -->
         <div class="icon-palette-grid" id="iconPaletteGrid"></div>
-
         <div style="display: flex; justify-content: flex-end; margin-top: 24px;">
             <button class="btn-pill" id="btnSaveCustomize" style="padding: 10px 28px; font-weight: 600;">OK</button>
         </div>
@@ -943,7 +1023,7 @@
     </div>
 </div>
 
-<!-- Modal: Security (Protected Folder Password Management) -->
+<!-- Modal: Security -->
 <div class="modal-shade" id="securityModal">
     <div class="modal-box" style="max-width: 380px;">
         <div class="modal-header">
@@ -1080,7 +1160,7 @@
     </div>
 </div>
 
-<!-- Modal: Password Auth / Verification -->
+<!-- Modal: Password Auth -->
 <div class="modal-shade" id="passwordAuthModal">
     <div class="modal-box" style="max-width: 360px;">
         <div class="modal-header">
@@ -1103,7 +1183,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { 
-        getFirestore, collection, query, where, getDocs, or,
+        getFirestore, collection, query, where, getDocs, or, onSnapshot,
         doc, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove 
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -1136,7 +1216,7 @@
         localStorage.setItem('drive_view_mode', mode);
         document.getElementById('viewListBtn').classList.toggle('active', mode === 'list');
         document.getElementById('viewGridBtn').classList.toggle('active', mode === 'grid');
-        loadDrive();
+        renderCurrentWorkspace();
     }
 
     document.getElementById('viewListBtn').addEventListener('click', () => setViewMode('list'));
@@ -1176,7 +1256,6 @@
         return `${timeStr} , ${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
     }
 
-    // Relative Date Formatter: "Today", "Yesterday", "July 12"
     function formatDisplayDate(dateStr) {
         if (!dateStr) return "Recently";
         let dateObj = null;
@@ -1184,7 +1263,7 @@
             if (dateStr.includes(',')) {
                 const parts = dateStr.split(',');
                 if (parts.length >= 2) {
-                    const datePart = parts[1].trim(); // "3-OCT-2026"
+                    const datePart = parts[1].trim();
                     const [d, m, y] = datePart.split('-');
                     const months = { JAN:0, FEB:1, MAR:2, APR:3, MAY:4, JUN:5, JUL:6, AUG:7, SEP:8, OCT:9, NOV:10, DEC:11 };
                     dateObj = new Date(parseInt(y), months[m?.toUpperCase()] ?? 0, parseInt(d));
@@ -1225,7 +1304,6 @@
         return (yiq >= 170) ? '#111827' : '#FFFFFF';
     }
 
-    // Palette Colors matching Image 2
     const FOLDER_COLORS = [
         { name: "Gray", hex: "#8A8D93" },
         { name: "Crimson Red", hex: "#E94335" },
@@ -1242,43 +1320,31 @@
         { name: "Warm Brown", hex: "#8D6E63" }
     ];
 
-    // ==========================================
-    // 30 Clean SVG Icons (Matching Image 2 exactly)
-    // ==========================================
     const BADGE_ICONS = {
-        // Row 1
         folder: `<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
         dollar: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"></circle><line x1="12" y1="6" x2="12" y2="18"></line><path d="M15 9.5a2.5 2.5 0 0 0-5 0c0 1.5 1 2 2.5 2.5s2.5 1 2.5 2.5a2.5 2.5 0 0 1-5 0"></path></svg>`,
         book: `<svg viewBox="0 0 24 24"><rect x="4.5" y="3" width="15" height="18" rx="2.5"></rect><line x1="8.5" y1="3" x2="8.5" y2="21"></line></svg>`,
         cap: `<svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c0 3 6 3 6 3s6 0 6-3v-5"></path></svg>`,
         pencil: `<svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`,
         nib: `<svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><circle cx="11" cy="11" r="1.5"></circle></svg>`,
-
-        // Row 2
         code: `<svg viewBox="0 0 24 24"><path d="M8 3H6a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2"></path><path d="M16 3h2a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2"></path></svg>`,
         terminal: `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"></rect><polyline points="7 9 10.5 12 7 15"></polyline><line x1="13" y1="15" x2="17" y2="15"></line></svg>`,
         music: `<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`,
         cupcake: `<svg viewBox="0 0 24 24"><path d="M4.5 11h15l-2 10h-11l-2-10z"></path><path d="M4.5 11c0-2.2 1.8-4 4-4 .6 0 1.2.1 1.7.4C11 5.5 12.5 4 14.5 4c2.2 0 4 1.8 4 4 0 .3 0 .7-.1 1"></path></svg>`,
         brush: `<svg viewBox="0 0 24 24"><path d="M18 2l4 4-10 10H8v-4L18 2z"></path><path d="M4 22c0-3 2-5 4-5"></path></svg>`,
         palette: `<svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".8"></circle><circle cx="17.5" cy="10.5" r=".8"></circle><circle cx="8.5" cy="7.5" r=".8"></circle><circle cx="6.5" cy="12.5" r=".8"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>`,
-
-        // Row 3
         stethoscope: `<svg viewBox="0 0 24 24"><path d="M4.5 3v5a6 6 0 0 0 12 0V3"></path><line x1="3" y1="3" x2="6" y2="3"></line><line x1="15" y1="3" x2="18" y2="3"></line><path d="M10.5 14v4a3 3 0 0 0 6 0v-2"></path><circle cx="16.5" cy="16" r="2.5"></circle></svg>`,
         flower: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2a4 4 0 0 0-4 4 4 4 0 0 0 8 0 4 4 0 0 0-4-4z"></path><path d="M22 12a4 4 0 0 0-4-4 4 4 0 0 0 0 8 4 4 0 0 0 4-4z"></path><path d="M12 22a4 4 0 0 0 4-4 4 4 0 0 0-8 0 4 4 0 0 0 4 4z"></path><path d="M2 12a4 4 0 0 0 4 4 4 4 0 0 0 0-8 4 4 0 0 0-4 4z"></path></svg>`,
         lotus: `<svg viewBox="0 0 24 24"><path d="M12 3c-2 4-5 8-10 11 4 1 8 0 10-4 2 4 6 5 10 4-5-3-8-7-10-11z"></path><path d="M12 10c-1.5 3-4 6-7 7 3 1 6 .5 7-3 1 3.5 4 4 7 3-3-1-5.5-4-7-7z"></path></svg>`,
         briefcase: `<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="3"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`,
         chart: `<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
         kettlebell: `<svg viewBox="0 0 24 24"><path d="M9 7V4a3 3 0 0 1 6 0v3"></path><circle cx="12" cy="14" r="7"></circle></svg>`,
-
-        // Row 4
         dumbbell: `<svg viewBox="0 0 24 24"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>`,
         notebook: `<svg viewBox="0 0 24 24"><rect x="5" y="3" width="15" height="18" rx="2"></rect><line x1="9" y1="7" x2="15" y2="7"></line><line x1="9" y1="11" x2="15" y2="11"></line><line x1="9" y1="15" x2="12" y2="15"></line><path d="M3 6h2M3 10h2M3 14h2M3 18h2"></path></svg>`,
         scales: `<svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><path d="M5 21h14"></path><path d="M3 7h18"></path><path d="M3 7l3 7h-6l3-7zM21 7l3 7h-6l3-7z"></path></svg>`,
         globeStand: `<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="7"></circle><path d="M12 17v4M8 21h8M19 10a7 7 0 0 1-14 0"></path></svg>`,
         plane: `<svg viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"></path></svg>`,
         globe: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
-
-        // Row 5
         wrench: `<svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`,
         paw: `<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="4"></circle><circle cx="6.5" cy="9.5" r="2"></circle><circle cx="17.5" cy="9.5" r="2"></circle><circle cx="9" cy="5.5" r="1.8"></circle><circle cx="15" cy="5.5" r="1.8"></circle></svg>`,
         flask: `<svg viewBox="0 0 24 24"><path d="M10 2v7.31L4.15 19.89A2 2 0 0 0 5.86 23h12.28a2 2 0 0 0 1.71-3.11L14 9.31V2z"></path><line x1="8.5" y1="2" x2="15.5" y2="2"></line><line x1="14" y1="14" x2="10" y2="14"></line></svg>`,
@@ -1321,6 +1387,7 @@
     let selectedItemIds = new Set();
     let isSelectionMode = false;
     let keyboardFocusedIndex = -1;
+    let unsubscribeSnapshot = null;
 
     function getCurrentFolderId() {
         return folderHierarchy.length > 0 ? folderHierarchy[folderHierarchy.length - 1].id : null;
@@ -1371,87 +1438,88 @@
 
             document.getElementById('bc-root')?.addEventListener('click', () => {
                 folderHierarchy = [];
-                loadDrive();
+                renderCurrentWorkspace();
             });
             document.querySelectorAll('.bc-crumb').forEach(el => {
                 el.addEventListener('click', () => {
                     const idx = parseInt(el.getAttribute('data-idx'));
                     folderHierarchy = folderHierarchy.slice(0, idx + 1);
-                    loadDrive();
+                    renderCurrentWorkspace();
                 });
             });
         }
     }
 
-    async function loadDrive() {
-        renderBreadcrumb();
-        exitSelectionMode();
-        keyboardFocusedIndex = -1;
+    // ==========================================
+    // Realtime Database Listener (Instant Updates)
+    // ==========================================
+    function setupRealtimeListener() {
+        if (unsubscribeSnapshot) unsubscribeSnapshot();
 
-        const wrapper = document.getElementById('workspaceViewWrapper');
-        wrapper.innerHTML = `<div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading items...</div>`;
+        const q = query(
+            collection(db, "Cloud Drive"),
+            or(
+                where("Email", "==", userEmail),
+                where("Access.Viewer", "array-contains", userEmail),
+                where("Access.Contributor", "array-contains", userEmail),
+                where("Access.Commenter", "array-contains", userEmail),
+                where("Access.Commentator", "array-contains", userEmail),
+                where("Access.Editor", "array-contains", userEmail)
+            )
+        );
 
-        try {
-            const q = query(
-                collection(db, "Cloud Drive"),
-                or(
-                    where("Email", "==", userEmail),
-                    where("Access.Viewer", "array-contains", userEmail),
-                    where("Access.Contributor", "array-contains", userEmail),
-                    where("Access.Commenter", "array-contains", userEmail),
-                    where("Access.Commentator", "array-contains", userEmail),
-                    where("Access.Editor", "array-contains", userEmail)
-                )
-            );
-
-            const snap = await getDocs(q);
+        unsubscribeSnapshot = onSnapshot(q, (snap) => {
             const items = [];
             snap.forEach(docSnap => {
                 items.push({ id: docSnap.id, ...docSnap.data() });
             });
-
             allWorkspaceDocs = items;
             allFolderDocs = items.filter(d => d.Folder === "True");
+            renderCurrentWorkspace();
+        }, (err) => {
+            console.error("Live sync error:", err);
+        });
+    }
 
-            const currId = getCurrentFolderId();
-            let renderItems = [];
+    function renderCurrentWorkspace() {
+        renderBreadcrumb();
+        const wrapper = document.getElementById('workspaceViewWrapper');
 
-            if (!currId) {
-                const assignedChildIds = new Set();
-                allFolderDocs.forEach(f => {
-                    if (Array.isArray(f.File)) f.File.forEach(id => assignedChildIds.add(id));
-                });
-                renderItems = items.filter(i => !assignedChildIds.has(i.id));
-            } else {
-                const activeFolder = allFolderDocs.find(f => f.id === currId);
-                const assignedIds = (activeFolder && Array.isArray(activeFolder.File)) ? activeFolder.File : [];
-                renderItems = items.filter(i => assignedIds.includes(i.id));
-            }
+        const currId = getCurrentFolderId();
+        let renderItems = [];
 
-            currentRenderedItems = renderItems;
+        if (!currId) {
+            const assignedChildIds = new Set();
+            allFolderDocs.forEach(f => {
+                if (Array.isArray(f.File)) f.File.forEach(id => assignedChildIds.add(id));
+            });
+            renderItems = allWorkspaceDocs.filter(i => !assignedChildIds.has(i.id));
+        } else {
+            const activeFolder = allFolderDocs.find(f => f.id === currId);
+            const assignedIds = (activeFolder && Array.isArray(activeFolder.File)) ? activeFolder.File : [];
+            renderItems = allWorkspaceDocs.filter(i => assignedIds.includes(i.id));
+        }
 
-            if (renderItems.length === 0) {
-                const folderName = folderHierarchy.length > 0 ? folderHierarchy[folderHierarchy.length - 1].name : "";
-                const emptyText = folderName ? `No Files In Your ${folderName}` : `No Files In Your Drive`;
-                wrapper.innerHTML = `
-                    <div class="empty-state-container">
-                        <img src="https://indus.sarvam.ai/studio/assets/empty-table.webp" alt="No files" class="empty-state-img">
-                        <div class="empty-state-title">${emptyText}</div>
-                    </div>
-                `;
-                return;
-            }
+        currentRenderedItems = renderItems;
 
-            renderItems.sort((a, b) => (b.Folder === "True" ? 1 : 0) - (a.Folder === "True" ? 1 : 0));
+        if (renderItems.length === 0) {
+            const folderName = folderHierarchy.length > 0 ? folderHierarchy[folderHierarchy.length - 1].name : "";
+            const emptyText = folderName ? `No Files In Your ${folderName}` : `No Files In Your Drive`;
+            wrapper.innerHTML = `
+                <div class="empty-state-container">
+                    <img src="https://indus.sarvam.ai/studio/assets/empty-table.webp" alt="No files" class="empty-state-img">
+                    <div class="empty-state-title">${emptyText}</div>
+                </div>
+            `;
+            return;
+        }
 
-            if (currentViewMode === 'list') {
-                renderListView(renderItems, wrapper);
-            } else {
-                renderGridView(renderItems, wrapper);
-            }
-        } catch(e) {
-            console.error(e);
-            wrapper.innerHTML = `<div style="padding: 20px 0; color: var(--danger);">Failed to load Cloud Drive.</div>`;
+        renderItems.sort((a, b) => (b.Folder === "True" ? 1 : 0) - (a.Folder === "True" ? 1 : 0));
+
+        if (currentViewMode === 'list') {
+            renderListView(renderItems, wrapper);
+        } else {
+            renderGridView(renderItems, wrapper);
         }
     }
 
@@ -1533,18 +1601,6 @@
             <div class="cell-date" style="font-size: 13px; color: var(--text-secondary);">${displayDate}</div>
             <div class="actions-cell">
                 <button class="btn-dots">${SVG_ICONS.dots}</button>
-                <div class="action-dropdown">
-                    ${!isViewer && !isFolder ? `<div class="dropdown-item opt-download">${SVG_ICONS.download} Download</div>` : ''}
-                    ${!isViewer ? `<div class="dropdown-item opt-rename">${SVG_ICONS.edit} Rename</div>` : ''}
-                    ${!isViewer && isFolder ? `<div class="dropdown-item opt-customize">${SVG_ICONS.customize} Customize</div>` : ''}
-                    ${!isViewer && isFolder ? `<div class="dropdown-item opt-security">${SVG_ICONS.lock} Security</div>` : ''}
-                    ${!isViewer && !isFolder ? `<div class="dropdown-item opt-share">${SVG_ICONS.share} Share</div>` : ''}
-                    ${!isViewer ? `<div class="dropdown-item opt-access">${SVG_ICONS.users} Manage Access</div>` : ''}
-                    ${!isViewer ? `<div class="dropdown-item opt-label">${SVG_ICONS.tag} Label</div>` : ''}
-                    ${!isViewer ? `<div class="dropdown-item opt-move">${SVG_ICONS.move} ${isFolder ? 'Organise' : 'Move'}</div>` : ''}
-                    <div class="dropdown-item opt-details">${SVG_ICONS.info} Details</div>
-                    <div class="dropdown-item danger opt-delete">${SVG_ICONS.trash} ${isViewer ? 'Remove Access' : 'Delete'}</div>
-                </div>
             </div>
         `;
 
@@ -1621,18 +1677,6 @@
                     </div>
                     <div class="actions-cell">
                         <button class="btn-dots">${SVG_ICONS.dots}</button>
-                        <div class="action-dropdown">
-                            ${!isViewer && !isFolder ? `<div class="dropdown-item opt-download">${SVG_ICONS.download} Download</div>` : ''}
-                            ${!isViewer ? `<div class="dropdown-item opt-rename">${SVG_ICONS.edit} Rename</div>` : ''}
-                            ${!isViewer && isFolder ? `<div class="dropdown-item opt-customize">${SVG_ICONS.customize} Customize</div>` : ''}
-                            ${!isViewer && isFolder ? `<div class="dropdown-item opt-security">${SVG_ICONS.lock} Security</div>` : ''}
-                            ${!isViewer && !isFolder ? `<div class="dropdown-item opt-share">${SVG_ICONS.share} Share</div>` : ''}
-                            ${!isViewer ? `<div class="dropdown-item opt-access">${SVG_ICONS.users} Manage Access</div>` : ''}
-                            ${!isViewer ? `<div class="dropdown-item opt-label">${SVG_ICONS.tag} Label</div>` : ''}
-                            ${!isViewer ? `<div class="dropdown-item opt-move">${SVG_ICONS.move} ${isFolder ? 'Organise' : 'Move'}</div>` : ''}
-                            <div class="dropdown-item opt-details">${SVG_ICONS.info} Details</div>
-                            <div class="dropdown-item danger opt-delete">${SVG_ICONS.trash} ${isViewer ? 'Remove Access' : 'Delete'}</div>
-                        </div>
                     </div>
                 </div>
                 ${previewHtml}
@@ -1645,6 +1689,119 @@
         wrapper.innerHTML = '';
         wrapper.appendChild(grid);
     }
+
+    // ==========================================
+    // Unified 3-Dots Action Handler (Mobile Bottom Sheet + Desktop Dropdown)
+    // ==========================================
+    const desktopDropdown = document.getElementById('desktopDropdown');
+    const bottomSheetBackdrop = document.getElementById('bottomSheetBackdrop');
+    const bottomSheetCard = document.getElementById('bottomSheetCard');
+
+    function showItemActions(item, isFolder, name, isViewer, event) {
+        const isMobile = window.innerWidth <= 768;
+
+        const actionItems = [];
+        if (!isViewer && !isFolder) {
+            actionItems.push({ id: 'download', icon: SVG_ICONS.download, label: 'Download' });
+        }
+        if (!isViewer) {
+            actionItems.push({ id: 'rename', icon: SVG_ICONS.edit, label: 'Rename' });
+        }
+        if (!isViewer && isFolder) {
+            actionItems.push({ id: 'customize', icon: SVG_ICONS.customize, label: 'Customize' });
+            actionItems.push({ id: 'security', icon: SVG_ICONS.lock, label: 'Security' });
+        }
+        if (!isViewer && !isFolder) {
+            actionItems.push({ id: 'share', icon: SVG_ICONS.share, label: 'Share' });
+        }
+        if (!isViewer) {
+            actionItems.push({ id: 'access', icon: SVG_ICONS.users, label: 'Manage Access' });
+            actionItems.push({ id: 'label', icon: SVG_ICONS.tag, label: 'Label' });
+            actionItems.push({ id: 'move', icon: SVG_ICONS.move, label: isFolder ? 'Organise' : 'Move' });
+        }
+        actionItems.push({ id: 'details', icon: SVG_ICONS.info, label: 'Details' });
+        actionItems.push({ id: 'delete', icon: SVG_ICONS.trash, label: isViewer ? 'Remove Access' : 'Delete', danger: true });
+
+        const handleActionClick = (actionId) => {
+            closeAllActionMenus();
+            if (actionId === 'download') directDownloadFile(item.File, item.Name);
+            if (actionId === 'rename') {
+                if (isFolder && item.Password) promptPasswordAuth(item.Password, () => openRenameModal(item));
+                else openRenameModal(item);
+            }
+            if (actionId === 'customize') openCustomizeModal(item);
+            if (actionId === 'security') openSecurityModal(item);
+            if (actionId === 'share') openShareModal(item);
+            if (actionId === 'access') {
+                if (isFolder && item.Password) promptPasswordAuth(item.Password, () => openAccessModal(item));
+                else openAccessModal(item);
+            }
+            if (actionId === 'label') openLabelModal(item);
+            if (actionId === 'move') openMoveModal(item);
+            if (actionId === 'details') openDetailsModal(item);
+            if (actionId === 'delete') {
+                if (isFolder && item.Password && !isViewer) promptPasswordAuth(item.Password, () => handleDelete(item, isViewer));
+                else handleDelete(item, isViewer);
+            }
+        };
+
+        if (isMobile) {
+            // Mobile: Bottom Action Sheet
+            const headerIcon = document.getElementById('bottomSheetHeaderIcon');
+            const format = getFormatInfo(item.Type, isFolder);
+            const folderColor = item.Customize?.Colour || 'var(--folder-default-color)';
+            headerIcon.style.color = isFolder ? folderColor : 'var(--text-secondary)';
+            headerIcon.innerHTML = isFolder ? (BADGE_ICONS[item.Customize?.Icon] || BADGE_ICONS.folder) : format.icon;
+
+            document.getElementById('bottomSheetHeaderTitle').innerText = name;
+
+            const list = document.getElementById('bottomSheetActionsList');
+            list.innerHTML = '';
+            actionItems.forEach(act => {
+                const div = document.createElement('div');
+                div.className = `bottom-sheet-item ${act.danger ? 'danger' : ''}`;
+                div.innerHTML = `${act.icon} <span>${act.label}</span>`;
+                div.addEventListener('click', () => handleActionClick(act.id));
+                list.appendChild(div);
+            });
+
+            bottomSheetBackdrop.classList.add('active');
+        } else {
+            // Desktop: Floating Context Dropdown
+            desktopDropdown.innerHTML = '';
+            actionItems.forEach(act => {
+                const div = document.createElement('div');
+                div.className = `dropdown-item ${act.danger ? 'danger' : ''}`;
+                div.innerHTML = `${act.icon} <span>${act.label}</span>`;
+                div.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleActionClick(act.id);
+                });
+                desktopDropdown.appendChild(div);
+            });
+
+            const rect = event.currentTarget.getBoundingClientRect();
+            let top = rect.bottom + 6;
+            let left = rect.right - 200;
+            if (left < 10) left = 10;
+            if (top + 320 > window.innerHeight) top = rect.top - 320;
+
+            desktopDropdown.style.top = `${top}px`;
+            desktopDropdown.style.left = `${left}px`;
+            desktopDropdown.classList.add('active');
+        }
+    }
+
+    function closeAllActionMenus() {
+        desktopDropdown.classList.remove('active');
+        bottomSheetBackdrop.classList.remove('active');
+    }
+
+    bottomSheetBackdrop.addEventListener('click', (e) => {
+        if (e.target === bottomSheetBackdrop) closeAllActionMenus();
+    });
+
+    window.addEventListener('click', () => closeAllActionMenus());
 
     function attachItemEvents(el, item, isFolder, name, isViewer) {
         el.addEventListener('click', (e) => {
@@ -1678,56 +1835,16 @@
         el.addEventListener('touchend', () => clearTimeout(touchTimer));
 
         const dotsBtn = el.querySelector('.btn-dots');
-        const dropdown = el.querySelector('.action-dropdown');
-
         dotsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            document.querySelectorAll('.action-dropdown').forEach(d => d !== dropdown && d.classList.remove('active'));
-            dropdown.classList.toggle('active');
-        });
-
-        if (!isViewer) {
-            el.querySelector('.opt-download')?.addEventListener('click', (e) => { e.stopPropagation(); directDownloadFile(item.File, item.Name); });
-            el.querySelector('.opt-rename')?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                // Check folder password before allowing rename
-                if (isFolder && item.Password) {
-                    promptPasswordAuth(item.Password, () => openRenameModal(item));
-                } else {
-                    openRenameModal(item);
-                }
-            });
-            el.querySelector('.opt-customize')?.addEventListener('click', (e) => { e.stopPropagation(); openCustomizeModal(item); });
-            el.querySelector('.opt-security')?.addEventListener('click', (e) => { e.stopPropagation(); openSecurityModal(item); });
-            el.querySelector('.opt-share')?.addEventListener('click', (e) => { e.stopPropagation(); openShareModal(item); });
-            el.querySelector('.opt-access')?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                // Check folder password before managing access
-                if (isFolder && item.Password) {
-                    promptPasswordAuth(item.Password, () => openAccessModal(item));
-                } else {
-                    openAccessModal(item);
-                }
-            });
-            el.querySelector('.opt-label')?.addEventListener('click', (e) => { e.stopPropagation(); openLabelModal(item); });
-            el.querySelector('.opt-move')?.addEventListener('click', (e) => { e.stopPropagation(); openMoveModal(item); });
-        }
-        el.querySelector('.opt-details')?.addEventListener('click', (e) => { e.stopPropagation(); openDetailsModal(item); });
-        el.querySelector('.opt-delete')?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            // Check folder password before deleting
-            if (isFolder && item.Password && !isViewer) {
-                promptPasswordAuth(item.Password, () => handleDelete(item, isViewer));
-            } else {
-                handleDelete(item, isViewer);
-            }
+            showItemActions(item, isFolder, name, isViewer, e);
         });
     }
 
     function openItem(item, isFolder, name) {
         if (isFolder) {
             folderHierarchy.push({ id: item.id, name: name });
-            loadDrive();
+            renderCurrentWorkspace();
         } else {
             updateDoc(doc(db, "Cloud Drive", item.id), {
                 LastOpened: new Date().toISOString(),
@@ -1761,11 +1878,7 @@
         }
     }
 
-    window.addEventListener('click', () => {
-        document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('active'));
-    });
-
-    // Password Prompt Verification
+    // Password Challenge Modal
     const passModal = document.getElementById('passwordAuthModal');
     let passSuccessCallback = null;
     let expectedPass = "";
@@ -1862,7 +1975,6 @@
                 }
             }
             showToast("Selected items updated");
-            loadDrive();
         }
     });
 
@@ -1883,9 +1995,7 @@
         openMoveModal(null, true);
     });
 
-    // ==========================================
-    // Enhanced Folder Customize Controller
-    // ==========================================
+    // Folder Customize Modal
     const customizeModal = document.getElementById('customizeModal');
     let targetCustomizeFolder = null;
     let selectedColor = '#4285F4';
@@ -1902,12 +2012,10 @@
     document.getElementById('closeCustomizeModal')?.addEventListener('click', () => customizeModal.classList.remove('active'));
 
     function renderCustomizeModal() {
-        // Top Icon Preview
         const previewIconContainer = document.getElementById('customizePreviewIcon');
         previewIconContainer.style.color = selectedColor;
         previewIconContainer.innerHTML = BADGE_ICONS[selectedIcon] || BADGE_ICONS.folder;
 
-        // Color Carousel
         const carousel = document.getElementById('colorCarouselWrap');
         carousel.innerHTML = '';
         FOLDER_COLORS.forEach(c => {
@@ -1922,7 +2030,6 @@
             carousel.appendChild(circle);
         });
 
-        // 30 Icons Grid
         const iconGrid = document.getElementById('iconPaletteGrid');
         iconGrid.innerHTML = '';
         Object.keys(BADGE_ICONS).forEach(key => {
@@ -1946,7 +2053,6 @@
         });
         showToast("Folder customized");
         customizeModal.classList.remove('active');
-        loadDrive();
     });
 
     // Rename Modal
@@ -1967,11 +2073,10 @@
             });
             showToast("Renamed successfully");
             renameModal.classList.remove('active');
-            loadDrive();
         }
     });
 
-    // Enhanced Security Modal (Doesn't expose plaintext password directly)
+    // Security Modal
     const securityModal = document.getElementById('securityModal');
     let targetSecurityFolder = null;
 
@@ -1995,7 +2100,6 @@
                     await updateDoc(doc(db, "Cloud Drive", item.id), { Password: "", Updated: formatFirestoreDate() });
                     showToast("Password disabled");
                     securityModal.classList.remove('active');
-                    loadDrive();
                 });
             });
             document.getElementById('btnChangeSecurity').addEventListener('click', () => {
@@ -2032,7 +2136,6 @@
             });
             showToast("Password protection enabled");
             securityModal.classList.remove('active');
-            loadDrive();
         });
     }
 
@@ -2109,7 +2212,6 @@
         });
         showToast("Labels updated");
         labelModal.classList.remove('active');
-        loadDrive();
     });
 
     // Manage Access Modal
@@ -2174,7 +2276,6 @@
                 });
                 showToast("Ownership transferred");
                 accessModal.classList.remove('active');
-                loadDrive();
             }
             return;
         }
@@ -2195,7 +2296,6 @@
         });
         showToast("Permissions updated");
         accessModal.classList.remove('active');
-        loadDrive();
     });
 
     // Share Modal
@@ -2302,7 +2402,6 @@
 
         showToast("Moved successfully");
         moveModal.classList.remove('active');
-        loadDrive();
     });
 
     // Delete
@@ -2313,7 +2412,6 @@
                     "Access.Viewer": arrayRemove(userEmail)
                 });
                 showToast("Removed from your drive");
-                loadDrive();
             }
             return;
         }
@@ -2328,11 +2426,10 @@
             }
             await deleteDoc(doc(db, "Cloud Drive", item.id));
             showToast("Item deleted");
-            loadDrive();
         }
     }
 
-    // Create Folder (Default icon and standard color)
+    // Create Folder
     const folderModal = document.getElementById('folderModal');
     document.getElementById('newFolderTriggerBtn').addEventListener('click', () => {
         document.getElementById('newFolderName').value = "";
@@ -2367,7 +2464,6 @@
 
             folderModal.classList.remove('active');
             showToast("Folder created");
-            loadDrive();
         }
     });
 
@@ -2452,16 +2548,15 @@
             }
         }
         showToast("Upload completed!");
-        loadDrive();
     }
 
-    // Search Across Drive
+    // Search
     document.getElementById('searchInput').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase().trim();
         const wrapper = document.getElementById('workspaceViewWrapper');
 
         if (!val) {
-            loadDrive();
+            renderCurrentWorkspace();
             return;
         }
 
@@ -2499,6 +2594,7 @@
 
         if (e.key === 'Escape') {
             document.querySelectorAll('.modal-shade').forEach(m => m.classList.remove('active'));
+            closeAllActionMenus();
             if (isSelectionMode) exitSelectionMode();
             return;
         }
@@ -2596,8 +2692,8 @@
         }
     }
 
-    // Initial Load
-    setViewMode(currentViewMode);
+    // Initialize Realtime Sync
+    setupRealtimeListener();
 </script>
 </body>
 </html>
