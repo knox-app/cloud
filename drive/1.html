@@ -10,32 +10,40 @@
         :root {
             --bg-color: #ffffff;
             --surface-color: #ffffff;
+            --card-bg: #f9fafb;
             --text-primary: #111827;
             --text-secondary: #6b7280;
             --border-color: #f3f4f6;
-            --hover-bg: #f9fafb;
+            --hover-bg: #f3f4f6;
             --btn-dark-bg: #0d0d0d;
             --btn-dark-text: #ffffff;
-            --accent: #10a37f;
+            --accent: #111827;
+            --selection-bg: rgba(0, 0, 0, 0.05);
+            --selection-border: #111827;
             --danger: #ef4444;
             --tag-bg: #e5e7eb;
             --tag-text: #374151;
+            --folder-default-color: #e5c7c2;
             --sidebar-width: 64px;
         }
 
         body.dark {
             --bg-color: #0d0d0d;
             --surface-color: #171717;
+            --card-bg: #1f1f1f;
             --text-primary: #f9fafb;
             --text-secondary: #9ca3af;
             --border-color: #262626;
-            --hover-bg: #1f1f1f;
+            --hover-bg: #262626;
             --btn-dark-bg: #ffffff;
             --btn-dark-text: #0d0d0d;
-            --accent: #10a37f;
+            --accent: #ffffff;
+            --selection-bg: rgba(255, 255, 255, 0.08);
+            --selection-border: #ffffff;
             --danger: #f87171;
             --tag-bg: #2d2d2d;
             --tag-text: #d1d5db;
+            --folder-default-color: #d1b1ab;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -118,7 +126,6 @@
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 8px;
             text-decoration: none;
             transition: opacity 0.2s;
@@ -126,30 +133,25 @@
         }
         .btn-pill:hover { opacity: 0.9; }
 
-        .btn-icon-pill {
-            width: 38px;
-            height: 38px;
+        .btn-icon-toggle {
+            background: var(--hover-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            padding: 0;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid var(--border-color);
-            background: var(--surface-color);
-            color: var(--text-primary);
             cursor: pointer;
-            transition: all 0.15s;
         }
-        .btn-icon-pill:hover { background: var(--hover-bg); }
-        .btn-icon-pill svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
-        .btn-icon-pill.danger { color: var(--danger); }
-        .btn-icon-pill.danger:hover { background: rgba(239, 68, 68, 0.1); }
+        .btn-icon-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
 
         /* Search input bar */
         .search-container {
             position: relative;
-            max-width: 380px;
-            margin-bottom: 20px;
+            max-width: 400px;
+            margin-bottom: 24px;
         }
         .search-container svg {
             position: absolute;
@@ -164,7 +166,7 @@
         }
         .search-input {
             width: 100%;
-            padding: 9px 14px 9px 38px;
+            padding: 10px 14px 10px 38px;
             border-radius: 9999px;
             border: 1px solid var(--border-color);
             background: var(--surface-color);
@@ -174,66 +176,80 @@
         }
         .search-input:focus { border-color: var(--text-secondary); }
 
-        /* Multi-selection bar (Icons only) */
+        /* Floating Capsule Selection Bar (Matching Screenshot) */
         .selection-toolbar {
             position: sticky;
-            top: 10px;
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            padding: 8px 16px;
+            top: 12px;
+            background: var(--btn-dark-bg);
+            color: var(--btn-dark-text);
+            padding: 8px 20px;
             border-radius: 9999px;
             display: none;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.18);
             z-index: 100;
         }
         .selection-toolbar.active { display: flex; }
+        .selection-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .sel-icon-btn {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            transition: transform 0.15s, opacity 0.15s;
+        }
+        .sel-icon-btn:hover { opacity: 0.8; transform: scale(1.1); }
+        .sel-icon-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .sel-done-btn {
+            background: none;
+            border: none;
+            color: inherit;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
 
-        /* Circular Black Checkbox */
-        .custom-chk-label {
+        /* Circular Custom Checkbox */
+        .custom-check {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid var(--text-secondary);
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            position: relative;
+            transition: all 0.15s ease;
         }
-        .custom-chk-label input {
-            position: absolute;
-            opacity: 0;
-            cursor: pointer;
-            height: 0;
-            width: 0;
+        .custom-check.checked {
+            background-color: var(--accent);
+            border-color: var(--accent);
         }
-        .chk-circle {
-            width: 19px;
-            height: 19px;
-            border: 1.5px solid var(--text-secondary);
+        .custom-check.checked::after {
+            content: '';
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            display: flex;
+            background-color: var(--bg-color);
+        }
+
+        .cell-checkbox {
+            display: none;
             align-items: center;
             justify-content: center;
-            transition: all 0.15s;
-            background: transparent;
         }
-        .custom-chk-label input:checked ~ .chk-circle {
-            background-color: var(--btn-dark-bg);
-            border-color: var(--btn-dark-bg);
-        }
-        .chk-circle::after {
-            content: "";
-            display: none;
-            width: 5px;
-            height: 9px;
-            border: solid var(--btn-dark-text);
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-            margin-top: -2px;
-        }
-        .custom-chk-label input:checked ~ .chk-circle::after {
-            display: block;
-        }
+        .selection-active .cell-checkbox { display: flex; }
 
         /* Tags / Labels */
         .label-badge {
@@ -249,11 +265,11 @@
             font-weight: 500;
         }
 
-        /* Drag & Drop Surface */
+        /* Drag Overlay */
         .drag-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(16, 163, 127, 0.08);
+            background: rgba(0, 0, 0, 0.3);
             border: 2px dashed var(--accent);
             display: none;
             justify-content: center;
@@ -273,12 +289,30 @@
             gap: 12px;
         }
 
-        /* Table Dynamic Grid (Default: Checkboxes hidden) */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
+        /* Empty State */
+        .empty-state-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        .empty-state-img {
+            max-width: 220px;
+            margin-bottom: 16px;
+            opacity: 0.9;
+        }
+        .empty-state-text {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-secondary);
         }
 
+        /* ======================== */
+        /* LIST VIEW STYLES         */
+        /* ======================== */
+        .data-table { width: 100%; border-collapse: collapse; }
         .table-head {
             display: grid;
             grid-template-columns: 3.2fr 1.8fr 1.5fr 1.8fr 40px;
@@ -288,7 +322,6 @@
             color: var(--text-secondary);
             border-bottom: 1px solid var(--border-color);
         }
-
         .table-row {
             display: grid;
             grid-template-columns: 3.2fr 1.8fr 1.5fr 1.8fr 40px;
@@ -297,33 +330,14 @@
             border-bottom: 1px solid var(--border-color);
             font-size: 14px;
             transition: background-color 0.15s;
-            user-select: none;
-            cursor: default;
-        }
-        .table-row:hover { background-color: var(--hover-bg); }
-        .table-row.selected { background-color: rgba(16, 163, 127, 0.08); }
-        .table-row.keyboard-focused { outline: 2px solid var(--accent); outline-offset: -2px; }
-
-        /* In Selection Mode: Clicking anywhere selects */
-        .selection-active .table-row {
             cursor: pointer;
         }
+        .table-row:hover { background-color: var(--hover-bg); }
+        .table-row.selected { background-color: var(--selection-bg); }
+        .table-row.keyboard-focused { outline: 2px solid var(--accent); outline-offset: -2px; }
 
-        .selection-active .table-head {
-            grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px;
-        }
-        .selection-active .table-row {
-            grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px;
-        }
-
-        .cell-checkbox {
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        .selection-active .cell-checkbox {
-            display: flex;
-        }
+        .selection-active .table-head { grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px; }
+        .selection-active .table-row { grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px; }
 
         .file-title-cell {
             display: flex;
@@ -345,23 +359,87 @@
             color: var(--text-secondary);
         }
         .file-icon-box svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; }
+        .file-info-col { display: flex; flex-direction: column; overflow: hidden; }
+        .file-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .file-info-col {
+        /* ======================== */
+        /* GRID VIEW STYLES (Google Drive Style) */
+        /* ======================== */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            padding-top: 8px;
+        }
+
+        .grid-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 12px 14px;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-        }
-        .file-name {
-            font-weight: 500;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            position: relative;
             cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
         }
-        .file-labels {
+        .grid-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+        }
+        .grid-card.selected {
+            background: var(--selection-bg);
+            border-color: var(--selection-border);
+        }
+        .grid-card.keyboard-focused {
+            outline: 2px solid var(--accent);
+        }
+
+        .grid-card-header {
             display: flex;
-            flex-wrap: wrap;
-            margin-top: 3px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .grid-title-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            flex-grow: 1;
+        }
+        .grid-folder-body {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .folder-large-svg {
+            width: 72px;
+            height: 72px;
+        }
+        .grid-preview-body {
+            height: 110px;
+            background: var(--surface-color);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+        .grid-preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .grid-card .cell-checkbox {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 5;
         }
 
         /* 3-Dots Dropdown */
@@ -387,11 +465,12 @@
             background: var(--surface-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.14);
             border-radius: 12px;
-            width: 195px;
+            width: 190px;
             padding: 6px 0;
-            z-index: 100;
+            z-index: 200;
             display: none;
             border: 1px solid var(--border-color);
+            text-align: left;
         }
         .action-dropdown.active { display: block; }
         .dropdown-item {
@@ -406,28 +485,6 @@
         .dropdown-item:hover { background: var(--hover-bg); }
         .dropdown-item.danger { color: var(--danger); }
         .dropdown-item svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-
-        /* Empty State */
-        .empty-state-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 48px 16px;
-            text-align: center;
-        }
-        .empty-state-card img {
-            width: 190px;
-            height: auto;
-            margin-bottom: 20px;
-            opacity: 0.9;
-        }
-        .empty-state-card .empty-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 14px;
-        }
 
         /* Modals */
         .modal-shade {
@@ -517,18 +574,16 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         }
 
-        /* Detail List */
         .details-grid { display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
         .details-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-color); }
         .details-label { color: var(--text-secondary); }
         .details-val { font-weight: 500; text-align: right; max-width: 260px; overflow-wrap: break-word; }
 
-        /* Responsive Mobile Layout */
+        /* Responsive */
         @media (max-width: 768px) {
             aside.sidebar { display: none; }
             main.content-area { padding: 18px 14px; width: 100%; }
             .table-head { display: none; }
-            
             .table-row {
                 grid-template-columns: 1fr auto 30px;
                 gap: 8px;
@@ -537,7 +592,6 @@
             .selection-active .table-row {
                 grid-template-columns: 28px 1fr auto 30px;
             }
-
             .cell-uploader, .cell-format { display: none; }
             .cell-date { font-size: 11px; color: var(--text-secondary); text-align: right; }
             .modal-box { padding: 20px; border-radius: 16px; }
@@ -573,7 +627,10 @@
         <div class="page-title" id="breadcrumbArea">
             <span>Cloud Drive</span>
         </div>
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="btn-icon-toggle" id="viewModeToggleBtn" title="Switch to Grid/List View">
+                <svg id="viewToggleSvg" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </button>
             <button class="btn-pill" id="btnSelectModeToggle" style="background: var(--hover-bg); color: var(--text-primary); border: 1px solid var(--border-color);" title="Select Multiple (Shift+S)">
                 Select
             </button>
@@ -587,20 +644,20 @@
         </div>
     </div>
 
-    <!-- Multi-Selection Action Bar (Icons Only) -->
+    <!-- Floating Capsule Selection Bar -->
     <div class="selection-toolbar" id="selectionToolbar">
         <span id="selectedCountText" style="font-weight: 500; font-size: 13px;">0 Selected</span>
-        <div style="display: flex; gap: 8px; align-items: center;">
-            <button class="btn-icon-pill" id="btnMultiDownload" title="Download Selected Files">
+        <div class="selection-actions">
+            <button class="sel-icon-btn" id="btnMultiDownload" title="Download Files">
                 <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             </button>
-            <button class="btn-icon-pill" id="btnMultiMove" title="Move (Shift+M)">
+            <button class="sel-icon-btn" id="btnMultiMove" title="Move (Shift+M)">
                 <svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg>
             </button>
-            <button class="btn-icon-pill danger" id="btnMultiDelete" title="Delete (Shift+D)">
+            <button class="sel-icon-btn" id="btnMultiDelete" title="Delete (Shift+D)">
                 <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
-            <button class="btn-pill" id="btnCancelSelect" style="background: transparent; color: var(--text-secondary); border: none; padding: 0 8px;">Done</button>
+            <button class="sel-done-btn" id="btnCancelSelect">Done</button>
         </div>
     </div>
 
@@ -609,31 +666,16 @@
 
     <div class="search-container">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" id="searchInput" class="search-input" placeholder="Search files, folders or labels (Shift+F)">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search across all files, folders & labels (Shift+F)">
     </div>
 
-    <!-- Table -->
-    <div class="data-table" id="dataTable">
-        <div class="table-head">
-            <div class="cell-checkbox">
-                <label class="custom-chk-label">
-                    <input type="checkbox" id="selectAllCheckbox">
-                    <span class="chk-circle"></span>
-                </label>
-            </div>
-            <div>Name</div>
-            <div class="cell-uploader">Owner</div>
-            <div class="cell-format">Format</div>
-            <div class="cell-date">Updated</div>
-            <div></div>
-        </div>
-        <div id="tableContent">
-            <div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading Cloud Drive...</div>
-        </div>
+    <!-- Container Area -->
+    <div id="displayContainer">
+        <div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading Cloud Drive...</div>
     </div>
 </main>
 
-<!-- Modal: Folder Security / Password -->
+<!-- Modal: Folder Security (Password Protection) -->
 <div class="modal-shade" id="securityModal">
     <div class="modal-box" style="max-width: 400px;">
         <div class="modal-header">
@@ -643,16 +685,16 @@
             </button>
         </div>
         <div class="input-group">
-            <label>Set or Change Password (Leave blank to remove)</label>
-            <input type="text" id="folderSecurityPasswordInput" class="clean-input" placeholder="Enter folder password">
+            <label>Folder Password Protection</label>
+            <input type="text" id="securityPasswordInput" class="clean-input" placeholder="Leave blank to remove password">
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
-            <button class="btn-pill" id="btnSaveFolderSecurity">Save Password</button>
+            <button class="btn-pill" id="btnSaveSecurity">Save Security</button>
         </div>
     </div>
 </div>
 
-<!-- Modal: Manage Access (with Contributor) -->
+<!-- Modal: Manage Access -->
 <div class="modal-shade" id="accessModal">
     <div class="modal-box">
         <div class="modal-header">
@@ -668,8 +710,8 @@
                 <select id="inviteRoleSelect" class="clean-input" style="width: 170px;">
                     <option value="Editor">Editor</option>
                     <option value="Contributor">Contributor</option>
-                    <option value="Commenter">Commenter</option>
                     <option value="Viewer">Viewer</option>
+                    <option value="Commenter">Commenter</option>
                     <option value="Transfer">Transfer Ownership</option>
                 </select>
                 <button class="btn-pill" id="btnAddAccess" style="padding: 0 16px;">Add</button>
@@ -685,7 +727,7 @@
     </div>
 </div>
 
-<!-- Modal: Labels / Tags -->
+<!-- Modal: Labels -->
 <div class="modal-shade" id="labelModal">
     <div class="modal-box" style="max-width: 400px;">
         <div class="modal-header">
@@ -697,7 +739,7 @@
         <div class="input-group">
             <label>Add New Label</label>
             <div style="display: flex; gap: 8px;">
-                <input type="text" id="newLabelInput" class="clean-input" placeholder="e.g. MN Admin, Finance">
+                <input type="text" id="newLabelInput" class="clean-input" placeholder="e.g. MN Admin, Board MN">
                 <button class="btn-pill" id="btnAddLabel">Add</button>
             </div>
         </div>
@@ -711,7 +753,7 @@
     </div>
 </div>
 
-<!-- Modal: Share & Format Conversion -->
+<!-- Modal: Share -->
 <div class="modal-shade" id="shareModal">
     <div class="modal-box">
         <div class="modal-header">
@@ -748,7 +790,7 @@
     </div>
 </div>
 
-<!-- Modal: Move / Organise -->
+<!-- Modal: Move -->
 <div class="modal-shade" id="moveModal">
     <div class="modal-box" style="max-width: 420px;">
         <div class="modal-header">
@@ -797,11 +839,21 @@
         </div>
         <div class="input-group">
             <label>Folder Name</label>
-            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. MN Admin, Finance">
+            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. My Folder">
+        </div>
+        <div class="input-group">
+            <label>Folder Color</label>
+            <select id="newFolderColor" class="clean-input">
+                <option value="#e5c7c2">Sand / Pink (Default)</option>
+                <option value="#34a853">Green</option>
+                <option value="#ea4335">Red</option>
+                <option value="#4285f4">Blue</option>
+                <option value="#fbbc05">Yellow</option>
+            </select>
         </div>
         <div class="input-group">
             <label>Folder Password (Optional)</label>
-            <input type="text" id="newFolderPassword" class="clean-input" placeholder="Optional password lock">
+            <input type="text" id="newFolderPassword" class="clean-input" placeholder="Optional lock">
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button class="btn-pill" id="btnCreateFolder">Create</button>
@@ -819,7 +871,7 @@
             </button>
         </div>
         <div class="input-group">
-            <input type="password" id="authPasswordInput" class="clean-input" placeholder="Enter password to open">
+            <input type="password" id="authPasswordInput" class="clean-input" placeholder="Enter folder password">
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button class="btn-pill" id="btnSubmitAuth">Unlock</button>
@@ -836,7 +888,7 @@
         doc, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove 
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // Firebase Config
+    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
         authDomain: "cloud-computer-4891a.firebaseapp.com",
@@ -895,6 +947,29 @@
         return `${timeStr} , ${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
     }
 
+    // View Mode Toggle (Grid vs List)
+    let currentViewMode = localStorage.getItem('drive_view_mode') || 'grid'; // 'grid' or 'list'
+    const viewToggleBtn = document.getElementById('viewModeToggleBtn');
+    const viewToggleSvg = document.getElementById('viewToggleSvg');
+
+    function updateViewToggleIcon() {
+        if (currentViewMode === 'grid') {
+            viewToggleSvg.innerHTML = `<line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>`;
+            viewToggleBtn.title = "Switch to List View";
+        } else {
+            viewToggleSvg.innerHTML = `<rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>`;
+            viewToggleBtn.title = "Switch to Grid View";
+        }
+    }
+    updateViewToggleIcon();
+
+    viewToggleBtn.addEventListener('click', () => {
+        currentViewMode = (currentViewMode === 'grid') ? 'list' : 'grid';
+        localStorage.setItem('drive_view_mode', currentViewMode);
+        updateViewToggleIcon();
+        renderWorkspace();
+    });
+
     const SVG_ICONS = {
         folder: `<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
         image: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
@@ -940,6 +1015,7 @@
         return cid ? allFolderDocs.find(f => f.id === cid) : null;
     }
 
+    // Role helper with Contributor role & Parent Folder Access Inheritance
     function getUserRole(item) {
         if (item.Email === userEmail) return 'Owner';
         const acc = item.Access || {};
@@ -993,14 +1069,14 @@
         }
     }
 
-    // Primary Database Fetch
+    // Database Load
     async function loadDrive() {
         renderBreadcrumb();
         exitSelectionMode();
         keyboardFocusedIndex = -1;
 
-        const container = document.getElementById('tableContent');
-        container.innerHTML = `<div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading items...</div>`;
+        const container = document.getElementById('displayContainer');
+        container.innerHTML = `<div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading Cloud Drive...</div>`;
 
         try {
             const q = query(
@@ -1023,7 +1099,6 @@
 
             allWorkspaceDocs = items;
             allFolderDocs = items.filter(d => d.Folder === "True");
-            container.innerHTML = "";
 
             const currId = getCurrentFolderId();
             let renderItems = [];
@@ -1041,115 +1116,222 @@
             }
 
             currentRenderedItems = renderItems;
-
-            if (renderItems.length === 0) {
-                const emptyTitleText = currId 
-                    ? `No Files In Your ${folderHierarchy[folderHierarchy.length - 1].name}` 
-                    : `No Files In Your Drive`;
-
-                container.innerHTML = `
-                    <div class="empty-state-card">
-                        <img src="https://indus.sarvam.ai/studio/assets/empty-table.webp" alt="Empty Drive">
-                        <div class="empty-title">${emptyTitleText}</div>
-                        <button class="btn-pill" id="emptyAddFilesBtn">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                            Add Files
-                        </button>
-                    </div>
-                `;
-                document.getElementById('emptyAddFilesBtn')?.addEventListener('click', () => {
-                    document.getElementById('nativeFileInput').click();
-                });
-                return;
-            }
-
-            renderItems.sort((a, b) => (b.Folder === "True" ? 1 : 0) - (a.Folder === "True" ? 1 : 0));
-            renderItems.forEach((item, idx) => renderRow(item, idx));
+            renderWorkspace();
         } catch(e) {
             console.error(e);
             container.innerHTML = `<div style="padding: 20px 0; color: var(--danger);">Failed to load Cloud Drive.</div>`;
         }
     }
 
-    function renderRow(item, index) {
-        const container = document.getElementById('tableContent');
-        const isFolder = item.Folder === "True";
-        const name = item.Name || (item.File ? item.File.split('/').pop() : 'Untitled');
-        const format = getFormatInfo(item.Type, isFolder);
-        const updated = item.Updated || "Recently";
-        const ownerEmail = item.Email || userEmail;
-        const role = getUserRole(item);
-        const isViewer = (role === 'Viewer');
+    function renderWorkspace() {
+        const container = document.getElementById('displayContainer');
+        container.innerHTML = "";
 
-        let labels = Array.isArray(item.Label) ? [...item.Label] : [];
-        if (!isFolder && labels.length === 0 && folderHierarchy.length > 0) {
-            const p = getCurrentParentFolder();
-            if (p && Array.isArray(p.Label)) labels = [...p.Label];
-        }
-
-        const labelsHtml = labels.map(l => `<span class="label-badge">${l}</span>`).join('');
-
-        const row = document.createElement('div');
-        row.className = 'table-row';
-        row.setAttribute('data-id', item.id);
-        row.setAttribute('data-index', index);
-
-        // Build 3-dots menu options based on role and folder type
-        let dropdownItemsHtml = '';
-        if (isViewer) {
-            // Viewers can ONLY see Details and Cancel their access (remove from drive)
-            dropdownItemsHtml = `
-                <div class="dropdown-item opt-details">${SVG_ICONS.info} Details</div>
-                <div class="dropdown-item danger opt-leave">${SVG_ICONS.trash} Remove from Drive</div>
-            `;
-        } else {
-            dropdownItemsHtml = `
-                ${!isFolder ? `<div class="dropdown-item opt-download">${SVG_ICONS.download} Download</div>` : ''}
-                <div class="dropdown-item opt-rename">${SVG_ICONS.edit} Rename</div>
-                ${!isFolder ? `<div class="dropdown-item opt-share">${SVG_ICONS.share} Share</div>` : ''}
-                ${isFolder ? `<div class="dropdown-item opt-security">${SVG_ICONS.lock} Security</div>` : ''}
-                <div class="dropdown-item opt-access">${SVG_ICONS.users} Manage Access</div>
-                <div class="dropdown-item opt-label">${SVG_ICONS.tag} Label</div>
-                <div class="dropdown-item opt-move">${SVG_ICONS.move} ${isFolder ? 'Organise' : 'Move'}</div>
-                <div class="dropdown-item opt-details">${SVG_ICONS.info} Details</div>
-                <div class="dropdown-item danger opt-delete">${SVG_ICONS.trash} Delete</div>
-            `;
-        }
-
-        row.innerHTML = `
-            <div class="cell-checkbox">
-                <label class="custom-chk-label">
-                    <input type="checkbox" class="row-checkbox" data-id="${item.id}">
-                    <span class="chk-circle"></span>
-                </label>
-            </div>
-            <div class="file-title-cell">
-                <div class="file-icon-box">${format.icon}</div>
-                <div class="file-info-col">
-                    <span class="file-name" title="${name}">${name}</span>
-                    <div class="file-labels">${labelsHtml}</div>
+        if (currentRenderedItems.length === 0) {
+            const isRoot = folderHierarchy.length === 0;
+            const currentName = isRoot ? "Drive" : folderHierarchy[folderHierarchy.length - 1].name;
+            container.innerHTML = `
+                <div class="empty-state-box">
+                    <img src="https://indus.sarvam.ai/studio/assets/empty-table.webp" alt="No Files" class="empty-state-img">
+                    <div class="empty-state-text">No Files In Your ${currentName}</div>
                 </div>
+            `;
+            return;
+        }
+
+        currentRenderedItems.sort((a, b) => (b.Folder === "True" ? 1 : 0) - (a.Folder === "True" ? 1 : 0));
+
+        if (currentViewMode === 'list') {
+            renderListView(container);
+        } else {
+            renderGridView(container);
+        }
+    }
+
+    // List View Renderer
+    function renderListView(container) {
+        const table = document.createElement('div');
+        table.className = `data-table ${isSelectionMode ? 'selection-active' : ''}`;
+        table.id = "activeDataTable";
+        table.innerHTML = `
+            <div class="table-head">
+                <div class="cell-checkbox"><div class="custom-check" id="selectAllCheckbox"></div></div>
+                <div>Name</div>
+                <div class="cell-uploader">Owner</div>
+                <div class="cell-format">Format</div>
+                <div class="cell-date">Updated</div>
+                <div></div>
             </div>
-            <div class="cell-uploader" style="font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ownerEmail}</div>
-            <div class="cell-format" style="font-size: 13px; color: var(--text-secondary);">${format.label}</div>
-            <div class="cell-date" style="font-size: 13px; color: var(--text-secondary);">${updated}</div>
-            <div class="actions-cell">
-                <button class="btn-dots">${SVG_ICONS.dots}</button>
-                <div class="action-dropdown">${dropdownItemsHtml}</div>
-            </div>
+            <div id="tableRowsContainer"></div>
         `;
 
-        const chk = row.querySelector('.row-checkbox');
-        chk.addEventListener('change', (e) => {
-            e.stopPropagation();
-            toggleSelectItem(item.id, chk.checked);
+        const rowsContainer = table.querySelector('#tableRowsContainer');
+        currentRenderedItems.forEach((item, idx) => {
+            const isFolder = item.Folder === "True";
+            const name = item.Name || (item.File ? item.File.split('/').pop() : 'Untitled');
+            const format = getFormatInfo(item.Type, isFolder);
+            const updated = item.Updated || "Recently";
+            const ownerEmail = item.Email || userEmail;
+            const role = getUserRole(item);
+            const isViewer = (role === 'Viewer');
+            const isSelected = selectedItemIds.has(item.id);
+
+            let labels = Array.isArray(item.Label) ? [...item.Label] : [];
+            const labelsHtml = labels.map(l => `<span class="label-badge">${l}</span>`).join('');
+
+            const row = document.createElement('div');
+            row.className = `table-row ${isSelected ? 'selected' : ''}`;
+            row.setAttribute('data-id', item.id);
+            row.setAttribute('data-index', idx);
+
+            row.innerHTML = `
+                <div class="cell-checkbox"><div class="custom-check ${isSelected ? 'checked' : ''}" data-id="${item.id}"></div></div>
+                <div class="file-title-cell">
+                    <div class="file-icon-box">${format.icon}</div>
+                    <div class="file-info-col">
+                        <span class="file-name" title="${name}">${name}</span>
+                        <div class="file-labels">${labelsHtml}</div>
+                    </div>
+                </div>
+                <div class="cell-uploader" style="font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ownerEmail}</div>
+                <div class="cell-format" style="font-size: 13px; color: var(--text-secondary);">${format.label}</div>
+                <div class="cell-date" style="font-size: 13px; color: var(--text-secondary);">${updated}</div>
+                <div class="actions-cell">
+                    <button class="btn-dots">${SVG_ICONS.dots}</button>
+                    <div class="action-dropdown">${buildDropdownHtml(item, isFolder, isViewer)}</div>
+                </div>
+            `;
+
+            attachItemEvents(row, item, isFolder, name);
+            rowsContainer.appendChild(row);
         });
 
-        // Long-press detection for mobile
+        table.querySelector('#selectAllCheckbox')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const allChecked = selectedItemIds.size === currentRenderedItems.length;
+            currentRenderedItems.forEach(i => toggleSelectItem(i.id, !allChecked));
+        });
+
+        container.appendChild(table);
+    }
+
+    // Grid View Renderer (Google Drive Style)
+    function renderGridView(container) {
+        const grid = document.createElement('div');
+        grid.className = `grid-container ${isSelectionMode ? 'selection-active' : ''}`;
+        grid.id = "activeGridContainer";
+
+        currentRenderedItems.forEach((item, idx) => {
+            const isFolder = item.Folder === "True";
+            const name = item.Name || (item.File ? item.File.split('/').pop() : 'Untitled');
+            const format = getFormatInfo(item.Type, isFolder);
+            const role = getUserRole(item);
+            const isViewer = (role === 'Viewer');
+            const isSelected = selectedItemIds.has(item.id);
+            const folderColor = item.Customize?.Colour || "#e5c7c2";
+
+            const card = document.createElement('div');
+            card.className = `grid-card ${isSelected ? 'selected' : ''}`;
+            card.setAttribute('data-id', item.id);
+            card.setAttribute('data-index', idx);
+
+            if (isFolder) {
+                card.innerHTML = `
+                    <div class="cell-checkbox"><div class="custom-check ${isSelected ? 'checked' : ''}" data-id="${item.id}"></div></div>
+                    <div class="grid-card-header">
+                        <div class="grid-title-area">
+                            <span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:${folderColor}; flex-shrink:0;"></span>
+                            <span class="file-name" style="font-size:13px; font-weight:500;" title="${name}">${name}</span>
+                        </div>
+                        <div class="actions-cell">
+                            <button class="btn-dots">${SVG_ICONS.dots}</button>
+                            <div class="action-dropdown">${buildDropdownHtml(item, true, isViewer)}</div>
+                        </div>
+                    </div>
+                    <div class="grid-folder-body">
+                        <svg class="folder-large-svg" viewBox="0 0 24 24" fill="${folderColor}" stroke="none"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                    </div>
+                `;
+            } else {
+                const isImg = format.label === "Image";
+                card.innerHTML = `
+                    <div class="cell-checkbox"><div class="custom-check ${isSelected ? 'checked' : ''}" data-id="${item.id}"></div></div>
+                    <div class="grid-card-header">
+                        <div class="grid-title-area">
+                            <span style="color:var(--text-secondary); flex-shrink:0;">${format.icon}</span>
+                            <span class="file-name" style="font-size:13px; font-weight:500;" title="${name}">${name}</span>
+                        </div>
+                        <div class="actions-cell">
+                            <button class="btn-dots">${SVG_ICONS.dots}</button>
+                            <div class="action-dropdown">${buildDropdownHtml(item, false, isViewer)}</div>
+                        </div>
+                    </div>
+                    <div class="grid-preview-body">
+                        ${isImg ? `<img src="${item.File}" class="grid-preview-img" alt="Preview" loading="lazy">` : `<div style="color:var(--text-secondary); font-size:12px;">${format.label} Preview</div>`}
+                    </div>
+                `;
+            }
+
+            attachItemEvents(card, item, isFolder, name);
+            grid.appendChild(card);
+        });
+
+        container.appendChild(grid);
+    }
+
+    // Dynamic 3-Dots Dropdown HTML (With Viewer Protections)
+    function buildDropdownHtml(item, isFolder, isViewer) {
+        if (isViewer) {
+            // Viewers can ONLY see Details and "Delete" (cancels their own access)
+            return `
+                <div class="dropdown-item opt-details">${SVG_ICONS.info} Details</div>
+                <div class="dropdown-item danger opt-delete">${SVG_ICONS.trash} Remove from Drive</div>
+            `;
+        }
+
+        // Owner / Editor / Contributor Dropdown
+        return `
+            ${!isFolder ? `<div class="dropdown-item opt-download">${SVG_ICONS.download} Download</div>` : ''}
+            <div class="dropdown-item opt-rename">${SVG_ICONS.edit} Rename</div>
+            ${isFolder ? `<div class="dropdown-item opt-security">${SVG_ICONS.lock} Security</div>` : ''}
+            ${!isFolder ? `<div class="dropdown-item opt-share">${SVG_ICONS.share} Share</div>` : ''}
+            <div class="dropdown-item opt-access">${SVG_ICONS.users} Manage Access</div>
+            <div class="dropdown-item opt-label">${SVG_ICONS.tag} Label</div>
+            <div class="dropdown-item opt-move">${SVG_ICONS.move} ${isFolder ? 'Organise' : 'Move'}</div>
+            <div class="dropdown-item opt-details">${SVG_ICONS.info} Details</div>
+            <div class="dropdown-item danger opt-delete">${SVG_ICONS.trash} Delete</div>
+        `;
+    }
+
+    function attachItemEvents(element, item, isFolder, name) {
+        const dotsBtn = element.querySelector('.btn-dots');
+        const dropdown = element.querySelector('.action-dropdown');
+
+        dotsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.querySelectorAll('.action-dropdown').forEach(d => d !== dropdown && d.classList.remove('active'));
+            dropdown.classList.toggle('active');
+        });
+
+        // Click anywhere on file/folder: in selection mode -> toggle select; else -> open item
+        element.addEventListener('click', (e) => {
+            if (e.target.closest('.actions-cell') || e.target.closest('.action-dropdown')) return;
+            if (isSelectionMode) {
+                toggleSelectItem(item.id, !selectedItemIds.has(item.id));
+            } else {
+                if (item.Password) {
+                    promptPasswordAuth(item.Password, () => openItem(item, isFolder, name));
+                } else {
+                    openItem(item, isFolder, name);
+                }
+            }
+        });
+
+        // Long Press Support for Mobile
         let touchTimer = null;
         let touchMoved = false;
-
-        row.addEventListener('touchstart', (e) => {
+        element.addEventListener('touchstart', (e) => {
+            if (e.target.closest('.actions-cell')) return;
             touchMoved = false;
             touchTimer = setTimeout(() => {
                 if (!touchMoved) {
@@ -1159,59 +1341,46 @@
                 }
             }, 500);
         }, { passive: true });
+        element.addEventListener('touchmove', () => { touchMoved = true; clearTimeout(touchTimer); });
+        element.addEventListener('touchend', () => clearTimeout(touchTimer));
 
-        row.addEventListener('touchmove', () => { touchMoved = true; clearTimeout(touchTimer); });
-        row.addEventListener('touchend', () => clearTimeout(touchTimer));
-
-        const dotsBtn = row.querySelector('.btn-dots');
-        const dropdown = row.querySelector('.action-dropdown');
-
-        dotsBtn.addEventListener('click', (e) => {
+        // Action Options
+        element.querySelector('.opt-download')?.addEventListener('click', (e) => {
             e.stopPropagation();
-            document.querySelectorAll('.action-dropdown').forEach(d => d !== dropdown && d.classList.remove('active'));
-            dropdown.classList.toggle('active');
+            directDownloadFile(item.File, item.Name);
         });
-
-        // Row Click Handler: In Select Mode, clicking ANYWHERE on the row selects it
-        row.addEventListener('click', (e) => {
-            if (e.target.closest('.btn-dots') || e.target.closest('.action-dropdown')) return;
-
-            if (isSelectionMode) {
-                e.stopPropagation();
-                toggleSelectItem(item.id, !selectedItemIds.has(item.id));
-                return;
-            }
-
-            // If regular click on filename or row
-            if (e.target.closest('.file-title-cell') || e.target === row) {
-                if (item.Password) {
-                    promptPasswordAuth(item.Password, () => openItem(item, isFolder, name));
-                } else {
-                    openItem(item, isFolder, name);
-                }
-            }
+        element.querySelector('.opt-rename')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openRenameModal(item);
         });
-
-        // Action Bindings
-        if (isViewer) {
-            row.querySelector('.opt-details')?.addEventListener('click', () => openDetailsModal(item));
-            row.querySelector('.opt-leave')?.addEventListener('click', () => handleViewerLeave(item));
-        } else {
-            if (!isFolder) {
-                row.querySelector('.opt-download')?.addEventListener('click', () => directDownloadFile(item.File, item.Name));
-                row.querySelector('.opt-share')?.addEventListener('click', () => openShareModal(item));
-            } else {
-                row.querySelector('.opt-security')?.addEventListener('click', () => openSecurityModal(item));
-            }
-            row.querySelector('.opt-rename')?.addEventListener('click', () => openRenameModal(item));
-            row.querySelector('.opt-access')?.addEventListener('click', () => openAccessModal(item));
-            row.querySelector('.opt-label')?.addEventListener('click', () => openLabelModal(item));
-            row.querySelector('.opt-move')?.addEventListener('click', () => openMoveModal(item));
-            row.querySelector('.opt-details')?.addEventListener('click', () => openDetailsModal(item));
-            row.querySelector('.opt-delete')?.addEventListener('click', () => handleDelete(item));
-        }
-
-        container.appendChild(row);
+        element.querySelector('.opt-security')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openSecurityModal(item);
+        });
+        element.querySelector('.opt-share')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openShareModal(item);
+        });
+        element.querySelector('.opt-access')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openAccessModal(item);
+        });
+        element.querySelector('.opt-label')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openLabelModal(item);
+        });
+        element.querySelector('.opt-move')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openMoveModal(item);
+        });
+        element.querySelector('.opt-details')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openDetailsModal(item);
+        });
+        element.querySelector('.opt-delete')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleDelete(item);
+        });
     }
 
     function openItem(item, isFolder, name) {
@@ -1227,7 +1396,6 @@
         }
     }
 
-    // Direct Browser Download
     async function directDownloadFile(url, fileName) {
         showToast("Starting download...");
         try {
@@ -1256,7 +1424,7 @@
         document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('active'));
     });
 
-    // Password Challenge Modal
+    // Password Prompt Modal
     const passModal = document.getElementById('passwordAuthModal');
     let passSuccessCallback = null;
     let expectedPass = "";
@@ -1278,49 +1446,22 @@
         }
     });
 
-    // Folder Security Modal (Password management for folders)
-    const securityModal = document.getElementById('securityModal');
-    let targetSecurityItem = null;
-
-    function openSecurityModal(item) {
-        targetSecurityItem = item;
-        document.getElementById('folderSecurityPasswordInput').value = item.Password || '';
-        securityModal.classList.add('active');
-    }
-    document.getElementById('closeSecurityModal').addEventListener('click', () => securityModal.classList.remove('active'));
-    document.getElementById('btnSaveFolderSecurity').addEventListener('click', async () => {
-        if (!targetSecurityItem) return;
-        const newPass = document.getElementById('folderSecurityPasswordInput').value.trim();
-        await updateDoc(doc(db, "Cloud Drive", targetSecurityItem.id), {
-            Password: newPass,
-            Updated: formatFirestoreDate()
-        });
-        showToast(newPass ? "Password protection enabled" : "Password protection removed");
-        securityModal.classList.remove('active');
-        loadDrive();
-    });
-
     // ==========================================
     // MULTI-SELECTION SYSTEM
     // ==========================================
     function enterSelectionMode() {
         isSelectionMode = true;
-        document.getElementById('dataTable').classList.add('selection-active');
         document.getElementById('selectionToolbar').classList.add('active');
         document.getElementById('btnSelectModeToggle').innerText = "Cancel";
-        updateSelectionToolbar();
+        renderWorkspace();
     }
 
     function exitSelectionMode() {
         isSelectionMode = false;
         selectedItemIds.clear();
-        document.getElementById('dataTable').classList.remove('selection-active');
         document.getElementById('selectionToolbar').classList.remove('active');
         document.getElementById('btnSelectModeToggle').innerText = "Select";
-        document.querySelectorAll('.row-checkbox').forEach(c => c.checked = false);
-        const selAll = document.getElementById('selectAllCheckbox');
-        if (selAll) selAll.checked = false;
-        document.querySelectorAll('.table-row').forEach(r => r.classList.remove('selected'));
+        renderWorkspace();
     }
 
     document.getElementById('btnSelectModeToggle').addEventListener('click', () => {
@@ -1333,30 +1474,21 @@
 
         if (isSelected) selectedItemIds.add(id);
         else selectedItemIds.delete(id);
-        
-        const row = document.querySelector(`.table-row[data-id="${id}"]`);
-        if (row) {
-            row.classList.toggle('selected', isSelected);
-            const chk = row.querySelector('.row-checkbox');
-            if (chk) chk.checked = isSelected;
+
+        const el = document.querySelector(`[data-id="${id}"]`);
+        if (el) {
+            el.classList.toggle('selected', isSelected);
+            const chk = el.querySelector('.custom-check');
+            if (chk) chk.classList.toggle('checked', isSelected);
         }
-        updateSelectionToolbar();
-    }
 
-    function updateSelectionToolbar() {
-        const countText = document.getElementById('selectedCountText');
-        const selectAllChk = document.getElementById('selectAllCheckbox');
-
-        countText.innerText = `${selectedItemIds.size} Selected`;
-        if (selectAllChk && currentRenderedItems.length > 0) {
-            selectAllChk.checked = (selectedItemIds.size === currentRenderedItems.length);
+        const selAll = document.getElementById('selectAllCheckbox');
+        if (selAll && currentRenderedItems.length > 0) {
+            selAll.classList.toggle('checked', selectedItemIds.size === currentRenderedItems.length);
         }
-    }
 
-    document.getElementById('selectAllCheckbox').addEventListener('change', (e) => {
-        const check = e.target.checked;
-        currentRenderedItems.forEach(item => toggleSelectItem(item.id, check));
-    });
+        document.getElementById('selectedCountText').innerText = `${selectedItemIds.size} Selected`;
+    }
 
     document.getElementById('btnCancelSelect').addEventListener('click', () => exitSelectionMode());
 
@@ -1369,14 +1501,7 @@
         if (confirm(`Delete ${selectedItemIds.size} selected item(s)?`)) {
             for (const id of selectedItemIds) {
                 const item = allWorkspaceDocs.find(d => d.id === id);
-                if (item && getUserRole(item) !== 'Viewer') {
-                    for (const f of allFolderDocs) {
-                        if (Array.isArray(f.File) && f.File.includes(id)) {
-                            await updateDoc(doc(db, "Cloud Drive", f.id), { File: arrayRemove(id) });
-                        }
-                    }
-                    await deleteDoc(doc(db, "Cloud Drive", id));
-                }
+                if (item) await handleDelete(item, true);
             }
             showToast("Selected items deleted");
             loadDrive();
@@ -1403,6 +1528,28 @@
             return;
         }
         openMoveModal(null, true);
+    });
+
+    // Folder Security Modal
+    const securityModal = document.getElementById('securityModal');
+    let targetSecurityItem = null;
+
+    function openSecurityModal(item) {
+        targetSecurityItem = item;
+        document.getElementById('securityPasswordInput').value = item.Password || "";
+        securityModal.classList.add('active');
+    }
+    document.getElementById('closeSecurityModal').addEventListener('click', () => securityModal.classList.remove('active'));
+    document.getElementById('btnSaveSecurity').addEventListener('click', async () => {
+        if (!targetSecurityItem) return;
+        const pass = document.getElementById('securityPasswordInput').value.trim();
+        await updateDoc(doc(db, "Cloud Drive", targetSecurityItem.id), {
+            Password: pass,
+            Updated: formatFirestoreDate()
+        });
+        showToast("Security updated");
+        securityModal.classList.remove('active');
+        loadDrive();
     });
 
     // Rename Modal
@@ -1442,6 +1589,7 @@
             <div class="details-item"><span class="details-label">Location</span><span class="details-val">${locationPath}</span></div>
             <div class="details-item"><span class="details-label">Owner</span><span class="details-val">${item.Email || userEmail}</span></div>
             <div class="details-item"><span class="details-label">Labels</span><span class="details-val">${(item.Label || []).join(', ') || 'None'}</span></div>
+            <div class="details-item"><span class="details-label">Password</span><span class="details-val">${item.Password ? 'Protected 🔒' : 'None'}</span></div>
         `;
         detailsModal.classList.add('active');
     }
@@ -1455,17 +1603,12 @@
     function openLabelModal(item) {
         targetLabelItem = item;
         localLabels = Array.isArray(item.Label) ? [...item.Label] : [];
-        const isViewer = (getUserRole(item) === 'Viewer');
-        document.getElementById('newLabelInput').disabled = isViewer;
-        document.getElementById('btnAddLabel').disabled = isViewer;
-        document.getElementById('btnSaveLabels').disabled = isViewer;
-        renderLabelBadges(isViewer);
+        renderLabelBadges();
         labelModal.classList.add('active');
     }
-
     document.getElementById('closeLabelModal').addEventListener('click', () => labelModal.classList.remove('active'));
 
-    function renderLabelBadges(isViewer) {
+    function renderLabelBadges() {
         const list = document.getElementById('currentLabelsList');
         list.innerHTML = "";
         if (localLabels.length === 0) {
@@ -1476,13 +1619,11 @@
             const badge = document.createElement('span');
             badge.className = 'label-badge';
             badge.style.padding = '4px 8px';
-            badge.innerHTML = `${l} ${!isViewer ? `<span style="cursor:pointer; margin-left:4px; color:var(--danger);" data-idx="${idx}">&times;</span>` : ''}`;
-            if (!isViewer) {
-                badge.querySelector('span')?.addEventListener('click', () => {
-                    localLabels.splice(idx, 1);
-                    renderLabelBadges(isViewer);
-                });
-            }
+            badge.innerHTML = `${l} <span style="cursor:pointer; margin-left:4px; color:var(--danger);" data-idx="${idx}">&times;</span>`;
+            badge.querySelector('span')?.addEventListener('click', () => {
+                localLabels.splice(idx, 1);
+                renderLabelBadges();
+            });
             list.appendChild(badge);
         });
     }
@@ -1492,7 +1633,7 @@
         if (txt && !localLabels.includes(txt)) {
             localLabels.push(txt);
             document.getElementById('newLabelInput').value = "";
-            renderLabelBadges(false);
+            renderLabelBadges();
         }
     });
 
@@ -1507,16 +1648,13 @@
         loadDrive();
     });
 
-    // Manage Access Modal (With Contributor)
+    // Manage Access Modal (With Contributor Support)
     const accessModal = document.getElementById('accessModal');
     let targetAccessItem = null;
     let localAccessState = { Viewer: [], Contributor: [], Commenter: [], Editor: [] };
 
     function openAccessModal(item) {
         targetAccessItem = item;
-        const role = getUserRole(item);
-        const isViewer = (role === 'Viewer');
-
         const access = item.Access || {};
         localAccessState = {
             Viewer: [...(access.Viewer || [])],
@@ -1525,16 +1663,12 @@
             Editor: [...(access.Editor || [])]
         };
 
-        document.getElementById('inviteSection').style.display = isViewer ? 'none' : 'block';
-        document.getElementById('btnSaveAccess').style.display = isViewer ? 'none' : 'block';
-
-        renderAccessList(isViewer);
+        renderAccessList();
         accessModal.classList.add('active');
     }
-
     document.getElementById('closeAccessModal').addEventListener('click', () => accessModal.classList.remove('active'));
 
-    function renderAccessList(isViewer) {
+    function renderAccessList() {
         const c = document.getElementById('accessListContainer');
         c.innerHTML = `
             <div class="user-access-row">
@@ -1542,23 +1676,21 @@
                 <span style="font-size: 11px; color: var(--accent); font-weight:600;">Owner</span>
             </div>
         `;
-        ['Editor', 'Contributor', 'Commenter', 'Viewer'].forEach(role => {
-            localAccessState[role].forEach((email, idx) => {
+        ['Editor', 'Contributor', 'Viewer', 'Commenter'].forEach(role => {
+            (localAccessState[role] || []).forEach((email, idx) => {
                 const div = document.createElement('div');
                 div.className = 'user-access-row';
                 div.innerHTML = `
                     <span>${email}</span>
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <span style="font-size: 11px; color: var(--text-secondary);">${role}</span>
-                        ${!isViewer ? `<span style="cursor: pointer; color: var(--danger); font-size:16px;" data-role="${role}" data-idx="${idx}">&times;</span>` : ''}
+                        <span style="cursor: pointer; color: var(--danger); font-size:16px;" data-role="${role}" data-idx="${idx}">&times;</span>
                     </div>
                 `;
-                if (!isViewer) {
-                    div.querySelector('span[data-role]')?.addEventListener('click', () => {
-                        localAccessState[role].splice(idx, 1);
-                        renderAccessList(isViewer);
-                    });
-                }
+                div.querySelector('span[data-role]')?.addEventListener('click', () => {
+                    localAccessState[role].splice(idx, 1);
+                    renderAccessList();
+                });
                 c.appendChild(div);
             });
         });
@@ -1584,11 +1716,11 @@
         }
 
         ['Viewer', 'Contributor', 'Commenter', 'Editor'].forEach(r => {
-            localAccessState[r] = localAccessState[r].filter(e => e !== email);
+            localAccessState[r] = (localAccessState[r] || []).filter(e => e !== email);
         });
         localAccessState[role].push(email);
         document.getElementById('inviteEmailInput').value = "";
-        renderAccessList(false);
+        renderAccessList();
     });
 
     document.getElementById('btnSaveAccess').addEventListener('click', async () => {
@@ -1601,20 +1733,6 @@
         accessModal.classList.remove('active');
         loadDrive();
     });
-
-    // Viewer Cancel/Remove Access Handler
-    async function handleViewerLeave(item) {
-        if (confirm(`Remove "${item.Name || 'item'}" from your drive?`)) {
-            await updateDoc(doc(db, "Cloud Drive", item.id), {
-                "Access.Viewer": arrayRemove(userEmail),
-                "Access.Contributor": arrayRemove(userEmail),
-                "Access.Commenter": arrayRemove(userEmail),
-                "Access.Editor": arrayRemove(userEmail)
-            });
-            showToast("Removed from your drive");
-            loadDrive();
-        }
-    }
 
     // Share Modal
     const shareModal = document.getElementById('shareModal');
@@ -1723,9 +1841,22 @@
         loadDrive();
     });
 
-    // Delete Single Item (Owner/Editor)
-    async function handleDelete(item) {
-        if (confirm(`Permanently delete "${item.Name || 'item'}"?`)) {
+    // Delete / Remove Handler (Viewer only removes their own access)
+    async function handleDelete(item, suppressPrompt = false) {
+        const isViewer = (getUserRole(item) === 'Viewer');
+        
+        if (isViewer) {
+            if (suppressPrompt || confirm(`Remove "${item.Name || 'item'}" from your drive?`)) {
+                await updateDoc(doc(db, "Cloud Drive", item.id), {
+                    "Access.Viewer": arrayRemove(userEmail)
+                });
+                showToast("Removed from your drive");
+                loadDrive();
+            }
+            return;
+        }
+
+        if (suppressPrompt || confirm(`Permanently delete "${item.Name || 'item'}"?`)) {
             for (const f of allFolderDocs) {
                 if (Array.isArray(f.File) && f.File.includes(item.id)) {
                     await updateDoc(doc(db, "Cloud Drive", f.id), {
@@ -1734,8 +1865,10 @@
                 }
             }
             await deleteDoc(doc(db, "Cloud Drive", item.id));
-            showToast("Item deleted");
-            loadDrive();
+            if (!suppressPrompt) {
+                showToast("Item deleted");
+                loadDrive();
+            }
         }
     }
 
@@ -1751,6 +1884,8 @@
     document.getElementById('btnCreateFolder').addEventListener('click', async () => {
         const name = document.getElementById('newFolderName').value.trim();
         const pass = document.getElementById('newFolderPassword').value.trim();
+        const col = document.getElementById('newFolderColor').value;
+
         if (name) {
             const newDoc = await addDoc(collection(db, "Cloud Drive"), {
                 Email: userEmail,
@@ -1759,7 +1894,7 @@
                 Password: pass,
                 File: [],
                 Label: [],
-                Customize: { Colour: "Green" },
+                Customize: { Colour: col },
                 Updated: formatFirestoreDate(),
                 Access: { Viewer: [], Contributor: [], Commenter: [], Editor: [] }
             });
@@ -1778,7 +1913,7 @@
         }
     });
 
-    // Batch File Upload
+    // Upload Files
     const nativeFileInput = document.getElementById('nativeFileInput');
     document.getElementById('uploadTriggerBtn').addEventListener('click', () => nativeFileInput.click());
     nativeFileInput.addEventListener('change', (e) => {
@@ -1862,35 +1997,26 @@
         loadDrive();
     }
 
-    // Full Search Across All Files, Nested Folders & Labels
+    // Full Recursive Search (Names, Labels, and Files inside Folders)
     document.getElementById('searchInput').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase().trim();
-        const container = document.getElementById('tableContent');
-
         if (!val) {
             loadDrive();
             return;
         }
 
-        const matches = allWorkspaceDocs.filter(item => {
-            const name = (item.Name || '').toLowerCase();
-            const labels = (Array.isArray(item.Label) ? item.Label.join(' ') : '').toLowerCase();
+        // Search across all workspace docs
+        const matched = allWorkspaceDocs.filter(d => {
+            const name = (d.Name || (d.File ? d.File.split('/').pop() : '')).toLowerCase();
+            const labels = (Array.isArray(d.Label) ? d.Label.join(' ') : '').toLowerCase();
             return name.includes(val) || labels.includes(val);
         });
 
-        container.innerHTML = "";
-        if (matches.length === 0) {
-            container.innerHTML = `<div style="padding: 32px 0; color: var(--text-secondary); font-size: 14px; text-align: center;">No matching files or folders found.</div>`;
-            return;
-        }
-
-        currentRenderedItems = matches;
-        matches.forEach((item, idx) => renderRow(item, idx));
+        currentRenderedItems = matched;
+        renderWorkspace();
     });
 
-    // ==========================================
-    // KEYBOARD SHORTCUTS
-    // ==========================================
+    // Keyboard Shortcuts
     let themeKeySequence = [];
     let themeTimer = null;
 
@@ -1932,35 +2058,27 @@
         // Shift + S -> Toggle Multi-select mode
         if (e.shiftKey && (e.key === 'S' || e.key === 's')) {
             e.preventDefault();
-            if (!isSelectionMode) {
-                enterSelectionMode();
-            } else if (selectedItemIds.size > 0) {
-                document.getElementById('btnMultiDelete').click();
-            } else {
-                exitSelectionMode();
-            }
+            if (!isSelectionMode) enterSelectionMode();
+            else if (selectedItemIds.size > 0) document.getElementById('btnMultiDelete').click();
+            else exitSelectionMode();
             return;
         }
 
-        // Shift + D -> Delete selected items
+        // Shift + D -> Delete selected
         if (e.shiftKey && (e.key === 'D' || e.key === 'd')) {
             e.preventDefault();
-            if (selectedItemIds.size > 0) {
-                document.getElementById('btnMultiDelete').click();
-            }
+            if (selectedItemIds.size > 0) document.getElementById('btnMultiDelete').click();
             return;
         }
 
         // Shift + M -> Move selected
         if (e.shiftKey && (e.key === 'M' || e.key === 'm')) {
             e.preventDefault();
-            if (selectedItemIds.size > 0) {
-                document.getElementById('btnMultiMove').click();
-            }
+            if (selectedItemIds.size > 0) document.getElementById('btnMultiMove').click();
             return;
         }
 
-        // Theme Switch Sequence
+        // Theme Switch: Shift+T then D or L
         if (e.shiftKey && (e.key === 'T' || e.key === 't')) {
             themeKeySequence = ['T'];
             clearTimeout(themeTimer);
@@ -1981,33 +2099,33 @@
             }
         }
 
-        // Arrow Navigation & Space Key Selection
-        const rows = document.querySelectorAll('.table-row');
-        if (rows.length === 0) return;
+        // Arrow Key Focus & Space selection
+        const items = document.querySelectorAll('.table-row, .grid-card');
+        if (items.length === 0) return;
 
-        if (e.key === 'ArrowDown') {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
             e.preventDefault();
-            keyboardFocusedIndex = Math.min(keyboardFocusedIndex + 1, rows.length - 1);
-            updateKeyboardFocus(rows);
-        } else if (e.key === 'ArrowUp') {
+            keyboardFocusedIndex = Math.min(keyboardFocusedIndex + 1, items.length - 1);
+            updateKeyboardFocus(items);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
             e.preventDefault();
             keyboardFocusedIndex = Math.max(keyboardFocusedIndex - 1, 0);
-            updateKeyboardFocus(rows);
+            updateKeyboardFocus(items);
         } else if (e.key === ' ' || e.code === 'Space') {
-            if (keyboardFocusedIndex >= 0 && keyboardFocusedIndex < rows.length) {
+            if (keyboardFocusedIndex >= 0 && keyboardFocusedIndex < items.length) {
                 e.preventDefault();
                 if (!isSelectionMode) enterSelectionMode();
-                const id = rows[keyboardFocusedIndex].getAttribute('data-id');
+                const id = items[keyboardFocusedIndex].getAttribute('data-id');
                 const isSelected = selectedItemIds.has(id);
                 toggleSelectItem(id, !isSelected);
             }
         }
     });
 
-    function updateKeyboardFocus(rows) {
-        rows.forEach(r => r.classList.remove('keyboard-focused'));
-        if (keyboardFocusedIndex >= 0 && keyboardFocusedIndex < rows.length) {
-            const target = rows[keyboardFocusedIndex];
+    function updateKeyboardFocus(items) {
+        items.forEach(r => r.classList.remove('keyboard-focused'));
+        if (keyboardFocusedIndex >= 0 && keyboardFocusedIndex < items.length) {
+            const target = items[keyboardFocusedIndex];
             target.classList.add('keyboard-focused');
             target.scrollIntoView({ block: 'nearest' });
         }
