@@ -25,6 +25,7 @@
             --selection-text: #ffffff;
             --selection-border: rgba(0, 0, 0, 0.08);
             --select-highlight: rgba(0, 0, 0, 0.05);
+            --modal-sheet-bg: #e5e7eb;
             --sidebar-width: 64px;
         }
 
@@ -46,6 +47,7 @@
             --selection-text: #f9fafb;
             --selection-border: #333333;
             --select-highlight: rgba(255, 255, 255, 0.06);
+            --modal-sheet-bg: #222222;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -200,7 +202,7 @@
         }
         .view-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
-        /* Theme Adaptive Pill Selection Toolbar */
+        /* Selection Toolbar */
         .selection-toolbar {
             position: sticky;
             top: 10px;
@@ -388,7 +390,7 @@
             color: var(--text-secondary);
             position: relative;
         }
-        .file-icon-box svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; }
+        .file-icon-box svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 2; fill: none; }
 
         .file-info-col { display: flex; flex-direction: column; overflow: hidden; }
         .file-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -448,7 +450,7 @@
             align-items: center;
             justify-content: center;
         }
-        .grid-card-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+        .grid-card-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
         .grid-card-title {
             font-size: 13px;
             font-weight: 500;
@@ -466,7 +468,7 @@
         }
         .selection-active .grid-card-checkbox { display: flex; }
 
-        /* High-Contrast Visible Folder Preview */
+        /* Folder Grid Body with Perfectly Visible Center Icon */
         .grid-folder-body {
             height: 86px;
             display: flex;
@@ -477,23 +479,23 @@
         .big-folder-svg {
             width: 96px;
             height: 74px;
-            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.08));
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.1));
         }
         .big-folder-badge-icon {
             position: absolute;
             top: 54%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
             pointer-events: none;
         }
         .big-folder-badge-icon svg {
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             stroke-width: 2.2;
             fill: none;
         }
@@ -595,7 +597,7 @@
             color: var(--text-secondary);
         }
 
-        /* Modals */
+        /* Generic Modal */
         .modal-shade {
             position: fixed;
             inset: 0;
@@ -667,57 +669,120 @@
             font-size: 13px;
         }
 
-        /* Folder Customize Palette Grid (Matching Screenshot exactly) */
-        .color-palette-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-color);
+        /* =======================================================
+           CUSTOMIZE POP-UP (Matching Screenshot Design Precisely)
+           ======================================================= */
+        .customize-sheet {
+            background: var(--modal-sheet-bg);
+            border-radius: 28px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            padding: 28px 24px 22px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
         }
-        .color-swatch {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: transform 0.15s, border-color 0.15s;
-            display: inline-flex;
+
+        /* Top Large Live Preview Icon */
+        .customize-top-preview {
+            width: 64px;
+            height: 64px;
+            display: flex;
             align-items: center;
             justify-content: center;
+            margin-bottom: 18px;
+            transition: transform 0.2s, color 0.2s;
         }
-        .color-swatch:hover { transform: scale(1.1); }
-        .color-swatch.active { border-color: var(--text-primary); box-shadow: 0 0 0 2px var(--surface-color); }
+        .customize-top-preview svg {
+            width: 52px;
+            height: 52px;
+            stroke-width: 2.2;
+            fill: none;
+        }
 
-        .icon-palette-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 8px;
-            max-height: 230px;
-            overflow-y: auto;
-            padding: 6px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            background: var(--hover-bg);
+        /* Color Carousel */
+        .color-carousel-container {
+            width: 100%;
+            overflow-x: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 2px 18px 2px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
-        .icon-swatch {
+        .color-carousel-container::-webkit-scrollbar { display: none; }
+
+        .color-swatch-circle {
             width: 44px;
             height: 44px;
-            border-radius: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+        .color-swatch-circle:hover { transform: scale(1.08); }
+        .color-swatch-circle.active {
+            border-color: #000000;
+            box-shadow: 0 0 0 2px var(--modal-sheet-bg);
+        }
+        body.dark .color-swatch-circle.active { border-color: #ffffff; }
+
+        /* Icon Grid (5 Rows x 6 Columns) */
+        .customize-icons-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px 6px;
+            width: 100%;
+            margin-bottom: 24px;
+        }
+        .sheet-icon-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            color: var(--text-secondary);
+            color: var(--text-primary);
             transition: all 0.15s;
         }
-        .icon-swatch:hover, .icon-swatch.active {
-            background: var(--surface-color);
-            color: var(--text-primary);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        .sheet-icon-btn svg {
+            width: 26px;
+            height: 26px;
+            stroke: currentColor;
+            stroke-width: 2.2;
+            fill: none;
         }
-        .icon-swatch svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+        .sheet-icon-btn.active {
+            background: rgba(0, 0, 0, 0.12);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        body.dark .sheet-icon-btn.active {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Bottom "OK" Button */
+        .btn-sheet-ok {
+            align-self: flex-end;
+            background: #000000;
+            color: #ffffff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        body.dark .btn-sheet-ok {
+            background: #ffffff;
+            color: #000000;
+        }
+        .btn-sheet-ok:hover { opacity: 0.85; }
 
         /* Toast Feedback */
         .toast-popup {
@@ -757,7 +822,7 @@
             }
 
             .cell-uploader, .cell-format { display: none; }
-            .cell-date { font-size: 11px; color: var(--text-secondary); text-align: right; }
+            .cell-date { font-size: 12px; color: var(--text-secondary); text-align: right; }
             .modal-box { padding: 20px; border-radius: 16px; }
             .selection-toolbar { padding: 6px 16px; }
             .grid-container { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
@@ -842,7 +907,7 @@
         </div>
     </div>
 
-    <!-- Workspace Container -->
+    <!-- Workspace View Wrapper -->
     <div id="workspaceViewWrapper">
         <div class="data-table" id="dataTable">
             <div class="table-head">
@@ -864,26 +929,20 @@
     </div>
 </main>
 
-<!-- Modal: Folder Customize (14 Distinct Palette Colors + 30 Icons Exactly Matching Image) -->
+<!-- Redesigned Customize Modal Matching Screenshot -->
 <div class="modal-shade" id="customizeModal">
-    <div class="modal-box" style="max-width: 440px;">
-        <div class="modal-header">
-            <div class="modal-title">Customize Folder</div>
-            <button class="modal-close" id="closeCustomizeModal">
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-        </div>
-        <div class="input-group">
-            <label>Color</label>
-            <div class="color-palette-grid" id="colorPaletteGrid"></div>
-        </div>
-        <div class="input-group">
-            <label>Icon</label>
-            <div class="icon-palette-grid" id="iconPaletteGrid"></div>
-        </div>
-        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
-            <button class="btn-pill" id="btnSaveCustomize">Apply Changes</button>
-        </div>
+    <div class="customize-sheet">
+        <!-- Top Live Preview Icon -->
+        <div class="customize-top-preview" id="customizeTopPreview"></div>
+
+        <!-- Color Carousel (Horizontal scroll) -->
+        <div class="color-carousel-container" id="colorCarouselContainer"></div>
+
+        <!-- 30 Icons Grid (5 Rows x 6 Columns) -->
+        <div class="customize-icons-grid" id="customizeIconsGrid"></div>
+
+        <!-- Bottom Right OK Button -->
+        <button class="btn-sheet-ok" id="btnSaveCustomize">OK</button>
     </div>
 </div>
 
@@ -1159,7 +1218,41 @@
         return `${timeStr} , ${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
     }
 
-    // Helper: calculate high-contrast icon color (White vs Dark Charcoal) based on folder background
+    // Relative Date Formatter for Mobile/Desktop (Today, Yesterday, July 12)
+    function formatDisplayDate(dateStr) {
+        if (!dateStr) return "Recently";
+        let d = null;
+        if (dateStr.includes(',')) {
+            const parts = dateStr.split(',');
+            if (parts.length >= 2) {
+                const datePart = parts[1].trim();
+                const [day, month, year] = datePart.split('-');
+                const months = { JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11 };
+                if (months[month?.toUpperCase()] !== undefined) {
+                    d = new Date(parseInt(year), months[month.toUpperCase()], parseInt(day));
+                }
+            }
+        }
+        if (!d || isNaN(d.getTime())) d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        const targetDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+        if (targetDate.getTime() === today.getTime()) {
+            return "Today";
+        } else if (targetDate.getTime() === yesterday.getTime()) {
+            return "Yesterday";
+        } else {
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            return `${monthNames[d.getMonth()]} ${d.getDate()}`;
+        }
+    }
+
     function getContrastColor(hexColor) {
         if (!hexColor || hexColor === '#FFFFFF' || hexColor.toLowerCase() === '#ffffff') return '#111827';
         let hex = hexColor.replace('#', '');
@@ -1171,64 +1264,64 @@
         return (yiq >= 170) ? '#111827' : '#FFFFFF';
     }
 
-    // Color Swatches from Image
+    // Carousel Colors (Matching Screenshot Sequence)
     const FOLDER_COLORS = [
-        { name: "White", hex: "#FFFFFF" },
-        { name: "Coral Red", hex: "#F2695C" },
-        { name: "Orange", hex: "#E98352" },
-        { name: "Yellow", hex: "#F3C44E" },
-        { name: "Green", hex: "#63C47E" },
-        { name: "Blue", hex: "#4C8BF5" },
-        { name: "Lavender", hex: "#A386F5" },
-        { name: "Pink", hex: "#EC7BAF" },
-        { name: "Teal", hex: "#2CB5A0" },
-        { name: "Cyan", hex: "#22B8E6" },
-        { name: "Amber", hex: "#D69E2E" },
-        { name: "Indigo", hex: "#667EEA" },
-        { name: "Brown", hex: "#8D6E63" },
-        { name: "Slate Gray", hex: "#94A3B8" }
+        { name: "Gray", hex: "#8A8D8F" },
+        { name: "Red", hex: "#F34336" },
+        { name: "Coral", hex: "#FF7052" },
+        { name: "Yellow", hex: "#FFC107" },
+        { name: "Teal Green", hex: "#00B69B" },
+        { name: "Blue", hex: "#2F6BFE" },
+        { name: "Purple", hex: "#9C27B0" },
+        { name: "Pink", hex: "#E91E63" },
+        { name: "Deep Orange", hex: "#FF5722" },
+        { name: "Cyan", hex: "#00BCD4" },
+        { name: "Indigo", hex: "#3F51B5" },
+        { name: "Lime", hex: "#8BC34A" },
+        { name: "Brown", hex: "#795548" },
+        { name: "Dark Slate", hex: "#455A64" }
     ];
 
-    // ==========================================
-    // ALL 30 ICONS (Matching Image 2: 5 Rows x 6 Columns)
-    // ==========================================
+    // ============================================================
+    // ALL 30 ICONS (Enhanced Vector Set Matching Screenshot Exact Layout)
+    // ============================================================
     const BADGE_ICONS = {
         // Row 1
         folder: `<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
-        dollar: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="7" x2="12" y2="17"></line><path d="M15 9.5a2.5 2.5 0 0 0-5 0c0 1.5 1 2 2.5 2.5s2.5 1 2.5 2.5a2.5 2.5 0 0 1-5 0"></path></svg>`,
-        book: `<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"></rect><line x1="8" y1="3" x2="8" y2="21"></line></svg>`,
+        dollar: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 6v12M15 9.5a2.5 2.5 0 0 0-5 0c0 1.5 1 2 2.5 2.5s2.5 1 2.5 2.5a2.5 2.5 0 0 1-5 0"></path></svg>`,
+        device: `<svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>`,
         cap: `<svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c0 3 6 3 6 3s6 0 6-3v-5"></path></svg>`,
         pencil: `<svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`,
-        nib: `<svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>`,
+        nib: `<svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><circle cx="11" cy="11" r="2"></circle></svg>`,
 
         // Row 2
-        code: `<svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`,
-        terminal: `<svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>`,
-        music: `<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`,
+        code: `<svg viewBox="0 0 24 24"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1"></path><path d="M16 3h1a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2 2 2 0 0 0-2 2v5a2 2 0 0 1-2 2h-1"></path></svg>`,
+        terminal: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"></rect><polyline points="7 9 11 12 7 15"></polyline><line x1="13" y1="15" x2="17" y2="15"></line></svg>`,
+        music: `<svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle><path d="M9 18V5l12-2v13"></path></svg>`,
         cupcake: `<svg viewBox="0 0 24 24"><path d="M4 11h16l-2 10H6L4 11z"></path><path d="M4 11c0-2.2 1.8-4 4-4 .6 0 1.2.1 1.7.4C10.5 5.5 12.1 4 14 4c2.2 0 4 1.8 4 4 0 .3 0 .7-.1 1"></path></svg>`,
-        brush: `<svg viewBox="0 0 24 24"><path d="M18 2l4 4-10 10H8v-4L18 2z"></path><path d="M4 22c0-3 2-5 4-5"></path></svg>`,
-        palette: `<svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>`,
+        bowtie: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"></circle><path d="M4 6l6 6-6 6V6zM20 6l-6 6 6 6V6z"></path></svg>`,
+        palette: `<svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>`,
 
         // Row 3
         stethoscope: `<svg viewBox="0 0 24 24"><path d="M4.5 3v5a6 6 0 0 0 12 0V3"></path><line x1="3" y1="3" x2="6" y2="3"></line><line x1="15" y1="3" x2="18" y2="3"></line><path d="M10.5 14v4a3 3 0 0 0 6 0v-2"></path><circle cx="16.5" cy="16" r="2.5"></circle></svg>`,
-        flower: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2a4 4 0 0 0-4 4 4 4 0 0 0 8 0 4 4 0 0 0-4-4z"></path><path d="M22 12a4 4 0 0 0-4-4 4 4 0 0 0 0 8 4 4 0 0 0 4-4z"></path><path d="M12 22a4 4 0 0 0 4-4 4 4 0 0 0-8 0 4 4 0 0 0 4 4z"></path><path d="M2 12a4 4 0 0 0 4 4 4 4 0 0 0 0-8 4 4 0 0 0-4 4z"></path></svg>`,
+        flower6: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2a3 3 0 0 0-3 3c0 .8.3 1.5.8 2a3 3 0 1 0 4.4 0c.5-.5.8-1.2.8-2a3 3 0 0 0-3-3z"></path><path d="M22 12a3 3 0 0 0-3-3c-.8 0-1.5.3-2 .8a3 3 0 1 0 0 4.4c.5.5 1.2.8 2 .8a3 3 0 0 0 3-3z"></path><path d="M12 22a3 3 0 0 0 3-3c0-.8-.3-1.5-.8-2a3 3 0 1 0-4.4 0c-.5.5-.8 1.2-.8 2a3 3 0 0 0 3 3z"></path><path d="M2 12a3 3 0 0 0 3 3c.8 0 1.5-.3 2-.8a3 3 0 1 0 0-4.4c-.5-.5-1.2-.8-2-.8a3 3 0 0 0-3 3z"></path></svg>`,
         lotus: `<svg viewBox="0 0 24 24"><path d="M12 3c-2 4-5 8-10 11 4 1 8 0 10-4 2 4 6 5 10 4-5-3-8-7-10-11z"></path><path d="M12 10c-1.5 3-4 6-7 7 3 1 6 .5 7-3 1 3.5 4 4 7 3-3-1-5.5-4-7-7z"></path></svg>`,
-        briefcase: `<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`,
-        chart: `<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
+        briefcase: `<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="3"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`,
+        chart: `<svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9" rx="1.5"></rect><rect x="10" y="4" width="4" height="17" rx="1.5"></rect><rect x="17" y="8" width="4" height="13" rx="1.5"></rect></svg>`,
         kettlebell: `<svg viewBox="0 0 24 24"><path d="M9 7V4a3 3 0 0 1 6 0v3"></path><circle cx="12" cy="14" r="7"></circle></svg>`,
 
         // Row 4
         dumbbell: `<svg viewBox="0 0 24 24"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>`,
-        notebook: `<svg viewBox="0 0 24 24"><path d="M6 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6"></path><path d="M2 6h4M2 10h4M2 14h4M2 18h4"></path></svg>`,
-        scales: `<svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><path d="M5 21h14"></path><path d="M3 7h18"></path><path d="M3 7l3 7h-6l3-7zM21 7l3 7h-6l3-7z"></path></svg>`,
+        notebook: `<svg viewBox="0 0 24 24"><rect x="6" y="3" width="15" height="18" rx="2"></rect><path d="M3 6h4M3 10h4M3 14h4M3 18h4"></path></svg>`,
+        scales: `<svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><path d="M5 21h14M3 7h18"></path><path d="M3 7l3 7h-6l3-7zM21 7l3 7h-6l3-7z"></path></svg>`,
         globeStand: `<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="7"></circle><path d="M12 17v4M8 21h8M19 10a7 7 0 0 1-14 0"></path></svg>`,
         plane: `<svg viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"></path></svg>`,
-        globe: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
+        globe: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><line x1="3" y1="12" x2="21" y2="12"></line><path d="M12 3a14.5 14.5 0 0 1 0 18M12 3a14.5 14.5 0 0 0 0 18"></path></svg>`,
 
         // Row 5
         wrench: `<svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`,
         paw: `<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="4"></circle><circle cx="6.5" cy="9.5" r="2"></circle><circle cx="17.5" cy="9.5" r="2"></circle><circle cx="9" cy="5.5" r="1.8"></circle><circle cx="15" cy="5.5" r="1.8"></circle></svg>`,
-        flask: `<svg viewBox="0 0 24 24"><path d="M10 2v7.31L4.15 19.89A2 2 0 0 0 5.86 23h12.28a2 2 0 0 0 1.71-3.11L14 9.31V2z"></path><line x1="8.5" y1="2" x2="15.5" y2="2"></line><line x1="14" y1="14" x2="10" y2="14"></line></svg>`,
+        flask: `<svg viewBox="0 0 24 24"><path d="M10 2v7.31L4.15 19.89A2 2 0 0 0 5.86 23h12.28a2 2 0 0 0 1.71-3.11L14 9.31V2z"></path><line x1="8.5" y1="2" x2="15.5" y2="2"></line></svg>`,
         brain: `<svg viewBox="0 0 24 24"><path d="M9.5 4a3.5 3.5 0 0 0-3.5 3.5c0 .3.04.59.11.87A3.5 3.5 0 0 0 4 11.5c0 1.4.82 2.61 2 3.16V16a3.5 3.5 0 0 0 3.5 3.5h.5"></path><path d="M14.5 4a3.5 3.5 0 0 1 3.5 3.5c0 .3-.04.59-.11.87A3.5 3.5 0 0 1 20 11.5c0 1.4-.82 2.61-2 3.16V16a3.5 3.5 0 0 1-3.5 3.5h-.5"></path><path d="M12 4v16"></path></svg>`,
         heart: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`,
         plant: `<svg viewBox="0 0 24 24"><path d="M7 21h10l-1-7H8l-1 7z"></path><path d="M12 14V7"></path><path d="M12 7c-2-3-5-3-5 0s3 3 5 0z"></path><path d="M12 9c2-3 5-3 5 0s-3 3-5 0z"></path></svg>`
@@ -1438,7 +1531,7 @@
         const isFolder = item.Folder === "True";
         const name = item.Name || (item.File ? item.File.split('/').pop() : 'Untitled');
         const format = getFormatInfo(item.Type, isFolder);
-        const updated = item.Updated || "Recently";
+        const updatedFormatted = formatDisplayDate(item.Updated);
         const ownerEmail = item.Email || userEmail;
         const role = getUserRole(item);
         const isViewer = (role === 'Viewer');
@@ -1477,7 +1570,7 @@
             </div>
             <div class="cell-uploader" style="font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ownerEmail}</div>
             <div class="cell-format" style="font-size: 13px; color: var(--text-secondary);">${format.label}</div>
-            <div class="cell-date" style="font-size: 13px; color: var(--text-secondary);">${updated}</div>
+            <div class="cell-date" style="font-size: 13px; color: var(--text-secondary);">${updatedFormatted}</div>
             <div class="actions-cell">
                 <button class="btn-dots">${SVG_ICONS.dots}</button>
                 <div class="action-dropdown">
@@ -1499,7 +1592,6 @@
         return row;
     }
 
-    // Render Google Drive Grid View (With Perfectly Visible Badge Icons)
     function renderGridView(items, wrapper) {
         const grid = document.createElement('div');
         grid.className = 'grid-container';
@@ -1563,7 +1655,7 @@
                 <div class="grid-card-top">
                     <div class="grid-header-left">
                         <div class="grid-card-icon" style="${isFolder ? `color: ${folderColor};` : 'color: var(--text-secondary);'}">
-                            ${format.icon}
+                            ${isFolder ? customIconSvg : format.icon}
                         </div>
                         <span class="grid-card-title" title="${name}">${name}</span>
                     </div>
@@ -1689,7 +1781,7 @@
         document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('active'));
     });
 
-    // Password Challenge Modal
+    // Password Challenge
     const passModal = document.getElementById('passwordAuthModal');
     let passSuccessCallback = null;
     let expectedPass = "";
@@ -1807,49 +1899,60 @@
         openMoveModal(null, true);
     });
 
-    // Folder Customize Modal
+    // ============================================================
+    // CUSTOMIZE FOLDER MODAL CONTROLLER (Live Top Preview & Carousel)
+    // ============================================================
     const customizeModal = document.getElementById('customizeModal');
     let targetCustomizeFolder = null;
-    let selectedColor = '#F2695C';
-    let selectedIcon = 'folder';
+    let selectedColor = '#2F6BFE';
+    let selectedIcon = 'plant';
 
     function openCustomizeModal(item) {
         targetCustomizeFolder = item;
-        selectedColor = item.Customize?.Colour || '#F2695C';
-        selectedIcon = item.Customize?.Icon || 'folder';
-        renderCustomizePalette();
+        selectedColor = item.Customize?.Colour || '#2F6BFE';
+        selectedIcon = item.Customize?.Icon || 'plant';
+        renderCustomizeUI();
         customizeModal.classList.add('active');
     }
 
-    document.getElementById('closeCustomizeModal').addEventListener('click', () => customizeModal.classList.remove('active'));
+    document.getElementById('customizeModal').addEventListener('click', (e) => {
+        if (e.target === customizeModal) customizeModal.classList.remove('active');
+    });
 
-    function renderCustomizePalette() {
-        const colorGrid = document.getElementById('colorPaletteGrid');
-        colorGrid.innerHTML = '';
+    function renderCustomizeUI() {
+        // 1. Top Preview Icon
+        const topPreview = document.getElementById('customizeTopPreview');
+        const iconSvg = BADGE_ICONS[selectedIcon] || BADGE_ICONS.folder;
+        topPreview.innerHTML = iconSvg;
+        topPreview.style.color = selectedColor;
+
+        // 2. Color Carousel
+        const carousel = document.getElementById('colorCarouselContainer');
+        carousel.innerHTML = '';
         FOLDER_COLORS.forEach(c => {
-            const swatch = document.createElement('div');
-            swatch.className = `color-swatch ${c.hex.toLowerCase() === selectedColor.toLowerCase() ? 'active' : ''}`;
-            swatch.style.backgroundColor = c.hex;
-            swatch.title = c.name;
-            swatch.addEventListener('click', () => {
+            const circle = document.createElement('div');
+            circle.className = `color-swatch-circle ${c.hex.toLowerCase() === selectedColor.toLowerCase() ? 'active' : ''}`;
+            circle.style.backgroundColor = c.hex;
+            circle.title = c.name;
+            circle.addEventListener('click', () => {
                 selectedColor = c.hex;
-                renderCustomizePalette();
+                renderCustomizeUI();
             });
-            colorGrid.appendChild(swatch);
+            carousel.appendChild(circle);
         });
 
-        const iconGrid = document.getElementById('iconPaletteGrid');
-        iconGrid.innerHTML = '';
+        // 3. Icon Grid
+        const grid = document.getElementById('customizeIconsGrid');
+        grid.innerHTML = '';
         Object.keys(BADGE_ICONS).forEach(key => {
-            const swatch = document.createElement('div');
-            swatch.className = `icon-swatch ${key === selectedIcon ? 'active' : ''}`;
-            swatch.innerHTML = BADGE_ICONS[key];
-            swatch.title = key;
-            swatch.addEventListener('click', () => {
+            const btn = document.createElement('div');
+            btn.className = `sheet-icon-btn ${key === selectedIcon ? 'active' : ''}`;
+            btn.innerHTML = BADGE_ICONS[key];
+            btn.addEventListener('click', () => {
                 selectedIcon = key;
-                renderCustomizePalette();
+                renderCustomizeUI();
             });
-            iconGrid.appendChild(swatch);
+            grid.appendChild(btn);
         });
     }
 
@@ -2221,7 +2324,7 @@
                 Password: pass,
                 File: [],
                 Label: [],
-                Customize: { Colour: "#F2695C", Icon: "folder" },
+                Customize: { Colour: "#2F6BFE", Icon: "plant" },
                 Updated: formatFirestoreDate(),
                 Access: { Viewer: [], Contributor: [], Commenter: [], Editor: [] }
             });
