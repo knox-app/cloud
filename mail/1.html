@@ -2,24 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mailbox - Workspace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mailbox</title>
     <style>
         :root {
-            --bg-body: #fdfdfd;
+            --bg-body: #ffffff;
             --sidebar-bg: #f7f7f8;
             --card-bg: #ffffff;
-            --border: #ebebed;
-            --border-hover: #d2d2d7;
+            --border: #e5e7eb;
+            --border-hover: #d1d5db;
             --text-main: #111827;
             --text-sub: #6b7280;
             --accent: #111827;
             --accent-blue: #2563eb;
             --danger: #ef4444;
+            --archive-green: #10b981;
+            --swipe-archive: #10b981;
+            --swipe-delete: #ef4444;
             --radius-md: 12px;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body.dark {
+            --bg-body: #0d0d0d;
+            --sidebar-bg: #171717;
+            --card-bg: #1c1c1e;
+            --border: #262626;
+            --border-hover: #3a3a3c;
+            --text-main: #f9fafb;
+            --text-sub: #9ca3af;
+            --accent: #ffffff;
+            --accent-blue: #3b82f6;
+            --danger: #f87171;
+            --archive-green: #34d399;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -31,8 +48,8 @@
             user-select: none;
         }
 
-        /* Vertical Sidebar */
-        .sidebar {
+        /* Sidebar Desktop */
+        aside.sidebar {
             width: 250px;
             background: var(--sidebar-bg);
             border-right: 1px solid var(--border);
@@ -40,61 +57,69 @@
             flex-direction: column;
             padding: 20px 14px;
             flex-shrink: 0;
+            transition: transform 0.25s ease;
+            z-index: 100;
+        }
+
+        .brand-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 4px;
         }
 
         .brand-title {
             font-size: 18px;
             font-weight: 700;
-            margin-bottom: 20px;
-            padding: 0 8px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .btn-compose {
+        .btn-compose-main {
             background: var(--accent);
-            color: #ffffff;
-            border: none;
-            padding: 10px 16px;
+            color: var(--bg-body);
+            padding: 11px 16px;
             border-radius: var(--radius-md);
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             text-decoration: none;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             transition: opacity 0.2s;
         }
-        .btn-compose:hover { opacity: 0.9; }
+        .btn-compose-main:active { opacity: 0.8; }
 
         .nav-list {
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
             flex: 1;
+            overflow-y: auto;
         }
 
         .nav-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 9px 12px;
+            padding: 10px 12px;
             font-size: 14px;
             font-weight: 500;
             color: var(--text-sub);
             border-radius: 8px;
             cursor: pointer;
-            transition: background 0.15s, color 0.15s;
+            transition: all 0.15s;
         }
+        .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+        .nav-item:hover, .nav-item.active { background: rgba(0, 0, 0, 0.05); color: var(--text-main); }
+        body.dark .nav-item:hover, body.dark .nav-item.active { background: rgba(255, 255, 255, 0.08); }
+        .nav-item.active { font-weight: 600; }
 
-        .nav-item:hover { background: #ececee; color: var(--text-main); }
-        .nav-item.active { background: #e5e5e8; color: var(--text-main); font-weight: 600; }
-
-        /* Profile at bottom */
         .profile-card {
             border-top: 1px solid var(--border);
             padding-top: 14px;
@@ -102,189 +127,402 @@
             align-items: center;
             gap: 10px;
         }
-
         .avatar {
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: #e2e8f0;
+            background: var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 600;
             font-size: 14px;
-            color: var(--text-main);
             overflow: hidden;
+            flex-shrink: 0;
         }
-
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-        .profile-meta {
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
+        .profile-meta { overflow: hidden; display: flex; flex-direction: column; }
         .profile-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .profile-email { font-size: 11px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Main Workspace */
-        .main-content {
+        /* Main View */
+        main.content-area {
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow-y: auto;
-            padding: 30px 40px;
+            overflow: hidden;
+            position: relative;
         }
 
-        .search-bar {
-            width: 100%;
-            max-width: 600px;
-            background: #f4f4f5;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 10px 16px;
-            font-size: 14px;
-            outline: none;
-            margin-bottom: 20px;
-        }
-        .search-bar:focus { background: #fff; border-color: var(--border-hover); }
-
-        /* Batch Bar */
-        .batch-bar {
-            display: none;
+        .top-app-bar {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
             align-items: center;
             justify-content: space-between;
-            background: var(--text-main);
-            color: #fff;
-            padding: 10px 16px;
-            border-radius: 8px;
-            margin-bottom: 14px;
-        }
-        .batch-bar.active { display: flex; }
-        .batch-btn {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.3);
-            color: #fff;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-left: 6px;
+            gap: 12px;
+            background: var(--bg-body);
         }
 
-        .email-list {
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            padding: 6px;
+            cursor: pointer;
+        }
+        .mobile-menu-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            max-width: 500px;
+        }
+        .search-wrap svg {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            stroke: var(--text-sub);
+            fill: none;
+            stroke-width: 2;
+        }
+        .search-input {
+            width: 100%;
+            padding: 9px 12px 9px 36px;
+            border-radius: 9999px;
+            border: 1px solid var(--border);
+            background: var(--sidebar-bg);
+            font-size: 13px;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .top-action-icons { display: flex; align-items: center; gap: 8px; }
+        
+        .icon-btn-round {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-main);
+            transition: all 0.15s;
+        }
+        .icon-btn-round:hover, .icon-btn-round.active { background: var(--border); }
+        .icon-btn-round svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+        /* Floating Multi-Select Bar */
+        .selection-toolbar {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-main);
+            color: var(--bg-body);
+            border-radius: 9999px;
+            padding: 8px 18px;
+            display: none;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 50;
+            white-space: nowrap;
+        }
+        .selection-toolbar.active { display: flex; animation: slideDown 0.2s ease-out; }
+
+        .toolbar-btn {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px;
+        }
+        .toolbar-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .toolbar-btn.danger { color: var(--danger); }
+
+        /* Scrollable Email List */
+        .email-scroll-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
             display: flex;
             flex-direction: column;
             gap: 8px;
-            max-width: 860px;
+            -webkit-overflow-scrolling: touch;
         }
 
-        .email-row {
+        /* Swipeable Email Item Container */
+        .swipe-item-wrapper {
+            position: relative;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            touch-action: pan-y;
+            background: #e5e7eb;
+        }
+
+        /* Swipe background icons */
+        .swipe-action-bg {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #ffffff;
+        }
+        .swipe-action-left {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            background: var(--swipe-archive);
+            display: flex;
+            align-items: center;
+            padding-left: 20px;
+            gap: 8px;
+        }
+        .swipe-action-right {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            background: var(--swipe-delete);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 20px;
+            gap: 8px;
+        }
+
+        .email-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
-            padding: 14px 18px;
+            padding: 14px 16px;
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             cursor: pointer;
-            transition: all 0.15s ease;
+            position: relative;
+            z-index: 2;
+            transition: transform 0.1s ease-out, background-color 0.15s;
         }
-        .email-row:hover { border-color: var(--border-hover); box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-        .email-row.selected { background: #f0f7ff; border-color: var(--accent-blue); }
+        .email-card.selected {
+            background: rgba(37, 99, 235, 0.08);
+            border-color: var(--accent-blue);
+        }
 
-        .email-check { display: none; width: 16px; height: 16px; accent-color: var(--accent-blue); }
-        .multi-mode .email-check { display: block; }
-
-        .email-info { flex: 1; min-width: 0; }
-        .email-header { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
-        .email-subject { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
-        .email-snippet { font-size: 13px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        .pill { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-        .pill-label { background: #e0e7ff; color: #3730a3; }
-        .pill-1time { background: #fee2e2; color: #991b1b; }
-
-        /* Context Menu */
-        .context-menu {
-            position: absolute;
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-            padding: 6px;
-            width: 160px;
-            z-index: 100;
+        .select-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1.8px solid var(--text-sub);
             display: none;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
-        .context-item {
-            padding: 8px 12px;
-            font-size: 13px;
-            cursor: pointer;
+        .select-checkbox.checked {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+        .select-checkbox svg { width: 11px; height: 11px; stroke: #fff; fill: none; stroke-width: 3; display: none; }
+        .select-checkbox.checked svg { display: block; }
+        .multi-mode .select-checkbox { display: inline-flex; }
+
+        .email-body-col { flex: 1; min-width: 0; }
+        .email-row-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+        .email-contact-name { font-weight: 600; color: var(--text-main); font-size: 13px; }
+        .email-subject { font-size: 14px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .email-preview { font-size: 13px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .tag-pill {
+            font-size: 10px;
+            padding: 2px 6px;
             border-radius: 4px;
+            font-weight: 600;
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--accent-blue);
+            margin-right: 4px;
         }
-        .context-item:hover { background: #f4f4f5; }
-        .context-item.danger { color: var(--danger); }
-        .context-item.danger:hover { background: #fee2e2; }
+        .tag-1time { background: rgba(239, 68, 68, 0.12); color: var(--danger); }
+
+        /* Floating compose button for mobile */
+        .mobile-fab-compose {
+            display: none;
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: var(--bg-body);
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            text-decoration: none;
+            z-index: 40;
+        }
+        .mobile-fab-compose svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+
+        /* Backdrop for mobile drawer */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 90;
+        }
+        .drawer-overlay.active { display: block; }
+
+        @keyframes slideDown { from { transform: translate(-50%, -20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            aside.sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                transform: translateX(-100%);
+                box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+            }
+            aside.sidebar.open { transform: translateX(0); }
+            .mobile-menu-btn { display: inline-flex; }
+            .mobile-fab-compose { display: flex; }
+            .btn-compose-main { display: none; }
+            .top-app-bar { padding: 10px 14px; }
+            .email-scroll-list { padding: 8px 10px; }
+            .selection-toolbar { width: 92%; justify-content: space-around; padding: 10px 14px; }
+        }
     </style>
 </head>
 <body>
 
-<!-- Left Navigation -->
-<div class="sidebar">
-    <div class="brand-title">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        Mail Workspace
+<div class="drawer-overlay" id="drawerOverlay"></div>
+
+<!-- Workspace Sidebar -->
+<aside class="sidebar" id="sidebarNav">
+    <div class="brand-row">
+        <div class="brand-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Mailbox
+        </div>
+        <button class="icon-btn-round" id="themeToggleBtn" title="Theme">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line></svg>
+        </button>
     </div>
 
-    <a href="2.html" class="btn-compose">
-        <span>+</span> Compose
-    </a>
+    <a href="2.html" class="btn-compose-main">+ Compose</a>
 
     <ul class="nav-list">
-        <li class="nav-item active" data-filter="inbox">📥 Inbox</li>
-        <li class="nav-item" data-filter="sent">📤 Sent</li>
-        <li class="nav-item" data-filter="scheduled">⏰ Scheduled</li>
-        <li class="nav-item" data-filter="labels">🏷️ Labels</li>
-        <li class="nav-item" onclick="alert('Target Language: ' + (activeUser['Email-Lang-Target'] || 'English'))">⚙️ Settings</li>
+        <li class="nav-item active" data-tab="primary">
+            <svg viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-8z"/><path d="M5.45 5.11L2 12v0h20v0L18.55 5.11A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+            Primary
+        </li>
+        <li class="nav-item" data-tab="all">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            All Email
+        </li>
+        <li class="nav-item" data-tab="sent">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            Sent
+        </li>
+        <li class="nav-item" data-tab="archive">
+            <svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+            Archive
+        </li>
+        <li class="nav-item" data-tab="labels">
+            <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+            Labels
+        </li>
     </ul>
 
     <div class="profile-card">
-        <div class="avatar" id="userAvatar">U</div>
+        <div class="avatar" id="avatarBox">U</div>
         <div class="profile-meta">
-            <span class="profile-name" id="userNameDisplay">User</span>
-            <span class="profile-email" id="userEmailDisplay">Loading...</span>
+            <span class="profile-name" id="userNameLabel">User</span>
+            <span class="profile-email" id="userEmailLabel">user@perplexity.com</span>
         </div>
     </div>
-</div>
+</aside>
 
-<!-- Main Area -->
-<div class="main-content" id="appContainer">
-    <input type="text" id="searchBox" class="search-bar" placeholder="Search emails...">
+<!-- Main Viewport -->
+<main class="content-area" id="mainContainer">
+    <div class="top-app-bar">
+        <button class="mobile-menu-btn" id="mobileMenuTrigger">
+            <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
 
-    <div class="batch-bar" id="batchBar">
-        <span id="selectedCountText">0 selected</span>
-        <div>
-            <button class="batch-btn" onclick="batchLabel()">Apply Label</button>
-            <button class="batch-btn" onclick="batchDelete()" style="background: var(--danger); border: none;">Delete</button>
-            <button class="batch-btn" onclick="exitMultiSelect()">Cancel</button>
+        <div class="search-wrap">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search emails, labels, content...">
+        </div>
+
+        <div class="top-action-icons">
+            <!-- Dedicated Multi-Select Button with SVG -->
+            <button class="icon-btn-round" id="btnToggleSelectMode" title="Select Multiple">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><polyline points="9 11 12 14 22 4"></polyline></svg>
+            </button>
         </div>
     </div>
 
-    <div class="email-list" id="emailFeed">
-        <div style="color: var(--text-sub); font-size: 14px;">Loading messages...</div>
+    <!-- Floating Batch Selection Bar -->
+    <div class="selection-toolbar" id="selectionToolbar">
+        <span id="selectedCountText" style="font-size: 13px; font-weight: 600;">0 selected</span>
+        <button class="toolbar-btn" onclick="batchArchive()" title="Archive Selected">
+            <svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+            Archive
+        </button>
+        <button class="toolbar-btn" onclick="batchLabel()" title="Add Label">
+            <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path></svg>
+            Label
+        </button>
+        <button class="toolbar-btn" onclick="batchBlock()" title="Block Senders">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+            Block
+        </button>
+        <button class="toolbar-btn danger" onclick="batchDelete()" title="Delete">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            Delete
+        </button>
+        <button class="toolbar-btn" onclick="exitSelectionMode()">Done</button>
     </div>
-</div>
 
-<div class="context-menu" id="contextMenu">
-    <div class="context-item" onclick="openContextMail()">Open</div>
-    <div class="context-item" onclick="labelContextMail()">Add Label</div>
-    <div class="context-item danger" onclick="deleteContextMail()">Delete</div>
-</div>
+    <!-- Live Email Feed with Swipes -->
+    <div class="email-scroll-list" id="emailFeed">
+        <div style="text-align: center; padding: 40px; color: var(--text-sub);">Connecting to mailbox...</div>
+    </div>
+
+    <!-- Mobile Floating Compose Button -->
+    <a href="2.html" class="mobile-fab-compose">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </a>
+</main>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { 
+        getFirestore, collection, onSnapshot, doc, deleteDoc, updateDoc, addDoc 
+    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
@@ -299,182 +537,305 @@
     const db = getFirestore(app);
 
     const activeUser = JSON.parse(localStorage.getItem('active_user') || '{}');
-    window.activeUser = activeUser;
     const userEmail = (activeUser.Email || activeUser.email || '').toLowerCase().trim();
 
-    // Profile Setup
-    document.getElementById('userNameDisplay').innerText = activeUser["First Name"] || activeUser["Name"] || "Account";
-    document.getElementById('userEmailDisplay').innerText = userEmail || "Not logged in";
+    // User Profile
+    document.getElementById('userNameLabel').innerText = activeUser["First Name"] || "User";
+    document.getElementById('userEmailLabel').innerText = userEmail || "Not logged in";
     if (activeUser["Profile Picture"] || activeUser["Profile_Picture"]) {
-        document.getElementById('userAvatar').innerHTML = `<img src="${activeUser["Profile Picture"] || activeUser["Profile_Picture"]}">`;
+        document.getElementById('avatarBox').innerHTML = `<img src="${activeUser["Profile Picture"] || activeUser["Profile_Picture"]}">`;
     } else {
-        document.getElementById('userAvatar').innerText = (userEmail[0] || 'U').toUpperCase();
+        document.getElementById('avatarBox').innerText = (userEmail[0] || 'U').toUpperCase();
     }
 
-    let allEmails = [];
-    let selectedSet = new Set();
-    let currentTab = 'inbox';
-    let searchQuery = '';
-    let contextTargetId = null;
+    let rawList = [];
+    let selectedIds = new Set();
+    let isMultiSelect = false;
+    let activeTab = 'primary'; // primary | all | sent | archive | labels
+    let searchVal = '';
 
-    onSnapshot(collection(db, "Email"), (snapshot) => {
-        const list = [];
-        snapshot.forEach(d => {
+    // Realtime Sync
+    onSnapshot(collection(db, "Email"), (snap) => {
+        const items = [];
+        snap.forEach(d => {
             const data = d.data();
-            list.push({
-                id: d.id,
-                to: (data.to || data.To || '').trim(),
-                from: (data.from || data.From || '').trim(),
-                subject: data.subject || data.Subject || '(No Subject)',
-                body: data.body || data.Body || '',
-                label: data.label || '',
-                oneTimeView: data.oneTimeView || false,
-                scheduledFor: data.scheduledFor || null,
-                timestamp: data.timestamp ? (data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp)) : new Date()
-            });
+            const to = (data.to || data.To || '').trim();
+            const from = (data.from || data.From || '').trim();
+
+            if (!userEmail || to.toLowerCase() === userEmail || from.toLowerCase() === userEmail) {
+                items.push({
+                    id: d.id,
+                    to: to,
+                    from: from,
+                    subject: data.subject || data.Subject || '(No Subject)',
+                    body: data.body || data.Body || '',
+                    label: data.label || '',
+                    isArchived: data.isArchived || false,
+                    oneTimeView: data.oneTimeView || false,
+                    attachments: data.attachments || [],
+                    timestamp: data.timestamp ? (data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp)) : new Date()
+                });
+            }
         });
-        list.sort((a, b) => b.timestamp - a.timestamp);
-        allEmails = list;
-        render();
+        items.sort((a, b) => b.timestamp - a.timestamp);
+        rawList = items;
+        renderMailList();
     });
 
-    function render() {
+    function renderMailList() {
         const feed = document.getElementById('emailFeed');
-        const now = new Date();
 
-        const filtered = allEmails.filter(m => {
+        const filtered = rawList.filter(m => {
             const isToMe = m.to.toLowerCase() === userEmail;
             const isFromMe = m.from.toLowerCase() === userEmail;
-            const isScheduled = m.scheduledFor && new Date(m.scheduledFor) > now;
 
-            if (currentTab === 'inbox' && (!isToMe || isScheduled)) return false;
-            if (currentTab === 'sent' && !isFromMe) return false;
-            if (currentTab === 'scheduled' && !isScheduled) return false;
-            if (currentTab === 'labels' && !m.label) return false;
+            // Folder Routing
+            if (activeTab === 'primary' && (!isToMe || m.isArchived)) return false;
+            if (activeTab === 'sent' && !isFromMe) return false;
+            if (activeTab === 'archive' && !m.isArchived) return false;
+            if (activeTab === 'labels' && !m.label) return false;
+            // 'all' includes both received and sent, archived and unarchived
 
-            if (searchQuery) {
-                const q = searchQuery.toLowerCase();
-                return m.subject.toLowerCase().includes(q) || m.body.toLowerCase().includes(q) || m.to.toLowerCase().includes(q) || m.from.toLowerCase().includes(q);
+            if (searchVal) {
+                const s = searchVal.toLowerCase();
+                return m.subject.toLowerCase().includes(s) || 
+                       m.body.toLowerCase().includes(s) || 
+                       m.from.toLowerCase().includes(s) || 
+                       m.to.toLowerCase().includes(s) ||
+                       m.label.toLowerCase().includes(s);
             }
             return true;
         });
 
         if (!filtered.length) {
-            feed.innerHTML = `<div style="color: var(--text-sub); font-size: 14px; padding: 20px 0;">No messages in this folder.</div>`;
+            feed.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: var(--text-sub); font-size: 14px;">No emails in ${activeTab}.</div>`;
             return;
         }
 
-        feed.innerHTML = filtered.map(mail => {
-            const isSelected = selectedSet.has(mail.id);
-            const isIncoming = mail.to.toLowerCase() === userEmail;
-            const textPreview = mail.body.replace(/<[^>]*>?/gm, '');
-
-            return `
-                <div class="email-row ${isSelected ? 'selected' : ''}" 
-                     onclick="handleRowClick('${mail.id}')"
-                     ondblclick="handleRowDblClick('${mail.id}')"
-                     oncontextmenu="handleRightClick(event, '${mail.id}')">
-                    <input type="checkbox" class="email-check" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation(); toggleCheck('${mail.id}')">
-                    <div class="email-info">
-                        <div class="email-header">
-                            <span>${isIncoming ? 'From: ' + mail.from : 'To: ' + mail.to}</span>
-                            <span>${mail.timestamp.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-                        </div>
-                        <div class="email-subject">
-                            ${escapeHtml(mail.subject)}
-                            ${mail.label ? `<span class="pill pill-label">${escapeHtml(mail.label)}</span>` : ''}
-                            ${mail.oneTimeView ? `<span class="pill pill-1time">1-Time</span>` : ''}
-                        </div>
-                        <div class="email-snippet">${escapeHtml(textPreview)}</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        feed.innerHTML = '';
+        filtered.forEach(mail => {
+            feed.appendChild(createSwipeItem(mail));
+        });
     }
 
-    // Navigation Tabs
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', () => {
-            if (!item.dataset.filter) return;
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-            currentTab = item.dataset.filter;
-            render();
+    function createSwipeItem(mail) {
+        const isIncoming = mail.to.toLowerCase() === userEmail;
+        const isSelected = selectedIds.has(mail.id);
+        const snippet = mail.body.replace(/<[^>]*>?/gm, '');
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'swipe-item-wrapper';
+
+        wrapper.innerHTML = `
+            <div class="swipe-action-left">📥 Archive</div>
+            <div class="swipe-action-right">🗑️ Delete</div>
+            <div class="email-card ${isSelected ? 'selected' : ''}" data-id="${mail.id}">
+                <div class="select-checkbox ${isSelected ? 'checked' : ''}">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="email-body-col">
+                    <div class="email-row-head">
+                        <span class="email-contact-name">${escapeHtml(isIncoming ? mail.from : 'To: ' + mail.to)}</span>
+                        <span>${mail.timestamp.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                    </div>
+                    <div class="email-subject">
+                        ${mail.label ? `<span class="tag-pill">${escapeHtml(mail.label)}</span>` : ''}
+                        ${mail.oneTimeView ? `<span class="tag-pill tag-1time">1-Time</span>` : ''}
+                        ${escapeHtml(mail.subject)} ${mail.attachments.length ? '📎' : ''}
+                    </div>
+                    <div class="email-preview">${escapeHtml(snippet || 'Empty')}</div>
+                </div>
+            </div>
+        `;
+
+        const card = wrapper.querySelector('.email-card');
+        setupGestures(card, mail);
+        return wrapper;
+    }
+
+    // Touch Swipes (Left: Delete, Right: Archive) + Long-Press Detection
+    function setupGestures(card, mail) {
+        let startX = 0;
+        let currentX = 0;
+        let isTouching = false;
+        let longPressTimer = null;
+        let hasMoved = false;
+
+        card.addEventListener('touchstart', (e) => {
+            isTouching = true;
+            hasMoved = false;
+            startX = e.touches[0].clientX;
+            currentX = startX;
+
+            // Long Press Trigger
+            longPressTimer = setTimeout(() => {
+                if (!hasMoved) {
+                    if (navigator.vibrate) navigator.vibrate(50);
+                    if (!isMultiSelect) enterSelectionMode();
+                    toggleSelect(mail.id);
+                }
+            }, 550);
+        }, { passive: true });
+
+        card.addEventListener('touchmove', (e) => {
+            if (!isTouching) return;
+            currentX = e.touches[0].clientX;
+            const diffX = currentX - startX;
+
+            if (Math.abs(diffX) > 10) {
+                hasMoved = true;
+                clearTimeout(longPressTimer);
+            }
+
+            if (!isMultiSelect) {
+                // Apply elastic swipe resistance
+                card.style.transform = `translateX(${diffX}px)`;
+            }
+        }, { passive: true });
+
+        card.addEventListener('touchend', async () => {
+            if (!isTouching) return;
+            isTouching = false;
+            clearTimeout(longPressTimer);
+            const diffX = currentX - startX;
+
+            if (!isMultiSelect && Math.abs(diffX) > 120) {
+                if (diffX > 120) {
+                    // Swiped Right -> Archive
+                    card.style.transform = 'translateX(100%)';
+                    await updateDoc(doc(db, "Email", mail.id), { isArchived: true });
+                } else if (diffX < -120) {
+                    // Swiped Left -> Delete
+                    card.style.transform = 'translateX(-100%)';
+                    await deleteDoc(doc(db, "Email", mail.id));
+                }
+            } else {
+                card.style.transform = 'translateX(0)';
+            }
+        });
+
+        // Click / Select Handler
+        card.addEventListener('click', () => {
+            if (isMultiSelect) {
+                toggleSelect(mail.id);
+            } else {
+                window.location.href = `3.html?id=${mail.id}`;
+            }
+        });
+    }
+
+    // Multi-Select Controller
+    function enterSelectionMode() {
+        isMultiSelect = true;
+        document.getElementById('mainContainer').classList.add('multi-mode');
+        document.getElementById('selectionToolbar').classList.add('active');
+        document.getElementById('btnToggleSelectMode').classList.add('active');
+    }
+
+    window.exitSelectionMode = function() {
+        isMultiSelect = false;
+        selectedIds.clear();
+        document.getElementById('mainContainer').classList.remove('multi-mode');
+        document.getElementById('selectionToolbar').classList.remove('active');
+        document.getElementById('btnToggleSelectMode').classList.remove('active');
+        renderMailList();
+    };
+
+    document.getElementById('btnToggleSelectMode').addEventListener('click', () => {
+        if (isMultiSelect) exitSelectionMode();
+        else enterSelectionMode();
+    });
+
+    function toggleSelect(id) {
+        if (selectedIds.has(id)) selectedIds.delete(id);
+        else selectedIds.add(id);
+
+        if (selectedIds.size === 0) {
+            exitSelectionMode();
+        } else {
+            document.getElementById('selectedCountText').innerText = `${selectedIds.size} selected`;
+            renderMailList();
+        }
+    }
+
+    // Batch Operations
+    window.batchArchive = async () => {
+        for (const id of selectedIds) {
+            await updateDoc(doc(db, "Email", id), { isArchived: true });
+        }
+        exitSelectionMode();
+    };
+
+    window.batchDelete = async () => {
+        if (!confirm(`Delete ${selectedIds.size} emails?`)) return;
+        for (const id of selectedIds) {
+            await deleteDoc(doc(db, "Email", id));
+        }
+        exitSelectionMode();
+    };
+
+    window.batchLabel = async () => {
+        const l = prompt("Enter label (e.g., Work, Finance, Important):");
+        if (!l) return;
+        for (const id of selectedIds) {
+            await updateDoc(doc(db, "Email", id), { label: l.trim() });
+        }
+        exitSelectionMode();
+    };
+
+    window.batchBlock = async () => {
+        if (!confirm(`Block senders of ${selectedIds.size} selected emails?`)) return;
+        for (const id of selectedIds) {
+            const emailObj = rawList.find(x => x.id === id);
+            if (emailObj) {
+                await addDoc(collection(db, "Blocked_Domain"), {
+                    email: emailObj.from,
+                    blockedBy: userEmail,
+                    date: new Date().toISOString()
+                });
+            }
+        }
+        alert("Senders blocked successfully.");
+        exitSelectionMode();
+    };
+
+    // Tabs
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeTab = btn.dataset.tab;
+            closeDrawer();
+            renderMailList();
         });
     });
 
     // Search
-    document.getElementById('searchBox').addEventListener('input', (e) => {
-        searchQuery = e.target.value.trim();
-        render();
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchVal = e.target.value.trim();
+        renderMailList();
     });
 
-    // Multi-Select
-    window.handleRowClick = (id) => {
-        if (selectedSet.size > 0) toggleCheck(id);
-        else window.location.href = `3.html?id=${id}`;
-    };
+    // Mobile Drawer
+    const sidebar = document.getElementById('sidebarNav');
+    const overlay = document.getElementById('drawerOverlay');
+    document.getElementById('mobileMenuTrigger').addEventListener('click', () => {
+        sidebar.classList.add('open');
+        overlay.classList.add('active');
+    });
+    overlay.addEventListener('click', closeDrawer);
+    function closeDrawer() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+    }
 
-    window.handleRowDblClick = (id) => {
-        document.getElementById('appContainer').classList.add('multi-mode');
-        document.getElementById('batchBar').classList.add('active');
-        toggleCheck(id);
-    };
+    // Theme Toggle
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+    });
 
-    window.toggleCheck = (id) => {
-        if (selectedSet.has(id)) selectedSet.delete(id);
-        else selectedSet.add(id);
-
-        if (selectedSet.size === 0) exitMultiSelect();
-        else {
-            document.getElementById('selectedCountText').innerText = `${selectedSet.size} selected`;
-            render();
-        }
-    };
-
-    window.exitMultiSelect = () => {
-        selectedSet.clear();
-        document.getElementById('appContainer').classList.remove('multi-mode');
-        document.getElementById('batchBar').classList.remove('active');
-        render();
-    };
-
-    window.batchDelete = async () => {
-        if (!confirm(`Delete ${selectedSet.size} emails?`)) return;
-        for (let id of selectedSet) await deleteDoc(doc(db, "Email", id));
-        exitMultiSelect();
-    };
-
-    window.batchLabel = async () => {
-        const l = prompt("Enter Label name:");
-        if (!l) return;
-        for (let id of selectedSet) await updateDoc(doc(db, "Email", id), { label: l.trim() });
-        exitMultiSelect();
-    };
-
-    // Right Click Context Menu
-    const ctx = document.getElementById('contextMenu');
-    window.handleRightClick = (e, id) => {
-        e.preventDefault();
-        contextTargetId = id;
-        ctx.style.top = `${e.pageY}px`;
-        ctx.style.left = `${e.pageX}px`;
-        ctx.style.display = 'block';
-    };
-
-    document.addEventListener('click', () => ctx.style.display = 'none');
-
-    window.openContextMail = () => { if (contextTargetId) window.location.href = `3.html?id=${contextTargetId}`; };
-    window.labelContextMail = async () => {
-        const l = prompt("Add Label:");
-        if (l && contextTargetId) await updateDoc(doc(db, "Email", contextTargetId), { label: l.trim() });
-    };
-    window.deleteContextMail = async () => {
-        if (contextTargetId && confirm("Delete this email?")) await deleteDoc(doc(db, "Email", contextTargetId));
-    };
-
-    function escapeHtml(str) {
-        return (str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    function escapeHtml(s) {
+        return (s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
     }
 </script>
 
