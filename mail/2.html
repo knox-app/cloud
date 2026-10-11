@@ -23,7 +23,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
             min-height: 100vh;
@@ -65,7 +65,6 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            transition: background-color 0.15s;
         }
 
         .icon-btn:active {
@@ -80,12 +79,7 @@
             stroke-width: 2;
         }
 
-        .send-btn svg {
-            stroke-width: 1.8;
-            transform: rotate(0deg);
-        }
-
-        /* Form Rows (Gmail Mobile Style) */
+        /* Form Rows */
         .compose-form {
             display: flex;
             flex-direction: column;
@@ -118,10 +112,6 @@
             font-family: inherit;
         }
 
-        .row-input::placeholder {
-            color: #8e918f;
-        }
-
         .row-dropdown-arrow {
             color: var(--icon-color);
             margin-left: 8px;
@@ -137,36 +127,7 @@
             fill: none;
         }
 
-        /* Attachments Bar */
-        .attachments-strip {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding: 10px 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .attachment-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #f2f6fc;
-            color: #0b57d0;
-            padding: 6px 12px;
-            border-radius: 9999px;
-            font-size: 12px;
-            font-weight: 500;
-            border: 1px solid #d3e3fd;
-        }
-
-        .attachment-pill .remove-attc {
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 14px;
-            color: #5f6368;
-        }
-
-        /* Main Body Area */
+        /* Body Row */
         .body-row {
             flex: 1;
             display: flex;
@@ -185,10 +146,6 @@
             background: transparent;
             resize: none;
             font-family: inherit;
-        }
-
-        .body-textarea::placeholder {
-            color: #8e918f;
         }
 
         /* Sarvam API Styled White Popup */
@@ -348,14 +305,8 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: opacity 0.2s;
         }
 
-        .btn-sarvam-next:hover {
-            opacity: 0.9;
-        }
-
-        /* 3-Dots Overflow Menu */
         .overflow-menu {
             position: absolute;
             top: 50px;
@@ -379,16 +330,13 @@
             justify-content: space-between;
         }
 
-        .overflow-item:hover {
-            background: #f8f9fa;
-        }
+        .overflow-item:hover { background: #f8f9fa; }
     </style>
-    <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
-    <!-- Gmail-Style App Bar -->
+    <!-- Header bar -->
     <header class="app-bar">
         <div class="bar-left">
             <button class="icon-btn" onclick="window.location.href='1.html'" title="Back">
@@ -396,14 +344,14 @@
             </button>
         </div>
         <div class="bar-right">
-            <!-- Paperclip (Cloud Drive Attachment) -->
+            <!-- Paperclip opens Cloud Drive popup -->
             <button class="icon-btn" id="btnPaperclipAttach" title="Attach file">
                 <svg viewBox="0 0 24 24">
                     <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
                 </svg>
             </button>
             
-            <!-- Send Button -->
+            <!-- Send button -->
             <button class="icon-btn send-btn" id="btnSendMail" title="Send">
                 <svg viewBox="0 0 24 24">
                     <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -411,7 +359,7 @@
                 </svg>
             </button>
 
-            <!-- 3 Dots More Options -->
+            <!-- 3 Dots -->
             <button class="icon-btn" id="btnMoreOptions" title="More options">
                 <svg viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="1.5"></circle>
@@ -422,7 +370,7 @@
         </div>
     </header>
 
-    <!-- 3-Dots Dropdown Menu -->
+    <!-- Overflow Menu -->
     <div class="overflow-menu" id="overflowMenu">
         <div class="overflow-item" onclick="toggleOneTimeView()">
             <span>1-Time View</span>
@@ -436,9 +384,8 @@
         </div>
     </div>
 
-    <!-- Gmail-Style Form Rows -->
+    <!-- Main Compose Form -->
     <main class="compose-form">
-        <!-- From Row -->
         <div class="input-row">
             <span class="row-label">From</span>
             <input type="text" class="row-input" id="fromEmailDisplay" readonly>
@@ -447,30 +394,24 @@
             </div>
         </div>
 
-        <!-- To Row -->
         <div class="input-row">
             <span class="row-label">To</span>
-            <input type="email" class="row-input" id="toEmailInput" placeholder="" autocomplete="off" autofocus>
+            <input type="email" class="row-input" id="toEmailInput" autocomplete="off" autofocus>
             <div class="row-dropdown-arrow">
                 <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
         </div>
 
-        <!-- Subject Row -->
         <div class="input-row">
             <input type="text" class="row-input" id="subjectInput" placeholder="Subject" autocomplete="off">
         </div>
 
-        <!-- Attached URLs Strip -->
-        <div class="attachments-strip" id="attachmentsStrip" style="display: none;"></div>
-
-        <!-- Compose Email Body -->
         <div class="body-row">
             <textarea class="body-textarea" id="bodyInput" placeholder="Compose email"></textarea>
         </div>
     </main>
 
-    <!-- Sarvam API Style White-Based Cloud Drive Modal -->
+    <!-- Cloud Drive Modal -->
     <div class="modal-overlay" id="driveModal">
         <div class="sarvam-popup-card">
             <div class="popup-header">
@@ -483,13 +424,13 @@
 
             <div class="drive-files-container" id="driveFilesList">
                 <div style="padding: 20px 0; text-align: center; color: #747775; font-size: 14px;">
-                    Loading your Cloud Drive files...
+                    Accessing Cloud Drive...
                 </div>
             </div>
 
             <div class="popup-footer">
                 <button class="btn-sarvam-next" id="btnConfirmDriveAttach">
-                    Next &rarr;
+                    Insert Attachment &rarr;
                 </button>
             </div>
         </div>
@@ -513,41 +454,40 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Init EmailJS
     emailjs.init({ publicKey: "Yr9MutUoHOEONnFgn" });
 
-    // Active User
     const activeUser = JSON.parse(localStorage.getItem('active_user') || '{}');
     const senderEmail = activeUser.Email || activeUser.email || "nigambhawna02@gmail.com";
     document.getElementById('fromEmailDisplay').value = senderEmail;
 
-    // Attachments format: { Attc: url, type: ".img" }
-    let attachmentsList = [];
     let scheduledTime = null;
     let emailLabel = "";
 
-    // 1. Helper to determine file type suffix
-    function getFileExtensionType(url, explicitType = "") {
+    // Maps file extension/mimetype to .img, .pdf, .video, .doc
+    function resolveETCMType(url, explicitType = "") {
         const t = (explicitType || "").toLowerCase();
         if (t.includes("img") || t.includes("image") || t.includes("png") || t.includes("jpg") || t.includes("jpeg")) {
             return ".img";
         }
+        if (t.includes("pdf")) return ".pdf";
+        if (t.includes("video") || t.includes("mp4") || t.includes("mkv")) return ".video";
+
         const ext = url.split('.').pop()?.split(/\#|\?/)[0]?.toLowerCase();
-        if (["png", "jpg", "jpeg", "webp", "gif", "svg", "bmp"].includes(ext)) {
-            return ".img";
-        }
-        return ext ? `.${ext}` : ".doc";
+        if (["png", "jpg", "jpeg", "webp", "gif", "svg"].includes(ext)) return ".img";
+        if (ext === "pdf") return ".pdf";
+        if (["mp4", "webm", "mkv", "mov"].includes(ext)) return ".video";
+        return ".doc";
     }
 
-    // 2. Paperclip click -> Open Sarvam-styled Cloud Drive popup
+    // Cloud Drive Modal
     const driveModal = document.getElementById('driveModal');
-    let selectedDriveItems = new Set();
+    let selectedDriveFiles = new Set();
 
     document.getElementById('btnPaperclipAttach').addEventListener('click', async () => {
-        selectedDriveItems.clear();
+        selectedDriveFiles.clear();
         driveModal.classList.add('active');
         const listEl = document.getElementById('driveFilesList');
-        listEl.innerHTML = '<div style="padding: 20px 0; text-align: center; color: #747775; font-size: 14px;">Accessing Cloud Drive...</div>';
+        listEl.innerHTML = '<div style="padding: 20px 0; text-align: center; color: #747775; font-size: 14px;">Loading Cloud Drive files...</div>';
 
         try {
             const q = query(
@@ -576,25 +516,25 @@
 
             listEl.innerHTML = '';
             files.forEach(file => {
-                const isImg = getFileExtensionType(file.url, file.rawType) === ".img";
+                const type = resolveETCMType(file.url, file.rawType);
                 const div = document.createElement('div');
                 div.className = 'drive-file-item';
                 div.innerHTML = `
                     <div class="drive-file-left">
-                        <div class="drive-icon">${isImg ? '🖼️' : '📄'}</div>
+                        <div class="drive-icon">${type === '.img' ? '🖼️' : (type === '.pdf' ? '📕' : (type === '.video' ? '🎬' : '📄'))}</div>
                         <div>
                             <div class="drive-file-name">${escapeHtml(file.name)}</div>
-                            <div class="drive-file-type">${isImg ? 'Image (.img)' : 'Document'}</div>
+                            <div class="drive-file-type">Type: ${type}</div>
                         </div>
                     </div>
                 `;
 
                 div.onclick = () => {
-                    if (selectedDriveItems.has(file)) {
-                        selectedDriveItems.delete(file);
+                    if (selectedDriveFiles.has(file)) {
+                        selectedDriveFiles.delete(file);
                         div.classList.remove('selected');
                     } else {
-                        selectedDriveItems.add(file);
+                        selectedDriveFiles.add(file);
                         div.classList.add('selected');
                     }
                 };
@@ -610,44 +550,22 @@
         driveModal.classList.remove('active');
     });
 
-    // 3. Confirm Attachments: Save as { Attc: url, type: ".img" }
+    // Injects #{.ETCM:url=<URL>&Type=<TYPE>&name=<NAME>}# into the text area
     document.getElementById('btnConfirmDriveAttach').addEventListener('click', () => {
-        selectedDriveItems.forEach(item => {
-            const attcType = getFileExtensionType(item.url, item.rawType);
-            attachmentsList.push({
-                name: item.name,
-                Attc: item.url,
-                type: attcType // .img for all kind of images
-            });
+        const bodyTextarea = document.getElementById('bodyInput');
+        let textToAppend = "";
+
+        selectedDriveFiles.forEach(file => {
+            const type = resolveETCMType(file.url, file.rawType);
+            // Injects syntax as requested
+            textToAppend += `\n#{.ETCM:url=${file.url}&Type=${type}&name=${encodeURIComponent(file.name)}}#\n`;
         });
 
+        bodyTextarea.value = (bodyTextarea.value + textToAppend).trim();
         driveModal.classList.remove('active');
-        renderAttachments();
     });
 
-    function renderAttachments() {
-        const strip = document.getElementById('attachmentsStrip');
-        if (!attachmentsList.length) {
-            strip.style.display = 'none';
-            strip.innerHTML = '';
-            return;
-        }
-
-        strip.style.display = 'flex';
-        strip.innerHTML = attachmentsList.map((a, idx) => `
-            <div class="attachment-pill">
-                <span>📎 ${escapeHtml(a.name)} (${escapeHtml(a.type)})</span>
-                <span class="remove-attc" onclick="removeAttc(${idx})">&times;</span>
-            </div>
-        `).join('');
-    }
-
-    window.removeAttc = (idx) => {
-        attachmentsList.splice(idx, 1);
-        renderAttachments();
-    };
-
-    // 4. Overflow Menu Handlers
+    // Overflow Menu
     const overflowMenu = document.getElementById('overflowMenu');
     document.getElementById('btnMoreOptions').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -670,7 +588,7 @@
         if (l) emailLabel = l.trim();
     };
 
-    // 5. Send Action
+    // Send Mail Action
     document.getElementById('btnSendMail').addEventListener('click', async () => {
         const to = document.getElementById('toEmailInput').value.trim();
         const subject = document.getElementById('subjectInput').value.trim();
@@ -678,7 +596,7 @@
         const isOneTime = document.getElementById('oneTimeCheck').checked;
 
         if (!to) {
-            alert("Please specify at least one recipient.");
+            alert("Please specify a recipient.");
             return;
         }
 
@@ -688,13 +606,11 @@
         try {
             const isInternal = to.toLowerCase().endsWith('@perplexity.com');
 
-            // Payload using your format: { Attc: url, type: ".img" }
             const payload = {
                 from: senderEmail,
                 to: to,
                 subject: subject || '(No Subject)',
-                body: body,
-                attachments: attachmentsList, // [{ Attc: url, type: ".img" }]
+                body: body, // Contains the #{.ETCM:url=...&Type=...}# tokens
                 oneTimeView: isOneTime,
                 scheduledFor: scheduledTime,
                 label: emailLabel,
@@ -703,23 +619,19 @@
             };
 
             if (isInternal) {
-                // Save to Firebase Firestore
                 await addDoc(collection(db, "Email"), payload);
             } else {
-                // External email via EmailJS
                 await emailjs.send("service_63mnm5a", "template_drkhsx5", {
                     to_email: to,
                     from_email: senderEmail,
                     subject: subject || '(No Subject)',
                     message: body
                 });
-                // Record in sent box
                 await addDoc(collection(db, "Email"), payload);
             }
 
             window.location.href = "1.html";
         } catch (err) {
-            console.error(err);
             alert("Error sending email: " + err.message);
             sendBtn.disabled = false;
         }

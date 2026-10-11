@@ -3,27 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Email</title>
+    <title>Email Reader</title>
     <style>
         :root {
-            --bg-body: #ffffff;
-            --border: #e5e5e8;
+            --bg-page: #ffffff;
+            --border: #e5e7eb;
             --text-main: #111827;
             --text-sub: #6b7280;
-            --accent-blue: #2563eb;
+            --accent-blue: #0b57d0;
             --danger: #ef4444;
+            --cubic-bg: #f8fafc;
+            --cubic-border: #cbd5e1;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg-body);
+            background: var(--bg-page);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            padding: 40px 20px;
+            padding: 24px 16px 80px 16px;
         }
 
         .view-shell {
@@ -43,63 +45,116 @@
             color: var(--text-sub);
             font-size: 14px;
             font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .action-btns { display: flex; gap: 8px; }
         .btn-act {
-            padding: 6px 12px;
+            padding: 6px 14px;
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: 9999px;
             background: #fff;
             font-size: 13px;
             cursor: pointer;
+            font-weight: 500;
         }
 
-        .lang-banner {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            color: #1e40af;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .subject-line {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            letter-spacing: -0.01em;
         }
-
-        .subject-line { font-size: 24px; font-weight: 700; margin-bottom: 16px; }
 
         .sender-box {
             display: flex;
             justify-content: space-between;
             padding-bottom: 16px;
             border-bottom: 1px solid var(--border);
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             font-size: 14px;
         }
 
-        .attachments-list {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-        .attach-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            background: #f4f4f5;
-            border-radius: 6px;
-            text-decoration: none;
-            color: var(--text-main);
-            font-size: 13px;
-        }
-
-        .body-render {
+        .email-body-text {
             font-size: 15px;
             line-height: 1.7;
             word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        /* ================= CUBIC STRUCTURE ATTACHMENT CARD ================= */
+        .cubic-card-attachment {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--cubic-bg);
+            border: 1px solid var(--cubic-border);
+            border-radius: 16px;
+            padding: 12px 18px;
+            margin: 14px 6px;
+            text-decoration: none;
+            color: var(--text-main);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.15s, box-shadow 0.15s;
+            cursor: pointer;
+            max-width: 320px;
+        }
+
+        .cubic-card-attachment:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 3D Cubic Icon Block */
+        .cubic-box {
+            width: 44px;
+            height: 44px;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1.5px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.8), 0 3px 6px rgba(0,0,0,0.06);
+            flex-shrink: 0;
+            font-size: 22px;
+        }
+
+        .cubic-details {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .cubic-file-name {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-main);
+        }
+
+        .cubic-type-badge {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-top: 2px;
+        }
+
+        /* One-Time View Alert */
+        .destruct-notice {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -109,15 +164,12 @@
     <div class="top-bar">
         <a href="1.html" class="btn-nav">&larr; Back to Inbox</a>
         <div class="action-btns">
-            <button class="btn-act" id="toggleTranslateBtn" style="display: none;">Show Original</button>
             <button class="btn-act" id="deleteBtn" style="color: var(--danger);">Delete</button>
         </div>
     </div>
 
-    <!-- Translation Status Banner -->
-    <div class="lang-banner" id="langBanner" style="display: none;">
-        <span id="langNoticeText">Translated automatically</span>
-        <button id="toggleBtnInline" style="background: none; border: none; color: var(--accent-blue); cursor: pointer; font-weight: 600;">Show Original</button>
+    <div id="destructAlert" class="destruct-notice" style="display: none;">
+        ⚠️ This message was sent as a 1-Time View and has now been erased from the database.
     </div>
 
     <div id="contentPane">Loading email...</div>
@@ -140,38 +192,35 @@
     const db = getFirestore(app);
 
     const emailId = new URLSearchParams(window.location.search).get('id');
-    const activeUser = JSON.parse(localStorage.getItem('active_user') || '{}');
-    const targetLang = (activeUser["Email-Lang-Target"] || activeUser["Email_Lang_Target"] || "").toLowerCase().trim();
 
-    let originalSubject = "";
-    let originalBody = "";
-    let translatedSubject = "";
-    let translatedBody = "";
-    let isShowingTranslated = false;
+    // Return visual emoji icon for the cubic box
+    function getCubicIcon(type) {
+        const t = (type || "").toLowerCase();
+        if (t === ".img") return "🖼️";
+        if (t === ".pdf") return "📕";
+        if (t === ".video") return "🎬";
+        return "📄"; // default .doc
+    }
 
-    // Language Code Mapper
-    const langCodes = {
-        "hindi": "hi",
-        "spanish": "es",
-        "french": "fr",
-        "german": "de",
-        "japanese": "ja",
-        "russian": "ru",
-        "arabic": "ar",
-        "bengali": "bn"
-    };
+    // Engine: Finds #{.ETCM:url=...&Type=...}# and turns it into a Cubic Card HTML
+    function parseAndRenderETCM(rawText) {
+        // Regex matches #{.ETCM:url=<URL>&Type=<TYPE>(optional &name=<NAME>)}#
+        const regex = /#\{\.ETCM:url=([^&]+)&Type=([^&\}]+)(?:&name=([^&\}]+))?\}#/g;
 
-    async function translateText(text, target) {
-        if (!text || !target) return text;
-        const code = langCodes[target] || target;
-        try {
-            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${code}&dt=t&q=${encodeURIComponent(text)}`);
-            const data = await res.json();
-            return data[0].map(item => item[0]).join('');
-        } catch (e) {
-            console.error("Translation failed:", e);
-            return text;
-        }
+        return rawText.replace(regex, (match, url, type, encodedName) => {
+            const fileName = encodedName ? decodeURIComponent(encodedName) : (url.split('/').pop()?.split('?')[0] || "Attachment");
+            const icon = getCubicIcon(type);
+
+            return `
+                <a class="cubic-card-attachment" href="${url}" target="_blank" download="${escapeHtml(fileName)}">
+                    <div class="cubic-box">${icon}</div>
+                    <div class="cubic-details">
+                        <span class="cubic-file-name" title="${escapeHtml(fileName)}">${escapeHtml(fileName)}</span>
+                        <span class="cubic-type-badge">${escapeHtml(type)} File</span>
+                    </div>
+                </a>
+            `;
+        });
     }
 
     async function load() {
@@ -185,76 +234,41 @@
         }
 
         const data = snap.data();
-        originalSubject = data.subject || data.Subject || '(No Subject)';
-        originalBody = data.body || data.Body || '';
+        const subject = data.subject || data.Subject || '(No Subject)';
+        const rawBody = data.body || data.Body || '';
         const from = data.from || data.From || 'Unknown';
         const to = data.to || data.To || 'Unknown';
-        const attachments = data.attachments || [];
 
-        // If One Time View -> self destruct document
+        // 1-Time Self Destruct
         if (data.oneTimeView) {
+            document.getElementById('destructAlert').style.display = 'block';
             await deleteDoc(ref);
         }
 
-        // Auto Translation Trigger
-        if (targetLang && targetLang !== "english" && targetLang !== "en") {
-            translatedSubject = await translateText(originalSubject, targetLang);
-            // Translate plain text representation of body
-            translatedBody = await translateText(originalBody.replace(/<[^>]*>?/gm, ''), targetLang);
-            isShowingTranslated = true;
-
-            document.getElementById('langBanner').style.display = 'flex';
-            document.getElementById('langNoticeText').innerText = `Translated to ${targetLang.toUpperCase()} as per your preferences`;
-            document.getElementById('toggleTranslateBtn').style.display = 'inline-block';
-        }
-
-        renderContent(from, to, attachments);
-
-        document.getElementById('deleteBtn').onclick = async () => {
-            if (confirm("Delete this email permanently?")) {
-                await deleteDoc(ref);
-                window.location.href = "1.html";
-            }
-        };
-
-        const toggleHandler = () => {
-            isShowingTranslated = !isShowingTranslated;
-            const btnText = isShowingTranslated ? "Show Original" : `Translate to ${targetLang.toUpperCase()}`;
-            document.getElementById('toggleTranslateBtn').innerText = btnText;
-            document.getElementById('toggleBtnInline').innerText = btnText;
-            renderContent(from, to, attachments);
-        };
-
-        document.getElementById('toggleTranslateBtn').onclick = toggleHandler;
-        document.getElementById('toggleBtnInline').onclick = toggleHandler;
-    }
-
-    function renderContent(from, to, attachments) {
-        const currentSub = isShowingTranslated ? translatedSubject : originalSubject;
-        const currentBody = isShowingTranslated ? translatedBody : originalBody;
-
-        let attachHtml = '';
-        if (attachments.length) {
-            attachHtml = `<div class="attachments-list">` + 
-                attachments.map(a => `<a class="attach-btn" href="${a.data}" download="${a.name}">📎 ${a.name}</a>`).join('') +
-            `</div>`;
-        }
+        // Parse ETCM attachments into Cubic Structures
+        const parsedBodyHtml = parseAndRenderETCM(rawBody);
 
         document.getElementById('contentPane').innerHTML = `
-            <div class="subject-line">${escapeHtml(currentSub)}</div>
+            <div class="subject-line">${escapeHtml(subject)}</div>
             <div class="sender-box">
                 <div>
                     <strong>From:</strong> ${escapeHtml(from)}<br>
                     <span style="color: var(--text-sub);"><strong>To:</strong> ${escapeHtml(to)}</span>
                 </div>
             </div>
-            ${attachHtml}
-            <div class="body-render">${currentBody}</div>
+            <div class="email-body-text">${parsedBodyHtml}</div>
         `;
+
+        document.getElementById('deleteBtn').onclick = async () => {
+            if (confirm("Delete this email?")) {
+                await deleteDoc(ref);
+                window.location.href = "1.html";
+            }
+        };
     }
 
-    function escapeHtml(str) {
-        return (str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    function escapeHtml(s) {
+        return (s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
     }
 
     load();
