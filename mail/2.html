@@ -2,254 +2,498 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Compose</title>
     <style>
         :root {
-            --bg-body: #ffffff;
-            --sidebar-bg: #f7f7f8;
-            --border: #e5e7eb;
-            --text-main: #111827;
-            --text-sub: #6b7280;
-            --accent: #111827;
-            --accent-blue: #2563eb;
-            --radius-md: 10px;
+            --bg-color: #ffffff;
+            --border-color: #f1f3f4;
+            --text-primary: #1f1f1f;
+            --text-secondary: #5f6368;
+            --accent-blue: #0b57d0;
+            --icon-color: #444746;
+            --card-radius: 28px;
         }
 
-        body.dark {
-            --bg-body: #0d0d0d;
-            --sidebar-bg: #171717;
-            --border: #262626;
-            --text-main: #f9fafb;
-            --text-sub: #9ca3af;
-            --accent: #ffffff;
-            --accent-blue: #3b82f6;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg-body);
-            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding: 24px;
             display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Header Bar */
+        .app-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #ffffff;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .bar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .bar-right {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            color: var(--icon-color);
+            display: flex;
+            align-items: center;
             justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.15s;
         }
 
-        .compose-container {
-            width: 100%;
-            max-width: 980px;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            display: grid;
-            grid-template-columns: 1fr 280px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-            background: var(--bg-body);
+        .icon-btn:active {
+            background-color: #f1f3f4;
         }
 
-        @media (max-width: 820px) {
-            .compose-container { grid-template-columns: 1fr; }
+        .icon-btn svg {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
         }
 
-        .main-editor { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
-        .sidebar-controls { background: var(--sidebar-bg); border-left: 1px solid var(--border); padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+        .send-btn svg {
+            stroke-width: 1.8;
+            transform: rotate(0deg);
+        }
 
-        .form-row { display: flex; flex-direction: column; gap: 4px; }
-        .form-row label { font-size: 13px; font-weight: 600; color: var(--text-sub); }
+        /* Form Rows (Gmail Mobile Style) */
+        .compose-form {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
 
-        input, textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            font-size: 14px;
+        .input-row {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-color);
+            min-height: 54px;
+        }
+
+        .row-label {
+            width: 58px;
+            font-size: 15px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .row-input {
+            flex: 1;
+            border: none;
             outline: none;
-            background: var(--bg-body);
-            color: var(--text-main);
+            font-size: 15px;
+            color: var(--text-primary);
+            background: transparent;
             font-family: inherit;
         }
 
-        textarea { min-height: 260px; resize: vertical; }
-
-        .attachment-bar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
+        .row-input::placeholder {
+            color: #8e918f;
         }
 
-        .btn-attach {
-            background: var(--sidebar-bg);
-            border: 1px solid var(--border);
-            padding: 7px 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            cursor: pointer;
-            color: var(--text-main);
+        .row-dropdown-arrow {
+            color: var(--icon-color);
+            margin-left: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .row-dropdown-arrow svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2.2;
+            fill: none;
+        }
+
+        /* Attachments Bar */
+        .attachments-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .attachment-pill {
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            background: #f2f6fc;
+            color: #0b57d0;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid #d3e3fd;
         }
 
-        .chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
-        .chip { background: var(--sidebar-bg); border: 1px solid var(--border); padding: 3px 8px; border-radius: 6px; font-size: 12px; }
-
-        .btn-send {
-            background: var(--accent);
-            color: var(--bg-body);
-            padding: 12px;
-            border-radius: var(--radius-md);
-            border: none;
-            font-size: 14px;
-            font-weight: 600;
+        .attachment-pill .remove-attc {
             cursor: pointer;
-            margin-top: auto;
+            font-weight: bold;
+            font-size: 14px;
+            color: #5f6368;
         }
 
-        /* Modal: Cloud Drive Picker */
-        .modal-shade {
+        /* Main Body Area */
+        .body-row {
+            flex: 1;
+            display: flex;
+            padding: 18px 20px;
+        }
+
+        .body-textarea {
+            width: 100%;
+            height: 100%;
+            min-height: 380px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--text-primary);
+            background: transparent;
+            resize: none;
+            font-family: inherit;
+        }
+
+        .body-textarea::placeholder {
+            color: #8e918f;
+        }
+
+        /* Sarvam API Styled White Popup */
+        .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
             display: none;
-            justify-content: center;
             align-items: center;
-            z-index: 200;
+            justify-content: center;
+            z-index: 1000;
             padding: 16px;
         }
-        .modal-shade.active { display: flex; }
 
-        .modal-card {
-            background: var(--bg-body);
-            border: 1px solid var(--border);
-            border-radius: 16px;
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .sarvam-popup-card {
+            background: #ffffff;
+            border-radius: var(--card-radius);
             width: 100%;
-            max-width: 520px;
-            max-height: 80vh;
+            max-width: 480px;
+            max-height: 85vh;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: popupScale 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .modal-head {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
+        @keyframes popupScale {
+            from { transform: scale(0.92); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .popup-header {
+            padding: 24px 28px 16px 28px;
+            border-bottom: 1px solid #f1f3f4;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
         }
 
-        .drive-files-list {
-            padding: 14px 20px;
+        .popup-badge {
+            font-size: 12px;
+            font-weight: 600;
+            color: #5f6368;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .popup-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            margin-top: 4px;
+        }
+
+        .popup-close {
+            background: #f1f3f4;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #444746;
+        }
+
+        .drive-files-container {
+            padding: 16px 24px;
             overflow-y: auto;
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
 
-        .drive-file-row {
+        .drive-file-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
             cursor: pointer;
-            transition: all 0.15s;
+            background: #ffffff;
+            transition: all 0.15s ease;
         }
-        .drive-file-row:hover { background: var(--sidebar-bg); }
-        .drive-file-row.chosen { border-color: var(--accent-blue); background: rgba(37, 99, 235, 0.08); }
+
+        .drive-file-item:hover {
+            border-color: #0b57d0;
+            background-color: #f8fafd;
+        }
+
+        .drive-file-item.selected {
+            border-color: #0b57d0;
+            background-color: #e8f0fe;
+        }
+
+        .drive-file-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .drive-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #f1f3f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .drive-file-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1f1f1f;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .drive-file-type {
+            font-size: 12px;
+            color: #747775;
+            margin-top: 2px;
+        }
+
+        .popup-footer {
+            padding: 16px 28px 24px 28px;
+            border-top: 1px solid #f1f3f4;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-sarvam-next {
+            background: #111827;
+            color: #ffffff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-sarvam-next:hover {
+            opacity: 0.9;
+        }
+
+        /* 3-Dots Overflow Menu */
+        .overflow-menu {
+            position: absolute;
+            top: 50px;
+            right: 16px;
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 190px;
+            display: none;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .overflow-item {
+            padding: 12px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .overflow-item:hover {
+            background: #f8f9fa;
+        }
     </style>
+    <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
-<div class="compose-container">
-    <div class="main-editor">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2 style="font-size: 20px;">Compose Email</h2>
-            <a href="1.html" style="text-decoration: none; color: var(--text-sub); font-size: 13px;">&larr; Inbox</a>
+    <!-- Gmail-Style App Bar -->
+    <header class="app-bar">
+        <div class="bar-left">
+            <button class="icon-btn" onclick="window.location.href='1.html'" title="Back">
+                <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
         </div>
-
-        <div class="attachment-bar">
-            <!-- Native Device Upload -->
-            <label class="btn-attach">
-                📎 Upload Device File
-                <input type="file" id="localFileInput" multiple style="display: none;">
-            </label>
+        <div class="bar-right">
+            <!-- Paperclip (Cloud Drive Attachment) -->
+            <button class="icon-btn" id="btnPaperclipAttach" title="Attach file">
+                <svg viewBox="0 0 24 24">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                </svg>
+            </button>
             
-            <!-- Cloud Drive Picker Trigger -->
-            <button class="btn-attach" id="btnOpenDrivePicker">
-                ☁️ Attach from Cloud Drive
+            <!-- Send Button -->
+            <button class="icon-btn send-btn" id="btnSendMail" title="Send">
+                <svg viewBox="0 0 24 24">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
             </button>
 
-            <div class="chip-list" id="attachedChips"></div>
+            <!-- 3 Dots More Options -->
+            <button class="icon-btn" id="btnMoreOptions" title="More options">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1.5"></circle>
+                    <circle cx="12" cy="5" r="1.5"></circle>
+                    <circle cx="12" cy="19" r="1.5"></circle>
+                </svg>
+            </button>
         </div>
+    </header>
 
-        <div class="form-row">
-            <label>From</label>
-            <input type="text" id="senderField" readonly>
+    <!-- 3-Dots Dropdown Menu -->
+    <div class="overflow-menu" id="overflowMenu">
+        <div class="overflow-item" onclick="toggleOneTimeView()">
+            <span>1-Time View</span>
+            <input type="checkbox" id="oneTimeCheck">
         </div>
-
-        <div class="form-row">
-            <label>To</label>
-            <input type="email" id="toEmail" placeholder="user@perplexity.com or someone@gmail.com" required>
+        <div class="overflow-item" onclick="scheduleSendPrompt()">
+            <span>Schedule send</span>
         </div>
-
-        <div class="form-row">
-            <label>Subject</label>
-            <input type="text" id="subject" placeholder="Subject">
-        </div>
-
-        <div class="form-row">
-            <label>Message (HTML or plain text)</label>
-            <textarea id="body" placeholder="Write message or paste complete HTML code here..."></textarea>
+        <div class="overflow-item" onclick="labelPrompt()">
+            <span>Add label</span>
         </div>
     </div>
 
-    <!-- Sidebar delivery options -->
-    <div class="sidebar-controls">
-        <div class="form-row">
-            <label>Security</label>
-            <label style="font-size: 13px; display: flex; align-items: center; gap: 8px; margin-top: 6px;">
-                <input type="checkbox" id="oneTimeCheck"> 1-Time Self Destruct
-            </label>
+    <!-- Gmail-Style Form Rows -->
+    <main class="compose-form">
+        <!-- From Row -->
+        <div class="input-row">
+            <span class="row-label">From</span>
+            <input type="text" class="row-input" id="fromEmailDisplay" readonly>
+            <div class="row-dropdown-arrow">
+                <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
         </div>
 
-        <div class="form-row">
-            <label>Schedule Delivery</label>
-            <input type="datetime-local" id="scheduleDate">
+        <!-- To Row -->
+        <div class="input-row">
+            <span class="row-label">To</span>
+            <input type="email" class="row-input" id="toEmailInput" placeholder="" autocomplete="off" autofocus>
+            <div class="row-dropdown-arrow">
+                <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
         </div>
 
-        <div class="form-row">
-            <label>Label</label>
-            <input type="text" id="labelTag" placeholder="e.g. Work, Urgent">
+        <!-- Subject Row -->
+        <div class="input-row">
+            <input type="text" class="row-input" id="subjectInput" placeholder="Subject" autocomplete="off">
         </div>
 
-        <button class="btn-send" id="sendBtn">Send Email</button>
+        <!-- Attached URLs Strip -->
+        <div class="attachments-strip" id="attachmentsStrip" style="display: none;"></div>
+
+        <!-- Compose Email Body -->
+        <div class="body-row">
+            <textarea class="body-textarea" id="bodyInput" placeholder="Compose email"></textarea>
+        </div>
+    </main>
+
+    <!-- Sarvam API Style White-Based Cloud Drive Modal -->
+    <div class="modal-overlay" id="driveModal">
+        <div class="sarvam-popup-card">
+            <div class="popup-header">
+                <div>
+                    <div class="popup-badge">Cloud Storage</div>
+                    <div class="popup-title">Attach from Cloud Drive</div>
+                </div>
+                <button class="popup-close" id="closeDriveModal">&times;</button>
+            </div>
+
+            <div class="drive-files-container" id="driveFilesList">
+                <div style="padding: 20px 0; text-align: center; color: #747775; font-size: 14px;">
+                    Loading your Cloud Drive files...
+                </div>
+            </div>
+
+            <div class="popup-footer">
+                <button class="btn-sarvam-next" id="btnConfirmDriveAttach">
+                    Next &rarr;
+                </button>
+            </div>
+        </div>
     </div>
-</div>
-
-<!-- Modal: Cloud Drive Browser -->
-<div class="modal-shade" id="driveModal">
-    <div class="modal-card">
-        <div class="modal-head">
-            <span style="font-weight: 600;">Your Cloud Drive Files</span>
-            <button id="closeDriveModal" style="background: none; border: none; cursor: pointer; font-size: 18px;">&times;</button>
-        </div>
-        <div class="drive-files-list" id="driveList">
-            <div style="color: var(--text-sub); font-size: 13px;">Loading Cloud Drive files...</div>
-        </div>
-        <div style="padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end;">
-            <button class="btn-send" id="btnConfirmDriveAttach" style="padding: 8px 16px; margin: 0;">Add Selected</button>
-        </div>
-    </div>
-</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -269,46 +513,46 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // Init EmailJS
     emailjs.init({ publicKey: "Yr9MutUoHOEONnFgn" });
 
+    // Active User
     const activeUser = JSON.parse(localStorage.getItem('active_user') || '{}');
-    const sender = activeUser.Email || activeUser.email || "user@perplexity.com";
-    document.getElementById('senderField').value = sender;
+    const senderEmail = activeUser.Email || activeUser.email || "nigambhawna02@gmail.com";
+    document.getElementById('fromEmailDisplay').value = senderEmail;
 
-    let attachedItems = []; // { name, data / fileUrl }
+    // Attachments format: { Attc: url, type: ".img" }
+    let attachmentsList = [];
+    let scheduledTime = null;
+    let emailLabel = "";
 
-    // 1. Device Local Upload
-    document.getElementById('localFileInput').addEventListener('change', async (e) => {
-        for (const file of Array.from(e.target.files)) {
-            const b64 = await fileToBase64(file);
-            attachedItems.push({ name: file.name, data: b64 });
+    // 1. Helper to determine file type suffix
+    function getFileExtensionType(url, explicitType = "") {
+        const t = (explicitType || "").toLowerCase();
+        if (t.includes("img") || t.includes("image") || t.includes("png") || t.includes("jpg") || t.includes("jpeg")) {
+            return ".img";
         }
-        renderChips();
-    });
-
-    function fileToBase64(f) {
-        return new Promise((res, rej) => {
-            const r = new FileReader();
-            r.onload = () => res(r.result);
-            r.onerror = rej;
-            r.readAsDataURL(f);
-        });
+        const ext = url.split('.').pop()?.split(/\#|\?/)[0]?.toLowerCase();
+        if (["png", "jpg", "jpeg", "webp", "gif", "svg", "bmp"].includes(ext)) {
+            return ".img";
+        }
+        return ext ? `.${ext}` : ".doc";
     }
 
-    // 2. Cloud Drive Modal Loader
+    // 2. Paperclip click -> Open Sarvam-styled Cloud Drive popup
     const driveModal = document.getElementById('driveModal');
-    let driveSelected = new Set();
+    let selectedDriveItems = new Set();
 
-    document.getElementById('btnOpenDrivePicker').addEventListener('click', async () => {
-        driveSelected.clear();
+    document.getElementById('btnPaperclipAttach').addEventListener('click', async () => {
+        selectedDriveItems.clear();
         driveModal.classList.add('active');
-        const listContainer = document.getElementById('driveList');
-        listContainer.innerHTML = '<div style="color: var(--text-sub); font-size: 13px;">Loading your Cloud Drive files...</div>';
+        const listEl = document.getElementById('driveFilesList');
+        listEl.innerHTML = '<div style="padding: 20px 0; text-align: center; color: #747775; font-size: 14px;">Accessing Cloud Drive...</div>';
 
         try {
             const q = query(
                 collection(db, "Cloud Drive"),
-                or(where("Email", "==", sender), where("Access.Viewer", "array-contains", sender))
+                or(where("Email", "==", senderEmail), where("Access.Viewer", "array-contains", senderEmail))
             );
             const snap = await getDocs(q);
             const files = [];
@@ -316,101 +560,168 @@
             snap.forEach(d => {
                 const data = d.data();
                 if (data.Folder !== "True" && data.File) {
-                    files.push({ id: d.id, name: data.Name || "File", url: data.File, type: data.Type || "Document" });
+                    files.push({
+                        id: d.id,
+                        name: data.Name || "File",
+                        url: data.File,
+                        rawType: data.Type || ""
+                    });
                 }
             });
 
             if (!files.length) {
-                listContainer.innerHTML = '<div style="color: var(--text-sub); font-size: 13px;">No files found in your Cloud Drive.</div>';
+                listEl.innerHTML = '<div style="padding: 20px 0; text-align: center; color: #747775; font-size: 14px;">No files found in your Cloud Drive.</div>';
                 return;
             }
 
-            listContainer.innerHTML = '';
+            listEl.innerHTML = '';
             files.forEach(file => {
-                const row = document.createElement('div');
-                row.className = 'drive-file-row';
-                row.innerHTML = `
-                    <span>📄 ${escapeHtml(file.name)}</span>
-                    <span style="font-size: 11px; color: var(--text-sub);">${escapeHtml(file.type)}</span>
+                const isImg = getFileExtensionType(file.url, file.rawType) === ".img";
+                const div = document.createElement('div');
+                div.className = 'drive-file-item';
+                div.innerHTML = `
+                    <div class="drive-file-left">
+                        <div class="drive-icon">${isImg ? '🖼️' : '📄'}</div>
+                        <div>
+                            <div class="drive-file-name">${escapeHtml(file.name)}</div>
+                            <div class="drive-file-type">${isImg ? 'Image (.img)' : 'Document'}</div>
+                        </div>
+                    </div>
                 `;
-                row.onclick = () => {
-                    if (driveSelected.has(file)) {
-                        driveSelected.delete(file);
-                        row.classList.remove('chosen');
+
+                div.onclick = () => {
+                    if (selectedDriveItems.has(file)) {
+                        selectedDriveItems.delete(file);
+                        div.classList.remove('selected');
                     } else {
-                        driveSelected.add(file);
-                        row.classList.add('chosen');
+                        selectedDriveItems.add(file);
+                        div.classList.add('selected');
                     }
                 };
-                listContainer.appendChild(row);
+
+                listEl.appendChild(div);
             });
-        } catch (err) {
-            listContainer.innerHTML = '<div style="color: red; font-size: 13px;">Failed to load Cloud Drive.</div>';
+        } catch (e) {
+            listEl.innerHTML = '<div style="color: red; padding: 20px 0; text-align: center; font-size: 14px;">Failed to load Cloud Drive.</div>';
         }
     });
 
-    document.getElementById('closeDriveModal').addEventListener('click', () => driveModal.classList.remove('active'));
-
-    document.getElementById('btnConfirmDriveAttach').addEventListener('click', () => {
-        driveSelected.forEach(f => {
-            attachedItems.push({ name: f.name, data: f.url });
-        });
+    document.getElementById('closeDriveModal').addEventListener('click', () => {
         driveModal.classList.remove('active');
-        renderChips();
     });
 
-    function renderChips() {
-        const c = document.getElementById('attachedChips');
-        c.innerHTML = attachedItems.map(a => `<span class="chip">📎 ${escapeHtml(a.name)}</span>`).join(' ');
+    // 3. Confirm Attachments: Save as { Attc: url, type: ".img" }
+    document.getElementById('btnConfirmDriveAttach').addEventListener('click', () => {
+        selectedDriveItems.forEach(item => {
+            const attcType = getFileExtensionType(item.url, item.rawType);
+            attachmentsList.push({
+                name: item.name,
+                Attc: item.url,
+                type: attcType // .img for all kind of images
+            });
+        });
+
+        driveModal.classList.remove('active');
+        renderAttachments();
+    });
+
+    function renderAttachments() {
+        const strip = document.getElementById('attachmentsStrip');
+        if (!attachmentsList.length) {
+            strip.style.display = 'none';
+            strip.innerHTML = '';
+            return;
+        }
+
+        strip.style.display = 'flex';
+        strip.innerHTML = attachmentsList.map((a, idx) => `
+            <div class="attachment-pill">
+                <span>📎 ${escapeHtml(a.name)} (${escapeHtml(a.type)})</span>
+                <span class="remove-attc" onclick="removeAttc(${idx})">&times;</span>
+            </div>
+        `).join('');
     }
 
-    // 3. Send
-    document.getElementById('sendBtn').addEventListener('click', async () => {
-        const to = document.getElementById('toEmail').value.trim();
-        const subject = document.getElementById('subject').value.trim();
-        const body = document.getElementById('body').value.trim();
-        const oneTime = document.getElementById('oneTimeCheck').checked;
-        const schedule = document.getElementById('scheduleDate').value;
-        const label = document.getElementById('labelTag').value.trim();
+    window.removeAttc = (idx) => {
+        attachmentsList.splice(idx, 1);
+        renderAttachments();
+    };
 
-        if (!to || !body) return alert("Recipient and Message body required.");
+    // 4. Overflow Menu Handlers
+    const overflowMenu = document.getElementById('overflowMenu');
+    document.getElementById('btnMoreOptions').addEventListener('click', (e) => {
+        e.stopPropagation();
+        overflowMenu.style.display = overflowMenu.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', () => { overflowMenu.style.display = 'none'; });
 
-        const btn = document.getElementById('sendBtn');
-        btn.innerText = "Sending...";
-        btn.disabled = true;
+    window.toggleOneTimeView = () => {
+        const chk = document.getElementById('oneTimeCheck');
+        chk.checked = !chk.checked;
+    };
+
+    window.scheduleSendPrompt = () => {
+        const dt = prompt("Schedule Delivery (YYYY-MM-DDTHH:MM):", new Date().toISOString().slice(0, 16));
+        if (dt) scheduledTime = new Date(dt).toISOString();
+    };
+
+    window.labelPrompt = () => {
+        const l = prompt("Add Label (e.g. Work, Important):");
+        if (l) emailLabel = l.trim();
+    };
+
+    // 5. Send Action
+    document.getElementById('btnSendMail').addEventListener('click', async () => {
+        const to = document.getElementById('toEmailInput').value.trim();
+        const subject = document.getElementById('subjectInput').value.trim();
+        const body = document.getElementById('bodyInput').value.trim();
+        const isOneTime = document.getElementById('oneTimeCheck').checked;
+
+        if (!to) {
+            alert("Please specify at least one recipient.");
+            return;
+        }
+
+        const sendBtn = document.getElementById('btnSendMail');
+        sendBtn.disabled = true;
 
         try {
+            const isInternal = to.toLowerCase().endsWith('@perplexity.com');
+
+            // Payload using your format: { Attc: url, type: ".img" }
             const payload = {
-                from: sender,
+                from: senderEmail,
                 to: to,
                 subject: subject || '(No Subject)',
                 body: body,
-                attachments: attachedItems,
-                oneTimeView: oneTime,
-                scheduledFor: schedule ? new Date(schedule).toISOString() : null,
-                label: label,
+                attachments: attachmentsList, // [{ Attc: url, type: ".img" }]
+                oneTimeView: isOneTime,
+                scheduledFor: scheduledTime,
+                label: emailLabel,
                 isArchived: false,
                 timestamp: serverTimestamp()
             };
 
-            if (to.toLowerCase().endsWith('@perplexity.com')) {
+            if (isInternal) {
+                // Save to Firebase Firestore
                 await addDoc(collection(db, "Email"), payload);
             } else {
+                // External email via EmailJS
                 await emailjs.send("service_63mnm5a", "template_drkhsx5", {
                     to_email: to,
-                    from_email: sender,
-                    subject: subject,
+                    from_email: senderEmail,
+                    subject: subject || '(No Subject)',
                     message: body
                 });
+                // Record in sent box
                 await addDoc(collection(db, "Email"), payload);
             }
 
-            alert("Sent successfully!");
             window.location.href = "1.html";
-        } catch (e) {
-            alert("Send failed: " + e.message);
-            btn.disabled = false;
-            btn.innerText = "Send Email";
+        } catch (err) {
+            console.error(err);
+            alert("Error sending email: " + err.message);
+            sendBtn.disabled = false;
         }
     });
 
