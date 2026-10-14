@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forms & Surveys Platform</title>
+    <style>
+        :root {
+            --bg-color: #f7f9fb;
+            --surface-color: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --primary: #9340dc;
+            --primary-hover: #7b2cbf;
+            --danger: #ef4444;
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        body.dark {
+            --bg-color: #0f1117;
+            --surface-color: #1a1d24;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border-color: #2e3440;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg-color); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
+        
+        /* Navbar */
+        nav {
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+        .brand-logo {
+            width: 24px; height: 24px;
+            background: linear-gradient(135deg, #b86bf2, #9340dc);
+            clip-path: path("M50 38 L259.5 120 Q280 128 259.7 136.6 L185 168 Q176 172 172 181 L138.5 261.7 Q130 282 122 261.6 L38 50 Q30 30 50 38 Z");
+            transform: scale(0.08) translate(-150px, -150px);
+        }
+        .user-panel { display: flex; align-items: center; gap: 14px; font-size: 14px; }
+        .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; text-transform: uppercase; }
+
+        /* Container */
+        .container { max-width: 860px; margin: 30px auto; width: 92%; flex: 1; }
+        .card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
+
+        /* Buttons & Inputs */
+        button { cursor: pointer; border-radius: 8px; font-weight: 500; font-size: 14px; padding: 10px 16px; border: none; transition: 0.2s ease; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: var(--primary); color: #ffffff; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); }
+        .btn-outline:hover { background: var(--border-color); }
+        .btn-danger { background: #fee2e2; color: var(--danger); }
+        .btn-danger:hover { background: #fecaca; }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--surface-color);
+            color: var(--text-primary);
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+        input:focus, textarea:focus, select:focus { border-color: var(--primary); }
+
+        /* View switching */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* Field Card inside Builder */
+        .field-card {
+            background: var(--bg-color);
+            border: 1px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .field-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { border: 1px solid var(--border-color); padding: 10px; text-align: left; }
+        th { background: var(--bg-color); font-weight: 600; }
+
+        /* Embed clean style */
+        body.embed-mode nav, body.embed-mode .back-bar { display: none !important; }
+        body.embed-mode { background: transparent !important; }
+        body.embed-mode .container { margin: 10px auto; width: 100%; max-width: 100%; }
+
+        /* Dialog / Modal */
+        .modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--surface-color); width: 90%; max-width: 520px; border-radius: var(--radius); padding: 24px; border: 1px solid var(--border-color); }
+        .code-box { background: var(--bg-color); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; font-family: monospace; font-size: 12px; word-break: break-all; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+    <nav id="navbar">
+        <div class="brand">
+            <div class="brand-logo"></div>
+            <span>Perplexity Forms</span>
+        </div>
+        <div class="user-panel" id="userPanel">
+            <span id="userEmail">Loading...</span>
+            <div class="avatar" id="userInitial">U</div>
+            <button class="btn-outline" id="logoutBtn">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- 1. DASHBOARD VIEW (List Forms) -->
+        <div id="dashboardView" class="view-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>My Forms</h2>
+                <button class="btn-primary" id="openCreateBtn">+ Create New Form</button>
+            </div>
+            <div id="formsList">Loading forms...</div>
+        </div>
+
+        <!-- 2. BUILDER VIEW (Create Form) -->
+        <div id="builderView" class="view-section">
+            <div style="margin-bottom: 16px;">
+                <button class="btn-outline" id="backToDashBtn">← Back to Dashboard</button>
+            </div>
+            <div class="card">
+                <h2>Form Details</h2>
+                <label style="display: block; margin-top: 10px; font-size: 13px; color: var(--text-secondary);">Form Title</label>
+                <input type="text" id="formTitle" placeholder="e.g. Customer Satisfaction Survey">
+                
+                <label style="display: block; margin-top: 10px; font-size: 13px; color: var(--text-secondary);">Description (optional)</label>
+                <textarea id="formDesc" rows="2" placeholder="Describe the goal of this form..."></textarea>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>Questions & Fields</h3>
+                    <button class="btn-outline" id="addFieldBtn">+ Add Question</button>
+                </div>
+                <div id="fieldsContainer"></div>
+                <button class="btn-primary" id="publishFormBtn" style="margin-top: 15px; width: 100%; justify-content: center; padding: 14px;">Publish Form</button>
+            </div>
+        </div>
+
+        <!-- 3. PUBLIC FILL FORM VIEW -->
+        <div id="publicFormView" class="view-section">
+            <div class="card">
+                <h1 id="pubTitle" style="font-size: 24px; margin-bottom: 6px;"></h1>
+                <p id="pubDesc" style="color: var(--text-secondary); margin-bottom: 24px;"></p>
+                <form id="publicForm">
+                    <div id="pubFields"></div>
+                    <button type="submit" class="btn-primary" id="submitFormBtn" style="width: 100%; justify-content: center; margin-top: 20px; padding: 14px;">Submit</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 4. SUBMIT CONFIRMATION VIEW -->
+        <div id="thankYouView" class="view-section">
+            <div class="card" style="text-align: center; padding: 50px 20px;">
+                <h2>🎉 Thank you!</h2>
+                <p style="color: var(--text-secondary); margin-top: 8px;">Your response has been recorded successfully.</p>
+                <button class="btn-outline" style="margin-top: 20px;" onclick="location.reload()">Submit Another Response</button>
+            </div>
+        </div>
+
+        <!-- 5. RESPONSES / DATA VIEW -->
+        <div id="responsesView" class="view-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <button class="btn-outline" id="backFromResponsesBtn">← Back to Dashboard</button>
+                <button class="btn-primary" id="exportCsvBtn">📥 Export CSV</button>
+            </div>
+            <div class="card">
+                <h2 id="responsesTitle">Form Submissions</h2>
+                <div id="responsesContent" style="overflow-x: auto; margin-top: 15px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHARE / EMBED MODAL -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Share & Embed Form</h3>
+                <button class="btn-outline" onclick="closeShareModal()" style="border:none; font-size:18px;">&times;</button>
+            </div>
+            
+            <p style="margin-top: 14px; font-size: 13px; color: var(--text-secondary);">Direct Link:</p>
+            <div class="code-box" id="shareLinkBox"></div>
+            <button class="btn-primary" id="copyLinkBtn">Copy Link</button>
+
+            <p style="margin-top: 20px; font-size: 13px; color: var(--text-secondary);">Embed Code (iframe):</p>
+            <div class="code-box" id="embedCodeBox"></div>
+            <button class="btn-outline" id="copyEmbedBtn">Copy HTML Embed Code</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, getDoc, doc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+            authDomain: "question-metabase.firebaseapp.com",
+            projectId: "question-metabase"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // State
+        const urlParams = new URLSearchParams(window.location.search);
+        const formParamId = urlParams.get('form');
+        const viewResponsesId = urlParams.get('responses');
+        const isEmbed = urlParams.get('embed') === 'true';
+
+        let activeUser = null;
+        let activeFormData = null;
+        let latestFetchedResponses = [];
+
+        if (isEmbed) document.body.classList.add('embed-mode');
+
+        // Check authentication from your custom Auth system
+        function checkAuth() {
+            try {
+                const stored = localStorage.getItem('active_user');
+                if (stored) {
+                    activeUser = JSON.parse(stored);
+                }
+            } catch (e) {
+                console.error("Local storage error:", e);
+            }
+
+            // Public responder mode does not require login
+            if (formParamId) {
+                loadPublicForm(formParamId);
+                return;
+            }
+
+            // Otherwise, requires authenticated creator
+            if (!activeUser || !activeUser.Email) {
+                const returnUrl = encodeURIComponent(window.location.href);
+                window.location.href = `1.html?continue=${returnUrl}`;
+                return;
+            }
+
+            // Setup User Info
+            document.getElementById('userEmail').innerText = activeUser.Email;
+            document.getElementById('userInitial').innerText = (activeUser["First Name"] || activeUser.Email)[0];
+
+            if (viewResponsesId) {
+                loadResponses(viewResponsesId);
+            } else {
+                showView('dashboardView');
+                loadDashboardForms();
+            }
+        }
+
+        // View Router Helper
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        /* ================= 1. DASHBOARD ================= */
+        async function loadDashboardForms() {
+            const listEl = document.getElementById('formsList');
+            listEl.innerHTML = "<p>Loading your forms...</p>";
+
+            try {
+                const q = query(collection(db, "Forms"), where("ownerEmail", "==", activeUser.Email));
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    listEl.innerHTML = `<div class="card" style="text-align: center; color: var(--text-secondary);">No forms created yet. Click "+ Create New Form" to get started!</div>`;
+                    return;
+                }
+
+                let html = "";
+                snap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    html += `
+                        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <h3 style="margin-bottom: 4px;">${escapeHtml(data.title)}</h3>
+                                <p style="font-size: 13px; color: var(--text-secondary);">${data.fields ? data.fields.length : 0} Questions</p>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-outline" onclick="openShareModal('${docSnap.id}')">🔗 Share / Embed</button>
+                                <button class="btn-primary" onclick="viewResponses('${docSnap.id}')">📊 Responses</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                listEl.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                listEl.innerHTML = "<p>Failed to load forms from Firestore.</p>";
+            }
+        }
+
+        /* ================= 2. BUILDER ================= */
+        let fields = [];
+
+        document.getElementById('openCreateBtn').addEventListener('click', () => {
+            fields = [];
+            document.getElementById('formTitle').value = '';
+            document.getElementById('formDesc').value = '';
+            document.getElementById('fieldsContainer').innerHTML = '';
+            addField(); // Add 1 default question
+            showView('builderView');
+        });
+
+        document.getElementById('backToDashBtn').addEventListener('click', () => {
+            showView('dashboardView');
+            loadDashboardForms();
+        });
+
+        document.getElementById('addFieldBtn').addEventListener('click', addField);
+
+        function addField() {
+            const fieldId = 'field_' + Date.now() + Math.random().toString(36).substr(2, 4);
+            const fieldObj = { id: fieldId, label: 'Untitled Question', type: 'text', required: false, options: '' };
+            fields.push(fieldObj);
+            renderFields();
+        }
+
+        function renderFields() {
+            const container = document.getElementById('fieldsContainer');
+            container.innerHTML = '';
+
+            fields.forEach((field, index) => {
+                const fieldDiv = document.createElement('div');
+                fieldDiv.className = 'field-card';
+                fieldDiv.innerHTML = `
+                    <div class="field-card-header">
+                        <span style="font-weight: 600; font-size: 13px;">Question ${index + 1}</span>
+                        <button class="btn-danger" style="padding: 4px 8px; font-size: 12px;" onclick="removeField('${field.id}')">Delete</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="font-size: 12px; color: var(--text-secondary);">Label</label>
+                            <input type="text" value="${escapeHtml(field.label)}" onchange="updateField('${field.id}', 'label', this.value)">
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; color: var(--text-secondary);">Type</label>
+                            <select onchange="updateField('${field.id}', 'type', this.value)">
+                                <option value="text" ${field.type==='text'?'selected':''}>Short Text</option>
+                                <option value="textarea" ${field.type==='textarea'?'selected':''}>Long Text</option>
+                                <option value="email" ${field.type==='email'?'selected':''}>Email</option>
+                                <option value="number" ${field.type==='number'?'selected':''}>Number</option>
+                                <option value="select" ${field.type==='select'?'selected':''}>Dropdown Select</option>
+                                <option value="radio" ${field.type==='radio'?'selected':''}>Single Choice (Radio)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    ${(field.type === 'select' || field.type === 'radio') ? `
+                        <div style="margin-top: 10px;">
+                            <label style="font-size: 12px; color: var(--text-secondary);">Options (comma-separated)</label>
+                            <input type="text" placeholder="Option 1, Option 2, Option 3" value="${escapeHtml(field.options || '')}" onchange="updateField('${field.id}', 'options', this.value)">
+                        </div>
+                    ` : ''}
+
+                    <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; margin-top: 10px; cursor: pointer;">
+                        <input type="checkbox" style="width: auto; margin: 0;" ${field.required?'checked':''} onchange="updateField('${field.id}', 'required', this.checked)">
+                        Required question
+                    </label>
+                `;
+                container.appendChild(fieldDiv);
+            });
+        }
+
+        window.updateField = function(id, key, val) {
+            const f = fields.find(item => item.id === id);
+            if (f) {
+                f[key] = val;
+                if (key === 'type') renderFields();
+            }
+        };
+
+        window.removeField = function(id) {
+            fields = fields.filter(item => item.id !== id);
+            renderFields();
+        };
+
+        // Publish to Firestore
+        document.getElementById('publishFormBtn').addEventListener('click', async () => {
+            const title = document.getElementById('formTitle').value.trim();
+            const desc = document.getElementById('formDesc').value.trim();
+
+            if (!title) return alert("Please provide a form title.");
+            if (fields.length === 0) return alert("Please add at least one question.");
+
+            const btn = document.getElementById('publishFormBtn');
+            btn.innerText = "Publishing...";
+
+            try {
+                const docRef = await addDoc(collection(db, "Forms"), {
+                    title,
+                    description: desc,
+                    fields,
+                    ownerEmail: activeUser.Email,
+                    ownerLotus: activeUser.Lotus || "",
+                    createdAt: serverTimestamp()
+                });
+
+                btn.innerText = "Publish Form";
+                openShareModal(docRef.id);
+            } catch (err) {
+                console.error(err);
+                alert("Error saving form to Firestore.");
+                btn.innerText = "Publish Form";
+            }
+        });
+
+        /* ================= 3. PUBLIC FORM RUNNER ================= */
+        async function loadPublicForm(formId) {
+            showView('publicFormView');
+            try {
+                const docSnap = await getDoc(doc(db, "Forms", formId));
+                if (!docSnap.exists()) {
+                    document.getElementById('pubTitle').innerText = "Form not found.";
+                    return;
+                }
+
+                activeFormData = docSnap.data();
+                document.getElementById('pubTitle').innerText = activeFormData.title;
+                document.getElementById('pubDesc').innerText = activeFormData.description || '';
+
+                const pubFields = document.getElementById('pubFields');
+                pubFields.innerHTML = '';
+
+                activeFormData.fields.forEach(f => {
+                    const group = document.createElement('div');
+                    group.style.marginBottom = "18px";
+                    
+                    const label = `<label style="display:block; font-weight: 500; font-size: 14px; margin-bottom: 4px;">${escapeHtml(f.label)} ${f.required ? '<span style="color:red">*</span>' : ''}</label>`;
+                    let inputHtml = "";
+
+                    if (f.type === 'textarea') {
+                        inputHtml = `<textarea name="${f.id}" ${f.required?'required':''} rows="3"></textarea>`;
+                    } else if (f.type === 'select') {
+                        const opts = (f.options || '').split(',').map(o => o.trim()).filter(Boolean);
+                        inputHtml = `<select name="${f.id}" ${f.required?'required':''}>
+                            <option value="">Choose an option...</option>
+                            ${opts.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}
+                        </select>`;
+                    } else if (f.type === 'radio') {
+                        const opts = (f.options || '').split(',').map(o => o.trim()).filter(Boolean);
+                        inputHtml = opts.map(o => `
+                            <label style="display:flex; align-items:center; gap:8px; margin: 6px 0; font-size:14px;">
+                                <input type="radio" name="${f.id}" value="${escapeHtml(o)}" ${f.required?'required':''} style="width:auto; margin:0;">
+                                ${escapeHtml(o)}
+                            </label>
+                        `).join('');
+                    } else {
+                        inputHtml = `<input type="${f.type}" name="${f.id}" ${f.required?'required':''}>`;
+                    }
+
+                    group.innerHTML = label + inputHtml;
+                    pubFields.appendChild(group);
+                });
+            } catch (err) {
+                console.error(err);
+                document.getElementById('pubTitle').innerText = "Error loading form.";
+            }
+        }
+
+        // Submit Response
+        document.getElementById('publicForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitFormBtn');
+            submitBtn.innerText = "Submitting...";
+
+            const formData = new FormData(e.target);
+            const answers = {};
+
+            activeFormData.fields.forEach(f => {
+                answers[f.label] = formData.get(f.id) || "";
+            });
+
+            try {
+                await addDoc(collection(db, "FormSubmissions"), {
+                    formId: formParamId,
+                    answers: answers,
+                    submittedAt: serverTimestamp()
+                });
+                showView('thankYouView');
+            } catch (err) {
+                console.error(err);
+                alert("Error submitting form. Please try again.");
+                submitBtn.innerText = "Submit";
+            }
+        });
+
+        /* ================= 4. VIEW RESPONSES & EXPORT ================= */
+        window.viewResponses = function(formId) {
+            window.location.search = `?responses=${formId}`;
+        };
+
+        async function loadResponses(formId) {
+            showView('responsesView');
+            const content = document.getElementById('responsesContent');
+            content.innerHTML = "Loading answers...";
+
+            try {
+                const formSnap = await getDoc(doc(db, "Forms", formId));
+                if (!formSnap.exists()) return content.innerHTML = "Form not found.";
+                const form = formSnap.data();
+                document.getElementById('responsesTitle').innerText = `Submissions: ${form.title}`;
+
+                const q = query(collection(db, "FormSubmissions"), where("formId", "==", formId));
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    content.innerHTML = "<p style='color:var(--text-secondary);'>No responses submitted yet.</p>";
+                    latestFetchedResponses = [];
+                    return;
+                }
+
+                latestFetchedResponses = [];
+                snap.forEach(d => latestFetchedResponses.push(d.data().answers));
+
+                const headers = form.fields.map(f => f.label);
+                let tableHtml = `<table><thead><tr><th>#</th>${headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>`;
+
+                latestFetchedResponses.forEach((row, idx) => {
+                    tableHtml += `<tr><td>${idx + 1}</td>${headers.map(h => `<td>${escapeHtml(row[h] || '')}</td>`).join('')}</tr>`;
+                });
+                tableHtml += `</tbody></table>`;
+                content.innerHTML = tableHtml;
+            } catch (err) {
+                console.error(err);
+                content.innerHTML = "Error loading submissions.";
+            }
+        }
+
+        document.getElementById('backFromResponsesBtn').addEventListener('click', () => {
+            window.location.href = window.location.pathname;
+        });
+
+        document.getElementById('exportCsvBtn').addEventListener('click', () => {
+            if (!latestFetchedResponses.length) return alert("No responses to export.");
+            
+            const keys = Object.keys(latestFetchedResponses[0]);
+            let csv = keys.map(k => `"${k.replace(/"/g, '""')}"`).join(",") + "\n";
+
+            latestFetchedResponses.forEach(row => {
+                csv += keys.map(k => `"${(row[k] || '').toString().replace(/"/g, '""')}"`).join(",") + "\n";
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `form-submissions-${Date.now()}.csv`;
+            link.click();
+        });
+
+        /* ================= 5. SHARE & EMBED ================= */
+        window.openShareModal = function(formId) {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const directUrl = `${baseUrl}?form=${formId}`;
+            const embedCode = `<iframe src="${baseUrl}?form=${formId}&embed=true" width="100%" height="600" frameborder="0"></iframe>`;
+
+            document.getElementById('shareLinkBox').innerText = directUrl;
+            document.getElementById('embedCodeBox').innerText = embedCode;
+
+            document.getElementById('copyLinkBtn').onclick = () => {
+                navigator.clipboard.writeText(directUrl);
+                document.getElementById('copyLinkBtn').innerText = "Copied!";
+                setTimeout(() => document.getElementById('copyLinkBtn').innerText = "Copy Link", 1500);
+            };
+
+            document.getElementById('copyEmbedBtn').onclick = () => {
+                navigator.clipboard.writeText(embedCode);
+                document.getElementById('copyEmbedBtn').innerText = "Copied!";
+                setTimeout(() => document.getElementById('copyEmbedBtn').innerText = "Copy HTML Embed Code", 1500);
+            };
+
+            document.getElementById('shareModal').classList.add('active');
+        };
+
+        window.closeShareModal = function() {
+            document.getElementById('shareModal').classList.remove('active');
+        };
+
+        /* ================= 6. UTILS ================= */
+        function escapeHtml(str) {
+            return (str || '').replace(/[&<>"']/g, function(m) {
+                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+            });
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('active_user');
+            window.location.reload();
+        });
+
+        // Initialize App
+        checkAuth();
+    </script>
+</body>
+</html>
