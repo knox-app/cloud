@@ -12,6 +12,9 @@
             --border: #e0e0e0;
             --accent: #0b57d0;
             --hover-bg: #f1f3f4;
+            --badge-bg: #e8f0fe;
+            --badge-text: #0b57d0;
+            --danger: #d93025;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -21,10 +24,12 @@
                 --text-secondary: #9aa0a6;
                 --border: #2d2d2d;
                 --hover-bg: #2d2d2d;
+                --badge-bg: #1e2a38;
+                --badge-text: #8ab4f8;
             }
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -33,6 +38,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            user-select: none;
         }
 
         /* Top Action Bar (Matching Screenshot) */
@@ -43,9 +49,10 @@
             justify-content: space-between;
             padding: 0 16px;
             border-bottom: 1px solid var(--border);
+            position: relative;
         }
 
-        .header-actions { display: flex; align-items: center; gap: 20px; }
+        .header-actions { display: flex; align-items: center; gap: 18px; }
 
         .btn-icon {
             background: none;
@@ -55,7 +62,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 6px;
+            border-radius: 50%;
         }
+        .btn-icon:hover { background: var(--hover-bg); }
         .btn-icon svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
         .btn-send svg { stroke: var(--accent); fill: var(--accent); }
 
@@ -65,12 +75,103 @@
         .input-row {
             display: flex;
             align-items: center;
-            padding: 14px 16px;
+            padding: 12px 16px;
             border-bottom: 1px solid var(--border);
             gap: 12px;
+            min-height: 52px;
+            position: relative;
         }
 
-        .input-label { width: 50px; font-size: 14px; color: var(--text-secondary); }
+        .input-label {
+            width: 50px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .from-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .from-user-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .user-avatar-mini {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #334155;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .user-avatar-mini img { width: 100%; height: 100%; object-fit: cover; }
+
+        .from-email-text {
+            font-size: 15px;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Recipient Avatar Capsule Pill (Matching Screenshot 2) */
+        .to-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .recipient-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg);
+            border: 1.5px solid #cbd5e1;
+            padding: 3px 12px 3px 4px;
+            border-radius: 999px;
+            max-width: 260px;
+        }
+        .recipient-pill img, .recipient-pill .pill-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .recipient-pill span {
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .recipient-pill .remove-pill {
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-left: 2px;
+        }
 
         .input-field {
             flex: 1;
@@ -80,7 +181,30 @@
             background: transparent;
             color: var(--text-primary);
             font-family: inherit;
+            min-width: 120px;
         }
+
+        /* Active Features Badges (Password / Scheduled) */
+        .status-indicators-strip {
+            display: flex;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--hover-bg);
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            display: none;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        .status-badge.password { background: #fee2e2; color: var(--danger); }
+        .status-badge.schedule { background: var(--badge-bg); color: var(--badge-text); }
+        .status-badge .clear-badge { cursor: pointer; margin-left: 4px; }
 
         .body-field {
             flex: 1;
@@ -96,12 +220,141 @@
             min-height: 300px;
         }
 
-        /* ================= ADD FILES CLOUD DRIVE PICKER (MATCHING SCREENSHOT) ================= */
+        /* ================= 3-DOTS CONTEXT MENU ================= */
+        .three-dots-menu {
+            position: absolute;
+            top: 50px;
+            right: 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+            border-radius: 12px;
+            width: 220px;
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        .three-dots-menu.active { display: flex; }
+
+        .menu-item {
+            padding: 12px 16px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+        .menu-item:hover { background: var(--hover-bg); }
+        .menu-item svg { width: 18px; height: 18px; stroke: var(--text-secondary); fill: none; stroke-width: 2; }
+
+        /* ================= MULTI-ACCOUNT BOTTOM SHEET SWITCHER ================= */
+        .modal-sheet-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .modal-sheet-backdrop.active { display: flex; }
+
+        .account-sheet {
+            background: var(--bg);
+            width: 100%;
+            max-width: 480px;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.25);
+        }
+
+        .sheet-handle { width: 36px; height: 4px; background: #ccc; border-radius: 2px; margin: 0 auto 16px auto; }
+        .sheet-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+
+        .account-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+        .account-row:hover, .account-row.active { background: var(--hover-bg); }
+        .account-row-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .account-row-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .account-row-info { flex: 1; overflow: hidden; }
+        .account-row-name { font-size: 14px; font-weight: 600; }
+        .account-row-email { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* ================= POPUP MODALS: PASSWORD & SCHEDULE ================= */
+        .dialog-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2500;
+            padding: 20px;
+        }
+        .dialog-backdrop.active { display: flex; }
+
+        .dialog-box {
+            background: var(--bg);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 380px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .dialog-title { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+        .dialog-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--hover-bg);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 16px;
+        }
+        .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .dialog-btn {
+            background: none;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        .dialog-btn.primary { background: var(--accent); color: white; }
+
+        /* ================= CLOUD DRIVE "ADD FILES" MODAL ================= */
         .picker-modal-backdrop {
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(2px);
             z-index: 2000;
             display: none;
             align-items: center;
@@ -124,7 +377,6 @@
             align-items: center;
             justify-content: space-between;
             padding: 16px 20px;
-            position: relative;
         }
 
         .picker-circle-btn {
@@ -136,37 +388,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-primary);
             cursor: pointer;
         }
-        .picker-circle-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; }
 
         .picker-title { font-size: 18px; font-weight: 600; }
-
-        .picker-menu {
-            position: absolute;
-            top: 60px;
-            right: 20px;
-            background: var(--bg);
-            border-radius: 18px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            border: 1px solid var(--border);
-            padding: 8px 0;
-            width: 170px;
-            display: none;
-            z-index: 100;
-        }
-        .picker-menu.active { display: block; }
-        .picker-menu-item {
-            padding: 10px 18px;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            color: var(--text-primary);
-        }
-        .picker-menu-item:hover { background: var(--hover-bg); }
 
         .picker-upload-row {
             display: flex;
@@ -178,9 +403,6 @@
             cursor: pointer;
             border-bottom: 1px solid var(--border);
         }
-        .picker-upload-row svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
-
-        .picker-section-title { padding: 16px 20px 8px 20px; font-size: 16px; font-weight: 600; }
 
         .picker-list {
             flex: 1;
@@ -199,7 +421,6 @@
             cursor: pointer;
         }
 
-        .picker-item-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
         .picker-thumb {
             width: 44px;
             height: 44px;
@@ -210,12 +431,10 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            font-size: 18px;
         }
 
-        .picker-file-meta { display: flex; flex-direction: column; overflow: hidden; }
-        .picker-file-name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .picker-file-date { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+        .picker-file-name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+        .picker-file-date { font-size: 13px; color: var(--text-secondary); }
 
         .picker-ring {
             width: 24px;
@@ -223,7 +442,6 @@
             border-radius: 50%;
             border: 2px solid #ccc;
             flex-shrink: 0;
-            transition: all 0.15s;
         }
         .picker-item.selected .picker-ring {
             border-color: var(--accent);
@@ -231,25 +449,10 @@
             box-shadow: inset 0 0 0 4px var(--bg);
         }
 
-        .picker-list.grid-mode { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .picker-list.grid-mode .picker-item {
-            flex-direction: column;
-            align-items: flex-start;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 12px;
-            position: relative;
-        }
-        .picker-list.grid-mode .picker-thumb { width: 100%; height: 90px; margin-bottom: 8px; }
-        .picker-list.grid-mode .picker-ring { position: absolute; top: 10px; right: 10px; }
-
-        .picker-bottom-search-wrap {
+        .picker-search-pill {
             position: absolute;
             bottom: 16px;
-            left: 20px;
-            right: 20px;
-        }
-        .picker-search-pill {
+            left: 20px; right: 20px;
             background: var(--hover-bg);
             border-radius: 999px;
             padding: 12px 18px;
@@ -258,87 +461,154 @@
             gap: 10px;
         }
         .picker-search-pill input {
-            border: none;
-            outline: none;
-            background: transparent;
-            font-size: 14px;
-            color: var(--text-primary);
-            width: 100%;
+            border: none; outline: none; background: transparent; font-size: 14px; width: 100%; color: var(--text-primary);
         }
     </style>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
+<!-- Header Actions -->
 <div class="header-bar">
     <a href="1.html" class="btn-icon">
         <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
     </a>
 
     <div class="header-actions">
-        <button class="btn-icon" id="attachBtn" title="Attach">
+        <!-- Paperclip Attachment Button -->
+        <button class="btn-icon" id="attachBtn" title="Attach from Cloud Drive">
             <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
         </button>
+
+        <!-- Paper Airplane Send Button -->
         <button class="btn-icon btn-send" id="sendBtn" title="Send">
             <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
-        <button class="btn-icon">
+
+        <!-- 3 Dots Options Button -->
+        <button class="btn-icon" id="dotsMenuBtn" title="More Options">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
         </button>
     </div>
+
+    <!-- 3-Dots Dropdown Menu -->
+    <div class="three-dots-menu" id="threeDotsMenu">
+        <div class="menu-item" id="optPassword">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Password protect</span>
+        </div>
+        <div class="menu-item" id="optSchedule">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Schedule send</span>
+        </div>
+        <div class="menu-item" id="optSwitchAccount">
+            <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Switch account</span>
+        </div>
+    </div>
 </div>
 
-<div class="compose-container">
-    <div class="input-row">
-        <span class="input-label">From</span>
-        <input type="text" id="fromInput" class="input-field" readonly>
+<!-- Active Status Badges Strip -->
+<div class="status-indicators-strip" id="statusStrip">
+    <div class="status-badge password" id="badgePass" style="display: none;">
+        🔒 Password Set <span class="clear-badge" id="clearPass">✕</span>
     </div>
+    <div class="status-badge schedule" id="badgeSched" style="display: none;">
+        ⏰ Scheduled <span class="clear-badge" id="clearSched">✕</span>
+    </div>
+</div>
+
+<!-- Compose Form -->
+<div class="compose-container">
+    <!-- From row with account profile avatar & selector arrow (Matching Screenshot) -->
+    <div class="input-row" id="fromRow">
+        <span class="input-label">From</span>
+        <div class="from-container" id="fromSelectorTrigger">
+            <div class="from-user-meta">
+                <div class="user-avatar-mini" id="currentSenderAvatar">U</div>
+                <span class="from-email-text" id="currentSenderEmail">Loading...</span>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+    </div>
+
+    <!-- To row with Capsule Pill avatar styling (Matching Screenshot 2) -->
     <div class="input-row">
         <span class="input-label">To</span>
-        <input type="email" id="toInput" class="input-field" placeholder="" autocomplete="off" required>
+        <div class="to-wrapper" id="toWrapper">
+            <input type="email" id="toInput" class="input-field" placeholder="" autocomplete="off">
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-secondary);"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
+
+    <!-- Subject row -->
     <div class="input-row">
         <input type="text" id="subjectInput" class="input-field" placeholder="Subject">
     </div>
+
+    <!-- Body field -->
     <textarea id="bodyInput" class="body-field" placeholder="Compose email"></textarea>
 </div>
 
-<!-- ================= "ADD FILES" MODAL (MATCHING SCREENSHOT) ================= -->
+<!-- ================= ACCOUNT SWITCHER BOTTOM SHEET ================= -->
+<div class="modal-sheet-backdrop" id="accountSheetBackdrop">
+    <div class="account-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Send email as</div>
+        <div id="accountsList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+    </div>
+</div>
+
+<!-- ================= PASSWORD DIALOG ================= -->
+<div class="dialog-backdrop" id="passwordDialog">
+    <div class="dialog-box">
+        <div class="dialog-title">Password Protection</div>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">Recipient must enter this password to view the email.</p>
+        <input type="text" id="passInput" class="dialog-input" placeholder="Enter protection password">
+        <div class="dialog-actions">
+            <button class="dialog-btn" id="cancelPassBtn">Cancel</button>
+            <button class="dialog-btn primary" id="savePassBtn">Set Password</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= SCHEDULE DIALOG ================= -->
+<div class="dialog-backdrop" id="scheduleDialog">
+    <div class="dialog-box">
+        <div class="dialog-title">Schedule Send</div>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">Select the date and time for delivery.</p>
+        <input type="datetime-local" id="schedInput" class="dialog-input">
+        <div class="dialog-actions">
+            <button class="dialog-btn" id="cancelSchedBtn">Cancel</button>
+            <button class="dialog-btn primary" id="saveSchedBtn">Schedule</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= CLOUD DRIVE "ADD FILES" PICKER ================= -->
 <div class="picker-modal-backdrop" id="pickerModal">
     <div class="picker-card">
         <div class="picker-top-bar">
             <button class="picker-circle-btn" id="pickerCloseBtn">✕</button>
             <span class="picker-title">Add files</span>
-            <button class="picker-circle-btn" id="pickerMoreBtn">⋮</button>
-
-            <div class="picker-menu" id="pickerMenu">
-                <div class="picker-menu-item" id="optViewGrid">
-                    <span>⊞ Grid</span>
-                </div>
-                <div class="picker-menu-item" id="optViewList">
-                    <span>☰ List</span>
-                    <span id="listCheckmark">✓</span>
-                </div>
-            </div>
+            <div style="width: 38px;"></div>
         </div>
 
         <div class="picker-upload-row" id="pickerUploadRow">
-            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             <span>Upload files</span>
         </div>
         <input type="file" id="pickerNativeUpload" style="display: none;">
 
-        <div class="picker-section-title">Recent</div>
+        <div style="padding: 16px 20px 8px 20px; font-weight: 600;">Recent</div>
 
         <div class="picker-list" id="pickerFilesList">
             <div style="padding: 20px; text-align: center; color: var(--text-secondary);">Loading library...</div>
         </div>
 
-        <div class="picker-bottom-search-wrap">
-            <div class="picker-search-pill">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="pickerSearchInput" placeholder="Search library">
-            </div>
+        <div class="picker-search-pill">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="pickerSearchInput" placeholder="Search library">
         </div>
     </div>
 </div>
@@ -361,14 +631,186 @@
 
     emailjs.init({ publicKey: "Yr9MutUoHOEONnFgn" });
 
-    const activeUser = JSON.parse(localStorage.getItem('active_user') || '{}');
-    const senderEmail = activeUser.Email || activeUser.email || "user@perplexity.com";
-    document.getElementById('fromInput').value = senderEmail;
+    // Active User State
+    let activeUser = JSON.parse(localStorage.getItem('active_user') || '{}');
+    let savedAccounts = JSON.parse(localStorage.getItem('saved_accounts') || '[]');
+    let currentEmail = (activeUser.Email || activeUser.email || "user@perplexity.com").toLowerCase();
 
-    // Attach button opens Picker
+    // Security & Delivery Options State
+    let emailPassword = "";
+    let scheduledDate = null;
+    let recipientPillData = null;
+
+    // Load Sender Info
+    function updateSenderUI() {
+        document.getElementById('currentSenderEmail').innerText = currentEmail;
+        const avatarEl = document.getElementById('currentSenderAvatar');
+        const profilePic = activeUser["Profile_Picture"] || activeUser["Profile Picture"];
+
+        if (profilePic) {
+            avatarEl.innerHTML = `<img src="${profilePic}">`;
+        } else {
+            avatarEl.innerText = (currentEmail[0] || 'U').toUpperCase();
+        }
+    }
+    updateSenderUI();
+
+    // ================= 3-DOTS MENU HANDLERS =================
+    const dotsBtn = document.getElementById('dotsMenuBtn');
+    const dotsMenu = document.getElementById('threeDotsMenu');
+
+    dotsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dotsMenu.classList.toggle('active');
+    });
+    document.addEventListener('click', () => dotsMenu.classList.remove('active'));
+
+    // A. Password Protection Dialog
+    const passDialog = document.getElementById('passwordDialog');
+    document.getElementById('optPassword').addEventListener('click', () => {
+        document.getElementById('passInput').value = emailPassword;
+        passDialog.classList.add('active');
+    });
+    document.getElementById('cancelPassBtn').addEventListener('click', () => passDialog.classList.remove('active'));
+    document.getElementById('savePassBtn').addEventListener('click', () => {
+        emailPassword = document.getElementById('passInput').value.trim();
+        passDialog.classList.remove('active');
+        refreshStatusBadges();
+    });
+
+    // B. Schedule Send Dialog
+    const schedDialog = document.getElementById('scheduleDialog');
+    document.getElementById('optSchedule').addEventListener('click', () => {
+        document.getElementById('schedInput').value = scheduledDate || '';
+        schedDialog.classList.add('active');
+    });
+    document.getElementById('cancelSchedBtn').addEventListener('click', () => schedDialog.classList.remove('active'));
+    document.getElementById('saveSchedBtn').addEventListener('click', () => {
+        scheduledDate = document.getElementById('schedInput').value;
+        schedDialog.classList.remove('active');
+        refreshStatusBadges();
+    });
+
+    // Clear Badges
+    function refreshStatusBadges() {
+        const strip = document.getElementById('statusStrip');
+        const bPass = document.getElementById('badgePass');
+        const bSched = document.getElementById('badgeSched');
+
+        bPass.style.display = emailPassword ? 'inline-flex' : 'none';
+        bSched.style.display = scheduledDate ? 'inline-flex' : 'none';
+
+        strip.style.display = (emailPassword || scheduledDate) ? 'flex' : 'none';
+    }
+
+    document.getElementById('clearPass').addEventListener('click', () => {
+        emailPassword = "";
+        refreshStatusBadges();
+    });
+    document.getElementById('clearSched').addEventListener('click', () => {
+        scheduledDate = null;
+        refreshStatusBadges();
+    });
+
+    // C. Multi-Account Switcher (Matching Screenshot)
+    const accountSheet = document.getElementById('accountSheetBackdrop');
+    const openAccountSwitcher = () => {
+        dotsMenu.classList.remove('active');
+        renderAccountsSheet();
+        accountSheet.classList.add('active');
+    };
+
+    document.getElementById('fromSelectorTrigger').addEventListener('click', openAccountSwitcher);
+    document.getElementById('optSwitchAccount').addEventListener('click', openAccountSwitcher);
+    accountSheet.addEventListener('click', (e) => {
+        if (e.target === accountSheet) accountSheet.classList.remove('active');
+    });
+
+    function renderAccountsSheet() {
+        const listDiv = document.getElementById('accountsList');
+        // Ensure active account is in list
+        const accounts = [...savedAccounts];
+        if (!accounts.some(a => (a.email || '').toLowerCase() === currentEmail)) {
+            accounts.unshift({
+                email: currentEmail,
+                firstName: activeUser["First Name"] || "Current",
+                profilePicture: activeUser["Profile_Picture"] || activeUser["Profile Picture"]
+            });
+        }
+
+        listDiv.innerHTML = accounts.map(acc => {
+            const accEmail = (acc.email || '').toLowerCase();
+            const isActive = accEmail === currentEmail;
+            const pic = acc.profilePicture || acc["Profile_Picture"];
+            const avatarHtml = pic ? `<img src="${pic}">` : (accEmail[0] || 'U').toUpperCase();
+
+            return `
+                <div class="account-row ${isActive ? 'active' : ''}" data-email="${accEmail}">
+                    <div class="account-row-avatar">${avatarHtml}</div>
+                    <div class="account-row-info">
+                        <div class="account-row-name">${acc.firstName || acc.name || 'User'}</div>
+                        <div class="account-row-email">${accEmail}</div>
+                    </div>
+                    ${isActive ? '<span style="color:var(--accent); font-weight:700;">✓</span>' : ''}
+                </div>
+            `;
+        }).join('');
+
+        listDiv.querySelectorAll('.account-row').forEach(row => {
+            row.addEventListener('click', () => {
+                currentEmail = row.dataset.email;
+                updateSenderUI();
+                accountSheet.classList.remove('active');
+            });
+        });
+    }
+
+    // ================= TO FIELD: RECIPIENT CAPSULE PILL (Screenshot 2) =================
+    const toInput = document.getElementById('toInput');
+    const toWrapper = document.getElementById('toWrapper');
+
+    toInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+            e.preventDefault();
+            const val = toInput.value.trim().replace(',', '');
+            if (val) addRecipientPill(val);
+        }
+    });
+
+    toInput.addEventListener('blur', () => {
+        const val = toInput.value.trim().replace(',', '');
+        if (val) addRecipientPill(val);
+    });
+
+    function addRecipientPill(email) {
+        recipientPillData = email;
+        toInput.value = '';
+        toInput.style.display = 'none';
+
+        const initial = (email[0] || 'U').toUpperCase();
+        // Generate styled pill with avatar just like Screenshot 2
+        const pill = document.createElement('div');
+        pill.className = 'recipient-pill';
+        pill.id = 'activeRecipientPill';
+        pill.innerHTML = `
+            <div class="pill-avatar">${initial}</div>
+            <span title="${email}">${email}</span>
+            <span class="remove-pill" onclick="removeRecipientPill()">✕</span>
+        `;
+        toWrapper.insertBefore(pill, toInput);
+    }
+
+    window.removeRecipientPill = () => {
+        const pill = document.getElementById('activeRecipientPill');
+        if (pill) pill.remove();
+        recipientPillData = null;
+        toInput.style.display = 'block';
+        toInput.focus();
+    };
+
+    // ================= CLOUD DRIVE "ADD FILES" PICKER =================
     const pickerModal = document.getElementById('pickerModal');
     const pickerFilesList = document.getElementById('pickerFilesList');
-    const pickerMenu = document.getElementById('pickerMenu');
     let cloudDriveFiles = [];
 
     document.getElementById('attachBtn').addEventListener('click', async () => {
@@ -376,7 +818,7 @@
         pickerFilesList.innerHTML = `<div style="padding: 20px; text-align: center;">Loading library...</div>`;
 
         try {
-            const q = query(collection(db, "Cloud Drive"), where("Email", "==", senderEmail));
+            const q = query(collection(db, "Cloud Drive"), where("Email", "==", currentEmail));
             const snap = await getDocs(q);
             const list = [];
             snap.forEach(d => {
@@ -392,7 +834,7 @@
 
     function renderPickerFiles(files) {
         if (!files.length) {
-            pickerFilesList.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-secondary);">No files in library</div>`;
+            pickerFilesList.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-secondary);">No files in Cloud Drive</div>`;
             return;
         }
 
@@ -402,11 +844,11 @@
 
             return `
                 <div class="picker-item" data-url="${f.File}" data-type="${f.Type || ''}" data-name="${f.Name || ''}">
-                    <div class="picker-item-left">
+                    <div style="display: flex; align-items: center; gap: 14px; flex: 1; overflow: hidden;">
                         ${thumb}
-                        <div class="picker-file-meta">
-                            <span class="picker-file-name">${f.Name || 'Untitled'}</span>
-                            <span class="picker-file-date">${f.Updated ? f.Updated.split(',')[1] || 'Recently' : 'Recently'}</span>
+                        <div>
+                            <div class="picker-file-name">${f.Name || 'Untitled'}</div>
+                            <div class="picker-file-date">${f.Updated ? f.Updated.split(',')[1] || 'Recently' : 'Recently'}</div>
                         </div>
                     </div>
                     <div class="picker-ring"></div>
@@ -418,14 +860,14 @@
             el.addEventListener('click', () => {
                 el.classList.add('selected');
                 setTimeout(() => {
-                    attachFileToComposer(el.dataset.url, el.dataset.type, el.dataset.name);
+                    injectAttachmentCode(el.dataset.url, el.dataset.type, el.dataset.name);
                     pickerModal.classList.remove('active');
                 }, 150);
             });
         });
     }
 
-    function attachFileToComposer(url, extType, fileName) {
+    function injectAttachmentCode(url, extType, fileName) {
         let t = ".doc";
         const low = (extType || "").toLowerCase();
         if (low.includes("img") || low.includes("png") || low.includes("jpg")) t = ".img";
@@ -437,20 +879,6 @@
     }
 
     document.getElementById('pickerCloseBtn').addEventListener('click', () => pickerModal.classList.remove('active'));
-    document.getElementById('pickerMoreBtn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        pickerMenu.classList.toggle('active');
-    });
-    document.addEventListener('click', () => pickerMenu.classList.remove('active'));
-
-    document.getElementById('optViewGrid').addEventListener('click', () => {
-        pickerFilesList.classList.add('grid-mode');
-        document.getElementById('listCheckmark').innerText = '';
-    });
-    document.getElementById('optViewList').addEventListener('click', () => {
-        pickerFilesList.classList.remove('grid-mode');
-        document.getElementById('listCheckmark').innerText = '✓';
-    });
 
     const pickerNativeUpload = document.getElementById('pickerNativeUpload');
     document.getElementById('pickerUploadRow').addEventListener('click', () => pickerNativeUpload.click());
@@ -459,7 +887,7 @@
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (evt) => {
-            attachFileToComposer(evt.target.result, file.type, file.name);
+            injectAttachmentCode(evt.target.result, file.type, file.name);
             pickerModal.classList.remove('active');
         };
         reader.readAsDataURL(file);
@@ -470,40 +898,43 @@
         renderPickerFiles(cloudDriveFiles.filter(f => (f.Name || '').toLowerCase().includes(term)));
     });
 
-    // Send Mail Action
+    // ================= SEND EMAIL ACTION =================
     document.getElementById('sendBtn').addEventListener('click', async () => {
-        const to = document.getElementById('toInput').value.trim();
+        const to = recipientPillData || toInput.value.trim();
         const subject = document.getElementById('subjectInput').value.trim();
         const body = document.getElementById('bodyInput').value.trim();
 
-        if (!to || !body) return alert("Please specify recipient and message body.");
+        if (!to || !body) return alert("Recipient and message body are required.");
 
         const btn = document.getElementById('sendBtn');
         btn.disabled = true;
 
         try {
-            const isInternal = to.toLowerCase().endsWith('@perplexity.com');
             const payload = {
-                from: senderEmail,
+                from: currentEmail,
                 to: to,
                 subject: subject || '(No Subject)',
                 body: body,
+                password: emailPassword || null,
+                scheduledFor: scheduledDate ? new Date(scheduledDate).toISOString() : null,
                 timestamp: serverTimestamp()
             };
+
+            const isInternal = to.toLowerCase().endsWith('@perplexity.com');
 
             if (isInternal) {
                 await addDoc(collection(db, "Email"), payload);
             } else {
                 await emailjs.send("service_63mnm5a", "template_drkhsx5", {
                     to_email: to,
-                    from_email: senderEmail,
+                    from_email: currentEmail,
                     subject: subject,
                     message: body
                 });
                 await addDoc(collection(db, "Email"), payload);
             }
 
-            alert("Sent!");
+            alert("Message Sent!");
             window.location.href = "1.html";
         } catch (err) {
             alert("Error sending: " + err.message);
