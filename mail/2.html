@@ -2,31 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Compose</title>
     <style>
         :root {
-            --bg-color: #ffffff;
+            --bg: #ffffff;
             --text-primary: #1f1f1f;
             --text-secondary: #5f6368;
-            --border-color: #e0e0e0;
-            --accent-blue: #0b57d0;
+            --border: #e0e0e0;
+            --accent: #0b57d0;
+            --hover-bg: #f1f3f4;
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg-color: #121212;
+                --bg: #121212;
                 --text-primary: #e8eaed;
                 --text-secondary: #9aa0a6;
-                --border-color: #2d2d2d;
+                --border: #2d2d2d;
+                --hover-bg: #2d2d2d;
             }
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg-color);
+            background: var(--bg);
             color: var(--text-primary);
             min-height: 100vh;
             display: flex;
@@ -40,7 +42,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 16px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
         }
 
         .header-actions { display: flex; align-items: center; gap: 20px; }
@@ -55,28 +57,20 @@
             justify-content: center;
         }
         .btn-icon svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
-        .btn-send svg { stroke: var(--accent-blue); fill: var(--accent-blue); }
+        .btn-send svg { stroke: var(--accent); fill: var(--accent); }
 
-        /* Compose Form Lines (Matching Screenshot) */
-        .compose-container {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-        }
+        /* Compose Form Lines */
+        .compose-container { display: flex; flex-direction: column; flex: 1; }
 
         .input-row {
             display: flex;
             align-items: center;
             padding: 14px 16px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
             gap: 12px;
         }
 
-        .input-label {
-            width: 50px;
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
+        .input-label { width: 50px; font-size: 14px; color: var(--text-secondary); }
 
         .input-field {
             flex: 1;
@@ -102,117 +96,198 @@
             min-height: 300px;
         }
 
-        /* Attachment Dropdown & Cloud Drive Modal */
-        .modal-overlay {
+        /* ================= ADD FILES CLOUD DRIVE PICKER (MATCHING SCREENSHOT) ================= */
+        .picker-modal-backdrop {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(2px);
+            z-index: 2000;
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-            padding: 16px;
         }
-        .modal-overlay.active { display: flex; }
+        .picker-modal-backdrop.active { display: flex; }
 
-        .cloud-modal-card {
-            background: var(--bg-color);
-            border-radius: 16px;
+        .picker-card {
+            background: var(--bg);
             width: 100%;
-            max-width: 480px;
-            max-height: 80vh;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            position: relative;
         }
 
-        .modal-head {
+        .picker-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
+            position: relative;
         }
 
-        .cloud-items-list {
-            padding: 10px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .cloud-item {
-            padding: 12px 14px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
+        .picker-circle-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--hover-bg);
+            border: none;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+            color: var(--text-primary);
             cursor: pointer;
         }
-        .cloud-item:hover { background: rgba(0,0,0,0.04); }
+        .picker-circle-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; }
 
-        .popup-menu {
+        .picker-title { font-size: 18px; font-weight: 600; }
+
+        .picker-menu {
             position: absolute;
-            top: 50px;
-            right: 50px;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            border-radius: 10px;
+            top: 60px;
+            right: 20px;
+            background: var(--bg);
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: 1px solid var(--border);
+            padding: 8px 0;
+            width: 170px;
             display: none;
-            flex-direction: column;
             z-index: 100;
         }
-        .popup-menu.active { display: flex; }
-        .popup-menu button {
-            padding: 12px 16px;
-            background: none;
-            border: none;
-            text-align: left;
-            font-size: 14px;
+        .picker-menu.active { display: block; }
+        .picker-menu-item {
+            padding: 10px 18px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             cursor: pointer;
             color: var(--text-primary);
         }
-        .popup-menu button:hover { background: rgba(0,0,0,0.05); }
+        .picker-menu-item:hover { background: var(--hover-bg); }
+
+        .picker-upload-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+        }
+        .picker-upload-row svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+        .picker-section-title { padding: 16px 20px 8px 20px; font-size: 16px; font-weight: 600; }
+
+        .picker-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 80px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .picker-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            cursor: pointer;
+        }
+
+        .picker-item-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+        .picker-thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: var(--hover-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .picker-file-meta { display: flex; flex-direction: column; overflow: hidden; }
+        .picker-file-name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .picker-file-date { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+        .picker-ring {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .picker-item.selected .picker-ring {
+            border-color: var(--accent);
+            background: var(--accent);
+            box-shadow: inset 0 0 0 4px var(--bg);
+        }
+
+        .picker-list.grid-mode { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .picker-list.grid-mode .picker-item {
+            flex-direction: column;
+            align-items: flex-start;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            position: relative;
+        }
+        .picker-list.grid-mode .picker-thumb { width: 100%; height: 90px; margin-bottom: 8px; }
+        .picker-list.grid-mode .picker-ring { position: absolute; top: 10px; right: 10px; }
+
+        .picker-bottom-search-wrap {
+            position: absolute;
+            bottom: 16px;
+            left: 20px;
+            right: 20px;
+        }
+        .picker-search-pill {
+            background: var(--hover-bg);
+            border-radius: 999px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .picker-search-pill input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 14px;
+            color: var(--text-primary);
+            width: 100%;
+        }
     </style>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
-<!-- Header Actions -->
 <div class="header-bar">
     <a href="1.html" class="btn-icon">
         <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
     </a>
 
     <div class="header-actions">
-        <!-- Paperclip Attachment Button -->
         <button class="btn-icon" id="attachBtn" title="Attach">
             <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
         </button>
-        <!-- Paper Airplane Send Button -->
         <button class="btn-icon btn-send" id="sendBtn" title="Send">
             <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
-        <!-- 3 Dots -->
-        <button class="btn-icon" id="moreOptionsBtn" title="More">
+        <button class="btn-icon">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
         </button>
     </div>
 </div>
 
-<!-- Attachment Source Selector Popup -->
-<div class="popup-menu" id="attachMenu">
-    <button id="btnCloudDrivePick">☁️ Pick from Cloud Drive</button>
-    <button id="btnLocalUpload">📁 Upload from Device</button>
-</div>
-<input type="file" id="nativeFilePicker" style="display: none;">
-
-<!-- Form Fields -->
 <div class="compose-container">
     <div class="input-row">
         <span class="input-label">From</span>
@@ -228,15 +303,42 @@
     <textarea id="bodyInput" class="body-field" placeholder="Compose email"></textarea>
 </div>
 
-<!-- Cloud Drive Selector Modal -->
-<div class="modal-overlay" id="cloudModal">
-    <div class="cloud-modal-card">
-        <div class="modal-head">
-            <span>Select file from Cloud Drive</span>
-            <button class="btn-icon" id="closeCloudModal">✕</button>
+<!-- ================= "ADD FILES" MODAL (MATCHING SCREENSHOT) ================= -->
+<div class="picker-modal-backdrop" id="pickerModal">
+    <div class="picker-card">
+        <div class="picker-top-bar">
+            <button class="picker-circle-btn" id="pickerCloseBtn">✕</button>
+            <span class="picker-title">Add files</span>
+            <button class="picker-circle-btn" id="pickerMoreBtn">⋮</button>
+
+            <div class="picker-menu" id="pickerMenu">
+                <div class="picker-menu-item" id="optViewGrid">
+                    <span>⊞ Grid</span>
+                </div>
+                <div class="picker-menu-item" id="optViewList">
+                    <span>☰ List</span>
+                    <span id="listCheckmark">✓</span>
+                </div>
+            </div>
         </div>
-        <div class="cloud-items-list" id="cloudFilesList">
-            <div style="padding: 20px; text-align: center; color: var(--text-secondary);">Loading your Cloud Drive...</div>
+
+        <div class="picker-upload-row" id="pickerUploadRow">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Upload files</span>
+        </div>
+        <input type="file" id="pickerNativeUpload" style="display: none;">
+
+        <div class="picker-section-title">Recent</div>
+
+        <div class="picker-list" id="pickerFilesList">
+            <div style="padding: 20px; text-align: center; color: var(--text-secondary);">Loading library...</div>
+        </div>
+
+        <div class="picker-bottom-search-wrap">
+            <div class="picker-search-pill">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="pickerSearchInput" placeholder="Search library">
+            </div>
         </div>
     </div>
 </div>
@@ -263,93 +365,109 @@
     const senderEmail = activeUser.Email || activeUser.email || "user@perplexity.com";
     document.getElementById('fromInput').value = senderEmail;
 
-    // Attach Menu Dropdown Toggle
-    const attachBtn = document.getElementById('attachBtn');
-    const attachMenu = document.getElementById('attachMenu');
-    attachBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        attachMenu.classList.toggle('active');
-    });
-    document.addEventListener('click', () => attachMenu.classList.remove('active'));
+    // Attach button opens Picker
+    const pickerModal = document.getElementById('pickerModal');
+    const pickerFilesList = document.getElementById('pickerFilesList');
+    const pickerMenu = document.getElementById('pickerMenu');
+    let cloudDriveFiles = [];
 
-    // Inject Special Attachment Syntax: #{.ETCM:url=&Type=.img}#
-    function injectAttachmentCode(url, extType, fileName = "") {
-        let t = ".doc";
-        const low = (extType || "").toLowerCase();
-        if (low.includes("img") || low.includes("jpg") || low.includes("png") || low.includes("jpeg")) t = ".img";
-        else if (low.includes("pdf")) t = ".pdf";
-        else if (low.includes("mp4") || low.includes("video")) t = ".video";
-
-        const code = `\n#{.ETCM:url=${url}&Type=${t}&Name=${encodeURIComponent(fileName)}}#\n`;
-        const bodyBox = document.getElementById('bodyInput');
-        bodyBox.value += code;
-        alert(`Attached: ${fileName || 'File'}`);
-    }
-
-    // Cloud Drive Modal & File Fetching
-    const cloudModal = document.getElementById('cloudModal');
-    document.getElementById('btnCloudDrivePick').addEventListener('click', async () => {
-        attachMenu.classList.remove('active');
-        cloudModal.classList.add('active');
-
-        const listDiv = document.getElementById('cloudFilesList');
-        listDiv.innerHTML = `<div style="padding: 20px; text-align: center;">Loading Cloud Drive files...</div>`;
+    document.getElementById('attachBtn').addEventListener('click', async () => {
+        pickerModal.classList.add('active');
+        pickerFilesList.innerHTML = `<div style="padding: 20px; text-align: center;">Loading library...</div>`;
 
         try {
             const q = query(collection(db, "Cloud Drive"), where("Email", "==", senderEmail));
             const snap = await getDocs(q);
-
-            const files = [];
+            const list = [];
             snap.forEach(d => {
                 const data = d.data();
-                if (data.Folder !== "True" && data.File) files.push(data);
+                if (data.Folder !== "True" && data.File) list.push(data);
             });
-
-            if (!files.length) {
-                listDiv.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-secondary);">No files found in your Cloud Drive.</div>`;
-                return;
-            }
-
-            listDiv.innerHTML = files.map(f => `
-                <div class="cloud-item" data-url="${f.File}" data-type="${f.Type || ''}" data-name="${f.Name || ''}">
-                    <div>
-                        <div style="font-weight: 500;">${f.Name || 'Untitled'}</div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">${f.Type || 'Document'}</div>
-                    </div>
-                    <span>📎 Select</span>
-                </div>
-            `).join('');
-
-            listDiv.querySelectorAll('.cloud-item').forEach(el => {
-                el.addEventListener('click', () => {
-                    injectAttachmentCode(el.dataset.url, el.dataset.type, el.dataset.name);
-                    cloudModal.classList.remove('active');
-                });
-            });
-
+            cloudDriveFiles = list;
+            renderPickerFiles(list);
         } catch (e) {
-            listDiv.innerHTML = `<div style="padding: 20px; color: red;">Error: ${e.message}</div>`;
+            pickerFilesList.innerHTML = `<div style="padding: 20px; color: red;">Error: ${e.message}</div>`;
         }
     });
 
-    document.getElementById('closeCloudModal').addEventListener('click', () => cloudModal.classList.remove('active'));
+    function renderPickerFiles(files) {
+        if (!files.length) {
+            pickerFilesList.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-secondary);">No files in library</div>`;
+            return;
+        }
 
-    // Upload Local File
-    const nativePicker = document.getElementById('nativeFilePicker');
-    document.getElementById('btnLocalUpload').addEventListener('click', () => {
-        attachMenu.classList.remove('active');
-        nativePicker.click();
+        pickerFilesList.innerHTML = files.map(f => {
+            const isImg = (f.Type || '').toLowerCase().includes('img') || (f.Type || '').toLowerCase().includes('image');
+            const thumb = isImg ? `<img src="${f.File}" class="picker-thumb">` : `<div class="picker-thumb">📄</div>`;
+
+            return `
+                <div class="picker-item" data-url="${f.File}" data-type="${f.Type || ''}" data-name="${f.Name || ''}">
+                    <div class="picker-item-left">
+                        ${thumb}
+                        <div class="picker-file-meta">
+                            <span class="picker-file-name">${f.Name || 'Untitled'}</span>
+                            <span class="picker-file-date">${f.Updated ? f.Updated.split(',')[1] || 'Recently' : 'Recently'}</span>
+                        </div>
+                    </div>
+                    <div class="picker-ring"></div>
+                </div>
+            `;
+        }).join('');
+
+        pickerFilesList.querySelectorAll('.picker-item').forEach(el => {
+            el.addEventListener('click', () => {
+                el.classList.add('selected');
+                setTimeout(() => {
+                    attachFileToComposer(el.dataset.url, el.dataset.type, el.dataset.name);
+                    pickerModal.classList.remove('active');
+                }, 150);
+            });
+        });
+    }
+
+    function attachFileToComposer(url, extType, fileName) {
+        let t = ".doc";
+        const low = (extType || "").toLowerCase();
+        if (low.includes("img") || low.includes("png") || low.includes("jpg")) t = ".img";
+        else if (low.includes("pdf")) t = ".pdf";
+        else if (low.includes("mp4") || low.includes("video")) t = ".video";
+
+        const code = `\n#{.ETCM:url=${url}&Type=${t}&Name=${encodeURIComponent(fileName || 'file')}}#\n`;
+        document.getElementById('bodyInput').value += code;
+    }
+
+    document.getElementById('pickerCloseBtn').addEventListener('click', () => pickerModal.classList.remove('active'));
+    document.getElementById('pickerMoreBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        pickerMenu.classList.toggle('active');
+    });
+    document.addEventListener('click', () => pickerMenu.classList.remove('active'));
+
+    document.getElementById('optViewGrid').addEventListener('click', () => {
+        pickerFilesList.classList.add('grid-mode');
+        document.getElementById('listCheckmark').innerText = '';
+    });
+    document.getElementById('optViewList').addEventListener('click', () => {
+        pickerFilesList.classList.remove('grid-mode');
+        document.getElementById('listCheckmark').innerText = '✓';
     });
 
-    nativePicker.addEventListener('change', (e) => {
+    const pickerNativeUpload = document.getElementById('pickerNativeUpload');
+    document.getElementById('pickerUploadRow').addEventListener('click', () => pickerNativeUpload.click());
+    pickerNativeUpload.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
-        reader.onload = (event) => {
-            injectAttachmentCode(event.target.result, file.type, file.name);
+        reader.onload = (evt) => {
+            attachFileToComposer(evt.target.result, file.type, file.name);
+            pickerModal.classList.remove('active');
         };
         reader.readAsDataURL(file);
+    });
+
+    document.getElementById('pickerSearchInput').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase().trim();
+        renderPickerFiles(cloudDriveFiles.filter(f => (f.Name || '').toLowerCase().includes(term)));
     });
 
     // Send Mail Action
@@ -365,7 +483,6 @@
 
         try {
             const isInternal = to.toLowerCase().endsWith('@perplexity.com');
-
             const payload = {
                 from: senderEmail,
                 to: to,
@@ -386,7 +503,7 @@
                 await addDoc(collection(db, "Email"), payload);
             }
 
-            alert("Sent successfully!");
+            alert("Sent!");
             window.location.href = "1.html";
         } catch (err) {
             alert("Error sending: " + err.message);
