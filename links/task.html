@@ -3,146 +3,191 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Linkly - Redirecting...</title>
+  <title>Linkly: Redirect accoding to Tasks</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
     }
 
     body {
-      background: radial-gradient(circle at center, #1e1b4b, #0f172a);
-      color: #f8fafc;
+      background-color: #f3f6f9;
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 1rem;
+      padding: 1.5rem;
+      color: #334155;
     }
 
     .card {
-      background: rgba(30, 41, 59, 0.7);
-      backdrop-filter: blur(12px);
-      border: 1px solid #334155;
-      padding: 2.5rem;
-      border-radius: 16px;
-      max-width: 480px;
+      background: #ffffff;
       width: 100%;
+      max-width: 620px;
+      border-radius: 20px;
+      padding: 3.5rem 2.5rem;
       text-align: center;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-    }
-
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: #818cf8;
-      letter-spacing: 1px;
-      margin-bottom: 1.5rem;
-    }
-
-    .timer-circle {
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+      border: 1px solid #eef2f6;
+      border-top: 3px solid #10b981;
       position: relative;
+    }
+
+    /* Outer concentric circle effect matching screenshot */
+    .icon-wrapper {
       width: 100px;
       height: 100px;
-      margin: 1.5rem auto;
+      margin: 0 auto 1.5rem auto;
+      border-radius: 50%;
+      background: #f0fdf4;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #1e293b;
-      border-radius: 50%;
-      border: 4px solid #6366f1;
+      box-shadow: 0 0 0 10px #f7fdf9, 0 0 0 18px #fafdfb;
+      border: 1px solid #d1fae5;
     }
 
-    .timer-num {
-      font-size: 2.5rem;
-      font-weight: bold;
+    .icon-wrapper svg {
+      width: 42px;
+      height: 42px;
+      stroke: #10b981;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      transform: rotate(-45deg);
+    }
+
+    /* Active badge pill */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: #10b981;
       color: #ffffff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      padding: 0.35rem 0.9rem;
+      border-radius: 9999px;
+      margin-bottom: 1.25rem;
+      text-transform: uppercase;
     }
 
-    .task-status {
-      font-size: 1.1rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .target-desc {
-      font-size: 0.9rem;
-      color: #94a3b8;
-      word-break: break-all;
-      margin-bottom: 1.5rem;
-    }
-
-    .btn {
-      display: inline-block;
-      text-decoration: none;
-      background: #6366f1;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-
-    .btn:hover {
-      background: #4f46e5;
-    }
-
-    .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.1);
-      width: 48px;
-      height: 48px;
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #ffffff;
       border-radius: 50%;
-      border-left-color: #6366f1;
-      animation: spin 1s linear infinite;
-      margin: 1rem auto;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    /* Headings */
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 1rem;
+      letter-spacing: -0.3px;
     }
 
-    .error-msg {
-      color: #f87171;
-      font-size: 1rem;
-      margin-top: 1rem;
+    .divider {
+      width: 38px;
+      height: 3px;
+      background-color: #10b981;
+      border-radius: 2px;
+      margin: 0 auto 1.75rem auto;
+    }
+
+    /* Subtext */
+    .description {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: #64748b;
+    }
+
+    .description strong {
+      color: #334155;
+    }
+
+    .description a {
+      color: #10b981;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+      cursor: pointer;
+    }
+
+    .description a:hover {
+      text-decoration: underline;
+    }
+
+    /* Redirecting Status Indicator */
+    .status-msg {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: #059669;
+      font-weight: 500;
+    }
+
+    /* Bottom Branding */
+    .footer {
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .footer span {
+      color: #64748b;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
 
-  <div class="card" id="card">
-    <div class="logo">LINKLY</div>
-    <div id="loader">
-      <div class="spinner"></div>
-      <p style="color: #94a3b8;">Verifying task link...</p>
+  <div class="card">
+    <!-- Icon with subtle concentric rings -->
+    <div class="icon-wrapper">
+      <svg viewBox="0 0 24 24">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+      </svg>
     </div>
 
-    <div id="content" style="display: none;">
-      <h2 class="task-status" id="task-title">Preparing your link</h2>
-      <p class="target-desc" id="target-name"></p>
-      
-      <div class="timer-circle">
-        <span class="timer-num" id="countdown">--</span>
+    <!-- Active Badge -->
+    <div>
+      <div class="badge" id="status-badge">
+        <div class="badge-dot"></div>
+        <span id="badge-text">ACTIVE</span>
       </div>
-
-      <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1.5rem;">
-        You will be redirected automatically when the task finishes.
-      </p>
-
-      <a id="direct-btn" href="#" class="btn" style="display: none;">Click Here to Proceed</a>
     </div>
 
-    <div id="error" style="display: none;">
-      <h3 class="error-msg" id="error-text">Link Not Found</h3>
-      <p style="color: #94a3b8; margin-top: 0.5rem; font-size: 0.9rem;">
-        This slug does not exist or may have been deleted.
-      </p>
-    </div>
+    <!-- Main Title -->
+    <h1 id="title">Linkly: Redirect accoding to Tasks</h1>
+
+    <!-- Green Accent Line -->
+    <div class="divider"></div>
+
+    <!-- Body Info Text -->
+    <p class="description">
+      <strong>This Page</strong> is configured for link redirection.<br>
+      If you arrived here by mistake, you can <a href="javascript:history.back()">go back</a>.
+    </p>
+
+    <!-- Invisible status text that updates upon redirect -->
+    <div class="status-msg" id="status-msg">Redirecting you to your destination...</div>
   </div>
 
-  <!-- Firebase SDKs -->
+  <!-- Bottom Powered By -->
+  <div class="footer">
+    Powerd By <span>ASPXx</span>
+  </div>
+
+  <!-- Firebase Compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -160,25 +205,20 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const loader = document.getElementById('loader');
-    const content = document.getElementById('content');
-    const errorBox = document.getElementById('error');
-    const countdownEl = document.getElementById('countdown');
-    const targetNameEl = document.getElementById('target-name');
-    const directBtn = document.getElementById('direct-btn');
+    const statusBadge = document.getElementById('status-badge');
+    const badgeText = document.getElementById('badge-text');
+    const statusMsg = document.getElementById('status-msg');
 
-    async function executeTask() {
-      // Extract slug from URL hash (e.g., task.html#my-link)
+    async function executeRedirect() {
+      // 1. Get slug from Hash (#slug) or fallback to search (?slug=...)
       let slug = window.location.hash.substring(1).trim().toLowerCase();
-
-      // Fallback check if user used query param (?slug=my-link)
       if (!slug) {
         const params = new URLSearchParams(window.location.search);
         slug = params.get('slug') ? params.get('slug').trim().toLowerCase() : '';
       }
 
       if (!slug) {
-        showError('No alias slug specified in the URL hash (e.g., task.html#slug).');
+        setInactive('No link slug was provided.');
         return;
       }
 
@@ -187,52 +227,34 @@
         const docSnap = await docRef.get();
 
         if (!docSnap.exists) {
-          showError(`Alias "${slug}" was not found.`);
+          setInactive(`Alias "#${slug}" not found.`);
           return;
         }
 
         const data = docSnap.data();
-        let timeLeft = typeof data.timer === 'number' ? data.timer : 3;
         const targetUrl = data.target;
 
-        loader.style.display = 'none';
-        content.style.display = 'block';
-        targetNameEl.textContent = `Destination: ${data.name}`;
-        countdownEl.textContent = timeLeft;
-        directBtn.href = targetUrl;
+        // Clean direct redirection without countdown timer
+        statusMsg.textContent = `Redirecting to ${data.name || 'destination'}...`;
 
-        // If zero seconds, redirect immediately
-        if (timeLeft <= 0) {
+        setTimeout(() => {
           window.location.href = targetUrl;
-          return;
-        }
-
-        // Countdown Task Execution
-        const interval = setInterval(() => {
-          timeLeft--;
-          countdownEl.textContent = timeLeft;
-
-          if (timeLeft <= 0) {
-            clearInterval(interval);
-            directBtn.style.display = 'inline-block';
-            window.location.href = targetUrl;
-          }
-        }, 1000);
+        }, 800); // 800ms natural delay to view the card before redirect
 
       } catch (err) {
         console.error(err);
-        showError('Failed to load link: ' + err.message);
+        setInactive('Unable to load redirect link.');
       }
     }
 
-    function showError(msg) {
-      loader.style.display = 'none';
-      content.style.display = 'none';
-      errorBox.style.display = 'block';
-      document.getElementById('error-text').textContent = msg;
+    function setInactive(message) {
+      statusBadge.style.backgroundColor = '#ef4444';
+      badgeText.textContent = 'INACTIVE';
+      statusMsg.style.color = '#ef4444';
+      statusMsg.textContent = message;
     }
 
-    window.addEventListener('DOMContentLoaded', executeTask);
+    window.addEventListener('DOMContentLoaded', executeRedirect);
   </script>
 </body>
 </html>
