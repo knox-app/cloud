@@ -15,13 +15,13 @@
             --text-primary: #ffffff;
             --text-secondary: #8e8e93;
             --text-muted: #545458;
-            --accent-blue: #007aff;
             --accent-green: #30d158;
+            --accent-mint: #34c759;
             --accent-red: #ff453a;
             --accent-badge: #1f3b2b;
             --accent-badge-text: #62d88d;
-            --birthday-badge: #382412;
-            --birthday-badge-text: #ffb86c;
+            --accent-birthday-badge: #382436;
+            --accent-birthday-text: #f48fb1;
             --timeline-indicator: #ff7966;
             --sidebar-width: 64px;
         }
@@ -44,7 +44,7 @@
             display: flex;
         }
 
-        /* Desktop & Tablet Sidebar Rail */
+        /* Tablet/Desktop Sidebar Rail */
         .sidebar-rail {
             width: var(--sidebar-width);
             height: 100%;
@@ -90,7 +90,7 @@
 
         .rail-spacer { flex: 1; }
 
-        /* Main Workspace Container */
+        /* Main Workspace Stage */
         .main-stage {
             flex: 1;
             display: flex;
@@ -100,7 +100,7 @@
             position: relative;
         }
 
-        /* Top Navbar */
+        /* Top Header Navbar */
         .top-navbar {
             height: 56px;
             display: flex;
@@ -109,6 +109,7 @@
             padding: 0 16px;
             background-color: var(--bg-canvas);
             border-bottom: 1px solid var(--border-subtle);
+            z-index: 45;
         }
 
         .nav-left, .nav-right {
@@ -169,15 +170,18 @@
             cursor: pointer;
         }
 
+        /* Viewport Container with Smooth Swipe/Pinch Canvas */
         .viewport-container {
             flex: 1;
             overflow-y: auto;
             position: relative;
+            touch-action: pan-y;
+            transition: transform 0.22s ease-out, opacity 0.2s ease-out;
             scrollbar-width: thin;
             scrollbar-color: var(--bg-elevated) transparent;
         }
 
-        /* === 1. MONTH VIEW === */
+        /* 1. Month View */
         .month-view {
             display: flex;
             flex-direction: column;
@@ -209,12 +213,12 @@
         .month-cell {
             border-right: 1px solid var(--border-subtle);
             border-bottom: 1px solid var(--border-subtle);
-            padding: 4px;
+            padding: 6px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             cursor: pointer;
-            position: relative;
+            transition: background 0.15s ease;
         }
 
         .month-cell:nth-child(7n) { border-right: none; }
@@ -230,7 +234,7 @@
         .date-number {
             font-size: 14px;
             font-weight: 500;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
             width: 24px;
             height: 24px;
             display: flex;
@@ -246,15 +250,14 @@
             font-weight: 700;
         }
 
-        /* Event & Birthday Badges */
         .event-badge {
             background-color: var(--accent-badge);
             color: var(--accent-badge-text);
             font-size: 11px;
             font-weight: 500;
-            padding: 2px 5px;
+            padding: 2px 6px;
             border-radius: 4px;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -264,19 +267,12 @@
         }
 
         .event-badge.birthday-badge {
-            background-color: var(--birthday-badge);
-            color: var(--birthday-badge-text);
-            border: 1px solid rgba(255, 184, 108, 0.25);
+            background-color: var(--accent-birthday-badge);
+            color: var(--accent-birthday-text);
+            border-left: 2px solid #f06292;
         }
 
-        .event-badge.birthday-badge img {
-            width: 14px;
-            height: 14px;
-            object-fit: contain;
-            flex-shrink: 0;
-        }
-
-        /* === 2. WEEK VIEW === */
+        /* 2. Week View */
         .week-view {
             display: flex;
             flex-direction: column;
@@ -334,7 +330,7 @@
             background-color: var(--timeline-indicator);
         }
 
-        /* === 3. DAY VIEW (Samsung Split Style) === */
+        /* 3. Day View */
         .day-view-container {
             display: flex;
             height: 100%;
@@ -356,8 +352,9 @@
             padding: 24px;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
-            overflow-y: auto;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
         }
 
         .day-event-block {
@@ -371,76 +368,30 @@
             padding: 6px 10px;
             font-size: 12px;
             font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             cursor: pointer;
             z-index: 5;
         }
 
-        .day-birthday-block {
-            background: linear-gradient(135deg, #2b1d0c, #1a1207);
-            border-left: 3px solid #ffb86c;
-            color: #ffb86c;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .day-event-block.birthday {
+            background: var(--accent-birthday-badge);
+            color: var(--accent-birthday-text);
+            border-left-color: #f06292;
         }
 
-        .day-birthday-block img {
-            width: 22px;
-            height: 22px;
-            object-fit: contain;
-        }
-
-        /* Birthday Highlight Card inside Day / Schedule View */
-        .birthday-hero-card {
-            background: linear-gradient(145deg, #2e1d0f, #18110b);
-            border: 1px solid rgba(255, 184, 108, 0.3);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 16px;
-            width: 100%;
-        }
-
-        .birthday-hero-card img {
-            width: 58px;
-            height: 58px;
-            object-fit: contain;
-            filter: drop-shadow(0 4px 12px rgba(255, 184, 108, 0.4));
-        }
-
-        .birthday-hero-text h3 {
-            font-size: 16px;
-            font-weight: 700;
-            color: #ffd8a8;
-            margin-bottom: 4px;
-        }
-
-        .birthday-hero-text p {
-            font-size: 13px;
-            color: #d1b89d;
-        }
-
-        /* === 4. SCHEDULE / AGENDA VIEW === */
+        /* 4. Schedule View */
         .schedule-view {
             padding: 20px 24px 80px;
             max-width: 760px;
             margin: 0 auto;
         }
 
-        .schedule-group {
-            margin-bottom: 24px;
-        }
-
+        .schedule-group { margin-bottom: 24px; }
         .schedule-group-header {
             font-size: 14px;
             font-weight: 600;
             color: var(--text-secondary);
             margin-bottom: 10px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .schedule-card {
@@ -456,41 +407,28 @@
             transition: background 0.2s;
         }
 
-        .schedule-card:hover {
-            background: var(--bg-elevated);
-        }
-
+        .schedule-card:hover { background: var(--bg-elevated); }
         .schedule-color-bar {
             width: 4px;
             height: 38px;
             background: var(--accent-green);
             border-radius: 2px;
         }
+        .schedule-color-bar.birthday-bar { background: #f06292; }
 
-        .schedule-color-bar.bday-bar {
-            background: #ffb86c;
-        }
-
-        .schedule-content {
-            flex: 1;
-        }
-
+        .schedule-content { flex: 1; }
         .schedule-event-title {
             font-size: 15px;
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
-
         .schedule-event-meta {
             font-size: 13px;
             color: var(--text-secondary);
         }
 
-        /* === 5. YEAR VIEW === */
+        /* 5. Year View with Pinch-to-Open effect */
         .year-view-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -502,9 +440,14 @@
         .year-month-card {
             background-color: var(--bg-surface);
             border: 1px solid var(--border-subtle);
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 12px;
             cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1), background 0.2s ease;
+        }
+
+        .year-month-card:active {
+            transform: scale(0.96);
         }
 
         .year-month-name {
@@ -525,7 +468,7 @@
 
         .mini-calendar .sun { color: var(--accent-red); }
 
-        /* Floating Action Bar */
+        /* Floating Controls & Quick Input Bar */
         .bottom-action-bar {
             position: absolute;
             bottom: 16px;
@@ -575,136 +518,7 @@
         .fab-btn:active { transform: scale(0.92); }
         .fab-btn svg { width: 24px; height: 24px; }
 
-        /* Slide-Out Drawer (Samsung Menu) */
-        .drawer-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 120;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .drawer-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .drawer-panel {
-            position: fixed;
-            top: 0;
-            left: -320px;
-            width: 300px;
-            height: 100%;
-            background-color: var(--bg-surface);
-            border-right: 1px solid var(--border-strong);
-            z-index: 130;
-            transition: left 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            padding: 24px 18px;
-        }
-
-        .drawer-overlay.active .drawer-panel {
-            left: 0;
-        }
-
-        .drawer-profile {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-subtle);
-            margin-bottom: 20px;
-        }
-
-        .drawer-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            object-fit: cover;
-            background: var(--bg-elevated);
-        }
-
-        .drawer-user-info h3 {
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .drawer-user-info p {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .drawer-section-title {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-        }
-
-        .drawer-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px;
-            border-radius: 10px;
-            color: var(--text-primary);
-            cursor: pointer;
-            margin-bottom: 6px;
-        }
-
-        .drawer-item:hover {
-            background-color: var(--bg-card);
-        }
-
-        .drawer-item-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 14px;
-        }
-
-        /* Toggle Switch */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 22px;
-        }
-
-        .switch input { opacity: 0; width: 0; height: 0; }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: var(--border-strong);
-            transition: .3s;
-            border-radius: 24px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .3s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider { background-color: var(--accent-blue); }
-        input:checked + .slider:before { transform: translateX(18px); }
-
-        /* Modal styling */
+        /* Modal Sheet */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -716,7 +530,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s ease;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(5px);
         }
 
         .modal-overlay.active {
@@ -734,23 +548,9 @@
             box-shadow: 0 12px 32px rgba(0,0,0,0.8);
         }
 
-        .modal-sheet h2 {
-            font-size: 18px;
-            margin-bottom: 16px;
-        }
-
-        .form-field {
-            margin-bottom: 14px;
-            text-align: left;
-        }
-
-        .form-field label {
-            display: block;
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
-        }
-
+        .modal-sheet h2 { font-size: 18px; margin-bottom: 16px; }
+        .form-field { margin-bottom: 14px; text-align: left; }
+        .form-field label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
         .form-field input, .form-field select {
             width: 100%;
             background: var(--bg-canvas);
@@ -788,7 +588,142 @@
             cursor: pointer;
         }
 
-        /* Mobile Bottom Nav Bar */
+        /* ===== BIRTHDAY / EVENT DETAILS POPUP CARD (MATCHING SCREENSHOT) ===== */
+        .event-detail-popup-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.65);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 120;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .event-detail-popup-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .event-detail-card {
+            background: #ffffff;
+            color: #1a1a1a;
+            width: 90%;
+            max-width: 410px;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+            position: relative;
+            transform: translateY(20px) scale(0.96);
+            transition: transform 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+
+        .event-detail-popup-overlay.active .event-detail-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .event-detail-header-art {
+            width: 100%;
+            height: 220px;
+            background-color: #ffdbe9;
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        .header-floating-btns {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .circle-icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.4);
+            border: none;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            transition: background 0.15s ease;
+        }
+
+        .circle-icon-btn:hover { background: rgba(0, 0, 0, 0.6); }
+
+        .event-detail-body {
+            background: #ffffff;
+            border-top-left-radius: 26px;
+            border-top-right-radius: 26px;
+            margin-top: -24px;
+            position: relative;
+            padding: 26px 24px 30px;
+        }
+
+        .event-title-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .event-color-square {
+            width: 16px;
+            height: 16px;
+            background-color: #58cc02;
+            border-radius: 4px;
+        }
+
+        .event-detail-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111111;
+        }
+
+        .event-detail-date-sub {
+            font-size: 15px;
+            color: #555555;
+            margin-left: 28px;
+            margin-bottom: 26px;
+            font-weight: 500;
+        }
+
+        .event-detail-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+            color: #222222;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .event-detail-row svg {
+            width: 22px;
+            height: 22px;
+            color: #444444;
+            flex-shrink: 0;
+        }
+
+        .event-detail-subtext {
+            display: block;
+            font-size: 13px;
+            color: #777777;
+            font-weight: 400;
+        }
+
+        /* Mobile Bottom Nav */
         .mobile-bottom-nav {
             display: none;
             height: 58px;
@@ -801,7 +736,6 @@
             z-index: 50;
         }
 
-        /* Responsive Breakpoints */
         @media (max-width: 768px) {
             .sidebar-rail { display: none; }
             .mobile-bottom-nav {
@@ -809,22 +743,18 @@
                 align-items: center;
                 justify-content: space-around;
             }
-            .bottom-action-bar { bottom: 74px; right: 16px; }
+            .bottom-action-bar { bottom: 72px; right: 16px; }
             .quick-input-capsule { display: none; }
             .day-details-panel { display: none; }
-            .year-view-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-                padding: 12px;
-            }
+            .year-view-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Tablet / Desktop Left Rail Bar -->
+    <!-- Left Sidebar Rail for Tablet/Desktop -->
     <aside class="sidebar-rail">
-        <button class="rail-btn" id="railMenuToggleBtn" title="Menu">
+        <button class="rail-btn" id="menuToggleBtn" title="Menu">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </button>
         <button class="rail-btn" data-view="year" title="Year">
@@ -848,14 +778,11 @@
         </button>
     </aside>
 
-    <!-- Main Workspace Stage -->
+    <!-- Main Workspace -->
     <main class="main-stage">
-        <!-- Top Navbar -->
+        <!-- Top Bar -->
         <header class="top-navbar">
             <div class="nav-left">
-                <button class="nav-icon-btn" id="mobileMenuBtn" style="display: none;" title="Menu">
-                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </button>
                 <div class="header-title-wrap">
                     <span class="header-title" id="displayHeaderMonth">OCT</span>
                     <span class="header-subtitle" id="displayHeaderYear">2026</span>
@@ -869,14 +796,14 @@
                 <button class="nav-icon-btn" id="nextPeriodBtn" title="Next">
                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </button>
-                <div class="today-chip" id="goTodayBtn" title="Jump to Today">22</div>
+                <div class="today-chip" id="goTodayBtn" title="Today">22</div>
             </div>
         </header>
 
-        <!-- Dynamic Calendar Viewport -->
+        <!-- Dynamic Gesture-Enabled Viewport -->
         <section class="viewport-container" id="calendarViewport"></section>
 
-        <!-- Bottom Quick Input Action Bar -->
+        <!-- Quick Input Capsule + Action FAB -->
         <div class="bottom-action-bar">
             <div class="quick-input-capsule">
                 <input type="text" id="quickEventInput" placeholder="Add event on 22 Oct" />
@@ -886,7 +813,7 @@
             </button>
         </div>
 
-        <!-- Mobile Bottom Nav Bar -->
+        <!-- Mobile Bottom Navigation Bar -->
         <nav class="mobile-bottom-nav">
             <button class="rail-btn" data-view="year"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></button>
             <button class="rail-btn active" data-view="month"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z M4 9h16"></path></svg></button>
@@ -896,60 +823,14 @@
         </nav>
     </main>
 
-    <!-- Slide-Out Drawer Menu (One UI Style) -->
-    <div class="drawer-overlay" id="drawerOverlay">
-        <div class="drawer-panel">
-            <div class="drawer-profile">
-                <img id="drawerUserAvatar" class="drawer-avatar" src="https://via.placeholder.com/48/222/fff?text=U" alt="Profile" />
-                <div class="drawer-user-info">
-                    <h3 id="drawerUserName">User</h3>
-                    <p id="drawerUserEmail">user@example.com</p>
-                </div>
-            </div>
-
-            <div class="drawer-section-title">Calendars & Reminders</div>
-
-            <div class="drawer-item">
-                <div class="drawer-item-left">
-                    <span style="width:10px; height:10px; border-radius:50%; background:var(--accent-green); display:inline-block;"></span>
-                    <span>My Schedules</span>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="toggleSchedules" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <div class="drawer-item">
-                <div class="drawer-item-left">
-                    <span style="width:10px; height:10px; border-radius:50%; background:#ffb86c; display:inline-block;"></span>
-                    <span>Birthdays</span>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="toggleBirthdays" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <div class="rail-spacer"></div>
-
-            <div class="drawer-item" id="drawerSignOutBtn" style="color: var(--accent-red);">
-                <div class="drawer-item-left">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                    <span>Sign Out</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Event Creation Modal Sheet -->
+    <!-- Create Event Modal Sheet -->
     <div class="modal-overlay" id="eventModal">
         <div class="modal-sheet">
-            <h2 id="modalHeading">New Schedule</h2>
+            <h2>New Schedule</h2>
             <form id="createEventForm">
                 <div class="form-field">
                     <label>Title</label>
-                    <input type="text" id="eventTitle" placeholder="e.g. Meeting with Mayra" required autocomplete="off" />
+                    <input type="text" id="eventTitle" placeholder="e.g. Birthday Party" required autocomplete="off" />
                 </div>
                 <div class="form-field">
                     <label>Date & Time</label>
@@ -958,17 +839,17 @@
                 <div class="form-field">
                     <label>Duration</label>
                     <select id="eventDuration">
-                        <option value="30 Minutes">30 Minutes</option>
+                        <option value="All Day">All Day</option>
                         <option value="1 Hour" selected>1 Hour</option>
                         <option value="2 Hours">2 Hours</option>
                         <option value="3 Hours">3 Hours</option>
-                        <option value="All Day">All Day</option>
                     </select>
                 </div>
                 <div class="form-field">
-                    <label>Type</label>
+                    <label>Category Type</label>
                     <select id="eventType">
                         <option value="Schedule">Schedule</option>
+                        <option value="Birthday">Birthday 🎂</option>
                         <option value="Meeting">Meeting</option>
                         <option value="Task">Task</option>
                     </select>
@@ -981,9 +862,58 @@
         </div>
     </div>
 
-    <!-- Firebase SDK Modular Import -->
+    <!-- BIRTHDAY / EVENT DETAILS POPUP (Exact layout from screenshot) -->
+    <div class="event-detail-popup-overlay" id="detailPopupOverlay">
+        <div class="event-detail-card">
+            <!-- Festive illustration banner from image link -->
+            <div class="event-detail-header-art" id="detailHeaderArt">
+                <div class="header-floating-btns">
+                    <button class="circle-icon-btn" id="closeDetailPopupBtn" title="Close">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="circle-icon-btn" id="editDetailEventBtn" title="Edit">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </button>
+                        <button class="circle-icon-btn" id="deleteDetailEventBtn" title="Delete">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popup Card Content -->
+            <div class="event-detail-body">
+                <div class="event-title-row">
+                    <div class="event-color-square" id="detailColorSquare"></div>
+                    <div class="event-detail-title" id="detailTitleText">Happy birthday!</div>
+                </div>
+                <div class="event-detail-date-sub" id="detailDateSub">4 Mar 2009</div>
+
+                <div class="event-detail-row">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    <span id="detailNotificationText">On the day at 9 am</span>
+                </div>
+
+                <div class="event-detail-row">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <span>Only me</span>
+                </div>
+
+                <div class="event-detail-row">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <div>
+                        <span id="detailCategoryLabel">Birthdays</span>
+                        <span class="event-detail-subtext" id="detailEmailSubtext">user@perplexity.com</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK v10 Modular -->
     <script type="module">
-        import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { 
             getFirestore, 
             collection, 
@@ -991,17 +921,13 @@
             onSnapshot, 
             Timestamp, 
             query, 
-            where,
-            deleteDoc,
-            doc,
-            getDocs
+            where, 
+            deleteDoc, 
+            doc 
         } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Provided Birthday Image Asset
-        const BIRTHDAY_ICON_URL = "https://i.ibb.co/rGPwqryk/cd578f3c97c943f2448bc5847fef22a70df0bdf06da9dd7b10500ffd2d8ccbae.png";
-
-        // 1. Firebase App for Schedules & Meetings (Collection: data.sheet)
-        const calendarFirebaseConfig = {
+        // Provided Firebase configuration
+        const firebaseConfig = {
             apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
             authDomain: "cloud-computer-4891a.firebaseapp.com",
             projectId: "cloud-computer-4891a",
@@ -1010,86 +936,55 @@
             appId: "1:744203234287:web:81d943ae9b75fd77dce41a",
             measurementId: "G-QE17C33TMN"
         };
-        const calendarApp = initializeApp(calendarFirebaseConfig, "calendarApp");
-        const calendarDb = getFirestore(calendarApp);
 
-        // 2. Firebase App for User Management & Birthdays (Collection: UARM)
-        const userFirebaseConfig = {
-            apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
-            authDomain: "question-metabase.firebaseapp.com",
-            projectId: "question-metabase"
-        };
-        const userApp = initializeApp(userFirebaseConfig, "userApp");
-        const userDb = getFirestore(userApp);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        // 3. User Authentication State Bridge
+        // Verification with your Authentication System
         let activeUser = null;
         try {
-            const rawUser = localStorage.getItem('active_user');
-            if (rawUser) {
-                activeUser = JSON.parse(rawUser);
-            }
+            const stored = localStorage.getItem('active_user');
+            if (stored) activeUser = JSON.parse(stored);
         } catch (e) {
-            console.error("Local storage auth read error", e);
+            console.error("Local storage error:", e);
         }
 
         if (!activeUser || !activeUser.Email) {
-            console.warn("Unauthenticated. Redirecting to 1.html");
             window.location.href = "1.html?continue=" + encodeURIComponent(window.location.href);
         }
 
-        // Setup Drawer User Profile
-        const fullName = `${activeUser["First Name"] || ""} ${activeUser["Last Name"] || ""}`.trim() || activeUser.Email;
-        document.getElementById('drawerUserName').innerText = fullName;
-        document.getElementById('drawerUserEmail').innerText = activeUser.Email;
-        if (activeUser["Profile_Picture"] || activeUser["Profile Picture"]) {
-            document.getElementById('drawerUserAvatar').src = activeUser["Profile_Picture"] || activeUser["Profile Picture"];
-        }
-
-        // Sign out triggers
-        const doLogout = () => {
-            if (confirm(`Signed in as ${activeUser.Email}. Do you want to sign out?`)) {
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (confirm(`Logged in as ${activeUser.Email}. Sign out?`)) {
                 localStorage.removeItem('active_user');
                 window.location.href = "1.html";
             }
-        };
-        document.getElementById('logoutBtn').addEventListener('click', doLogout);
-        document.getElementById('drawerSignOutBtn').addEventListener('click', doLogout);
-
-        // Responsive Hamburger Drawer Handling
-        const drawerOverlay = document.getElementById('drawerOverlay');
-        const openDrawer = () => drawerOverlay.classList.add('active');
-        const closeDrawer = (e) => {
-            if (e.target === drawerOverlay) drawerOverlay.classList.remove('active');
-        };
-        document.getElementById('railMenuToggleBtn').addEventListener('click', openDrawer);
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        if (window.innerWidth <= 768) {
-            mobileMenuBtn.style.display = 'flex';
-        }
-        mobileMenuBtn.addEventListener('click', openDrawer);
-        drawerOverlay.addEventListener('click', closeDrawer);
-
-        // Filter Toggles
-        let showSchedules = true;
-        let showBirthdays = true;
-        document.getElementById('toggleSchedules').addEventListener('change', (e) => {
-            showSchedules = e.target.checked;
-            renderActiveView();
-        });
-        document.getElementById('toggleBirthdays').addEventListener('change', (e) => {
-            showBirthdays = e.target.checked;
-            renderActiveView();
         });
 
-        // 4. State Variables
+        // App State
         let currentDate = new Date();
         let selectedDate = new Date();
         let currentView = 'month'; // 'year' | 'month' | 'week' | 'day' | 'schedule'
         let firestoreEvents = [];
-        let birthdayProfiles = [];
+        let activeSelectedEvent = null;
 
-        // Update Today Badge
+        // Birthday Banner image URL provided
+        const BIRTHDAY_BANNER_URL = "https://i.ibb.co/rGPwqryk/cd578f3c97c943f2448bc5847fef22a70df0bdf06da9dd7b10500ffd2d8ccbae.png";
+
+        // Parse user Date of Birth from UARM document (e.g., "1/03/2000" or "04/03/2009")
+        let userBirthdayParsed = null;
+        const rawDOB = activeUser["Date of Birth"] || activeUser["Date_of_Birth"] || activeUser["DOB"];
+        if (rawDOB) {
+            const parts = rawDOB.split(/[\/\-\.]/);
+            if (parts.length === 3) {
+                // DD/MM/YYYY
+                const day = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1;
+                const year = parseInt(parts[2], 10);
+                userBirthdayParsed = { day, month, birthYear: year };
+            }
+        }
+
+        // Initialize Today Chip
         const todayChip = document.getElementById('goTodayBtn');
         todayChip.innerText = new Date().getDate();
         todayChip.addEventListener('click', () => {
@@ -1098,83 +993,11 @@
             renderActiveView();
         });
 
-        // Helper to parse multiple date string variants (e.g. "1/03/2000", "01/03/2000", "2000-03-01")
-        function parseBirthDate(str) {
-            if (!str) return null;
-            if (str.includes('/')) {
-                const parts = str.split('/');
-                if (parts.length === 3) {
-                    // Standard Indian/British DD/MM/YYYY format
-                    const day = parseInt(parts[0], 10);
-                    const month = parseInt(parts[1], 10) - 1; // 0-indexed month
-                    const year = parseInt(parts[2], 10);
-                    return { day, month, birthYear: year };
-                }
-            } else if (str.includes('-')) {
-                const parts = str.split('-');
-                if (parts.length === 3) {
-                    const year = parseInt(parts[0], 10);
-                    const month = parseInt(parts[1], 10) - 1;
-                    const day = parseInt(parts[2], 10);
-                    return { day, month, birthYear: year };
-                }
-            }
-            return null;
-        }
+        // Realtime Firestore Listener
+        const eventsRef = collection(db, "data.sheet");
+        const userEventsQuery = query(eventsRef, where("Email", "==", activeUser.Email));
 
-        // 5. Fetch Birthday Data dynamically from UARM collection
-        async function loadBirthdaysFromUARM() {
-            try {
-                // Fetch the logged-in user or any connected profiles
-                const q = query(collection(userDb, "UARM"), where("Email", "==", activeUser.Email));
-                const snap = await getDocs(q);
-                
-                birthdayProfiles = [];
-                snap.forEach(docSnap => {
-                    const u = docSnap.data();
-                    const bDateRaw = u["Date of Birth"] || u["Date_of_Birth"] || activeUser["Date of Birth"];
-                    const parsed = parseBirthDate(bDateRaw);
-                    if (parsed) {
-                        birthdayProfiles.push({
-                            id: docSnap.id,
-                            firstName: u["First Name"] || "User",
-                            lastName: u["Last Name"] || "",
-                            day: parsed.day,
-                            month: parsed.month,
-                            birthYear: parsed.birthYear,
-                            avatar: u["Profile_Picture"] || u["Profile Picture"] || ""
-                        });
-                    }
-                });
-
-                // Fallback check from local activeUser if database query is empty
-                if (birthdayProfiles.length === 0 && activeUser["Date of Birth"]) {
-                    const parsed = parseBirthDate(activeUser["Date of Birth"]);
-                    if (parsed) {
-                        birthdayProfiles.push({
-                            id: "local_user",
-                            firstName: activeUser["First Name"] || "User",
-                            lastName: activeUser["Last Name"] || "",
-                            day: parsed.day,
-                            month: parsed.month,
-                            birthYear: parsed.birthYear,
-                            avatar: activeUser["Profile_Picture"] || ""
-                        });
-                    }
-                }
-
-                renderActiveView();
-            } catch (err) {
-                console.error("Error loading birthday data from UARM:", err);
-            }
-        }
-        loadBirthdaysFromUARM();
-
-        // 6. Realtime Firestore Sync for Schedules (collection "data.sheet")
-        const eventsRef = collection(calendarDb, "data.sheet");
-        const userScheduleQuery = query(eventsRef, where("Email", "==", activeUser.Email));
-
-        onSnapshot(userScheduleQuery, (snapshot) => {
+        onSnapshot(userEventsQuery, (snapshot) => {
             firestoreEvents = [];
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
@@ -1188,7 +1011,7 @@
 
                 firestoreEvents.push({
                     id: docSnap.id,
-                    name: data.Name || "Untitled Event",
+                    name: data.Name || "Untitled Schedule",
                     duration: data.Duration || "1 Hour",
                     type: data.Type || "Schedule",
                     email: data.Email,
@@ -1196,12 +1019,27 @@
                 });
             });
 
+            // If user has a registered Date of Birth in their UARM profile, automatically inject their birthday
+            if (userBirthdayParsed) {
+                const bdayDateThisYear = new Date(currentDate.getFullYear(), userBirthdayParsed.month, userBirthdayParsed.day, 9, 0);
+                firestoreEvents.push({
+                    id: 'uarm_profile_birthday',
+                    name: `Happy birthday! ${activeUser["First Name"] || ""}`.trim(),
+                    duration: "All Day",
+                    type: "Birthday",
+                    email: activeUser.Email,
+                    date: bdayDateThisYear,
+                    isProfileBirthday: true,
+                    birthYear: userBirthdayParsed.birthYear
+                });
+            }
+
             renderActiveView();
         }, (err) => {
-            console.error("Firestore schedule snapshot error:", err);
+            console.error("Firestore error:", err);
         });
 
-        // 7. Navigation Controls
+        // Period navigation
         document.getElementById('prevPeriodBtn').addEventListener('click', () => changePeriod(-1));
         document.getElementById('nextPeriodBtn').addEventListener('click', () => changePeriod(1));
 
@@ -1219,17 +1057,22 @@
             renderActiveView();
         }
 
+        // View switching
         const viewButtons = document.querySelectorAll('[data-view]');
         viewButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const target = btn.dataset.view;
-                currentView = target;
-                viewButtons.forEach(b => b.dataset.view === target ? b.classList.add('active') : b.classList.remove('active'));
-                renderActiveView();
-            });
+            btn.addEventListener('click', () => setView(btn.dataset.view));
         });
 
-        // 8. Renderers & Birthday Integrations
+        function setView(viewName) {
+            currentView = viewName;
+            viewButtons.forEach(b => {
+                if (b.dataset.view === viewName) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+            renderActiveView();
+        }
+
+        // Header Labels
         const viewport = document.getElementById('calendarViewport');
         const headerMonth = document.getElementById('displayHeaderMonth');
         const headerYear = document.getElementById('displayHeaderYear');
@@ -1239,31 +1082,6 @@
             headerMonth.innerText = months[currentDate.getMonth()];
             headerYear.innerText = currentDate.getFullYear();
             document.getElementById('quickEventInput').placeholder = `Add event on ${selectedDate.getDate()} ${months[selectedDate.getMonth()]}`;
-        }
-
-        // Returns birthday events for a specific day
-        function getBirthdaysForDay(date) {
-            if (!showBirthdays) return [];
-            const result = [];
-            const m = date.getMonth();
-            const d = date.getDate();
-            const y = date.getFullYear();
-
-            birthdayProfiles.forEach(b => {
-                if (b.month === m && b.day === d) {
-                    const age = y - b.birthYear;
-                    result.push({
-                        isBirthday: true,
-                        name: `${b.firstName}'s Birthday`,
-                        fullName: `${b.firstName} ${b.lastName}`.trim(),
-                        age: age > 0 ? age : null,
-                        avatar: b.avatar,
-                        icon: BIRTHDAY_ICON_URL,
-                        date: new Date(date)
-                    });
-                }
-            });
-            return result;
         }
 
         function renderActiveView() {
@@ -1279,7 +1097,7 @@
             }
         }
 
-        /* --- 8.1 Month View --- */
+        /* 1. Month View */
         function renderMonthView() {
             const container = document.createElement('div');
             container.className = 'month-view';
@@ -1327,31 +1145,19 @@
                 numEl.innerText = dayNumber;
                 cell.appendChild(numEl);
 
-                // Render Birthday Badges
-                const bdays = getBirthdaysForDay(cellDate);
-                bdays.forEach(b => {
-                    const bBadge = document.createElement('div');
-                    bBadge.className = 'event-badge birthday-badge';
-                    bBadge.title = `${b.name} (${b.age ? 'Turning ' + b.age : 'Birthday'})`;
-                    bBadge.innerHTML = `<img src="${BIRTHDAY_ICON_URL}" alt="cake" /><span>${b.name}</span>`;
-                    cell.appendChild(bBadge);
-                });
-
-                // Render Regular Firestore Schedule Badges
-                if (showSchedules) {
-                    const dayEvents = firestoreEvents.filter(ev => isSameDay(ev.date, cellDate));
-                    dayEvents.forEach(ev => {
-                        const badge = document.createElement('div');
-                        badge.className = 'event-badge';
-                        badge.innerText = ev.name;
-                        badge.title = `${ev.name} (${ev.duration})`;
-                        badge.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            openEventDetails(ev);
-                        });
-                        cell.appendChild(badge);
+                // Add event badges
+                const dayEvents = firestoreEvents.filter(ev => isSameDay(ev.date, cellDate));
+                dayEvents.forEach(ev => {
+                    const badge = document.createElement('div');
+                    const isBday = ev.type === "Birthday" || ev.isProfileBirthday;
+                    badge.className = `event-badge ${isBday ? 'birthday-badge' : ''}`;
+                    badge.innerText = isBday ? `🎂 ${ev.name}` : ev.name;
+                    badge.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openDetailPopup(ev);
                     });
-                }
+                    cell.appendChild(badge);
+                });
 
                 cell.addEventListener('click', () => {
                     selectedDate = cellDate;
@@ -1365,7 +1171,7 @@
             viewport.appendChild(container);
         }
 
-        /* --- 8.2 Week View --- */
+        /* 2. Week View */
         function renderWeekView() {
             const container = document.createElement('div');
             container.className = 'week-view';
@@ -1384,11 +1190,7 @@
                 const dayDate = new Date(startOfWeek);
                 dayDate.setDate(dayDate.getDate() + d);
                 const col = document.createElement('div');
-                
-                const bdays = getBirthdaysForDay(dayDate);
-                const bdayIcon = bdays.length > 0 ? `<img src="${BIRTHDAY_ICON_URL}" style="width:12px; height:12px; vertical-align:middle; margin-left:2px;" />` : '';
-
-                col.innerHTML = `<div>${daysLetters[d]}</div><div style="font-size:12px; font-weight:700;">${dayDate.getDate()} ${bdayIcon}</div>`;
+                col.innerHTML = `<div>${daysLetters[d]}</div><div style="font-size:12px; font-weight:700;">${dayDate.getDate()}</div>`;
                 if (d === 6) col.style.color = 'var(--accent-red)';
                 headerRow.appendChild(col);
             }
@@ -1413,6 +1215,7 @@
                 }
             }
 
+            // Real-time coral line
             const now = new Date();
             const minutesFromMidnight = now.getHours() * 60 + now.getMinutes();
             const line = document.createElement('div');
@@ -1426,24 +1229,13 @@
             gridContainer.scrollTop = Math.max(0, minutesFromMidnight - 120);
         }
 
-        /* --- 8.3 Day View --- */
+        /* 3. Day View */
         function renderDayView() {
             const container = document.createElement('div');
             container.className = 'day-view-container';
 
             const timeline = document.createElement('div');
             timeline.className = 'day-timeline';
-
-            // Top all-day banner if birthday exists today
-            const bdays = getBirthdaysForDay(selectedDate);
-            if (bdays.length > 0) {
-                const bdayBanner = document.createElement('div');
-                bdayBanner.className = 'day-event-block day-birthday-block';
-                bdayBanner.style.top = '8px';
-                bdayBanner.style.height = '42px';
-                bdayBanner.innerHTML = `<img src="${BIRTHDAY_ICON_URL}" alt="Cake" /><strong>${bdays[0].fullName}'s Birthday</strong> ${bdays[0].age ? `(Turning ${bdays[0].age})` : ''}`;
-                timeline.appendChild(bdayBanner);
-            }
 
             for (let hour = 0; hour < 24; hour++) {
                 const row = document.createElement('div');
@@ -1459,93 +1251,53 @@
 
                 const slot = document.createElement('div');
                 slot.style.flex = '1';
-                slot.style.position = 'relative';
                 row.appendChild(slot);
-
                 timeline.appendChild(row);
             }
 
-            // Regular schedules on selected day
-            const dayEvents = showSchedules ? firestoreEvents.filter(ev => isSameDay(ev.date, selectedDate)) : [];
+            const dayEvents = firestoreEvents.filter(ev => isSameDay(ev.date, selectedDate));
             dayEvents.forEach(ev => {
                 const block = document.createElement('div');
-                block.className = 'day-event-block';
+                const isBday = ev.type === "Birthday" || ev.isProfileBirthday;
+                block.className = `day-event-block ${isBday ? 'birthday' : ''}`;
                 const startMins = ev.date.getHours() * 60 + ev.date.getMinutes();
-                block.style.top = `${startMins + 50}px`;
+                block.style.top = `${startMins}px`;
                 block.style.height = '50px';
-                block.innerHTML = `<strong>${ev.name}</strong> · ${ev.duration}`;
-                block.addEventListener('click', () => openEventDetails(ev));
+                block.innerHTML = `<strong>${isBday ? '🎂 ' : ''}${ev.name}</strong> · ${ev.duration}`;
+                block.addEventListener('click', () => openDetailPopup(ev));
                 timeline.appendChild(block);
             });
 
             container.appendChild(timeline);
 
-            // Right-hand Details Card Panel (One UI style)
             const detailsPanel = document.createElement('div');
             detailsPanel.className = 'day-details-panel';
-
-            if (bdays.length > 0) {
-                const b = bdays[0];
-                detailsPanel.innerHTML += `
-                    <div class="birthday-hero-card">
-                        <img src="${BIRTHDAY_ICON_URL}" alt="Birthday Cake" />
-                        <div class="birthday-hero-text">
-                            <h3>${b.fullName}'s Birthday</h3>
-                            <p>${b.age ? `Turning ${b.age} today!` : 'Celebration Day'} 🎉</p>
-                        </div>
-                    </div>
-                `;
-            }
-
-            if (dayEvents.length === 0 && bdays.length === 0) {
+            if (dayEvents.length === 0) {
                 detailsPanel.innerHTML = `
                     <div style="font-size: 18px; font-weight:600; color:var(--text-secondary); margin-bottom: 8px;">No event selected</div>
-                    <div style="font-size: 13px; color:var(--text-muted);">Use the + button below to add events to Firestore</div>
+                    <div style="font-size: 13px; color:var(--text-muted);">Tap + below to create a schedule or birthday</div>
                 `;
-            } else if (dayEvents.length > 0) {
-                detailsPanel.innerHTML += `
-                    <h3 style="font-size:15px; margin-bottom:12px; color:var(--accent-green);">${dayEvents.length} Schedule(s)</h3>
+            } else {
+                detailsPanel.innerHTML = `
+                    <h3 style="font-size:16px; margin-bottom:12px; color:var(--accent-green);">${dayEvents.length} Event(s) Today</h3>
                     ${dayEvents.map(e => `
-                        <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:12px; margin-bottom:8px; text-align:left;">
+                        <div style="background:var(--bg-canvas); border-radius:10px; padding:12px; margin-bottom:8px; width:100%; text-align:left; cursor:pointer;" onclick="window.triggerPopup('${e.id}')">
                             <div style="font-weight:600; font-size:14px;">${e.name}</div>
                             <div style="font-size:12px; color:var(--text-secondary);">${e.duration} · ${e.type}</div>
                         </div>
                     `).join('')}
                 `;
             }
-
             container.appendChild(detailsPanel);
             viewport.appendChild(container);
         }
 
-        /* --- 8.4 Schedule / Agenda View --- */
+        /* 4. Schedule View */
         function renderScheduleView() {
             const container = document.createElement('div');
             container.className = 'schedule-view';
 
-            const combinedList = [];
-
-            // Add Birthday into schedule for current viewing year
-            if (showBirthdays) {
-                birthdayProfiles.forEach(b => {
-                    const bDate = new Date(currentDate.getFullYear(), b.month, b.day);
-                    const age = currentDate.getFullYear() - b.birthYear;
-                    combinedList.push({
-                        isBirthday: true,
-                        name: `${b.firstName}'s Birthday`,
-                        fullName: `${b.firstName} ${b.lastName}`.trim(),
-                        age: age > 0 ? age : null,
-                        date: bDate,
-                        icon: BIRTHDAY_ICON_URL
-                    });
-                });
-            }
-
-            if (showSchedules) {
-                firestoreEvents.forEach(e => combinedList.push({ ...e, isBirthday: false }));
-            }
-
-            if (combinedList.length === 0) {
+            if (firestoreEvents.length === 0) {
                 container.innerHTML = `
                     <div style="text-align: center; margin-top: 100px;">
                         <h3 style="font-weight: 500; font-size: 18px; margin-bottom: 6px;">No events</h3>
@@ -1556,14 +1308,11 @@
                 return;
             }
 
-            // Sort ascending by date
-            combinedList.sort((a,b) => a.date - b.date);
-
             const grouped = {};
-            combinedList.forEach(item => {
-                const key = item.date.toDateString();
+            firestoreEvents.sort((a,b) => a.date - b.date).forEach(ev => {
+                const key = ev.date.toDateString();
                 if (!grouped[key]) grouped[key] = [];
-                grouped[key].push(item);
+                grouped[key].push(ev);
             });
 
             for (const [dateStr, list] of Object.entries(grouped)) {
@@ -1578,29 +1327,15 @@
                 list.forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'schedule-card';
-
-                    if (item.isBirthday) {
-                        card.innerHTML = `
-                            <div class="schedule-color-bar bday-bar"></div>
-                            <div class="schedule-content">
-                                <div class="schedule-event-title">
-                                    <img src="${BIRTHDAY_ICON_URL}" style="width:18px; height:18px; object-fit:contain;" />
-                                    <span>${item.fullName}'s Birthday</span>
-                                </div>
-                                <div class="schedule-event-meta">${item.age ? `Turning ${item.age} years old` : 'Annual Birthday'} · All Day</div>
-                            </div>
-                        `;
-                    } else {
-                        card.innerHTML = `
-                            <div class="schedule-color-bar"></div>
-                            <div class="schedule-content">
-                                <div class="schedule-event-title">${item.name}</div>
-                                <div class="schedule-event-meta">${item.date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} · ${item.duration} · ${item.type}</div>
-                            </div>
-                        `;
-                        card.addEventListener('click', () => openEventDetails(item));
-                    }
-
+                    const isBday = item.type === "Birthday" || item.isProfileBirthday;
+                    card.innerHTML = `
+                        <div class="schedule-color-bar ${isBday ? 'birthday-bar' : ''}"></div>
+                        <div class="schedule-content">
+                            <div class="schedule-event-title">${isBday ? '🎂 ' : ''}${item.name}</div>
+                            <div class="schedule-event-meta">${item.date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} · ${item.duration} · ${item.type}</div>
+                        </div>
+                    `;
+                    card.addEventListener('click', () => openDetailPopup(item));
                     group.appendChild(card);
                 });
 
@@ -1610,7 +1345,7 @@
             viewport.appendChild(container);
         }
 
-        /* --- 8.5 Year View --- */
+        /* 5. Year View with Pinch-to-Open Month */
         function renderYearView() {
             const container = document.createElement('div');
             container.className = 'year-view-grid';
@@ -1635,20 +1370,17 @@
                 const daysTotal = new Date(year, mIdx + 1, 0).getDate();
 
                 for (let k = 0; k < firstDay; k++) mini.innerHTML += `<div></div>`;
-
                 for (let day = 1; day <= daysTotal; day++) {
                     const isSun = ((firstDay + day - 1) % 7 === 6);
-                    const hasBday = showBirthdays && birthdayProfiles.some(b => b.month === mIdx && b.day === day);
-                    const bdayStyle = hasBday ? 'color:#ffb86c; font-weight:bold;' : '';
-                    mini.innerHTML += `<div class="${isSun ? 'sun' : ''}" style="${bdayStyle}">${day}</div>`;
+                    mini.innerHTML += `<div class="${isSun ? 'sun' : ''}">${day}</div>`;
                 }
 
                 card.appendChild(mini);
+
+                // Clicking or tapping month opens it
                 card.addEventListener('click', () => {
                     currentDate.setMonth(mIdx);
-                    currentView = 'month';
-                    viewButtons.forEach(b => b.dataset.view === 'month' ? b.classList.add('active') : b.classList.remove('active'));
-                    renderActiveView();
+                    setView('month');
                 });
 
                 container.appendChild(card);
@@ -1657,7 +1389,163 @@
             viewport.appendChild(container);
         }
 
-        // 9. Firestore Event Creation & Quick Add
+        // ================= POPUP CARD DISPLAY LOGIC =================
+        const detailPopup = document.getElementById('detailPopupOverlay');
+        const detailHeaderArt = document.getElementById('detailHeaderArt');
+        const detailTitle = document.getElementById('detailTitleText');
+        const detailDateSub = document.getElementById('detailDateSub');
+        const detailCategoryLabel = document.getElementById('detailCategoryLabel');
+        const detailEmailSubtext = document.getElementById('detailEmailSubtext');
+        const detailColorSquare = document.getElementById('detailColorSquare');
+        const closeDetailBtn = document.getElementById('closeDetailPopupBtn');
+        const deleteDetailBtn = document.getElementById('deleteDetailEventBtn');
+
+        function openDetailPopup(eventItem) {
+            activeSelectedEvent = eventItem;
+            const isBday = eventItem.type === "Birthday" || eventItem.isProfileBirthday;
+
+            // Set Header Art
+            if (isBday) {
+                detailHeaderArt.style.backgroundImage = `url('${BIRTHDAY_BANNER_URL}')`;
+                detailHeaderArt.style.display = "block";
+                detailColorSquare.style.backgroundColor = "#58cc02";
+                detailCategoryLabel.innerText = "Birthdays";
+            } else {
+                // Non-birthday uses clean dark/accent banner
+                detailHeaderArt.style.backgroundImage = "none";
+                detailHeaderArt.style.backgroundColor = "#242426";
+                detailColorSquare.style.backgroundColor = "#30d158";
+                detailCategoryLabel.innerText = eventItem.type || "Schedule";
+            }
+
+            detailTitle.innerText = eventItem.name;
+
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const yearStr = eventItem.birthYear ? eventItem.birthYear : eventItem.date.getFullYear();
+            detailDateSub.innerText = `${eventItem.date.getDate()} ${months[eventItem.date.getMonth()]} ${yearStr}`;
+
+            detailEmailSubtext.innerText = eventItem.email || activeUser.Email;
+            detailPopup.classList.add('active');
+        }
+
+        closeDetailBtn.addEventListener('click', () => {
+            detailPopup.classList.remove('active');
+        });
+
+        detailPopup.addEventListener('click', (e) => {
+            if (e.target === detailPopup) detailPopup.classList.remove('active');
+        });
+
+        // Delete Event from Firestore
+        deleteDetailBtn.addEventListener('click', async () => {
+            if (!activeSelectedEvent) return;
+            if (activeSelectedEvent.isProfileBirthday) {
+                alert("This birthday is automatically loaded from your profile account.");
+                detailPopup.classList.remove('active');
+                return;
+            }
+
+            if (confirm(`Delete "${activeSelectedEvent.name}"?`)) {
+                try {
+                    await deleteDoc(doc(db, "data.sheet", activeSelectedEvent.id));
+                    detailPopup.classList.remove('active');
+                } catch (err) {
+                    console.error("Delete failed:", err);
+                }
+            }
+        });
+
+        window.triggerPopup = (id) => {
+            const ev = firestoreEvents.find(e => e.id === id);
+            if (ev) openDetailPopup(ev);
+        };
+
+        // ================= SMART GESTURE CONTROLS =================
+        // Pinch-to-zoom (Year <-> Month <-> Week <-> Day) & Swipe left/right
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let initialPinchDist = 0;
+        let isPinching = false;
+
+        const viewHierarchy = ['year', 'month', 'week', 'day'];
+
+        viewport.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            } else if (e.touches.length === 2) {
+                isPinching = true;
+                initialPinchDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+            }
+        }, { passive: true });
+
+        viewport.addEventListener('touchmove', (e) => {
+            if (isPinching && e.touches.length === 2) {
+                const currentDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const scale = currentDist / initialPinchDist;
+                // Subtle scale feedback
+                viewport.style.transform = `scale(${Math.min(Math.max(scale, 0.9), 1.1)})`;
+            }
+        }, { passive: true });
+
+        viewport.addEventListener('touchend', (e) => {
+            viewport.style.transform = '';
+
+            // Handle Pinch-to-open (zoom in) or Pinch-in (zoom out)
+            if (isPinching) {
+                isPinching = false;
+                if (e.changedTouches.length >= 1 && initialPinchDist > 0) {
+                    // Check pinch ratio
+                    const finalDist = Math.hypot(
+                        (e.touches[0]?.clientX || e.changedTouches[0].clientX) - (e.touches[1]?.clientX || e.changedTouches[0].clientX),
+                        (e.touches[0]?.clientY || e.changedTouches[0].clientY) - (e.touches[1]?.clientY || e.changedTouches[0].clientY)
+                    );
+
+                    const currentIndex = viewHierarchy.indexOf(currentView);
+
+                    // Pinch-out / Expand -> Zoom In (e.g., Year -> Month -> Week -> Day)
+                    if (finalDist > initialPinchDist * 1.35) {
+                        if (currentIndex !== -1 && currentIndex < viewHierarchy.length - 1) {
+                            setView(viewHierarchy[currentIndex + 1]);
+                        }
+                    }
+                    // Pinch-in / Collapse -> Zoom Out (e.g., Day -> Week -> Month -> Year)
+                    else if (finalDist < initialPinchDist * 0.75) {
+                        if (currentIndex > 0) {
+                            setView(viewHierarchy[currentIndex - 1]);
+                        }
+                    }
+                }
+                return;
+            }
+
+            // Handle Horizontal Swiping (Single finger navigation)
+            if (e.changedTouches.length === 1) {
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+
+                // Detect horizontal swipe
+                if (Math.abs(deltaX) > 60 && Math.abs(deltaY) < 50) {
+                    if (deltaX < 0) {
+                        // Swipe left -> Next period
+                        changePeriod(1);
+                    } else {
+                        // Swipe right -> Prev period
+                        changePeriod(-1);
+                    }
+                }
+            }
+        }, { passive: true });
+
+        // ================= CREATION MODAL LOGIC =================
         const modal = document.getElementById('eventModal');
         const openModalBtn = document.getElementById('openAddModalBtn');
         const closeModalBtn = document.getElementById('cancelModalBtn');
@@ -1665,7 +1553,7 @@
 
         openModalBtn.addEventListener('click', () => {
             const pad = (n) => String(n).padStart(2, '0');
-            const dtString = `${selectedDate.getFullYear()}-${pad(selectedDate.getMonth() + 1)}-${pad(selectedDate.getDate())}T10:00`;
+            const dtString = `${selectedDate.getFullYear()}-${pad(selectedDate.getMonth() + 1)}-${pad(selectedDate.getDate())}T09:00`;
             document.getElementById('eventDateTime').value = dtString;
             modal.classList.add('active');
         });
@@ -1685,7 +1573,7 @@
             saveBtn.innerText = "Saving...";
 
             try {
-                await addDoc(collection(calendarDb, "data.sheet"), {
+                await addDoc(collection(db, "data.sheet"), {
                     Name: title,
                     Date_Time: Timestamp.fromDate(new Date(dtValue)),
                     Duration: duration,
@@ -1697,19 +1585,19 @@
                 modal.classList.remove('active');
             } catch (err) {
                 console.error("Firestore save error:", err);
-                alert("Failed to save schedule.");
+                alert("Error saving event.");
             } finally {
                 saveBtn.innerText = "Save";
             }
         });
 
-        // Quick input capsule Enter handler
+        // Quick Input Capsule
         document.getElementById('quickEventInput').addEventListener('keypress', async (e) => {
             if (e.key === 'Enter') {
                 const text = e.target.value.trim();
                 if (!text) return;
                 try {
-                    await addDoc(collection(calendarDb, "data.sheet"), {
+                    await addDoc(collection(db, "data.sheet"), {
                         Name: text,
                         Date_Time: Timestamp.fromDate(selectedDate),
                         Duration: "1 Hour",
@@ -1722,12 +1610,6 @@
                 }
             }
         });
-
-        function openEventDetails(item) {
-            if (confirm(`Schedule: ${item.name}\nDuration: ${item.duration}\nTime: ${item.date.toLocaleString()}\n\nDelete this schedule from Firestore?`)) {
-                deleteDoc(doc(calendarDb, "data.sheet", item.id)).catch(err => console.error("Delete error:", err));
-            }
-        }
 
         function isSameDay(d1, d2) {
             return d1.getFullYear() === d2.getFullYear() &&
