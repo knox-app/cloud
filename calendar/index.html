@@ -9,21 +9,20 @@
             --bg-canvas: #000000;
             --bg-surface: #121212;
             --bg-card: #1c1c1e;
-            --bg-elevated: #2c2c2e;
+            --bg-elevated: #28282a;
             --border-subtle: #242426;
             --border-strong: #38383a;
+            --border-highlight: #e57373; /* Orange/Peach highlight from screenshot */
             --text-primary: #ffffff;
-            --text-secondary: #8e8e93;
-            --text-muted: #545458;
+            --text-secondary: #9e9ea3;
+            --text-muted: #5e5e62;
             --accent-green: #30d158;
-            --accent-mint: #34c759;
+            --accent-badge: #1a3324;
+            --accent-badge-text: #60d78c;
             --accent-red: #ff453a;
-            --accent-badge: #1f3b2b;
-            --accent-badge-text: #62d88d;
-            --accent-birthday-badge: #382436;
-            --accent-birthday-text: #f48fb1;
             --timeline-indicator: #ff7966;
             --sidebar-width: 64px;
+            --bottom-nav-height: 64px;
         }
 
         * {
@@ -63,7 +62,7 @@
             color: var(--text-secondary);
             width: 44px;
             height: 44px;
-            border-radius: 12px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -90,7 +89,7 @@
 
         .rail-spacer { flex: 1; }
 
-        /* Main Workspace Stage */
+        /* Main Workspace Container */
         .main-stage {
             flex: 1;
             display: flex;
@@ -100,16 +99,16 @@
             position: relative;
         }
 
-        /* Top Header Navbar */
+        /* Top Navbar */
         .top-navbar {
-            height: 56px;
+            height: 60px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 16px;
             background-color: var(--bg-canvas);
             border-bottom: 1px solid var(--border-subtle);
-            z-index: 45;
+            z-index: 40;
         }
 
         .nav-left, .nav-right {
@@ -170,18 +169,194 @@
             cursor: pointer;
         }
 
-        /* Viewport Container with Smooth Swipe/Pinch Canvas */
+        /* Google-Style Top-Right Profile Avatar */
+        .profile-avatar-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #2a2a2c;
+            border: 2px solid #3d3d40;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            font-weight: 600;
+            font-size: 14px;
+            color: #fff;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .profile-avatar-btn:hover {
+            transform: scale(1.05);
+            border-color: #6a6a70;
+        }
+
+        .profile-avatar-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Google Profile Popup Menu */
+        .profile-popup-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 150;
+            background: rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .profile-popup-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .google-account-modal {
+            position: absolute;
+            top: 66px;
+            right: 16px;
+            width: 330px;
+            background: #1e1f20;
+            border: 1px solid #3c4043;
+            border-radius: 28px;
+            padding: 20px 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
+            transform: scale(0.9) translateY(-10px);
+            opacity: 0;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+        }
+
+        .profile-popup-overlay.active .google-account-modal {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .account-card-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #333538;
+        }
+
+        .popup-avatar-large {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #4285f4;
+            color: #fff;
+            font-size: 26px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .popup-avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .popup-user-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .popup-user-email {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .popup-account-type {
+            font-size: 11px;
+            font-weight: 600;
+            color: #8ab4f8;
+            background: #283344;
+            padding: 4px 10px;
+            border-radius: 12px;
+            letter-spacing: 0.3px;
+        }
+
+        .account-menu-list {
+            padding-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .account-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            color: #e8eaed;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .account-menu-item:hover {
+            background: #2d2f31;
+        }
+
+        .account-menu-item svg {
+            width: 18px;
+            height: 18px;
+            color: var(--text-secondary);
+        }
+
+        /* Zoom In / Zoom Out from Left to Right Animations */
+        .zoom-left-to-right {
+            animation: zoomInLR 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        .zoom-right-to-left {
+            animation: zoomOutRL 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        @keyframes zoomInLR {
+            0% {
+                opacity: 0.3;
+                transform: scale(0.92) translateX(-36px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateX(0);
+            }
+        }
+
+        @keyframes zoomOutRL {
+            0% {
+                opacity: 0.3;
+                transform: scale(0.92) translateX(36px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateX(0);
+            }
+        }
+
+        /* Viewport Container */
         .viewport-container {
             flex: 1;
             overflow-y: auto;
             position: relative;
-            touch-action: pan-y;
-            transition: transform 0.22s ease-out, opacity 0.2s ease-out;
             scrollbar-width: thin;
             scrollbar-color: var(--bg-elevated) transparent;
+            padding-bottom: var(--bottom-nav-height);
         }
 
-        /* 1. Month View */
+        /* Month View */
         .month-view {
             display: flex;
             flex-direction: column;
@@ -222,9 +397,7 @@
         }
 
         .month-cell:nth-child(7n) { border-right: none; }
-        .month-cell.inactive { color: var(--text-muted); }
         .month-cell.inactive .date-number { color: var(--text-muted); }
-
         .month-cell.selected {
             outline: 2px solid #ffffff;
             outline-offset: -2px;
@@ -261,36 +434,12 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            display: flex;
-            align-items: center;
-            gap: 4px;
         }
 
-        .event-badge.birthday-badge {
-            background-color: var(--accent-birthday-badge);
-            color: var(--accent-birthday-text);
-            border-left: 2px solid #f06292;
-        }
-
-        /* 2. Week View */
-        .week-view {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .week-grid-container {
-            flex: 1;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .hourly-grid {
-            display: grid;
-            grid-template-columns: 50px repeat(7, 1fr);
-            position: relative;
-        }
-
+        /* Week View */
+        .week-view { display: flex; flex-direction: column; height: 100%; }
+        .week-grid-container { flex: 1; overflow-y: auto; position: relative; }
+        .hourly-grid { display: grid; grid-template-columns: 50px repeat(7, 1fr); position: relative; }
         .hour-label {
             font-size: 11px;
             color: var(--text-secondary);
@@ -299,16 +448,13 @@
             height: 60px;
             transform: translateY(-7px);
         }
-
         .hour-slot {
             height: 60px;
             border-top: 1px solid var(--border-subtle);
             border-right: 1px solid var(--border-subtle);
             position: relative;
         }
-
         .hour-slot:nth-child(8n) { border-right: none; }
-
         .time-now-line {
             position: absolute;
             left: 50px;
@@ -318,7 +464,6 @@
             z-index: 10;
             pointer-events: none;
         }
-
         .time-now-line::before {
             content: "";
             position: absolute;
@@ -330,22 +475,11 @@
             background-color: var(--timeline-indicator);
         }
 
-        /* 3. Day View */
-        .day-view-container {
-            display: flex;
-            height: 100%;
-            width: 100%;
-        }
-
-        .day-timeline {
-            flex: 1;
-            overflow-y: auto;
-            border-right: 1px solid var(--border-subtle);
-            position: relative;
-        }
-
+        /* Day View */
+        .day-view-container { display: flex; height: 100%; width: 100%; }
+        .day-timeline { flex: 1; overflow-y: auto; border-right: 1px solid var(--border-subtle); position: relative; }
         .day-details-panel {
-            width: 380px;
+            width: 360px;
             background-color: var(--bg-card);
             margin: 16px;
             border-radius: 16px;
@@ -368,23 +502,13 @@
             padding: 6px 10px;
             font-size: 12px;
             font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             cursor: pointer;
             z-index: 5;
         }
 
-        .day-event-block.birthday {
-            background: var(--accent-birthday-badge);
-            color: var(--accent-birthday-text);
-            border-left-color: #f06292;
-        }
-
-        /* 4. Schedule View */
-        .schedule-view {
-            padding: 20px 24px 80px;
-            max-width: 760px;
-            margin: 0 auto;
-        }
-
+        /* Schedule View */
+        .schedule-view { padding: 20px 24px 80px; max-width: 760px; margin: 0 auto; }
         .schedule-group { margin-bottom: 24px; }
         .schedule-group-header {
             font-size: 14px;
@@ -393,7 +517,6 @@
             margin-bottom: 10px;
             text-transform: uppercase;
         }
-
         .schedule-card {
             background: var(--bg-card);
             border: 1px solid var(--border-subtle);
@@ -404,31 +527,18 @@
             gap: 14px;
             margin-bottom: 8px;
             cursor: pointer;
-            transition: background 0.2s;
         }
-
-        .schedule-card:hover { background: var(--bg-elevated); }
         .schedule-color-bar {
             width: 4px;
             height: 38px;
             background: var(--accent-green);
             border-radius: 2px;
         }
-        .schedule-color-bar.birthday-bar { background: #f06292; }
-
         .schedule-content { flex: 1; }
-        .schedule-event-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-        .schedule-event-meta {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
+        .schedule-event-title { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+        .schedule-event-meta { font-size: 13px; color: var(--text-secondary); }
 
-        /* 5. Year View with Pinch-to-Open effect */
+        /* Year View */
         .year-view-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -436,27 +546,14 @@
             padding: 24px;
             overflow-y: auto;
         }
-
         .year-month-card {
             background-color: var(--bg-surface);
             border: 1px solid var(--border-subtle);
-            border-radius: 14px;
+            border-radius: 12px;
             padding: 12px;
             cursor: pointer;
-            transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1), background 0.2s ease;
         }
-
-        .year-month-card:active {
-            transform: scale(0.96);
-        }
-
-        .year-month-name {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-
+        .year-month-name { font-size: 14px; font-weight: 700; margin-bottom: 8px; text-align: center; }
         .mini-calendar {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -465,286 +562,227 @@
             text-align: center;
             color: var(--text-secondary);
         }
-
         .mini-calendar .sun { color: var(--accent-red); }
 
-        /* Floating Controls & Quick Input Bar */
-        .bottom-action-bar {
-            position: absolute;
-            bottom: 16px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 40;
-        }
-
-        .quick-input-capsule {
-            background: var(--bg-card);
-            border: 1px solid var(--border-strong);
-            border-radius: 30px;
-            padding: 0 16px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            width: 260px;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.6);
-        }
-
-        .quick-input-capsule input {
-            background: transparent;
-            border: none;
-            outline: none;
-            color: var(--text-primary);
-            font-size: 14px;
-            width: 100%;
-        }
-
-        .fab-btn {
-            background: var(--bg-elevated);
-            color: var(--text-primary);
-            border: 1px solid var(--border-strong);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.7);
-            transition: transform 0.15s ease;
-        }
-
-        .fab-btn:active { transform: scale(0.92); }
-        .fab-btn svg { width: 24px; height: 24px; }
-
-        /* Modal Sheet */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.75);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-sheet {
-            background: var(--bg-card);
-            border: 1px solid var(--border-strong);
-            width: 90%;
-            max-width: 440px;
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.8);
-        }
-
-        .modal-sheet h2 { font-size: 18px; margin-bottom: 16px; }
-        .form-field { margin-bottom: 14px; text-align: left; }
-        .form-field label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
-        .form-field input, .form-field select {
-            width: 100%;
-            background: var(--bg-canvas);
-            border: 1px solid var(--border-strong);
-            color: var(--text-primary);
-            padding: 12px;
-            border-radius: 10px;
-            outline: none;
-            font-size: 14px;
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .btn-ghost {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            padding: 10px 18px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: var(--text-primary);
-            color: #000000;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* ===== BIRTHDAY / EVENT DETAILS POPUP CARD (MATCHING SCREENSHOT) ===== */
-        .event-detail-popup-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.65);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 120;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-            backdrop-filter: blur(8px);
-        }
-
-        .event-detail-popup-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .event-detail-card {
-            background: #ffffff;
-            color: #1a1a1a;
-            width: 90%;
-            max-width: 410px;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
-            position: relative;
-            transform: translateY(20px) scale(0.96);
-            transition: transform 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-        }
-
-        .event-detail-popup-overlay.active .event-detail-card {
-            transform: translateY(0) scale(1);
-        }
-
-        .event-detail-header-art {
-            width: 100%;
-            height: 220px;
-            background-color: #ffdbe9;
-            background-position: center;
-            background-size: cover;
-            background-repeat: no-repeat;
-            position: relative;
-        }
-
-        .header-floating-btns {
-            position: absolute;
-            top: 14px;
-            left: 14px;
-            right: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .circle-icon-btn {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.4);
-            border: none;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            backdrop-filter: blur(4px);
-            transition: background 0.15s ease;
-        }
-
-        .circle-icon-btn:hover { background: rgba(0, 0, 0, 0.6); }
-
-        .event-detail-body {
-            background: #ffffff;
-            border-top-left-radius: 26px;
-            border-top-right-radius: 26px;
-            margin-top: -24px;
-            position: relative;
-            padding: 26px 24px 30px;
-        }
-
-        .event-title-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 4px;
-        }
-
-        .event-color-square {
-            width: 16px;
-            height: 16px;
-            background-color: #58cc02;
-            border-radius: 4px;
-        }
-
-        .event-detail-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #111111;
-        }
-
-        .event-detail-date-sub {
-            font-size: 15px;
-            color: #555555;
-            margin-left: 28px;
-            margin-bottom: 26px;
-            font-weight: 500;
-        }
-
-        .event-detail-row {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 18px;
-            color: #222222;
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .event-detail-row svg {
-            width: 22px;
-            height: 22px;
-            color: #444444;
-            flex-shrink: 0;
-        }
-
-        .event-detail-subtext {
-            display: block;
-            font-size: 13px;
-            color: #777777;
-            font-weight: 400;
-        }
-
-        /* Mobile Bottom Nav */
-        .mobile-bottom-nav {
-            display: none;
-            height: 58px;
-            background-color: var(--bg-canvas);
-            border-top: 1px solid var(--border-subtle);
-            width: 100%;
+        /* Modern Bottom Navigation Bar */
+        .bottom-nav-bar {
             position: absolute;
             bottom: 0;
             left: 0;
-            z-index: 50;
+            right: 0;
+            height: var(--bottom-nav-height);
+            background: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 10px;
+            z-index: 60;
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 60px;
+            height: 100%;
+            transition: color 0.15s ease;
+        }
+
+        .bottom-nav-item svg {
+            width: 22px;
+            height: 22px;
+            stroke-width: 2;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .bottom-nav-item.active {
+            color: #ffffff;
+        }
+
+        .bottom-nav-item.active svg {
+            transform: scale(1.15);
+            stroke: #ffffff;
+        }
+
+        /* Floating Action Button (FAB) */
+        .fab-btn {
+            position: absolute;
+            bottom: calc(var(--bottom-nav-height) + 16px);
+            right: 20px;
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            z-index: 55;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .fab-btn:active {
+            transform: scale(0.92);
+        }
+
+        .fab-btn svg {
+            width: 26px;
+            height: 26px;
+        }
+
+        /* Custom Project Creation Bottom Sheet (Styled directly from screenshot) */
+        .bottom-sheet-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(6px);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .bottom-sheet-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .bottom-sheet-modal {
+            background-color: #121212;
+            border-top: 1px solid #2d2d30;
+            border-radius: 28px 28px 0 0;
+            padding: 12px 24px 32px;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 580px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .bottom-sheet-overlay.active .bottom-sheet-modal {
+            transform: translateY(0);
+        }
+
+        .sheet-drag-handle {
+            width: 44px;
+            height: 5px;
+            background-color: #3e3e42;
+            border-radius: 3px;
+            margin: 6px auto 16px;
+        }
+
+        .sheet-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 22px;
+            position: relative;
+        }
+
+        .sheet-close-btn {
+            background: none;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+
+        .sheet-close-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .sheet-title {
+            font-size: 19px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .sheet-field-group {
+            margin-bottom: 20px;
+        }
+
+        .sheet-label {
+            font-size: 14px;
+            color: #a0a0a5;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        /* Screenshot exact highlight border style */
+        .sheet-input-box {
+            width: 100%;
+            background: #121212;
+            border: 2px solid var(--border-highlight);
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: #ffffff;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .sheet-textarea-box {
+            width: 100%;
+            background: #121212;
+            border: 1px solid #2d2d30;
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: #ffffff;
+            font-size: 15px;
+            outline: none;
+            min-height: 100px;
+            resize: none;
+        }
+
+        .sheet-textarea-box:focus {
+            border-color: #55555a;
+        }
+
+        .sheet-submit-btn {
+            width: 100%;
+            background: #444448;
+            color: #ffffff;
+            border: none;
+            border-radius: 28px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s ease;
+        }
+
+        .sheet-submit-btn:hover {
+            background: #5a5a60;
+        }
+
+        /* Responsive Adjustments */
+        @media (min-width: 769px) {
+            .bottom-nav-bar { display: none; }
+            .viewport-container { padding-bottom: 20px; }
+            .fab-btn { bottom: 24px; }
         }
 
         @media (max-width: 768px) {
             .sidebar-rail { display: none; }
-            .mobile-bottom-nav {
-                display: flex;
-                align-items: center;
-                justify-content: space-around;
-            }
-            .bottom-action-bar { bottom: 72px; right: 16px; }
-            .quick-input-capsule { display: none; }
             .day-details-panel { display: none; }
             .year-view-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px; }
         }
@@ -752,11 +790,8 @@
 </head>
 <body>
 
-    <!-- Left Sidebar Rail for Tablet/Desktop -->
+    <!-- Desktop Rail Bar (Hidden on Mobile) -->
     <aside class="sidebar-rail">
-        <button class="rail-btn" id="menuToggleBtn" title="Menu">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-        </button>
         <button class="rail-btn" data-view="year" title="Year">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
         </button>
@@ -772,15 +807,11 @@
         <button class="rail-btn" data-view="schedule" title="Schedule">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
         </button>
-        <div class="rail-spacer"></div>
-        <button class="rail-btn" id="logoutBtn" title="Account / Sign Out">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-        </button>
     </aside>
 
-    <!-- Main Workspace -->
+    <!-- Main Workspace Stage -->
     <main class="main-stage">
-        <!-- Top Bar -->
+        <!-- Top Navbar with Google-Style Profile on Right -->
         <header class="top-navbar">
             <div class="nav-left">
                 <div class="header-title-wrap">
@@ -797,121 +828,123 @@
                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </button>
                 <div class="today-chip" id="goTodayBtn" title="Today">22</div>
+
+                <!-- Google Top-Right Profile Trigger -->
+                <div class="profile-avatar-btn" id="profileTrigger" title="Account Menu">
+                    <span id="avatarInitials">U</span>
+                </div>
             </div>
         </header>
 
-        <!-- Dynamic Gesture-Enabled Viewport -->
-        <section class="viewport-container" id="calendarViewport"></section>
+        <!-- Viewport Container with Zoom Transitions -->
+        <section class="viewport-container" id="calendarViewport">
+            <!-- Dynamic view injected via JavaScript -->
+        </section>
 
-        <!-- Quick Input Capsule + Action FAB -->
-        <div class="bottom-action-bar">
-            <div class="quick-input-capsule">
-                <input type="text" id="quickEventInput" placeholder="Add event on 22 Oct" />
-            </div>
-            <button class="fab-btn" id="openAddModalBtn" title="Add Event">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+        <!-- Floating Plus Button -->
+        <button class="fab-btn" id="openAddModalBtn" title="Create Schedule / Project">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+        </button>
+
+        <!-- Mobile Modern Bottom Navigation Bar -->
+        <nav class="bottom-nav-bar">
+            <button class="bottom-nav-item" data-view="year">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span>Year</span>
             </button>
-        </div>
-
-        <!-- Mobile Bottom Navigation Bar -->
-        <nav class="mobile-bottom-nav">
-            <button class="rail-btn" data-view="year"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></button>
-            <button class="rail-btn active" data-view="month"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z M4 9h16"></path></svg></button>
-            <button class="rail-btn" data-view="week"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8"></path></svg></button>
-            <button class="rail-btn" data-view="day"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
-            <button class="rail-btn" data-view="schedule"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16"></path></svg></button>
+            <button class="bottom-nav-item active" data-view="month">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z M4 9h16"></path></svg>
+                <span>Month</span>
+            </button>
+            <button class="bottom-nav-item" data-view="week">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8"></path></svg>
+                <span>Week</span>
+            </button>
+            <button class="bottom-nav-item" data-view="day">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Day</span>
+            </button>
+            <button class="bottom-nav-item" data-view="schedule">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                <span>Schedule</span>
+            </button>
         </nav>
     </main>
 
-    <!-- Create Event Modal Sheet -->
-    <div class="modal-overlay" id="eventModal">
-        <div class="modal-sheet">
-            <h2>New Schedule</h2>
-            <form id="createEventForm">
-                <div class="form-field">
-                    <label>Title</label>
-                    <input type="text" id="eventTitle" placeholder="e.g. Birthday Party" required autocomplete="off" />
+    <!-- Google-Style Profile Pop-up Modal -->
+    <div class="profile-popup-overlay" id="profilePopupOverlay">
+        <div class="google-account-modal" id="googleAccountModal">
+            <div class="account-card-header">
+                <div class="popup-avatar-large" id="popupLargeAvatar">U</div>
+                <div class="popup-user-name" id="popupUserName">User Name</div>
+                <div class="popup-user-email" id="popupUserEmail">user@example.com</div>
+                <div class="popup-account-type">Perplexity Pro Account</div>
+            </div>
+
+            <div class="account-menu-list">
+                <!-- Switch Account with saved accounts list -->
+                <div class="account-menu-item" id="switchAccountBtn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    <span>Switch Account</span>
                 </div>
-                <div class="form-field">
-                    <label>Date & Time</label>
-                    <input type="datetime-local" id="eventDateTime" required />
+
+                <div class="account-menu-item" id="settingsBtn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span>Settings</span>
                 </div>
-                <div class="form-field">
-                    <label>Duration</label>
-                    <select id="eventDuration">
-                        <option value="All Day">All Day</option>
-                        <option value="1 Hour" selected>1 Hour</option>
-                        <option value="2 Hours">2 Hours</option>
-                        <option value="3 Hours">3 Hours</option>
-                    </select>
+
+                <div class="account-menu-item" id="logoutMenuItem" style="color: var(--accent-red);">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span>Sign Out</span>
                 </div>
-                <div class="form-field">
-                    <label>Category Type</label>
-                    <select id="eventType">
-                        <option value="Schedule">Schedule</option>
-                        <option value="Birthday">Birthday 🎂</option>
-                        <option value="Meeting">Meeting</option>
-                        <option value="Task">Task</option>
-                    </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Project / Schedule Bottom Sheet (Matches Attached Image) -->
+    <div class="bottom-sheet-overlay" id="createSheetOverlay">
+        <div class="bottom-sheet-modal">
+            <div class="sheet-drag-handle"></div>
+            <div class="sheet-header">
+                <button class="sheet-close-btn" id="closeSheetBtn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <div class="sheet-title">Create a project</div>
+            </div>
+
+            <form id="createProjectForm">
+                <div class="sheet-field-group">
+                    <label class="sheet-label">What are you working on?</label>
+                    <input type="text" class="sheet-input-box" id="projectNameInput" placeholder="Name your project" required autocomplete="off" />
                 </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn-ghost" id="cancelModalBtn">Cancel</button>
-                    <button type="submit" class="btn-primary" id="saveEventBtn">Save</button>
+
+                <div class="sheet-field-group">
+                    <label class="sheet-label">What are you trying to achieve?</label>
+                    <textarea class="sheet-textarea-box" id="projectDescInput" placeholder="Describe your project, goals, subject, etc..."></textarea>
                 </div>
+
+                <div class="sheet-field-group" style="display: flex; gap: 12px;">
+                    <div style="flex: 1;">
+                        <label class="sheet-label">Date & Time</label>
+                        <input type="datetime-local" class="sheet-textarea-box" style="min-height: auto; padding: 10px;" id="projectDateTime" required />
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="sheet-label">Duration</label>
+                        <select class="sheet-textarea-box" style="min-height: auto; padding: 10px;" id="projectDuration">
+                            <option value="1 Hour">1 Hour</option>
+                            <option value="2 Hours" selected>2 Hours</option>
+                            <option value="3 Hours">3 Hours</option>
+                            <option value="All Day">All Day</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="sheet-submit-btn" id="submitProjectBtn">Create project</button>
             </form>
         </div>
     </div>
 
-    <!-- BIRTHDAY / EVENT DETAILS POPUP (Exact layout from screenshot) -->
-    <div class="event-detail-popup-overlay" id="detailPopupOverlay">
-        <div class="event-detail-card">
-            <!-- Festive illustration banner from image link -->
-            <div class="event-detail-header-art" id="detailHeaderArt">
-                <div class="header-floating-btns">
-                    <button class="circle-icon-btn" id="closeDetailPopupBtn" title="Close">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="circle-icon-btn" id="editDetailEventBtn" title="Edit">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                        </button>
-                        <button class="circle-icon-btn" id="deleteDetailEventBtn" title="Delete">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Popup Card Content -->
-            <div class="event-detail-body">
-                <div class="event-title-row">
-                    <div class="event-color-square" id="detailColorSquare"></div>
-                    <div class="event-detail-title" id="detailTitleText">Happy birthday!</div>
-                </div>
-                <div class="event-detail-date-sub" id="detailDateSub">4 Mar 2009</div>
-
-                <div class="event-detail-row">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                    <span id="detailNotificationText">On the day at 9 am</span>
-                </div>
-
-                <div class="event-detail-row">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                    <span>Only me</span>
-                </div>
-
-                <div class="event-detail-row">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    <div>
-                        <span id="detailCategoryLabel">Birthdays</span>
-                        <span class="event-detail-subtext" id="detailEmailSubtext">user@perplexity.com</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Firebase SDK v10 Modular -->
+    <!-- Firebase v10 Modular Integration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { 
@@ -921,12 +954,12 @@
             onSnapshot, 
             Timestamp, 
             query, 
-            where, 
-            deleteDoc, 
-            doc 
+            where,
+            deleteDoc,
+            doc
         } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Provided Firebase configuration
+        // Firebase Configuration for collection `data.sheet`
         const firebaseConfig = {
             apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
             authDomain: "cloud-computer-4891a.firebaseapp.com",
@@ -940,64 +973,118 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Verification with your Authentication System
+        // Retrieve Active User from Login System
         let activeUser = null;
         try {
-            const stored = localStorage.getItem('active_user');
-            if (stored) activeUser = JSON.parse(stored);
+            const rawUser = localStorage.getItem('active_user');
+            if (rawUser) {
+                activeUser = JSON.parse(rawUser);
+            }
         } catch (e) {
             console.error("Local storage error:", e);
         }
 
+        // Redirect to Login if not found
         if (!activeUser || !activeUser.Email) {
             window.location.href = "1.html?continue=" + encodeURIComponent(window.location.href);
         }
 
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            if (confirm(`Logged in as ${activeUser.Email}. Sign out?`)) {
+        // Setup Top-Right Google Profile Card
+        function initUserProfile() {
+            const name = activeUser["First Name"] || activeUser.Email.split('@')[0];
+            const email = activeUser.Email;
+            const profilePic = activeUser["Profile_Picture"] || activeUser["Profile Picture"];
+
+            const avatarTrigger = document.getElementById('profileTrigger');
+            const popupLargeAvatar = document.getElementById('popupLargeAvatar');
+
+            document.getElementById('popupUserName').innerText = name;
+            document.getElementById('popupUserEmail').innerText = email;
+
+            if (profilePic) {
+                avatarTrigger.innerHTML = `<img src="${profilePic}" alt="${name}" />`;
+                popupLargeAvatar.innerHTML = `<img src="${profilePic}" alt="${name}" />`;
+            } else {
+                const initial = name.charAt(0).toUpperCase();
+                avatarTrigger.innerText = initial;
+                popupLargeAvatar.innerText = initial;
+            }
+        }
+        initUserProfile();
+
+        // Profile Popup Actions
+        const profilePopupOverlay = document.getElementById('profilePopupOverlay');
+        document.getElementById('profileTrigger').addEventListener('click', (e) => {
+            e.stopPropagation();
+            profilePopupOverlay.classList.toggle('active');
+        });
+
+        profilePopupOverlay.addEventListener('click', (e) => {
+            if (e.target === profilePopupOverlay) {
+                profilePopupOverlay.classList.remove('active');
+            }
+        });
+
+        // Switch Account (Direct integration with your 3.html or localStorage saved_accounts)
+        document.getElementById('switchAccountBtn').addEventListener('click', () => {
+            let saved = [];
+            try {
+                saved = JSON.parse(localStorage.getItem('saved_accounts') || '[]');
+            } catch(e) {}
+
+            if (saved.length > 1) {
+                const otherAccounts = saved.filter(a => a.email !== activeUser.Email);
+                const switchTarget = otherAccounts[0];
+                if (confirm(`Switch to saved account ${switchTarget.email}?`)) {
+                    localStorage.setItem('active_user', JSON.stringify({
+                        Email: switchTarget.email,
+                        "First Name": switchTarget.firstName,
+                        Lotus: switchTarget.lotus
+                    }));
+                    window.location.reload();
+                    return;
+                }
+            }
+            window.location.href = "3.html";
+        });
+
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            alert(`Settings:\nAccount: ${activeUser.Email}\nTheme: Dark AMOLED\nCloud Sync: Active (cloud-computer-4891a)`);
+        });
+
+        document.getElementById('logoutMenuItem').addEventListener('click', () => {
+            if (confirm(`Sign out from ${activeUser.Email}?`)) {
                 localStorage.removeItem('active_user');
                 window.location.href = "1.html";
             }
         });
 
-        // App State
+        // Application State
         let currentDate = new Date();
         let selectedDate = new Date();
-        let currentView = 'month'; // 'year' | 'month' | 'week' | 'day' | 'schedule'
+        let currentView = 'month';
         let firestoreEvents = [];
-        let activeSelectedEvent = null;
+        let zoomDirection = 'zoom-left-to-right'; // zoom animation class
 
-        // Birthday Banner image URL provided
-        const BIRTHDAY_BANNER_URL = "https://i.ibb.co/rGPwqryk/cd578f3c97c943f2448bc5847fef22a70df0bdf06da9dd7b10500ffd2d8ccbae.png";
+        const viewport = document.getElementById('calendarViewport');
+        const headerMonth = document.getElementById('displayHeaderMonth');
+        const headerYear = document.getElementById('displayHeaderYear');
 
-        // Parse user Date of Birth from UARM document (e.g., "1/03/2000" or "04/03/2009")
-        let userBirthdayParsed = null;
-        const rawDOB = activeUser["Date of Birth"] || activeUser["Date_of_Birth"] || activeUser["DOB"];
-        if (rawDOB) {
-            const parts = rawDOB.split(/[\/\-\.]/);
-            if (parts.length === 3) {
-                // DD/MM/YYYY
-                const day = parseInt(parts[0], 10);
-                const month = parseInt(parts[1], 10) - 1;
-                const year = parseInt(parts[2], 10);
-                userBirthdayParsed = { day, month, birthYear: year };
-            }
-        }
-
-        // Initialize Today Chip
+        // Today chip
         const todayChip = document.getElementById('goTodayBtn');
         todayChip.innerText = new Date().getDate();
         todayChip.addEventListener('click', () => {
             currentDate = new Date();
             selectedDate = new Date();
+            triggerZoom('left');
             renderActiveView();
         });
 
-        // Realtime Firestore Listener
+        // Realtime Firestore Listener on `data.sheet`
         const eventsRef = collection(db, "data.sheet");
-        const userEventsQuery = query(eventsRef, where("Email", "==", activeUser.Email));
+        const userQuery = query(eventsRef, where("Email", "==", activeUser.Email));
 
-        onSnapshot(userEventsQuery, (snapshot) => {
+        onSnapshot(userQuery, (snapshot) => {
             firestoreEvents = [];
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
@@ -1011,37 +1098,33 @@
 
                 firestoreEvents.push({
                     id: docSnap.id,
-                    name: data.Name || "Untitled Schedule",
-                    duration: data.Duration || "1 Hour",
+                    name: data.Name || "Untitled Project",
+                    duration: data.Duration || "2 Hours",
                     type: data.Type || "Schedule",
                     email: data.Email,
                     date: dateObj || new Date()
                 });
             });
 
-            // If user has a registered Date of Birth in their UARM profile, automatically inject their birthday
-            if (userBirthdayParsed) {
-                const bdayDateThisYear = new Date(currentDate.getFullYear(), userBirthdayParsed.month, userBirthdayParsed.day, 9, 0);
-                firestoreEvents.push({
-                    id: 'uarm_profile_birthday',
-                    name: `Happy birthday! ${activeUser["First Name"] || ""}`.trim(),
-                    duration: "All Day",
-                    type: "Birthday",
-                    email: activeUser.Email,
-                    date: bdayDateThisYear,
-                    isProfileBirthday: true,
-                    birthYear: userBirthdayParsed.birthYear
-                });
-            }
-
             renderActiveView();
         }, (err) => {
             console.error("Firestore error:", err);
         });
 
-        // Period navigation
-        document.getElementById('prevPeriodBtn').addEventListener('click', () => changePeriod(-1));
-        document.getElementById('nextPeriodBtn').addEventListener('click', () => changePeriod(1));
+        // Navigation with Left-to-Right Zoom
+        function triggerZoom(direction) {
+            zoomDirection = (direction === 'left') ? 'zoom-left-to-right' : 'zoom-right-to-left';
+        }
+
+        document.getElementById('prevPeriodBtn').addEventListener('click', () => {
+            triggerZoom('left');
+            changePeriod(-1);
+        });
+
+        document.getElementById('nextPeriodBtn').addEventListener('click', () => {
+            triggerZoom('right');
+            changePeriod(1);
+        });
 
         function changePeriod(delta) {
             if (currentView === 'year') {
@@ -1057,48 +1140,66 @@
             renderActiveView();
         }
 
-        // View switching
-        const viewButtons = document.querySelectorAll('[data-view]');
-        viewButtons.forEach(btn => {
-            btn.addEventListener('click', () => setView(btn.dataset.view));
+        // View Switchers (Sidebar Rail & Bottom Nav)
+        const allViewButtons = document.querySelectorAll('[data-view]');
+        allViewButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetView = btn.dataset.view;
+                triggerZoom('left');
+                setView(targetView);
+            });
         });
 
         function setView(viewName) {
             currentView = viewName;
-            viewButtons.forEach(b => {
-                if (b.dataset.view === viewName) b.classList.add('active');
-                else b.classList.remove('active');
+            allViewButtons.forEach(b => {
+                if (b.dataset.view === viewName) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
             });
             renderActiveView();
         }
-
-        // Header Labels
-        const viewport = document.getElementById('calendarViewport');
-        const headerMonth = document.getElementById('displayHeaderMonth');
-        const headerYear = document.getElementById('displayHeaderYear');
 
         function updateHeaderLabels() {
             const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEPT", "OCT", "NOV", "DEC"];
             headerMonth.innerText = months[currentDate.getMonth()];
             headerYear.innerText = currentDate.getFullYear();
-            document.getElementById('quickEventInput').placeholder = `Add event on ${selectedDate.getDate()} ${months[selectedDate.getMonth()]}`;
         }
 
         function renderActiveView() {
             updateHeaderLabels();
             viewport.innerHTML = "";
 
+            const animatedWrapper = document.createElement('div');
+            animatedWrapper.className = zoomDirection;
+            animatedWrapper.style.height = '100%';
+            animatedWrapper.style.width = '100%';
+
             switch (currentView) {
-                case 'month': renderMonthView(); break;
-                case 'week': renderWeekView(); break;
-                case 'day': renderDayView(); break;
-                case 'schedule': renderScheduleView(); break;
-                case 'year': renderYearView(); break;
+                case 'month':
+                    renderMonthView(animatedWrapper);
+                    break;
+                case 'week':
+                    renderWeekView(animatedWrapper);
+                    break;
+                case 'day':
+                    renderDayView(animatedWrapper);
+                    break;
+                case 'schedule':
+                    renderScheduleView(animatedWrapper);
+                    break;
+                case 'year':
+                    renderYearView(animatedWrapper);
+                    break;
             }
+
+            viewport.appendChild(animatedWrapper);
         }
 
-        /* 1. Month View */
-        function renderMonthView() {
+        /* --- 1. Month View --- */
+        function renderMonthView(parent) {
             const container = document.createElement('div');
             container.className = 'month-view';
 
@@ -1145,34 +1246,33 @@
                 numEl.innerText = dayNumber;
                 cell.appendChild(numEl);
 
-                // Add event badges
+                // Add Real-time Cloud Events
                 const dayEvents = firestoreEvents.filter(ev => isSameDay(ev.date, cellDate));
                 dayEvents.forEach(ev => {
                     const badge = document.createElement('div');
-                    const isBday = ev.type === "Birthday" || ev.isProfileBirthday;
-                    badge.className = `event-badge ${isBday ? 'birthday-badge' : ''}`;
-                    badge.innerText = isBday ? `🎂 ${ev.name}` : ev.name;
+                    badge.className = 'event-badge';
+                    badge.innerText = ev.name;
                     badge.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        openDetailPopup(ev);
+                        deleteEventModal(ev);
                     });
                     cell.appendChild(badge);
                 });
 
                 cell.addEventListener('click', () => {
                     selectedDate = cellDate;
-                    renderMonthView();
+                    renderMonthView(parent);
                 });
 
                 grid.appendChild(cell);
             }
 
             container.appendChild(grid);
-            viewport.appendChild(container);
+            parent.appendChild(container);
         }
 
-        /* 2. Week View */
-        function renderWeekView() {
+        /* --- 2. Week View --- */
+        function renderWeekView(parent) {
             const container = document.createElement('div');
             container.className = 'week-view';
 
@@ -1215,7 +1315,7 @@
                 }
             }
 
-            // Real-time coral line
+            // Real-time timeline indicator
             const now = new Date();
             const minutesFromMidnight = now.getHours() * 60 + now.getMinutes();
             const line = document.createElement('div');
@@ -1225,12 +1325,13 @@
 
             gridContainer.appendChild(grid);
             container.appendChild(gridContainer);
-            viewport.appendChild(container);
+            parent.appendChild(container);
+
             gridContainer.scrollTop = Math.max(0, minutesFromMidnight - 120);
         }
 
-        /* 3. Day View */
-        function renderDayView() {
+        /* --- 3. Day View --- */
+        function renderDayView(parent) {
             const container = document.createElement('div');
             container.className = 'day-view-container';
 
@@ -1251,20 +1352,21 @@
 
                 const slot = document.createElement('div');
                 slot.style.flex = '1';
+                slot.style.position = 'relative';
                 row.appendChild(slot);
+
                 timeline.appendChild(row);
             }
 
             const dayEvents = firestoreEvents.filter(ev => isSameDay(ev.date, selectedDate));
             dayEvents.forEach(ev => {
                 const block = document.createElement('div');
-                const isBday = ev.type === "Birthday" || ev.isProfileBirthday;
-                block.className = `day-event-block ${isBday ? 'birthday' : ''}`;
+                block.className = 'day-event-block';
                 const startMins = ev.date.getHours() * 60 + ev.date.getMinutes();
                 block.style.top = `${startMins}px`;
                 block.style.height = '50px';
-                block.innerHTML = `<strong>${isBday ? '🎂 ' : ''}${ev.name}</strong> · ${ev.duration}`;
-                block.addEventListener('click', () => openDetailPopup(ev));
+                block.innerHTML = `<strong>${ev.name}</strong> · ${ev.duration}`;
+                block.addEventListener('click', () => deleteEventModal(ev));
                 timeline.appendChild(block);
             });
 
@@ -1275,13 +1377,13 @@
             if (dayEvents.length === 0) {
                 detailsPanel.innerHTML = `
                     <div style="font-size: 18px; font-weight:600; color:var(--text-secondary); margin-bottom: 8px;">No event selected</div>
-                    <div style="font-size: 13px; color:var(--text-muted);">Tap + below to create a schedule or birthday</div>
+                    <div style="font-size: 13px; color:var(--text-muted);">Tap + below to add a schedule</div>
                 `;
             } else {
                 detailsPanel.innerHTML = `
-                    <h3 style="font-size:16px; margin-bottom:12px; color:var(--accent-green);">${dayEvents.length} Event(s) Today</h3>
+                    <h3 style="font-size:16px; margin-bottom:12px; color:var(--accent-green);">${dayEvents.length} Schedule(s)</h3>
                     ${dayEvents.map(e => `
-                        <div style="background:var(--bg-canvas); border-radius:10px; padding:12px; margin-bottom:8px; width:100%; text-align:left; cursor:pointer;" onclick="window.triggerPopup('${e.id}')">
+                        <div style="background:var(--bg-canvas); border-radius:10px; padding:12px; margin-bottom:8px; width:100%; text-align:left;">
                             <div style="font-weight:600; font-size:14px;">${e.name}</div>
                             <div style="font-size:12px; color:var(--text-secondary);">${e.duration} · ${e.type}</div>
                         </div>
@@ -1289,11 +1391,11 @@
                 `;
             }
             container.appendChild(detailsPanel);
-            viewport.appendChild(container);
+            parent.appendChild(container);
         }
 
-        /* 4. Schedule View */
-        function renderScheduleView() {
+        /* --- 4. Schedule View --- */
+        function renderScheduleView(parent) {
             const container = document.createElement('div');
             container.className = 'schedule-view';
 
@@ -1304,7 +1406,7 @@
                         <p style="color: var(--text-secondary); font-size: 14px;">Enjoy your day!</p>
                     </div>
                 `;
-                viewport.appendChild(container);
+                parent.appendChild(container);
                 return;
             }
 
@@ -1327,26 +1429,24 @@
                 list.forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'schedule-card';
-                    const isBday = item.type === "Birthday" || item.isProfileBirthday;
                     card.innerHTML = `
-                        <div class="schedule-color-bar ${isBday ? 'birthday-bar' : ''}"></div>
+                        <div class="schedule-color-bar"></div>
                         <div class="schedule-content">
-                            <div class="schedule-event-title">${isBday ? '🎂 ' : ''}${item.name}</div>
+                            <div class="schedule-event-title">${item.name}</div>
                             <div class="schedule-event-meta">${item.date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} · ${item.duration} · ${item.type}</div>
                         </div>
                     `;
-                    card.addEventListener('click', () => openDetailPopup(item));
+                    card.addEventListener('click', () => deleteEventModal(item));
                     group.appendChild(card);
                 });
 
                 container.appendChild(group);
             }
-
-            viewport.appendChild(container);
+            parent.appendChild(container);
         }
 
-        /* 5. Year View with Pinch-to-Open Month */
-        function renderYearView() {
+        /* --- 5. Year View --- */
+        function renderYearView(parent) {
             const container = document.createElement('div');
             container.className = 'year-view-grid';
 
@@ -1376,240 +1476,76 @@
                 }
 
                 card.appendChild(mini);
-
-                // Clicking or tapping month opens it
                 card.addEventListener('click', () => {
                     currentDate.setMonth(mIdx);
+                    triggerZoom('left');
                     setView('month');
                 });
 
                 container.appendChild(card);
             });
-
-            viewport.appendChild(container);
+            parent.appendChild(container);
         }
 
-        // ================= POPUP CARD DISPLAY LOGIC =================
-        const detailPopup = document.getElementById('detailPopupOverlay');
-        const detailHeaderArt = document.getElementById('detailHeaderArt');
-        const detailTitle = document.getElementById('detailTitleText');
-        const detailDateSub = document.getElementById('detailDateSub');
-        const detailCategoryLabel = document.getElementById('detailCategoryLabel');
-        const detailEmailSubtext = document.getElementById('detailEmailSubtext');
-        const detailColorSquare = document.getElementById('detailColorSquare');
-        const closeDetailBtn = document.getElementById('closeDetailPopupBtn');
-        const deleteDetailBtn = document.getElementById('deleteDetailEventBtn');
+        // Bottom Sheet Creation Form (Matches Screenshot)
+        const sheetOverlay = document.getElementById('createSheetOverlay');
+        const openSheetBtn = document.getElementById('openAddModalBtn');
+        const closeSheetBtn = document.getElementById('closeSheetBtn');
+        const createProjectForm = document.getElementById('createProjectForm');
 
-        function openDetailPopup(eventItem) {
-            activeSelectedEvent = eventItem;
-            const isBday = eventItem.type === "Birthday" || eventItem.isProfileBirthday;
-
-            // Set Header Art
-            if (isBday) {
-                detailHeaderArt.style.backgroundImage = `url('${BIRTHDAY_BANNER_URL}')`;
-                detailHeaderArt.style.display = "block";
-                detailColorSquare.style.backgroundColor = "#58cc02";
-                detailCategoryLabel.innerText = "Birthdays";
-            } else {
-                // Non-birthday uses clean dark/accent banner
-                detailHeaderArt.style.backgroundImage = "none";
-                detailHeaderArt.style.backgroundColor = "#242426";
-                detailColorSquare.style.backgroundColor = "#30d158";
-                detailCategoryLabel.innerText = eventItem.type || "Schedule";
-            }
-
-            detailTitle.innerText = eventItem.name;
-
-            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            const yearStr = eventItem.birthYear ? eventItem.birthYear : eventItem.date.getFullYear();
-            detailDateSub.innerText = `${eventItem.date.getDate()} ${months[eventItem.date.getMonth()]} ${yearStr}`;
-
-            detailEmailSubtext.innerText = eventItem.email || activeUser.Email;
-            detailPopup.classList.add('active');
-        }
-
-        closeDetailBtn.addEventListener('click', () => {
-            detailPopup.classList.remove('active');
-        });
-
-        detailPopup.addEventListener('click', (e) => {
-            if (e.target === detailPopup) detailPopup.classList.remove('active');
-        });
-
-        // Delete Event from Firestore
-        deleteDetailBtn.addEventListener('click', async () => {
-            if (!activeSelectedEvent) return;
-            if (activeSelectedEvent.isProfileBirthday) {
-                alert("This birthday is automatically loaded from your profile account.");
-                detailPopup.classList.remove('active');
-                return;
-            }
-
-            if (confirm(`Delete "${activeSelectedEvent.name}"?`)) {
-                try {
-                    await deleteDoc(doc(db, "data.sheet", activeSelectedEvent.id));
-                    detailPopup.classList.remove('active');
-                } catch (err) {
-                    console.error("Delete failed:", err);
-                }
-            }
-        });
-
-        window.triggerPopup = (id) => {
-            const ev = firestoreEvents.find(e => e.id === id);
-            if (ev) openDetailPopup(ev);
-        };
-
-        // ================= SMART GESTURE CONTROLS =================
-        // Pinch-to-zoom (Year <-> Month <-> Week <-> Day) & Swipe left/right
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let initialPinchDist = 0;
-        let isPinching = false;
-
-        const viewHierarchy = ['year', 'month', 'week', 'day'];
-
-        viewport.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) {
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-            } else if (e.touches.length === 2) {
-                isPinching = true;
-                initialPinchDist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-            }
-        }, { passive: true });
-
-        viewport.addEventListener('touchmove', (e) => {
-            if (isPinching && e.touches.length === 2) {
-                const currentDist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-                const scale = currentDist / initialPinchDist;
-                // Subtle scale feedback
-                viewport.style.transform = `scale(${Math.min(Math.max(scale, 0.9), 1.1)})`;
-            }
-        }, { passive: true });
-
-        viewport.addEventListener('touchend', (e) => {
-            viewport.style.transform = '';
-
-            // Handle Pinch-to-open (zoom in) or Pinch-in (zoom out)
-            if (isPinching) {
-                isPinching = false;
-                if (e.changedTouches.length >= 1 && initialPinchDist > 0) {
-                    // Check pinch ratio
-                    const finalDist = Math.hypot(
-                        (e.touches[0]?.clientX || e.changedTouches[0].clientX) - (e.touches[1]?.clientX || e.changedTouches[0].clientX),
-                        (e.touches[0]?.clientY || e.changedTouches[0].clientY) - (e.touches[1]?.clientY || e.changedTouches[0].clientY)
-                    );
-
-                    const currentIndex = viewHierarchy.indexOf(currentView);
-
-                    // Pinch-out / Expand -> Zoom In (e.g., Year -> Month -> Week -> Day)
-                    if (finalDist > initialPinchDist * 1.35) {
-                        if (currentIndex !== -1 && currentIndex < viewHierarchy.length - 1) {
-                            setView(viewHierarchy[currentIndex + 1]);
-                        }
-                    }
-                    // Pinch-in / Collapse -> Zoom Out (e.g., Day -> Week -> Month -> Year)
-                    else if (finalDist < initialPinchDist * 0.75) {
-                        if (currentIndex > 0) {
-                            setView(viewHierarchy[currentIndex - 1]);
-                        }
-                    }
-                }
-                return;
-            }
-
-            // Handle Horizontal Swiping (Single finger navigation)
-            if (e.changedTouches.length === 1) {
-                const touchEndX = e.changedTouches[0].clientX;
-                const touchEndY = e.changedTouches[0].clientY;
-                const deltaX = touchEndX - touchStartX;
-                const deltaY = touchEndY - touchStartY;
-
-                // Detect horizontal swipe
-                if (Math.abs(deltaX) > 60 && Math.abs(deltaY) < 50) {
-                    if (deltaX < 0) {
-                        // Swipe left -> Next period
-                        changePeriod(1);
-                    } else {
-                        // Swipe right -> Prev period
-                        changePeriod(-1);
-                    }
-                }
-            }
-        }, { passive: true });
-
-        // ================= CREATION MODAL LOGIC =================
-        const modal = document.getElementById('eventModal');
-        const openModalBtn = document.getElementById('openAddModalBtn');
-        const closeModalBtn = document.getElementById('cancelModalBtn');
-        const createEventForm = document.getElementById('createEventForm');
-
-        openModalBtn.addEventListener('click', () => {
+        openSheetBtn.addEventListener('click', () => {
             const pad = (n) => String(n).padStart(2, '0');
-            const dtString = `${selectedDate.getFullYear()}-${pad(selectedDate.getMonth() + 1)}-${pad(selectedDate.getDate())}T09:00`;
-            document.getElementById('eventDateTime').value = dtString;
-            modal.classList.add('active');
+            const dtString = `${selectedDate.getFullYear()}-${pad(selectedDate.getMonth() + 1)}-${pad(selectedDate.getDate())}T10:00`;
+            document.getElementById('projectDateTime').value = dtString;
+            sheetOverlay.classList.add('active');
         });
 
-        closeModalBtn.addEventListener('click', () => modal.classList.remove('active'));
+        closeSheetBtn.addEventListener('click', () => {
+            sheetOverlay.classList.remove('active');
+        });
 
-        createEventForm.addEventListener('submit', async (e) => {
+        sheetOverlay.addEventListener('click', (e) => {
+            if (e.target === sheetOverlay) {
+                sheetOverlay.classList.remove('active');
+            }
+        });
+
+        createProjectForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const title = document.getElementById('eventTitle').value.trim();
-            const dtValue = document.getElementById('eventDateTime').value;
-            const duration = document.getElementById('eventDuration').value;
-            const type = document.getElementById('eventType').value;
+            const name = document.getElementById('projectNameInput').value.trim();
+            const dtValue = document.getElementById('projectDateTime').value;
+            const duration = document.getElementById('projectDuration').value;
 
-            if (!title || !dtValue) return;
+            if (!name || !dtValue) return;
 
-            const saveBtn = document.getElementById('saveEventBtn');
-            saveBtn.innerText = "Saving...";
+            const submitBtn = document.getElementById('submitProjectBtn');
+            submitBtn.innerText = "Creating...";
 
             try {
+                // Cloud Firestore `data.sheet` Document
                 await addDoc(collection(db, "data.sheet"), {
-                    Name: title,
+                    Name: name,
                     Date_Time: Timestamp.fromDate(new Date(dtValue)),
                     Duration: duration,
-                    Type: type,
+                    Type: "Schedule",
                     Email: activeUser.Email
                 });
 
-                createEventForm.reset();
-                modal.classList.remove('active');
+                createProjectForm.reset();
+                sheetOverlay.classList.remove('active');
             } catch (err) {
-                console.error("Firestore save error:", err);
-                alert("Error saving event.");
+                console.error("Firestore creation error:", err);
+                alert("Failed to save schedule.");
             } finally {
-                saveBtn.innerText = "Save";
+                submitBtn.innerText = "Create project";
             }
         });
 
-        // Quick Input Capsule
-        document.getElementById('quickEventInput').addEventListener('keypress', async (e) => {
-            if (e.key === 'Enter') {
-                const text = e.target.value.trim();
-                if (!text) return;
-                try {
-                    await addDoc(collection(db, "data.sheet"), {
-                        Name: text,
-                        Date_Time: Timestamp.fromDate(selectedDate),
-                        Duration: "1 Hour",
-                        Type: "Schedule",
-                        Email: activeUser.Email
-                    });
-                    e.target.value = '';
-                } catch (err) {
-                    console.error("Quick add error:", err);
-                }
+        function deleteEventModal(ev) {
+            if (confirm(`Schedule: "${ev.name}"\nDuration: ${ev.duration}\nTime: ${ev.date.toLocaleString()}\n\nDo you want to delete this schedule?`)) {
+                deleteDoc(doc(db, "data.sheet", ev.id)).catch(err => console.error("Delete error:", err));
             }
-        });
+        }
 
         function isSameDay(d1, d2) {
             return d1.getFullYear() === d2.getFullYear() &&
@@ -1617,6 +1553,7 @@
                    d1.getDate() === d2.getDate();
         }
 
+        // Run
         renderActiveView();
     </script>
 </body>
