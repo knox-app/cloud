@@ -16,7 +16,7 @@
             --text-secondary: #6b7280;
             --border-color: #e5e7eb;
             --hover-bg: #f3f4f6;
-            --btn-dark-bg: #0d0d0d;
+            --btn-dark-bg: #000000;
             --btn-dark-text: #ffffff;
             --accent: #111827;
             --danger: #ef4444;
@@ -25,27 +25,28 @@
             --selection-bg: #111827;
             --selection-text: #ffffff;
             --select-highlight: rgba(0, 0, 0, 0.05);
-            --sidebar-width: 64px;
+            --sidebar-width: 230px;
             --folder-default-color: #e57373;
         }
 
+        /* AMOLED Pure Black Dark Theme */
         body.dark {
-            --bg-color: #0d0d0d;
-            --surface-color: #171717;
-            --card-bg: #1e1e1e;
+            --bg-color: #000000;
+            --surface-color: #000000;
+            --card-bg: #0a0a0a;
             --text-primary: #f9fafb;
-            --text-secondary: #9ca3af;
-            --border-color: #262626;
-            --hover-bg: #262626;
+            --text-secondary: #8e8e93;
+            --border-color: #1a1a1a;
+            --hover-bg: #141414;
             --btn-dark-bg: #ffffff;
-            --btn-dark-text: #0d0d0d;
-            --accent: #f9fafb;
+            --btn-dark-text: #000000;
+            --accent: #ffffff;
             --danger: #f87171;
-            --tag-bg: #2d2d2d;
+            --tag-bg: #1a1a1a;
             --tag-text: #d1d5db;
-            --selection-bg: #1e1e1e;
-            --selection-text: #f9fafb;
-            --select-highlight: rgba(255, 255, 255, 0.06);
+            --selection-bg: #171717;
+            --selection-text: #ffffff;
+            --select-highlight: rgba(255, 255, 255, 0.07);
             --folder-default-color: #ef5350;
         }
 
@@ -61,35 +62,103 @@
             transition: background-color 0.2s, color 0.2s;
         }
 
-        /* Sidebar */
+        /* Expanded Desktop Sidebar */
         aside.sidebar {
             width: var(--sidebar-width);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 20px 0;
-            gap: 16px;
+            padding: 24px 16px;
             flex-shrink: 0;
             background: var(--surface-color);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            justify-content: space-between;
         }
 
-        .side-icon {
-            width: 38px;
-            height: 38px;
+        .sidebar-brand {
             display: flex;
             align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
+            gap: 12px;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            padding-left: 8px;
+            color: var(--text-primary);
         }
-        .side-icon:hover, .side-icon.active {
+        .sidebar-brand svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+        .nav-item svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+        .nav-item:hover {
             background-color: var(--hover-bg);
             color: var(--text-primary);
         }
-        .side-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+        .nav-item.active {
+            background-color: var(--hover-bg);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .sidebar-bottom {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 14px;
+        }
+
+        /* Mobile Bottom Nav Bar */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--surface-color);
+            border-top: 1px solid var(--border-color);
+            z-index: 1000;
+            justify-content: space-around;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        .mobile-nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 500;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px 12px;
+            transition: color 0.15s ease;
+        }
+        .mobile-nav-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+        .mobile-nav-btn.active { color: var(--text-primary); font-weight: 600; }
 
         /* Main Viewport */
         main.content-area {
@@ -197,7 +266,7 @@
         .view-btn.active {
             background: var(--surface-color);
             color: var(--text-primary);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         .view-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
@@ -214,7 +283,7 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
             z-index: 50;
         }
         .selection-toolbar.active { display: flex; }
@@ -417,7 +486,7 @@
         }
         .grid-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             background: var(--hover-bg);
         }
         .grid-card.selected {
@@ -548,7 +617,7 @@
         .desktop-action-dropdown {
             position: fixed;
             background: var(--surface-color);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
             border-radius: 12px;
             width: 200px;
             padding: 6px 0;
@@ -571,11 +640,11 @@
         .dropdown-item.danger { color: var(--danger); }
         .dropdown-item svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
-        /* Mobile Bottom Action Sheet (Fixes Clipping on Mobile) */
+        /* Mobile Bottom Action Sheet */
         .bottom-sheet-backdrop {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.65);
             z-index: 2000;
             display: none;
             opacity: 0;
@@ -593,7 +662,7 @@
             padding: 16px 20px 32px 20px;
             max-height: 80vh;
             overflow-y: auto;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.25);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
             transform: translateY(100%);
             transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -669,7 +738,7 @@
         .modal-shade {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.45);
+            background: rgba(0, 0, 0, 0.65);
             backdrop-filter: blur(4px);
             display: flex;
             justify-content: center;
@@ -687,7 +756,7 @@
             border-radius: 24px;
             width: 100%;
             max-width: 440px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
             padding: 24px;
             position: relative;
             border: 1px solid var(--border-color);
@@ -837,10 +906,11 @@
         .details-label { color: var(--text-secondary); }
         .details-val { font-weight: 500; text-align: right; max-width: 260px; overflow-wrap: break-word; }
 
-        /* Responsive */
+        /* Responsive Breakpoints */
         @media (max-width: 768px) {
             aside.sidebar { display: none; }
-            main.content-area { padding: 18px 14px; width: 100%; }
+            .mobile-bottom-nav { display: flex; }
+            main.content-area { padding: 18px 14px 80px 14px; width: 100%; }
             .table-head { display: none; }
             
             .table-row {
@@ -862,18 +932,63 @@
 </head>
 <body>
 
-<!-- Workspace Sidebar -->
+<!-- Desktop Sidebar Navigation -->
 <aside class="sidebar">
-    <div class="side-icon active" title="Cloud Drive">
-        <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+    <div>
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            <span>Cloud Drive</span>
+        </div>
+        <div class="nav-group">
+            <div class="nav-item active" id="navHome">
+                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                <span>Home</span>
+            </div>
+            <div class="nav-item" id="navMyDrive">
+                <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                <span>My Drive</span>
+            </div>
+            <div class="nav-item" id="navLabel">
+                <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                <span>Labels</span>
+            </div>
+        </div>
     </div>
-    <div class="side-icon" id="themeToggleBtn" title="Toggle Theme (Shift+T then D/L)">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-    </div>
-    <div class="side-icon" id="logoutSideBtn" title="Sign Out">
-        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+    <div class="sidebar-bottom">
+        <div class="nav-item" id="navSettings">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <span>Settings</span>
+        </div>
+        <div class="nav-item" id="navAccount">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>Account</span>
+        </div>
+        <div class="nav-item" id="themeToggleBtn" title="Toggle Theme (Shift+T then D/L)">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <span>Toggle Theme</span>
+        </div>
+        <div class="nav-item" id="logoutSideBtn" style="color: var(--danger);">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <span>Sign Out</span>
+        </div>
     </div>
 </aside>
+
+<!-- Mobile Bottom Navigation Bar -->
+<nav class="mobile-bottom-nav">
+    <button class="mobile-nav-btn active" id="mNavHome">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>Home</span>
+    </button>
+    <button class="mobile-nav-btn" id="mNavMyDrive">
+        <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        <span>My Drive</span>
+    </button>
+    <button class="mobile-nav-btn" id="mNavLabel">
+        <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+        <span>Labels</span>
+    </button>
+</nav>
 
 <!-- Drag Overlay -->
 <div class="drag-overlay" id="dragOverlay">
@@ -929,7 +1044,7 @@
             <input type="text" id="searchInput" class="search-input" placeholder="Search entire drive or labels (Shift+F)">
         </div>
         <div class="view-switcher-group">
-            <button class="view-btn active" id="viewListBtn" title="List View">
+            <button class="view-btn" id="viewListBtn" title="List View">
                 <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
             </button>
             <button class="view-btn" id="viewGridBtn" title="Grid View (Google Drive Style)">
@@ -963,7 +1078,7 @@
 <!-- Desktop Floating Dropdown Menu -->
 <div class="desktop-action-dropdown" id="desktopDropdown"></div>
 
-<!-- Mobile Bottom Action Sheet (Fixes Clipping) -->
+<!-- Mobile Bottom Action Sheet -->
 <div class="bottom-sheet-backdrop" id="bottomSheetBackdrop">
     <div class="bottom-sheet-card" id="bottomSheetCard">
         <div class="bottom-sheet-handle"></div>
@@ -1047,7 +1162,7 @@
         <div class="input-group">
             <label>Add New Label</label>
             <div style="display: flex; gap: 8px;">
-                <input type="text" id="newLabelInput" class="clean-input" placeholder="e.g. MN Admin, Finance">
+                <input type="text" id="newLabelInput" class="clean-input" placeholder="e.g. Finance, Personal">
                 <button class="btn-pill" id="btnAddLabel">Add</button>
             </div>
         </div>
@@ -1147,7 +1262,7 @@
         </div>
         <div class="input-group">
             <label>Folder Name</label>
-            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. My Folder">
+            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. Work Documents">
         </div>
         <div class="input-group">
             <label>Folder Password (Optional)</label>
@@ -1155,24 +1270,6 @@
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button class="btn-pill" id="btnCreateFolder">Create</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Password Auth -->
-<div class="modal-shade" id="passwordAuthModal">
-    <div class="modal-box" style="max-width: 360px;">
-        <div class="modal-header">
-            <div class="modal-title">Password Required</div>
-            <button class="modal-close" id="closePassModal">
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-        </div>
-        <div class="input-group">
-            <input type="password" id="authPasswordInput" class="clean-input" placeholder="Enter password to continue">
-        </div>
-        <div style="display: flex; justify-content: flex-end; gap: 8px;">
-            <button class="btn-pill" id="btnSubmitAuth">Unlock</button>
         </div>
     </div>
 </div>
@@ -1196,7 +1293,8 @@
     };
 
     const IMGBB_API_KEY = "80c452b9a4b80f240ada316f23078d2c";
-    const UPLOADCARE_PUB_KEY = "demopublickey";
+    // Uploadcare Configured Keys
+    const UPLOADCARE_PUB_KEY = "06c8658b8fb100087dfc";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -1208,19 +1306,31 @@
     }
     const userEmail = currentUser.Email;
 
+    // View Mode Synchronization & Fix
     let currentViewMode = localStorage.getItem('drive_view_mode') || 'list';
 
     function setViewMode(mode) {
         currentViewMode = mode;
         localStorage.setItem('drive_view_mode', mode);
-        document.getElementById('viewListBtn').classList.toggle('active', mode === 'list');
-        document.getElementById('viewGridBtn').classList.toggle('active', mode === 'grid');
+        updateSwitcherUI();
         renderCurrentWorkspace();
     }
+
+    function updateSwitcherUI() {
+        const listBtn = document.getElementById('viewListBtn');
+        const gridBtn = document.getElementById('viewGridBtn');
+        if (listBtn && gridBtn) {
+            listBtn.classList.toggle('active', currentViewMode === 'list');
+            gridBtn.classList.toggle('active', currentViewMode === 'grid');
+        }
+    }
+    // Initialize switcher buttons state on load
+    updateSwitcherUI();
 
     document.getElementById('viewListBtn').addEventListener('click', () => setViewMode('list'));
     document.getElementById('viewGridBtn').addEventListener('click', () => setViewMode('grid'));
 
+    // AMOLED Theme Toggle
     function setTheme(dark) {
         if (dark) {
             document.body.classList.add('dark');
@@ -1240,6 +1350,34 @@
         localStorage.removeItem('active_user');
         window.location.href = "1.html";
     });
+
+    // Navigation Filtering (Home, My Drive, Labels)
+    let currentNavTab = 'home';
+    function setNavTab(tab) {
+        currentNavTab = tab;
+        document.querySelectorAll('.nav-item, .mobile-nav-btn').forEach(btn => btn.classList.remove('active'));
+        
+        if (tab === 'home') {
+            document.getElementById('navHome')?.classList.add('active');
+            document.getElementById('mNavHome')?.classList.add('active');
+        } else if (tab === 'mydrive') {
+            document.getElementById('navMyDrive')?.classList.add('active');
+            document.getElementById('mNavMyDrive')?.classList.add('active');
+        } else if (tab === 'label') {
+            document.getElementById('navLabel')?.classList.add('active');
+            document.getElementById('mNavLabel')?.classList.add('active');
+        }
+        renderCurrentWorkspace();
+    }
+
+    document.getElementById('navHome')?.addEventListener('click', () => setNavTab('home'));
+    document.getElementById('navMyDrive')?.addEventListener('click', () => setNavTab('mydrive'));
+    document.getElementById('navLabel')?.addEventListener('click', () => setNavTab('label'));
+    document.getElementById('mNavHome')?.addEventListener('click', () => setNavTab('home'));
+    document.getElementById('mNavMyDrive')?.addEventListener('click', () => setNavTab('mydrive'));
+    document.getElementById('mNavLabel')?.addEventListener('click', () => setNavTab('label'));
+    document.getElementById('navSettings')?.addEventListener('click', () => showToast("Settings - Version 2.4.0"));
+    document.getElementById('navAccount')?.addEventListener('click', () => showToast(`Signed in as: ${userEmail}`));
 
     function showToast(msg) {
         const t = document.getElementById('toastPopup');
@@ -1329,27 +1467,12 @@
         code: `<svg viewBox="0 0 24 24"><path d="M8 3H6a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2"></path><path d="M16 3h2a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2"></path></svg>`,
         terminal: `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"></rect><polyline points="7 9 10.5 12 7 15"></polyline><line x1="13" y1="15" x2="17" y2="15"></line></svg>`,
         music: `<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`,
-        cupcake: `<svg viewBox="0 0 24 24"><path d="M4.5 11h15l-2 10h-11l-2-10z"></path><path d="M4.5 11c0-2.2 1.8-4 4-4 .6 0 1.2.1 1.7.4C11 5.5 12.5 4 14.5 4c2.2 0 4 1.8 4 4 0 .3 0 .7-.1 1"></path></svg>`,
         brush: `<svg viewBox="0 0 24 24"><path d="M18 2l4 4-10 10H8v-4L18 2z"></path><path d="M4 22c0-3 2-5 4-5"></path></svg>`,
         palette: `<svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".8"></circle><circle cx="17.5" cy="10.5" r=".8"></circle><circle cx="8.5" cy="7.5" r=".8"></circle><circle cx="6.5" cy="12.5" r=".8"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>`,
-        stethoscope: `<svg viewBox="0 0 24 24"><path d="M4.5 3v5a6 6 0 0 0 12 0V3"></path><line x1="3" y1="3" x2="6" y2="3"></line><line x1="15" y1="3" x2="18" y2="3"></line><path d="M10.5 14v4a3 3 0 0 0 6 0v-2"></path><circle cx="16.5" cy="16" r="2.5"></circle></svg>`,
-        flower: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2a4 4 0 0 0-4 4 4 4 0 0 0 8 0 4 4 0 0 0-4-4z"></path><path d="M22 12a4 4 0 0 0-4-4 4 4 0 0 0 0 8 4 4 0 0 0 4-4z"></path><path d="M12 22a4 4 0 0 0 4-4 4 4 0 0 0-8 0 4 4 0 0 0 4 4z"></path><path d="M2 12a4 4 0 0 0 4 4 4 4 0 0 0 0-8 4 4 0 0 0-4 4z"></path></svg>`,
-        lotus: `<svg viewBox="0 0 24 24"><path d="M12 3c-2 4-5 8-10 11 4 1 8 0 10-4 2 4 6 5 10 4-5-3-8-7-10-11z"></path><path d="M12 10c-1.5 3-4 6-7 7 3 1 6 .5 7-3 1 3.5 4 4 7 3-3-1-5.5-4-7-7z"></path></svg>`,
         briefcase: `<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="3"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`,
         chart: `<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
-        kettlebell: `<svg viewBox="0 0 24 24"><path d="M9 7V4a3 3 0 0 1 6 0v3"></path><circle cx="12" cy="14" r="7"></circle></svg>`,
-        dumbbell: `<svg viewBox="0 0 24 24"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>`,
-        notebook: `<svg viewBox="0 0 24 24"><rect x="5" y="3" width="15" height="18" rx="2"></rect><line x1="9" y1="7" x2="15" y2="7"></line><line x1="9" y1="11" x2="15" y2="11"></line><line x1="9" y1="15" x2="12" y2="15"></line><path d="M3 6h2M3 10h2M3 14h2M3 18h2"></path></svg>`,
-        scales: `<svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><path d="M5 21h14"></path><path d="M3 7h18"></path><path d="M3 7l3 7h-6l3-7zM21 7l3 7h-6l3-7z"></path></svg>`,
-        globeStand: `<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="7"></circle><path d="M12 17v4M8 21h8M19 10a7 7 0 0 1-14 0"></path></svg>`,
         plane: `<svg viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"></path></svg>`,
-        globe: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
-        wrench: `<svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`,
-        paw: `<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="4"></circle><circle cx="6.5" cy="9.5" r="2"></circle><circle cx="17.5" cy="9.5" r="2"></circle><circle cx="9" cy="5.5" r="1.8"></circle><circle cx="15" cy="5.5" r="1.8"></circle></svg>`,
-        flask: `<svg viewBox="0 0 24 24"><path d="M10 2v7.31L4.15 19.89A2 2 0 0 0 5.86 23h12.28a2 2 0 0 0 1.71-3.11L14 9.31V2z"></path><line x1="8.5" y1="2" x2="15.5" y2="2"></line><line x1="14" y1="14" x2="10" y2="14"></line></svg>`,
-        brain: `<svg viewBox="0 0 24 24"><path d="M9.5 4a3.5 3.5 0 0 0-3.5 3.5c0 .3.04.59.11.87A3.5 3.5 0 0 0 4 11.5c0 1.4.82 2.61 2 3.16V16a3.5 3.5 0 0 0 3.5 3.5h.5"></path><path d="M14.5 4a3.5 3.5 0 0 1 3.5 3.5c0 .3-.04.59-.11.87A3.5 3.5 0 0 1 20 11.5c0 1.4-.82 2.61-2 3.16V16a3.5 3.5 0 0 1-3.5 3.5h-.5"></path><path d="M12 4v16"></path></svg>`,
-        heart: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`,
-        plant: `<svg viewBox="0 0 24 24"><path d="M7 21h10l-1-7H8l-1 7z"></path><path d="M12 14V7"></path><path d="M12 7c-2-3-5-3-5 0s3 3 5 0z"></path><path d="M12 9c2-3 5-3 5 0s-3 3-5 0z"></path></svg>`
+        heart: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`
     };
 
     const SVG_ICONS = {
@@ -1379,7 +1502,6 @@
         return { label: "Document", icon: SVG_ICONS.doc };
     }
 
-    let folderHierarchy = [];
     let allWorkspaceDocs = [];
     let allFolderDocs = [];
     let currentRenderedItems = [];
@@ -1388,15 +1510,6 @@
     let keyboardFocusedIndex = -1;
     let unsubscribeSnapshot = null;
 
-    function getCurrentFolderId() {
-        return folderHierarchy.length > 0 ? folderHierarchy[folderHierarchy.length - 1].id : null;
-    }
-
-    function getCurrentParentFolder() {
-        const cid = getCurrentFolderId();
-        return cid ? allFolderDocs.find(f => f.id === cid) : null;
-    }
-
     function getUserRole(item) {
         if (item.Email === userEmail) return 'Owner';
         const acc = item.Access || {};
@@ -1404,54 +1517,10 @@
         if (acc.Contributor?.includes(userEmail)) return 'Contributor';
         if (acc.Commenter?.includes(userEmail) || acc.Commentator?.includes(userEmail)) return 'Commenter';
         if (acc.Viewer?.includes(userEmail)) return 'Viewer';
-
-        for (const f of folderHierarchy) {
-            const pDoc = allFolderDocs.find(x => x.id === f.id);
-            if (pDoc) {
-                if (pDoc.Email === userEmail) return 'Owner';
-                const pAcc = pDoc.Access || {};
-                if (pAcc.Editor?.includes(userEmail)) return 'Editor';
-                if (pAcc.Contributor?.includes(userEmail)) return 'Contributor';
-                if (pAcc.Commenter?.includes(userEmail) || pAcc.Commentator?.includes(userEmail)) return 'Commenter';
-                if (pAcc.Viewer?.includes(userEmail)) return 'Viewer';
-            }
-        }
         return 'Viewer';
     }
 
-    function renderBreadcrumb() {
-        const area = document.getElementById('breadcrumbArea');
-        if (folderHierarchy.length === 0) {
-            area.innerHTML = `<span>Cloud Drive</span>`;
-        } else {
-            let html = `<span style="color: var(--text-secondary); cursor: pointer;" id="bc-root">Cloud Drive</span>`;
-            folderHierarchy.forEach((item, index) => {
-                html += ` <span style="color: var(--text-secondary); font-weight: 400;">/</span> `;
-                if (index === folderHierarchy.length - 1) {
-                    html += `<span>${item.name}</span>`;
-                } else {
-                    html += `<span style="color: var(--text-secondary); cursor: pointer;" class="bc-crumb" data-idx="${index}">${item.name}</span>`;
-                }
-            });
-            area.innerHTML = html;
-
-            document.getElementById('bc-root')?.addEventListener('click', () => {
-                folderHierarchy = [];
-                renderCurrentWorkspace();
-            });
-            document.querySelectorAll('.bc-crumb').forEach(el => {
-                el.addEventListener('click', () => {
-                    const idx = parseInt(el.getAttribute('data-idx'));
-                    folderHierarchy = folderHierarchy.slice(0, idx + 1);
-                    renderCurrentWorkspace();
-                });
-            });
-        }
-    }
-
-    // ==========================================
-    // Realtime Database Listener (Instant Updates)
-    // ==========================================
+    // Realtime Database Listener
     function setupRealtimeListener() {
         if (unsubscribeSnapshot) unsubscribeSnapshot();
 
@@ -1481,33 +1550,33 @@
     }
 
     function renderCurrentWorkspace() {
-        renderBreadcrumb();
+        const area = document.getElementById('breadcrumbArea');
         const wrapper = document.getElementById('workspaceViewWrapper');
 
-        const currId = getCurrentFolderId();
+        // Apply Tab Filter
         let renderItems = [];
-
-        if (!currId) {
+        if (currentNavTab === 'mydrive') {
+            area.innerHTML = `<span>My Drive</span>`;
+            renderItems = allWorkspaceDocs.filter(d => d.Email === userEmail && d.Folder === "True");
+        } else if (currentNavTab === 'label') {
+            area.innerHTML = `<span>Labeled Items</span>`;
+            renderItems = allWorkspaceDocs.filter(d => Array.isArray(d.Label) && d.Label.length > 0);
+        } else {
+            area.innerHTML = `<span>Cloud Drive</span>`;
             const assignedChildIds = new Set();
             allFolderDocs.forEach(f => {
                 if (Array.isArray(f.File)) f.File.forEach(id => assignedChildIds.add(id));
             });
             renderItems = allWorkspaceDocs.filter(i => !assignedChildIds.has(i.id));
-        } else {
-            const activeFolder = allFolderDocs.find(f => f.id === currId);
-            const assignedIds = (activeFolder && Array.isArray(activeFolder.File)) ? activeFolder.File : [];
-            renderItems = allWorkspaceDocs.filter(i => assignedIds.includes(i.id));
         }
 
         currentRenderedItems = renderItems;
 
         if (renderItems.length === 0) {
-            const folderName = folderHierarchy.length > 0 ? folderHierarchy[folderHierarchy.length - 1].name : "";
-            const emptyText = folderName ? `No Files In Your ${folderName}` : `No Files In Your Drive`;
             wrapper.innerHTML = `
                 <div class="empty-state-container">
                     <img src="https://indus.sarvam.ai/studio/assets/empty-table.webp" alt="No files" class="empty-state-img">
-                    <div class="empty-state-title">${emptyText}</div>
+                    <div class="empty-state-title">No Files In Your Drive</div>
                 </div>
             `;
             return;
@@ -1554,7 +1623,7 @@
         });
     }
 
-    function createRowElement(item, index, locationHint = null) {
+    function createRowElement(item, index) {
         const isFolder = item.Folder === "True";
         const name = item.Name || (item.File ? item.File.split('/').pop() : 'Untitled');
         const format = getFormatInfo(item.Type, isFolder);
@@ -1563,12 +1632,7 @@
         const role = getUserRole(item);
         const isViewer = (role === 'Viewer');
 
-        let labels = Array.isArray(item.Label) ? [...item.Label] : [];
-        if (!isFolder && labels.length === 0 && folderHierarchy.length > 0) {
-            const p = getCurrentParentFolder();
-            if (p && Array.isArray(p.Label)) labels = [...p.Label];
-        }
-
+        const labels = Array.isArray(item.Label) ? item.Label : [];
         const labelsHtml = labels.map(l => `<span class="label-badge">${l}</span>`).join('');
         const folderColor = item.Customize?.Colour || (isFolder ? 'var(--folder-default-color)' : '');
         const folderBadgeIconKey = item.Customize?.Icon || 'folder';
@@ -1591,7 +1655,6 @@
                 </div>
                 <div class="file-info-col">
                     <span class="file-name" title="${name}">${name}</span>
-                    ${locationHint ? `<span class="file-location-hint">in ${locationHint}</span>` : ''}
                     <div class="file-labels">${labelsHtml}</div>
                 </div>
             </div>
@@ -1689,12 +1752,9 @@
         wrapper.appendChild(grid);
     }
 
-    // ==========================================
-    // Unified 3-Dots Action Handler (Mobile Bottom Sheet + Desktop Dropdown)
-    // ==========================================
+    // 3-Dots Action Handler
     const desktopDropdown = document.getElementById('desktopDropdown');
     const bottomSheetBackdrop = document.getElementById('bottomSheetBackdrop');
-    const bottomSheetCard = document.getElementById('bottomSheetCard');
 
     function showItemActions(item, isFolder, name, isViewer, event) {
         const isMobile = window.innerWidth <= 768;
@@ -1724,28 +1784,18 @@
         const handleActionClick = (actionId) => {
             closeAllActionMenus();
             if (actionId === 'download') directDownloadFile(item.File, item.Name);
-            if (actionId === 'rename') {
-                if (isFolder && item.Password) promptPasswordAuth(item.Password, () => openRenameModal(item));
-                else openRenameModal(item);
-            }
+            if (actionId === 'rename') openRenameModal(item);
             if (actionId === 'customize') openCustomizeModal(item);
             if (actionId === 'security') openSecurityModal(item);
             if (actionId === 'share') openShareModal(item);
-            if (actionId === 'access') {
-                if (isFolder && item.Password) promptPasswordAuth(item.Password, () => openAccessModal(item));
-                else openAccessModal(item);
-            }
+            if (actionId === 'access') openAccessModal(item);
             if (actionId === 'label') openLabelModal(item);
             if (actionId === 'move') openMoveModal(item);
             if (actionId === 'details') openDetailsModal(item);
-            if (actionId === 'delete') {
-                if (isFolder && item.Password && !isViewer) promptPasswordAuth(item.Password, () => handleDelete(item, isViewer));
-                else handleDelete(item, isViewer);
-            }
+            if (actionId === 'delete') handleDelete(item, isViewer);
         };
 
         if (isMobile) {
-            // Mobile: Bottom Action Sheet
             const headerIcon = document.getElementById('bottomSheetHeaderIcon');
             const format = getFormatInfo(item.Type, isFolder);
             const folderColor = item.Customize?.Colour || 'var(--folder-default-color)';
@@ -1766,7 +1816,6 @@
 
             bottomSheetBackdrop.classList.add('active');
         } else {
-            // Desktop: Floating Context Dropdown
             desktopDropdown.innerHTML = '';
             actionItems.forEach(act => {
                 const div = document.createElement('div');
@@ -1799,7 +1848,6 @@
     bottomSheetBackdrop.addEventListener('click', (e) => {
         if (e.target === bottomSheetBackdrop) closeAllActionMenus();
     });
-
     window.addEventListener('click', () => closeAllActionMenus());
 
     function attachItemEvents(el, item, isFolder, name, isViewer) {
@@ -1808,11 +1856,7 @@
             if (isSelectionMode) {
                 toggleSelectItem(item.id, !selectedItemIds.has(item.id));
             } else {
-                if (item.Password) {
-                    promptPasswordAuth(item.Password, () => openItem(item, isFolder, name));
-                } else {
-                    openItem(item, isFolder, name);
-                }
+                openItem(item, isFolder);
             }
         });
 
@@ -1840,9 +1884,9 @@
         });
     }
 
-    function openItem(item, isFolder, name) {
+    // Direct folder opening without prompting password here
+    function openItem(item, isFolder) {
         if (isFolder) {
-            // Redirect to folder.html passing the folder's Firestore ID
             window.location.href = `folder.html?id=${item.id}`;
         } else {
             updateDoc(doc(db, "Cloud Drive", item.id), {
@@ -1876,28 +1920,6 @@
             document.body.removeChild(a);
         }
     }
-
-    // Password Challenge Modal
-    const passModal = document.getElementById('passwordAuthModal');
-    let passSuccessCallback = null;
-    let expectedPass = "";
-
-    function promptPasswordAuth(password, onSuccess) {
-        expectedPass = password;
-        passSuccessCallback = onSuccess;
-        document.getElementById('authPasswordInput').value = "";
-        passModal.classList.add('active');
-    }
-    document.getElementById('closePassModal').addEventListener('click', () => passModal.classList.remove('active'));
-    document.getElementById('btnSubmitAuth').addEventListener('click', () => {
-        const val = document.getElementById('authPasswordInput').value;
-        if (val === expectedPass) {
-            passModal.classList.remove('active');
-            if (passSuccessCallback) passSuccessCallback();
-        } else {
-            showToast("Incorrect password!");
-        }
-    });
 
     // Selection Controller
     function enterSelectionMode() {
@@ -1994,7 +2016,7 @@
         openMoveModal(null, true);
     });
 
-    // Folder Customize Modal
+    // Customize Modal
     const customizeModal = document.getElementById('customizeModal');
     let targetCustomizeFolder = null;
     let selectedColor = '#4285F4';
@@ -2091,53 +2113,36 @@
                 </div>
                 <div style="display: flex; gap: 8px; justify-content: flex-end;">
                     <button class="btn-pill" id="btnDisableSecurity" style="background: var(--danger); color: #fff;">Disable Password</button>
-                    <button class="btn-pill" id="btnChangeSecurity">Change Password</button>
                 </div>
             `;
-            document.getElementById('btnDisableSecurity').addEventListener('click', () => {
-                promptPasswordAuth(item.Password, async () => {
-                    await updateDoc(doc(db, "Cloud Drive", item.id), { Password: "", Updated: formatFirestoreDate() });
-                    showToast("Password disabled");
-                    securityModal.classList.remove('active');
-                });
-            });
-            document.getElementById('btnChangeSecurity').addEventListener('click', () => {
-                promptPasswordAuth(item.Password, () => {
-                    showSetPasswordUI(body);
-                });
+            document.getElementById('btnDisableSecurity').addEventListener('click', async () => {
+                await updateDoc(doc(db, "Cloud Drive", item.id), { Password: "", Updated: formatFirestoreDate() });
+                showToast("Password removed");
+                securityModal.classList.remove('active');
             });
         } else {
-            showSetPasswordUI(body);
+            body.innerHTML = `
+                <div class="input-group">
+                    <label>Set New Password</label>
+                    <input type="password" id="newSecPassInput" class="clean-input" placeholder="Enter password to lock folder">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+                    <button class="btn-pill" id="btnConfirmNewPass">Save Password</button>
+                </div>
+            `;
+            document.getElementById('btnConfirmNewPass').addEventListener('click', async () => {
+                const pass = document.getElementById('newSecPassInput').value.trim();
+                if (!pass) return showToast("Password cannot be empty");
+                await updateDoc(doc(db, "Cloud Drive", targetSecurityFolder.id), {
+                    Password: pass,
+                    Updated: formatFirestoreDate()
+                });
+                showToast("Password enabled");
+                securityModal.classList.remove('active');
+            });
         }
-
         securityModal.classList.add('active');
     }
-
-    function showSetPasswordUI(container) {
-        container.innerHTML = `
-            <div class="input-group">
-                <label>Set New Password</label>
-                <input type="password" id="newSecPassInput" class="clean-input" placeholder="Enter password to lock folder">
-            </div>
-            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
-                <button class="btn-pill" id="btnConfirmNewPass">Save Password</button>
-            </div>
-        `;
-        document.getElementById('btnConfirmNewPass').addEventListener('click', async () => {
-            const pass = document.getElementById('newSecPassInput').value.trim();
-            if (!pass) {
-                showToast("Password cannot be empty");
-                return;
-            }
-            await updateDoc(doc(db, "Cloud Drive", targetSecurityFolder.id), {
-                Password: pass,
-                Updated: formatFirestoreDate()
-            });
-            showToast("Password protection enabled");
-            securityModal.classList.remove('active');
-        });
-    }
-
     document.getElementById('closeSecurityModal').addEventListener('click', () => securityModal.classList.remove('active'));
 
     // Details Modal
@@ -2145,14 +2150,11 @@
     function openDetailsModal(item) {
         const isFolder = item.Folder === "True";
         const format = getFormatInfo(item.Type, isFolder);
-        const locationPath = folderHierarchy.length > 0 ? folderHierarchy.map(h => h.name).join(' / ') : 'Root Directory';
-
         const content = document.getElementById('detailsContent');
         content.innerHTML = `
             <div class="details-item"><span class="details-label">Name</span><span class="details-val">${item.Name || 'Untitled'}</span></div>
             <div class="details-item"><span class="details-label">Type</span><span class="details-val">${format.label}</span></div>
             <div class="details-item"><span class="details-label">Date (Updated)</span><span class="details-val">${item.Updated || 'N/A'}</span></div>
-            <div class="details-item"><span class="details-label">Location</span><span class="details-val">${locationPath}</span></div>
             <div class="details-item"><span class="details-label">Owner</span><span class="details-val">${item.Email || userEmail}</span></div>
             <div class="details-item"><span class="details-label">Labels</span><span class="details-val">${(item.Label || []).join(', ') || 'None'}</span></div>
         `;
@@ -2171,7 +2173,6 @@
         renderLabelBadges();
         labelModal.classList.add('active');
     }
-
     document.getElementById('closeLabelModal').addEventListener('click', () => labelModal.classList.remove('active'));
 
     function renderLabelBadges() {
@@ -2213,7 +2214,7 @@
         labelModal.classList.remove('active');
     });
 
-    // Manage Access Modal
+    // Access Modal
     const accessModal = document.getElementById('accessModal');
     let targetAccessItem = null;
     let localAccessState = { Viewer: [], Contributor: [], Commenter: [], Editor: [] };
@@ -2230,7 +2231,6 @@
         renderAccessList();
         accessModal.classList.add('active');
     }
-
     document.getElementById('closeAccessModal').addEventListener('click', () => accessModal.classList.remove('active'));
 
     function renderAccessList() {
@@ -2441,7 +2441,7 @@
         const name = document.getElementById('newFolderName').value.trim();
         const pass = document.getElementById('newFolderPassword').value.trim();
         if (name) {
-            const newDoc = await addDoc(collection(db, "Cloud Drive"), {
+            await addDoc(collection(db, "Cloud Drive"), {
                 Email: userEmail,
                 Folder: "True",
                 Name: name,
@@ -2453,20 +2453,12 @@
                 Access: { Viewer: [], Contributor: [], Commenter: [], Editor: [] }
             });
 
-            const currFolderId = getCurrentFolderId();
-            if (currFolderId) {
-                await updateDoc(doc(db, "Cloud Drive", currFolderId), {
-                    File: arrayUnion(newDoc.id),
-                    Updated: formatFirestoreDate()
-                });
-            }
-
             folderModal.classList.remove('active');
             showToast("Folder created");
         }
     });
 
-    // Upload
+    // Uploadcare & ImgBB Upload Handler
     const nativeFileInput = document.getElementById('nativeFileInput');
     document.getElementById('uploadTriggerBtn').addEventListener('click', () => nativeFileInput.click());
     nativeFileInput.addEventListener('change', (e) => {
@@ -2490,23 +2482,38 @@
     async function handleBatchUpload(files) {
         showToast(`Uploading ${files.length} file(s)...`);
         for (const file of files) {
-            if (file.size > 50 * 1024 * 1024) {
-                showToast(`Skipped ${file.name} (exceeds 50MB)`);
+            if (file.size > 100 * 1024 * 1024) {
+                showToast(`Skipped ${file.name} (exceeds 100MB)`);
                 continue;
             }
 
             try {
                 let fileUrl = "";
                 let fileType = "Document";
+                const isImage = file.type.startsWith('image/');
+                const isVideo = file.type.startsWith('video/');
+                const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
 
-                if (file.type.startsWith('image/')) {
+                if (isImage) {
+                    // ImgBB for Images
                     const fd = new FormData();
                     fd.append('image', file);
                     const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: fd });
                     const j = await res.json();
                     fileUrl = j.data.url;
                     fileType = "Image";
+                } else if (isVideo || isPDF) {
+                    // Uploadcare for Video & PDF
+                    const fd = new FormData();
+                    fd.append('UPLOADCARE_PUB_KEY', UPLOADCARE_PUB_KEY);
+                    fd.append('UPLOADCARE_STORE', '1');
+                    fd.append('file', file);
+                    const res = await fetch('https://upload.uploadcare.com/base/', { method: 'POST', body: fd });
+                    const j = await res.json();
+                    fileUrl = `https://ucarecdn.com/${j.file}/${encodeURIComponent(file.name)}`;
+                    fileType = isVideo ? "Video" : "PDF";
                 } else {
+                    // Uploadcare generic fallback for all other documents
                     const fd = new FormData();
                     fd.append('UPLOADCARE_PUB_KEY', UPLOADCARE_PUB_KEY);
                     fd.append('UPLOADCARE_STORE', '1');
@@ -2518,30 +2525,18 @@
                     fileType = ext || "Document";
                 }
 
-                let parentLabels = [];
-                const p = getCurrentParentFolder();
-                if (p && Array.isArray(p.Label)) parentLabels = [...p.Label];
-
-                const newDoc = await addDoc(collection(db, "Cloud Drive"), {
+                await addDoc(collection(db, "Cloud Drive"), {
                     Email: userEmail,
                     File: fileUrl,
                     Type: fileType,
                     Name: file.name,
                     Password: "",
-                    Label: parentLabels,
+                    Label: [],
                     LastOpened: new Date().toISOString(),
                     LastOpenedBy: userEmail,
                     Updated: formatFirestoreDate(),
                     Access: { Viewer: [], Contributor: [], Commenter: [], Editor: [] }
                 });
-
-                const currFolderId = getCurrentFolderId();
-                if (currFolderId) {
-                    await updateDoc(doc(db, "Cloud Drive", currFolderId), {
-                        File: arrayUnion(newDoc.id),
-                        Updated: formatFirestoreDate()
-                    });
-                }
             } catch(err) {
                 console.error("Upload error:", err);
             }
@@ -2649,7 +2644,7 @@
         if (themeKeySequence[0] === 'T') {
             if (e.key === 'd' || e.key === 'D') {
                 setTheme(true);
-                showToast("Dark theme enabled");
+                showToast("AMOLED Black theme enabled");
                 themeKeySequence = [];
                 return;
             } else if (e.key === 'l' || e.key === 'L') {
