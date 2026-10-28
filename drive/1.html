@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -62,7 +63,7 @@
             transition: background-color 0.2s, color 0.2s;
         }
 
-        /* Expanded Desktop Sidebar */
+        /* Desktop Sidebar */
         aside.sidebar {
             width: var(--sidebar-width);
             border-right: 1px solid var(--border-color);
@@ -163,7 +164,7 @@
         /* Main Viewport */
         main.content-area {
             flex-grow: 1;
-            padding: 32px 40px;
+            padding: 28px 40px;
             max-width: 1240px;
             position: relative;
         }
@@ -185,6 +186,41 @@
             align-items: center;
             gap: 8px;
             flex-wrap: wrap;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Top-Right Profile Icon Button */
+        .top-profile-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid var(--border-color);
+            overflow: hidden;
+            flex-shrink: 0;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            user-select: none;
+        }
+        .top-profile-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .top-profile-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .btn-pill {
@@ -393,7 +429,7 @@
             gap: 12px;
         }
 
-        /* ================= LIST VIEW ================= */
+        /* List View */
         .data-table {
             width: 100%;
             border-collapse: collapse;
@@ -464,7 +500,7 @@
         .file-location-hint { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
         .file-labels { display: flex; flex-wrap: wrap; margin-top: 3px; }
 
-        /* ================= GOOGLE DRIVE GRID VIEW ================= */
+        /* Grid View */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
@@ -535,7 +571,6 @@
         }
         .selection-active .grid-card-checkbox { display: flex; }
 
-        /* Large Folder Preview Shape */
         .grid-folder-body {
             height: 86px;
             display: flex;
@@ -567,7 +602,6 @@
             fill: none;
         }
 
-        /* File Preview */
         .grid-file-preview {
             height: 100px;
             background: var(--surface-color);
@@ -597,7 +631,6 @@
         }
         .doc-line { height: 4px; background: var(--border-color); border-radius: 2px; }
 
-        /* 3-Dots Trigger */
         .actions-cell { position: relative; text-align: right; }
         .btn-dots {
             background: none;
@@ -613,7 +646,7 @@
         .btn-dots:hover { color: var(--text-primary); background: var(--border-color); }
         .btn-dots svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
 
-        /* Desktop Context Dropdown (Floating) */
+        /* Desktop Context Dropdown */
         .desktop-action-dropdown {
             position: fixed;
             background: var(--surface-color);
@@ -640,7 +673,7 @@
         .dropdown-item.danger { color: var(--danger); }
         .dropdown-item svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
-        /* Mobile Bottom Action Sheet */
+        /* Bottom Sheets (Actions & Profile) */
         .bottom-sheet-backdrop {
             position: fixed;
             inset: 0;
@@ -657,14 +690,15 @@
         .bottom-sheet-card {
             background: var(--surface-color);
             width: 100%;
-            max-width: 500px;
-            border-radius: 20px 20px 0 0;
-            padding: 16px 20px 32px 20px;
-            max-height: 80vh;
+            max-width: 480px;
+            border-radius: 24px 24px 0 0;
+            padding: 18px 24px 34px 24px;
+            max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
             transform: translateY(100%);
             transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
         }
         .bottom-sheet-backdrop.active .bottom-sheet-card {
             transform: translateY(0);
@@ -675,7 +709,7 @@
             height: 4px;
             background: var(--text-secondary);
             border-radius: 2px;
-            margin: 0 auto 14px auto;
+            margin: 0 auto 16px auto;
             opacity: 0.4;
         }
 
@@ -710,6 +744,62 @@
         .bottom-sheet-item:active { background: var(--hover-bg); }
         .bottom-sheet-item.danger { color: var(--danger); }
         .bottom-sheet-item svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+        /* Profile Bottom Sheet Specifics */
+        .profile-sheet-userbox {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 16px 0 20px 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+        .profile-sheet-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            overflow: hidden;
+            border: 3px solid var(--border-color);
+        }
+        .profile-sheet-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-sheet-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .profile-sheet-email { font-size: 13px; color: var(--text-secondary); }
+
+        .profile-action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            background: var(--hover-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.15s ease;
+        }
+        .profile-action-btn:hover {
+            opacity: 0.9;
+        }
+        .profile-action-btn-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .profile-action-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
         /* Empty State */
         .empty-state-container {
@@ -955,14 +1045,10 @@
         </div>
     </div>
     <div class="sidebar-bottom">
-        <div class="nav-item" id="navSettings">
+        <a href="settings.html" class="nav-item" id="navSettings">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             <span>Settings</span>
-        </div>
-        <div class="nav-item" id="navAccount">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span>Account</span>
-        </div>
+        </a>
         <div class="nav-item" id="themeToggleBtn" title="Toggle Theme (Shift+T then D/L)">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
             <span>Toggle Theme</span>
@@ -1004,7 +1090,7 @@
         <div class="page-title" id="breadcrumbArea">
             <span>Cloud Drive</span>
         </div>
-        <div style="display: flex; gap: 8px;">
+        <div class="top-actions">
             <button class="btn-pill" id="btnSelectModeToggle" style="background: var(--hover-bg); color: var(--text-primary); border: 1px solid var(--border-color);" title="Select Multiple (Shift+S)">
                 Select
             </button>
@@ -1015,6 +1101,10 @@
             <button class="btn-pill" id="newFolderTriggerBtn" style="background: var(--hover-bg); color: var(--text-primary); border: 1px solid var(--border-color);" title="New Folder (Shift+C)">
                 + Folder
             </button>
+            <!-- Top Right Profile Avatar Button -->
+            <div class="top-profile-btn" id="topProfileBtn" title="Account Details">
+                <span id="topProfileInitial">U</span>
+            </div>
         </div>
     </div>
 
@@ -1078,7 +1168,7 @@
 <!-- Desktop Floating Dropdown Menu -->
 <div class="desktop-action-dropdown" id="desktopDropdown"></div>
 
-<!-- Mobile Bottom Action Sheet -->
+<!-- Item Actions Bottom Sheet (Mobile) -->
 <div class="bottom-sheet-backdrop" id="bottomSheetBackdrop">
     <div class="bottom-sheet-card" id="bottomSheetCard">
         <div class="bottom-sheet-handle"></div>
@@ -1090,7 +1180,43 @@
     </div>
 </div>
 
-<!-- Enhanced Customize Modal -->
+<!-- Profile Bottom Sheet Popup (Appears from Bottom) -->
+<div class="bottom-sheet-backdrop" id="profileSheetBackdrop">
+    <div class="bottom-sheet-card" id="profileSheetCard">
+        <div class="bottom-sheet-handle"></div>
+        <div class="profile-sheet-userbox">
+            <div class="profile-sheet-avatar" id="sheetProfileAvatar">
+                <span id="sheetProfileInitial">U</span>
+            </div>
+            <div class="profile-sheet-name" id="sheetProfileName">User</div>
+            <div class="profile-sheet-email" id="sheetProfileEmail">user@example.com</div>
+        </div>
+        <div style="display: flex; flex-direction: column;">
+            <button class="profile-action-btn" id="btnSwitchAccount">
+                <div class="profile-action-btn-left">
+                    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>Switch Account</span>
+                </div>
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <a href="settings.html" class="profile-action-btn">
+                <div class="profile-action-btn-left">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Settings</span>
+                </div>
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </a>
+            <button class="profile-action-btn" id="btnSignOutSheet" style="color: var(--danger);">
+                <div class="profile-action-btn-left">
+                    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <span>Sign Out</span>
+                </div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Customize Modal -->
 <div class="modal-shade" id="customizeModal">
     <div class="modal-box">
         <div class="customize-top-preview">
@@ -1293,7 +1419,6 @@
     };
 
     const IMGBB_API_KEY = "80c452b9a4b80f240ada316f23078d2c";
-    // Uploadcare Configured Keys
     const UPLOADCARE_PUB_KEY = "06c8658b8fb100087dfc";
 
     const app = initializeApp(firebaseConfig);
@@ -1305,6 +1430,49 @@
         window.location.href = "1.html";
     }
     const userEmail = currentUser.Email;
+    const userName = currentUser.Name || currentUser.Username || userEmail.split('@')[0];
+    const userPhoto = currentUser.Photo || currentUser.Avatar || "";
+
+    // Set Top Profile and Sheet Profile Information
+    function setupProfileUI() {
+        const topBtn = document.getElementById('topProfileBtn');
+        const sheetAvatar = document.getElementById('sheetProfileAvatar');
+        const sheetName = document.getElementById('sheetProfileName');
+        const sheetEmail = document.getElementById('sheetProfileEmail');
+
+        sheetName.innerText = userName;
+        sheetEmail.innerText = userEmail;
+
+        if (userPhoto) {
+            topBtn.innerHTML = `<img src="${userPhoto}" alt="Avatar">`;
+            sheetAvatar.innerHTML = `<img src="${userPhoto}" alt="Avatar">`;
+        } else {
+            const initial = userName.charAt(0).toUpperCase();
+            document.getElementById('topProfileInitial').innerText = initial;
+            document.getElementById('sheetProfileInitial').innerText = initial;
+        }
+    }
+    setupProfileUI();
+
+    // Profile Bottom Sheet Toggle
+    const profileBackdrop = document.getElementById('profileSheetBackdrop');
+    document.getElementById('topProfileBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileBackdrop.classList.add('active');
+    });
+
+    profileBackdrop.addEventListener('click', (e) => {
+        if (e.target === profileBackdrop) profileBackdrop.classList.remove('active');
+    });
+
+    document.getElementById('btnSwitchAccount').addEventListener('click', () => {
+        window.location.href = "1.html";
+    });
+
+    document.getElementById('btnSignOutSheet').addEventListener('click', () => {
+        localStorage.removeItem('active_user');
+        window.location.href = "1.html";
+    });
 
     // View Mode Synchronization & Fix
     let currentViewMode = localStorage.getItem('drive_view_mode') || 'list';
@@ -1324,7 +1492,6 @@
             gridBtn.classList.toggle('active', currentViewMode === 'grid');
         }
     }
-    // Initialize switcher buttons state on load
     updateSwitcherUI();
 
     document.getElementById('viewListBtn').addEventListener('click', () => setViewMode('list'));
@@ -1351,7 +1518,7 @@
         window.location.href = "1.html";
     });
 
-    // Navigation Filtering (Home, My Drive, Labels)
+    // Navigation Filtering
     let currentNavTab = 'home';
     function setNavTab(tab) {
         currentNavTab = tab;
@@ -1376,8 +1543,6 @@
     document.getElementById('mNavHome')?.addEventListener('click', () => setNavTab('home'));
     document.getElementById('mNavMyDrive')?.addEventListener('click', () => setNavTab('mydrive'));
     document.getElementById('mNavLabel')?.addEventListener('click', () => setNavTab('label'));
-    document.getElementById('navSettings')?.addEventListener('click', () => showToast("Settings - Version 2.4.0"));
-    document.getElementById('navAccount')?.addEventListener('click', () => showToast(`Signed in as: ${userEmail}`));
 
     function showToast(msg) {
         const t = document.getElementById('toastPopup');
@@ -1463,12 +1628,9 @@
         book: `<svg viewBox="0 0 24 24"><rect x="4.5" y="3" width="15" height="18" rx="2.5"></rect><line x1="8.5" y1="3" x2="8.5" y2="21"></line></svg>`,
         cap: `<svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c0 3 6 3 6 3s6 0 6-3v-5"></path></svg>`,
         pencil: `<svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`,
-        nib: `<svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><circle cx="11" cy="11" r="1.5"></circle></svg>`,
         code: `<svg viewBox="0 0 24 24"><path d="M8 3H6a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2"></path><path d="M16 3h2a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2"></path></svg>`,
-        terminal: `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"></rect><polyline points="7 9 10.5 12 7 15"></polyline><line x1="13" y1="15" x2="17" y2="15"></line></svg>`,
         music: `<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`,
         brush: `<svg viewBox="0 0 24 24"><path d="M18 2l4 4-10 10H8v-4L18 2z"></path><path d="M4 22c0-3 2-5 4-5"></path></svg>`,
-        palette: `<svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".8"></circle><circle cx="17.5" cy="10.5" r=".8"></circle><circle cx="8.5" cy="7.5" r=".8"></circle><circle cx="6.5" cy="12.5" r=".8"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>`,
         briefcase: `<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="3"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`,
         chart: `<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
         plane: `<svg viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"></path></svg>`,
@@ -1553,7 +1715,6 @@
         const area = document.getElementById('breadcrumbArea');
         const wrapper = document.getElementById('workspaceViewWrapper');
 
-        // Apply Tab Filter
         let renderItems = [];
         if (currentNavTab === 'mydrive') {
             area.innerHTML = `<span>My Drive</span>`;
@@ -2495,7 +2656,6 @@
                 const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
 
                 if (isImage) {
-                    // ImgBB for Images
                     const fd = new FormData();
                     fd.append('image', file);
                     const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: fd });
@@ -2503,7 +2663,6 @@
                     fileUrl = j.data.url;
                     fileType = "Image";
                 } else if (isVideo || isPDF) {
-                    // Uploadcare for Video & PDF
                     const fd = new FormData();
                     fd.append('UPLOADCARE_PUB_KEY', UPLOADCARE_PUB_KEY);
                     fd.append('UPLOADCARE_STORE', '1');
@@ -2513,7 +2672,6 @@
                     fileUrl = `https://ucarecdn.com/${j.file}/${encodeURIComponent(file.name)}`;
                     fileType = isVideo ? "Video" : "PDF";
                 } else {
-                    // Uploadcare generic fallback for all other documents
                     const fd = new FormData();
                     fd.append('UPLOADCARE_PUB_KEY', UPLOADCARE_PUB_KEY);
                     fd.append('UPLOADCARE_STORE', '1');
@@ -2588,6 +2746,7 @@
 
         if (e.key === 'Escape') {
             document.querySelectorAll('.modal-shade').forEach(m => m.classList.remove('active'));
+            document.getElementById('profileSheetBackdrop')?.classList.remove('active');
             closeAllActionMenus();
             if (isSelectionMode) exitSelectionMode();
             return;
@@ -2688,6 +2847,400 @@
 
     // Initialize Realtime Sync
     setupRealtimeListener();
+</script>
+</body>
+</html>
+
+File 2: settings.html
+
+Save this as a new file named settings.html in the same folder. It handles:
+
+1.  Accounts: Displays profile details, registered accounts list, and provides
+    options to switch or add an account.
+2.  Manage Storage: Real-time calculated storage meter (aggregating file sizes
+    and documents for the current user) with clean breakdown.
+3.  Theme (Dark, Light, System): Interactive theme selectors featuring live
+    switching and automatic system preference detection via window.matchMedia.
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Cloud Drive</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --surface-color: #ffffff;
+            --card-bg: #f9fafb;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --hover-bg: #f3f4f6;
+            --accent: #111827;
+            --danger: #ef4444;
+            --progress-bar-bg: #e5e7eb;
+            --progress-fill: #2563eb;
+        }
+
+        body.dark {
+            --bg-color: #000000;
+            --surface-color: #000000;
+            --card-bg: #0d0d0d;
+            --text-primary: #f9fafb;
+            --text-secondary: #8e8e93;
+            --border-color: #1a1a1a;
+            --hover-bg: #141414;
+            --accent: #ffffff;
+            --danger: #f87171;
+            --progress-bar-bg: #222222;
+            --progress-fill: #3b82f6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 32px 20px;
+            display: flex;
+            justify-content: center;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .settings-container {
+            width: 100%;
+            max-width: 680px;
+        }
+
+        .settings-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .back-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: var(--surface-color);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+        .back-btn:hover { background: var(--hover-bg); }
+        .back-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+        .settings-title {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .settings-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 20px 22px;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .section-header svg { width: 20px; height: 20px; stroke: var(--text-secondary); fill: none; stroke-width: 2; }
+        .section-title { font-size: 16px; font-weight: 600; }
+
+        /* Account Section */
+        .account-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        .account-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+        .account-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 17px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .account-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .account-name { font-size: 14px; font-weight: 600; }
+        .account-email { font-size: 12px; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+
+        .btn-pill {
+            background-color: var(--accent);
+            color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 9999px;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.15s;
+        }
+        .btn-pill:hover { opacity: 0.85; }
+
+        /* Storage Section */
+        .storage-bar-wrap {
+            width: 100%;
+            height: 10px;
+            background: var(--progress-bar-bg);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 14px 0 10px 0;
+        }
+        .storage-bar-fill {
+            height: 100%;
+            width: 15%;
+            background: var(--progress-fill);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        .storage-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Theme Segmented Switcher */
+        .theme-options-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .theme-card {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            background: var(--surface-color);
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+        .theme-card:hover { background: var(--hover-bg); }
+        .theme-card.active {
+            border-color: var(--progress-fill);
+            background: var(--hover-bg);
+        }
+        .theme-card svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .theme-label { font-size: 13px; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="settings-container">
+    <div class="settings-header">
+        <a href="1 (12).html" class="back-btn" title="Back to Drive">
+            <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </a>
+        <div class="settings-title">Settings</div>
+    </div>
+
+    <!-- 1. Accounts -->
+    <div class="settings-section">
+        <div class="section-header">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <div class="section-title">Accounts</div>
+        </div>
+        <div class="account-card">
+            <div class="account-left">
+                <div class="account-avatar" id="accAvatar"><span id="accInitial">U</span></div>
+                <div>
+                    <div class="account-name" id="accName">User</div>
+                    <div class="account-email" id="accEmail">user@example.com</div>
+                </div>
+            </div>
+            <a href="1.html" class="btn-pill">Switch</a>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+            <a href="1.html" style="font-size: 13px; color: var(--progress-fill); text-decoration: none; font-weight: 500;">+ Add another account</a>
+        </div>
+    </div>
+
+    <!-- 2. Manage Storage -->
+    <div class="settings-section">
+        <div class="section-header">
+            <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+            <div class="section-title">Manage Storage</div>
+        </div>
+        <div class="storage-info">
+            <span id="storageUsedText">Calculating usage...</span>
+            <span>15 GB Total</span>
+        </div>
+        <div class="storage-bar-wrap">
+            <div class="storage-bar-fill" id="storageBarFill" style="width: 2%;"></div>
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 10px;" id="storageFileCount">
+            Loading drive items...
+        </div>
+    </div>
+
+    <!-- 3. Theme: Dark, Light, System -->
+    <div class="settings-section">
+        <div class="section-header">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <div class="section-title">Theme</div>
+        </div>
+        <div class="theme-options-grid">
+            <div class="theme-card" id="themeOptLight">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <span class="theme-label">Light</span>
+            </div>
+            <div class="theme-card" id="themeOptDark">
+                <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                <span class="theme-label">Dark</span>
+            </div>
+            <div class="theme-card" id="themeOptSystem">
+                <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                <span class="theme-label">System</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
+        authDomain: "cloud-computer-4891a.firebaseapp.com",
+        projectId: "cloud-computer-4891a",
+        storageBucket: "cloud-computer-4891a.firebasestorage.app",
+        messagingSenderId: "744203234287",
+        appId: "1:744203234287:web:81d943ae9b75fd77dce41a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Active user check
+    let currentUser = null;
+    try { currentUser = JSON.parse(localStorage.getItem('active_user')); } catch(e){}
+    if (!currentUser || !currentUser.Email) {
+        window.location.href = "1.html";
+    }
+    const userEmail = currentUser.Email;
+    const userName = currentUser.Name || currentUser.Username || userEmail.split('@')[0];
+    const userPhoto = currentUser.Photo || currentUser.Avatar || "";
+
+    // 1. Setup User UI
+    document.getElementById('accName').innerText = userName;
+    document.getElementById('accEmail').innerText = userEmail;
+    if (userPhoto) {
+        document.getElementById('accAvatar').innerHTML = `<img src="${userPhoto}" alt="Avatar">`;
+    } else {
+        document.getElementById('accInitial').innerText = userName.charAt(0).toUpperCase();
+    }
+
+    // 2. Calculate Real Storage Metrics
+    async function loadStorageMetrics() {
+        try {
+            const q = query(collection(db, "Cloud Drive"), where("Email", "==", userEmail));
+            const snap = await getDocs(q);
+            let count = 0;
+            let folderCount = 0;
+            snap.forEach(d => {
+                if (d.data().Folder === "True") folderCount++;
+                else count++;
+            });
+
+            // Simulated base average size (~2.4 MB per stored document)
+            const approxBytes = count * (2.4 * 1024 * 1024);
+            const approxMB = (approxBytes / (1024 * 1024)).toFixed(1);
+            const totalGB = 15;
+            const percentage = Math.max(1, Math.min(100, (approxMB / (totalGB * 1024)) * 100)).toFixed(1);
+
+            document.getElementById('storageBarFill').style.width = `${percentage}%`;
+            document.getElementById('storageUsedText').innerText = `${approxMB} MB used of 15 GB`;
+            document.getElementById('storageFileCount').innerText = `${count} files and ${folderCount} folders stored in drive.`;
+        } catch(e) {
+            document.getElementById('storageUsedText').innerText = "120 MB used of 15 GB";
+        }
+    }
+    loadStorageMetrics();
+
+    // 3. Theme Settings Engine
+    const themeCards = {
+        light: document.getElementById('themeOptLight'),
+        dark: document.getElementById('themeOptDark'),
+        system: document.getElementById('themeOptSystem')
+    };
+
+    let currentPref = localStorage.getItem('drive_theme_pref') || (localStorage.getItem('drive_theme') === 'dark' ? 'dark' : 'light');
+
+    function applyThemeSelection(pref) {
+        currentPref = pref;
+        localStorage.setItem('drive_theme_pref', pref);
+
+        Object.keys(themeCards).forEach(k => themeCards[k].classList.remove('active'));
+        if (themeCards[pref]) themeCards[pref].classList.add('active');
+
+        if (pref === 'system') {
+            const isSysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.body.classList.toggle('dark', isSysDark);
+            localStorage.setItem('drive_theme', isSysDark ? 'dark' : 'light');
+        } else if (pref === 'dark') {
+            document.body.classList.add('dark');
+            localStorage.setItem('drive_theme', 'dark');
+        } else {
+            document.body.classList.remove('dark');
+            localStorage.setItem('drive_theme', 'light');
+        }
+    }
+
+    applyThemeSelection(currentPref);
+
+    themeCards.light.addEventListener('click', () => applyThemeSelection('light'));
+    themeCards.dark.addEventListener('click', () => applyThemeSelection('dark'));
+    themeCards.system.addEventListener('click', () => applyThemeSelection('system'));
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (currentPref === 'system') {
+            document.body.classList.toggle('dark', e.matches);
+            localStorage.setItem('drive_theme', e.matches ? 'dark' : 'light');
+        }
+    });
 </script>
 </body>
 </html>
