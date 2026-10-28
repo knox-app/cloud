@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1843,8 +1842,8 @@
 
     function openItem(item, isFolder, name) {
         if (isFolder) {
-            folderHierarchy.push({ id: item.id, name: name });
-            renderCurrentWorkspace();
+            // Redirect to folder.html passing the folder's Firestore ID
+            window.location.href = `folder.html?id=${item.id}`;
         } else {
             updateDoc(doc(db, "Cloud Drive", item.id), {
                 LastOpened: new Date().toISOString(),
