@@ -1,3 +1,26 @@
+Here is the complete, updated code for 1 (12).html incorporating all your
+requests:
+
+1.  No Password Prompt on Root Folders: Clicking on any folder redirects
+    directly to folder.html?id=<id> without asking for a password here (letting
+    folder.html handle the lock).
+2.  Persistent Grid View Switcher: Correctly initializes the visual state of the
+    switcher button (active class) on page load from localStorage.
+3.  True AMOLED Dark Mode: Dark theme background and surfaces updated to #000000
+    (pure AMOLED black).
+4.  Left Sidebar Navigation & Mobile Bottom Bar: Added Home, My Drive, Labels,
+    Settings, and Account in the left sidebar, and a sleek bottom navigation bar
+    on mobile (Home, My Drive, Labels).
+5.  Uploadcare API Integration: Configured with your Uploadcare keys (PUB_KEY
+    = 06c8658b8fb100087dfc) for PDF and Video uploads.
+6.  Multi-User URL Parameter Support (?u=1,2,3...): Automatically reads the user
+    index from URL parameters (?u=...), reads user profiles, and enables
+    seamless switching between accounts.
+7.  Profile Avatar & Slide-up Account Bottom Sheet: Displays user avatar
+    top-right, opening a bottom sheet with profile picture, Name, Email, "Switch
+    Account" (redirects to https://knox-app.github.io/netflix/lgn/3?app=drive),
+    and Settings.
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +38,7 @@
             --text-secondary: #6b7280;
             --border-color: #e5e7eb;
             --hover-bg: #f3f4f6;
-            --btn-dark-bg: #000000;
+            --btn-dark-bg: #0d0d0d;
             --btn-dark-text: #ffffff;
             --accent: #111827;
             --danger: #ef4444;
@@ -24,7 +47,7 @@
             --selection-bg: #111827;
             --selection-text: #ffffff;
             --select-highlight: rgba(0, 0, 0, 0.05);
-            --sidebar-width: 230px;
+            --sidebar-width: 72px;
             --folder-default-color: #e57373;
         }
 
@@ -33,19 +56,19 @@
             --bg-color: #000000;
             --surface-color: #000000;
             --card-bg: #0a0a0a;
-            --text-primary: #f9fafb;
-            --text-secondary: #8e8e93;
-            --border-color: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a3a3a3;
+            --border-color: #1f1f1f;
             --hover-bg: #141414;
             --btn-dark-bg: #ffffff;
             --btn-dark-text: #000000;
             --accent: #ffffff;
             --danger: #f87171;
             --tag-bg: #1a1a1a;
-            --tag-text: #d1d5db;
-            --selection-bg: #171717;
+            --tag-text: #d4d4d4;
+            --selection-bg: #141414;
             --selection-text: #ffffff;
-            --select-highlight: rgba(255, 255, 255, 0.07);
+            --select-highlight: rgba(255, 255, 255, 0.08);
             --folder-default-color: #ef5350;
         }
 
@@ -59,105 +82,55 @@
             min-height: 100vh;
             overflow-x: hidden;
             transition: background-color 0.2s, color 0.2s;
+            padding-bottom: 0;
         }
 
-        /* Desktop Sidebar */
+        /* Sidebar Navigation */
         aside.sidebar {
             width: var(--sidebar-width);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            padding: 24px 16px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
             flex-shrink: 0;
             background: var(--surface-color);
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            justify-content: space-between;
+            z-index: 100;
         }
 
-        .sidebar-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 17px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 24px;
-            padding-left: 8px;
-            color: var(--text-primary);
-        }
-        .sidebar-brand svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2.2; }
-
-        .nav-group {
+        .sidebar-nav-group {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
         }
 
-        .nav-item {
+        .side-icon {
+            width: 44px;
+            height: 44px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
+            justify-content: center;
             border-radius: 12px;
             color: var(--text-secondary);
-            font-size: 13.5px;
-            font-weight: 500;
             cursor: pointer;
+            transition: all 0.2s;
             text-decoration: none;
-            transition: all 0.15s ease;
+            position: relative;
         }
-        .nav-item svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
-        .nav-item:hover {
-            background-color: var(--hover-bg);
-            color: var(--text-primary);
-        }
-        .nav-item.active {
-            background-color: var(--hover-bg);
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .sidebar-bottom {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 14px;
-        }
-
-        /* Mobile Bottom Nav Bar */
-        .mobile-bottom-nav {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: var(--surface-color);
-            border-top: 1px solid var(--border-color);
-            z-index: 1000;
-            justify-content: space-around;
-            align-items: center;
-            backdrop-filter: blur(10px);
-        }
-        .mobile-nav-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 3px;
-            color: var(--text-secondary);
-            font-size: 11px;
+        .side-icon span {
+            font-size: 9px;
+            margin-top: 3px;
             font-weight: 500;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 6px 12px;
-            transition: color 0.15s ease;
         }
-        .mobile-nav-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-        .mobile-nav-btn.active { color: var(--text-primary); font-weight: 600; }
+        .side-icon:hover, .side-icon.active {
+            background-color: var(--hover-bg);
+            color: var(--text-primary);
+        }
+        .side-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
 
         /* Main Viewport */
         main.content-area {
@@ -173,7 +146,7 @@
             align-items: center;
             margin-bottom: 20px;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 14px;
         }
 
         .page-title {
@@ -186,36 +159,35 @@
             flex-wrap: wrap;
         }
 
-        .top-actions {
+        .top-right-actions {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        /* Top-Right Profile Icon Button */
-        .top-profile-btn {
+        /* Profile Avatar */
+        .user-avatar-btn {
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: #2563eb;
-            color: #ffffff;
+            border: 1.5px solid var(--border-color);
+            overflow: hidden;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            background: var(--hover-bg);
             font-weight: 600;
-            cursor: pointer;
-            border: 2px solid var(--border-color);
-            overflow: hidden;
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: transform 0.15s, border-color 0.15s;
             flex-shrink: 0;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-            user-select: none;
         }
-        .top-profile-btn:hover {
+        .user-avatar-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border-color: var(--text-secondary);
         }
-        .top-profile-btn img {
+        .user-avatar-btn img {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -300,7 +272,7 @@
         .view-btn.active {
             background: var(--surface-color);
             color: var(--text-primary);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
         }
         .view-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
@@ -317,7 +289,7 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
             z-index: 50;
         }
         .selection-toolbar.active { display: flex; }
@@ -427,7 +399,7 @@
             gap: 12px;
         }
 
-        /* List View */
+        /* ================= LIST VIEW ================= */
         .data-table {
             width: 100%;
             border-collapse: collapse;
@@ -498,7 +470,7 @@
         .file-location-hint { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
         .file-labels { display: flex; flex-wrap: wrap; margin-top: 3px; }
 
-        /* Grid View */
+        /* ================= GRID VIEW ================= */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
@@ -520,7 +492,7 @@
         }
         .grid-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.18);
             background: var(--hover-bg);
         }
         .grid-card.selected {
@@ -629,6 +601,7 @@
         }
         .doc-line { height: 4px; background: var(--border-color); border-radius: 2px; }
 
+        /* 3-Dots Trigger */
         .actions-cell { position: relative; text-align: right; }
         .btn-dots {
             background: none;
@@ -648,7 +621,7 @@
         .desktop-action-dropdown {
             position: fixed;
             background: var(--surface-color);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
             border-radius: 12px;
             width: 200px;
             padding: 6px 0;
@@ -671,7 +644,7 @@
         .dropdown-item.danger { color: var(--danger); }
         .dropdown-item svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
-        /* Bottom Sheets (Actions & Profile) */
+        /* Bottom Sheet Component */
         .bottom-sheet-backdrop {
             position: fixed;
             inset: 0;
@@ -688,15 +661,15 @@
         .bottom-sheet-card {
             background: var(--surface-color);
             width: 100%;
-            max-width: 480px;
-            border-radius: 24px 24px 0 0;
-            padding: 18px 24px 34px 24px;
-            max-height: 85vh;
+            max-width: 500px;
+            border-radius: 20px 20px 0 0;
+            padding: 16px 20px 32px 20px;
+            max-height: 82vh;
             overflow-y: auto;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.4);
             transform: translateY(100%);
             transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
+            border: 1px solid var(--border-color);
         }
         .bottom-sheet-backdrop.active .bottom-sheet-card {
             transform: translateY(0);
@@ -743,61 +716,72 @@
         .bottom-sheet-item.danger { color: var(--danger); }
         .bottom-sheet-item svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
-        /* Profile Bottom Sheet Specifics */
-        .profile-sheet-userbox {
+        /* Profile Bottom Sheet Content */
+        .profile-sheet-user-info {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            text-align: center;
-            padding: 16px 0 20px 0;
+            gap: 16px;
+            padding: 8px 4px 18px 4px;
             border-bottom: 1px solid var(--border-color);
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
         .profile-sheet-avatar {
-            width: 72px;
-            height: 72px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
-            background: #2563eb;
-            color: #ffffff;
+            border: 1.5px solid var(--border-color);
+            overflow: hidden;
+            background: var(--hover-bg);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            overflow: hidden;
-            border: 3px solid var(--border-color);
+            font-size: 20px;
+            font-weight: 600;
         }
         .profile-sheet-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-sheet-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
-        .profile-sheet-email { font-size: 13px; color: var(--text-secondary); }
-
-        .profile-action-btn {
+        .profile-sheet-details {
             display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+        }
+        .profile-sheet-name { font-size: 16px; font-weight: 600; }
+        .profile-sheet-email { font-size: 13px; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+
+        /* Mobile Bottom Nav Bar */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--surface-color);
+            border-top: 1px solid var(--border-color);
+            z-index: 1500;
             align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            padding: 14px 16px;
-            margin-bottom: 8px;
-            border-radius: 12px;
-            background: var(--hover-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            font-size: 14px;
+            justify-content: space-around;
+            padding: 0 10px;
+        }
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 10px;
             font-weight: 500;
+            gap: 3px;
             cursor: pointer;
             text-decoration: none;
-            transition: background 0.15s ease;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: color 0.15s;
         }
-        .profile-action-btn:hover {
-            opacity: 0.9;
+        .mobile-nav-item.active, .mobile-nav-item:active {
+            color: var(--text-primary);
         }
-        .profile-action-btn-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .profile-action-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+        .mobile-nav-item svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
 
         /* Empty State */
         .empty-state-container {
@@ -844,7 +828,7 @@
             border-radius: 24px;
             width: 100%;
             max-width: 440px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             padding: 24px;
             position: relative;
             border: 1px solid var(--border-color);
@@ -894,7 +878,7 @@
             font-size: 13px;
         }
 
-        /* Enhanced Customize Modal */
+        /* Customize Modal Components */
         .customize-top-preview {
             display: flex;
             justify-content: center;
@@ -985,7 +969,12 @@
             font-size: 13px;
             display: none;
             z-index: 3000;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+        }
+        body.dark .toast-popup {
+            background: #262626;
+            color: #ffffff;
+            border: 1px solid #333333;
         }
 
         /* Details */
@@ -994,11 +983,12 @@
         .details-label { color: var(--text-secondary); }
         .details-val { font-weight: 500; text-align: right; max-width: 260px; overflow-wrap: break-word; }
 
-        /* Responsive Breakpoints */
+        /* Responsive */
         @media (max-width: 768px) {
+            body { padding-bottom: 60px; }
             aside.sidebar { display: none; }
             .mobile-bottom-nav { display: flex; }
-            main.content-area { padding: 18px 14px 80px 14px; width: 100%; }
+            main.content-area { padding: 18px 14px; width: 100%; }
             .table-head { display: none; }
             
             .table-row {
@@ -1020,58 +1010,53 @@
 </head>
 <body>
 
-<!-- Desktop Sidebar Navigation -->
+<!-- Workspace Sidebar (Desktop) -->
 <aside class="sidebar">
-    <div>
-        <div class="sidebar-brand">
-            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-            <span>Cloud Drive</span>
+    <div class="sidebar-nav-group">
+        <div class="side-icon" id="navHomeBtn" title="Home">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>Home</span>
         </div>
-        <div class="nav-group">
-            <div class="nav-item active" id="navHome">
-                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                <span>Home</span>
-            </div>
-            <div class="nav-item" id="navMyDrive">
-                <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                <span>My Drive</span>
-            </div>
-            <div class="nav-item" id="navLabel">
-                <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-                <span>Labels</span>
-            </div>
+        <div class="side-icon active" id="navMyDriveBtn" title="My Drive">
+            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            <span>Drive</span>
+        </div>
+        <div class="side-icon" id="navLabelBtn" title="Labels">
+            <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+            <span>Labels</span>
         </div>
     </div>
-    <div class="sidebar-bottom">
-        <a href="settings.html" class="nav-item" id="navSettings">
+
+    <div class="sidebar-nav-group">
+        <div class="side-icon" id="themeToggleBtn" title="Toggle Theme (Shift+T then D/L)">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <span>Theme</span>
+        </div>
+        <div class="side-icon" id="navSettingsBtn" title="Settings">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             <span>Settings</span>
-        </a>
-        <div class="nav-item" id="themeToggleBtn" title="Toggle Theme (Shift+T then D/L)">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-            <span>Toggle Theme</span>
         </div>
-        <div class="nav-item" id="logoutSideBtn" style="color: var(--danger);">
-            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-            <span>Sign Out</span>
+        <div class="side-icon" id="navAccountBtn" title="Account">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>Account</span>
         </div>
     </div>
 </aside>
 
-<!-- Mobile Bottom Navigation Bar -->
+<!-- Mobile Bottom Navigation -->
 <nav class="mobile-bottom-nav">
-    <button class="mobile-nav-btn active" id="mNavHome">
+    <div class="mobile-nav-item" id="mobileNavHome">
         <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
         <span>Home</span>
-    </button>
-    <button class="mobile-nav-btn" id="mNavMyDrive">
+    </div>
+    <div class="mobile-nav-item active" id="mobileNavDrive">
         <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
         <span>My Drive</span>
-    </button>
-    <button class="mobile-nav-btn" id="mNavLabel">
+    </div>
+    <div class="mobile-nav-item" id="mobileNavLabels">
         <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
         <span>Labels</span>
-    </button>
+    </div>
 </nav>
 
 <!-- Drag Overlay -->
@@ -1088,7 +1073,7 @@
         <div class="page-title" id="breadcrumbArea">
             <span>Cloud Drive</span>
         </div>
-        <div class="top-actions">
+        <div class="top-right-actions">
             <button class="btn-pill" id="btnSelectModeToggle" style="background: var(--hover-bg); color: var(--text-primary); border: 1px solid var(--border-color);" title="Select Multiple (Shift+S)">
                 Select
             </button>
@@ -1099,9 +1084,10 @@
             <button class="btn-pill" id="newFolderTriggerBtn" style="background: var(--hover-bg); color: var(--text-primary); border: 1px solid var(--border-color);" title="New Folder (Shift+C)">
                 + Folder
             </button>
-            <!-- Top Right Profile Avatar Button -->
-            <div class="top-profile-btn" id="topProfileBtn" title="Account Details">
-                <span id="topProfileInitial">U</span>
+
+            <!-- User Profile Avatar -->
+            <div class="user-avatar-btn" id="userProfileBtn" title="Account Menu">
+                <span id="userAvatarText">U</span>
             </div>
         </div>
     </div>
@@ -1135,7 +1121,7 @@
             <button class="view-btn" id="viewListBtn" title="List View">
                 <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
             </button>
-            <button class="view-btn" id="viewGridBtn" title="Grid View (Google Drive Style)">
+            <button class="view-btn" id="viewGridBtn" title="Grid View">
                 <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
             </button>
         </div>
@@ -1166,7 +1152,7 @@
 <!-- Desktop Floating Dropdown Menu -->
 <div class="desktop-action-dropdown" id="desktopDropdown"></div>
 
-<!-- Item Actions Bottom Sheet (Mobile) -->
+<!-- Mobile Bottom Action Sheet -->
 <div class="bottom-sheet-backdrop" id="bottomSheetBackdrop">
     <div class="bottom-sheet-card" id="bottomSheetCard">
         <div class="bottom-sheet-handle"></div>
@@ -1178,38 +1164,32 @@
     </div>
 </div>
 
-<!-- Profile Bottom Sheet Popup (Appears from Bottom) -->
+<!-- Profile Bottom Sheet Pop-up -->
 <div class="bottom-sheet-backdrop" id="profileSheetBackdrop">
     <div class="bottom-sheet-card" id="profileSheetCard">
         <div class="bottom-sheet-handle"></div>
-        <div class="profile-sheet-userbox">
+        <div class="profile-sheet-user-info">
             <div class="profile-sheet-avatar" id="sheetProfileAvatar">
-                <span id="sheetProfileInitial">U</span>
+                <span id="sheetProfileInitials">U</span>
             </div>
-            <div class="profile-sheet-name" id="sheetProfileName">User</div>
-            <div class="profile-sheet-email" id="sheetProfileEmail">user@example.com</div>
+            <div class="profile-sheet-details">
+                <div class="profile-sheet-name" id="sheetProfileName">User</div>
+                <div class="profile-sheet-email" id="sheetProfileEmail">user@example.com</div>
+            </div>
         </div>
-        <div style="display: flex; flex-direction: column;">
-            <button class="profile-action-btn" id="btnSwitchAccount">
-                <div class="profile-action-btn-left">
-                    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    <span>Switch Account</span>
-                </div>
-                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            </button>
-            <a href="settings.html" class="profile-action-btn">
-                <div class="profile-action-btn-left">
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    <span>Settings</span>
-                </div>
-                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            </a>
-            <button class="profile-action-btn" id="btnSignOutSheet" style="color: var(--danger);">
-                <div class="profile-action-btn-left">
-                    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                    <span>Sign Out</span>
-                </div>
-            </button>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+            <div class="bottom-sheet-item" id="btnSheetSwitchAccount">
+                <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+                <span>Switch Account</span>
+            </div>
+            <div class="bottom-sheet-item" id="btnSheetSettings">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <span>Settings</span>
+            </div>
+            <div class="bottom-sheet-item danger" id="btnSheetSignOut">
+                <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <span>Sign Out</span>
+            </div>
         </div>
     </div>
 </div>
@@ -1286,7 +1266,7 @@
         <div class="input-group">
             <label>Add New Label</label>
             <div style="display: flex; gap: 8px;">
-                <input type="text" id="newLabelInput" class="clean-input" placeholder="e.g. Finance, Personal">
+                <input type="text" id="newLabelInput" class="clean-input" placeholder="e.g. MN Admin, Finance">
                 <button class="btn-pill" id="btnAddLabel">Add</button>
             </div>
         </div>
@@ -1386,7 +1366,7 @@
         </div>
         <div class="input-group">
             <label>Folder Name</label>
-            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. Work Documents">
+            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. My Folder">
         </div>
         <div class="input-group">
             <label>Folder Password (Optional)</label>
@@ -1417,23 +1397,47 @@
     };
 
     const IMGBB_API_KEY = "80c452b9a4b80f240ada316f23078d2c";
+    // Uploadcare Keys configured
     const UPLOADCARE_PUB_KEY = "06c8658b8fb100087dfc";
+    const UPLOADCARE_SEC_KEY = "6c9b13475a1e7609445f";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // ==========================================
+    // Multiuser URL Handling (?u=1,2,3...)
+    // ==========================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const userParam = urlParams.get('u');
+
     let currentUser = null;
-    try { currentUser = JSON.parse(localStorage.getItem('active_user')); } catch(e){}
+    let storedUsers = [];
+    try {
+        storedUsers = JSON.parse(localStorage.getItem('users_list')) || [];
+    } catch(e){}
+
+    if (userParam && storedUsers.length > 0) {
+        const uIdx = parseInt(userParam) - 1;
+        if (storedUsers[uIdx]) {
+            currentUser = storedUsers[uIdx];
+            localStorage.setItem('active_user', JSON.stringify(currentUser));
+        }
+    }
+
+    if (!currentUser) {
+        try { currentUser = JSON.parse(localStorage.getItem('active_user')); } catch(e){}
+    }
+
     if (!currentUser || !currentUser.Email) {
         window.location.href = "1.html";
     }
     const userEmail = currentUser.Email;
     const userName = currentUser.Name || currentUser.Username || userEmail.split('@')[0];
-    const userPhoto = currentUser.Photo || currentUser.Avatar || "";
+    const userPhoto = currentUser.Photo || currentUser.Avatar || currentUser.Picture || "";
 
-    // Set Top Profile and Sheet Profile Information
-    function setupProfileUI() {
-        const topBtn = document.getElementById('topProfileBtn');
+    // Populate User Profile Header and Sheet
+    function initUserProfileUI() {
+        const avatarBtn = document.getElementById('userProfileBtn');
         const sheetAvatar = document.getElementById('sheetProfileAvatar');
         const sheetName = document.getElementById('sheetProfileName');
         const sheetEmail = document.getElementById('sheetProfileEmail');
@@ -1442,60 +1446,62 @@
         sheetEmail.innerText = userEmail;
 
         if (userPhoto) {
-            topBtn.innerHTML = `<img src="${userPhoto}" alt="Avatar">`;
-            sheetAvatar.innerHTML = `<img src="${userPhoto}" alt="Avatar">`;
+            avatarBtn.innerHTML = `<img src="${userPhoto}" alt="User">`;
+            sheetAvatar.innerHTML = `<img src="${userPhoto}" alt="User">`;
         } else {
             const initial = userName.charAt(0).toUpperCase();
-            document.getElementById('topProfileInitial').innerText = initial;
-            document.getElementById('sheetProfileInitial').innerText = initial;
+            document.getElementById('userAvatarText').innerText = initial;
+            document.getElementById('sheetProfileInitials').innerText = initial;
         }
     }
-    setupProfileUI();
+    initUserProfileUI();
 
-    // Profile Bottom Sheet Toggle
-    const profileBackdrop = document.getElementById('profileSheetBackdrop');
-    document.getElementById('topProfileBtn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        profileBackdrop.classList.add('active');
+    // Profile Pop-up Bottom Sheet Trigger
+    const profileSheetBackdrop = document.getElementById('profileSheetBackdrop');
+    document.getElementById('userProfileBtn').addEventListener('click', () => {
+        profileSheetBackdrop.classList.add('active');
+    });
+    document.getElementById('navAccountBtn').addEventListener('click', () => {
+        profileSheetBackdrop.classList.add('active');
+    });
+    profileSheetBackdrop.addEventListener('click', (e) => {
+        if (e.target === profileSheetBackdrop) profileSheetBackdrop.classList.remove('active');
     });
 
-    profileBackdrop.addEventListener('click', (e) => {
-        if (e.target === profileBackdrop) profileBackdrop.classList.remove('active');
+    document.getElementById('btnSheetSwitchAccount').addEventListener('click', () => {
+        window.location.href = "https://knox-app.github.io/netflix/lgn/3?app=drive";
     });
-
-    document.getElementById('btnSwitchAccount').addEventListener('click', () => {
-        window.location.href = "1.html";
+    document.getElementById('btnSheetSettings').addEventListener('click', () => {
+        profileSheetBackdrop.classList.remove('active');
+        showToast("Settings panel");
     });
-
-    document.getElementById('btnSignOutSheet').addEventListener('click', () => {
+    document.getElementById('btnSheetSignOut').addEventListener('click', () => {
         localStorage.removeItem('active_user');
         window.location.href = "1.html";
     });
 
-    // View Mode Synchronization & Fix
+    // ==========================================
+    // View Switcher & Theme Handling (AMOLED #000)
+    // ==========================================
     let currentViewMode = localStorage.getItem('drive_view_mode') || 'list';
 
     function setViewMode(mode) {
         currentViewMode = mode;
         localStorage.setItem('drive_view_mode', mode);
-        updateSwitcherUI();
+        updateViewSwitcherButtons();
         renderCurrentWorkspace();
     }
 
-    function updateSwitcherUI() {
-        const listBtn = document.getElementById('viewListBtn');
-        const gridBtn = document.getElementById('viewGridBtn');
-        if (listBtn && gridBtn) {
-            listBtn.classList.toggle('active', currentViewMode === 'list');
-            gridBtn.classList.toggle('active', currentViewMode === 'grid');
-        }
+    function updateViewSwitcherButtons() {
+        document.getElementById('viewListBtn').classList.toggle('active', currentViewMode === 'list');
+        document.getElementById('viewGridBtn').classList.toggle('active', currentViewMode === 'grid');
     }
-    updateSwitcherUI();
+    // Correct initial visual state of view buttons
+    updateViewSwitcherButtons();
 
     document.getElementById('viewListBtn').addEventListener('click', () => setViewMode('list'));
     document.getElementById('viewGridBtn').addEventListener('click', () => setViewMode('grid'));
 
-    // AMOLED Theme Toggle
     function setTheme(dark) {
         if (dark) {
             document.body.classList.add('dark');
@@ -1511,36 +1517,46 @@
         setTheme(!document.body.classList.contains('dark'));
     });
 
-    document.getElementById('logoutSideBtn').addEventListener('click', () => {
-        localStorage.removeItem('active_user');
-        window.location.href = "1.html";
-    });
-
-    // Navigation Filtering
-    let currentNavTab = 'home';
-    function setNavTab(tab) {
-        currentNavTab = tab;
-        document.querySelectorAll('.nav-item, .mobile-nav-btn').forEach(btn => btn.classList.remove('active'));
-        
-        if (tab === 'home') {
-            document.getElementById('navHome')?.classList.add('active');
-            document.getElementById('mNavHome')?.classList.add('active');
-        } else if (tab === 'mydrive') {
-            document.getElementById('navMyDrive')?.classList.add('active');
-            document.getElementById('mNavMyDrive')?.classList.add('active');
-        } else if (tab === 'label') {
-            document.getElementById('navLabel')?.classList.add('active');
-            document.getElementById('mNavLabel')?.classList.add('active');
-        }
-        renderCurrentWorkspace();
+    // Navigation buttons active states
+    function handleNavClick(btnId) {
+        document.querySelectorAll('.sidebar-nav-group .side-icon').forEach(i => i.classList.remove('active'));
+        document.querySelectorAll('.mobile-nav-item').forEach(i => i.classList.remove('active'));
+        const el = document.getElementById(btnId);
+        if (el) el.classList.add('active');
     }
 
-    document.getElementById('navHome')?.addEventListener('click', () => setNavTab('home'));
-    document.getElementById('navMyDrive')?.addEventListener('click', () => setNavTab('mydrive'));
-    document.getElementById('navLabel')?.addEventListener('click', () => setNavTab('label'));
-    document.getElementById('mNavHome')?.addEventListener('click', () => setNavTab('home'));
-    document.getElementById('mNavMyDrive')?.addEventListener('click', () => setNavTab('mydrive'));
-    document.getElementById('mNavLabel')?.addEventListener('click', () => setNavTab('label'));
+    document.getElementById('navHomeBtn').addEventListener('click', () => {
+        handleNavClick('navHomeBtn');
+        document.getElementById('mobileNavHome').classList.add('active');
+        document.getElementById('searchInput').value = "";
+        renderCurrentWorkspace();
+    });
+    document.getElementById('navMyDriveBtn').addEventListener('click', () => {
+        handleNavClick('navMyDriveBtn');
+        document.getElementById('mobileNavDrive').classList.add('active');
+        document.getElementById('searchInput').value = "";
+        renderCurrentWorkspace();
+    });
+    document.getElementById('navLabelBtn').addEventListener('click', () => {
+        handleNavClick('navLabelBtn');
+        document.getElementById('mobileNavLabels').classList.add('active');
+        document.getElementById('searchInput').value = "label:";
+        document.getElementById('searchInput').focus();
+    });
+    document.getElementById('navSettingsBtn').addEventListener('click', () => {
+        showToast("Settings panel");
+    });
+
+    // Mobile nav triggers
+    document.getElementById('mobileNavHome').addEventListener('click', () => {
+        document.getElementById('navHomeBtn').click();
+    });
+    document.getElementById('mobileNavDrive').addEventListener('click', () => {
+        document.getElementById('navMyDriveBtn').click();
+    });
+    document.getElementById('mobileNavLabels').addEventListener('click', () => {
+        document.getElementById('navLabelBtn').click();
+    });
 
     function showToast(msg) {
         const t = document.getElementById('toastPopup');
@@ -1626,13 +1642,31 @@
         book: `<svg viewBox="0 0 24 24"><rect x="4.5" y="3" width="15" height="18" rx="2.5"></rect><line x1="8.5" y1="3" x2="8.5" y2="21"></line></svg>`,
         cap: `<svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c0 3 6 3 6 3s6 0 6-3v-5"></path></svg>`,
         pencil: `<svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`,
+        nib: `<svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><circle cx="11" cy="11" r="1.5"></circle></svg>`,
         code: `<svg viewBox="0 0 24 24"><path d="M8 3H6a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2"></path><path d="M16 3h2a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2"></path></svg>`,
+        terminal: `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"></rect><polyline points="7 9 10.5 12 7 15"></polyline><line x1="13" y1="15" x2="17" y2="15"></line></svg>`,
         music: `<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`,
+        cupcake: `<svg viewBox="0 0 24 24"><path d="M4.5 11h15l-2 10h-11l-2-10z"></path><path d="M4.5 11c0-2.2 1.8-4 4-4 .6 0 1.2.1 1.7.4C11 5.5 12.5 4 14.5 4c2.2 0 4 1.8 4 4 0 .3 0 .7-.1 1"></path></svg>`,
         brush: `<svg viewBox="0 0 24 24"><path d="M18 2l4 4-10 10H8v-4L18 2z"></path><path d="M4 22c0-3 2-5 4-5"></path></svg>`,
+        palette: `<svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".8"></circle><circle cx="17.5" cy="10.5" r=".8"></circle><circle cx="8.5" cy="7.5" r=".8"></circle><circle cx="6.5" cy="12.5" r=".8"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>`,
+        stethoscope: `<svg viewBox="0 0 24 24"><path d="M4.5 3v5a6 6 0 0 0 12 0V3"></path><line x1="3" y1="3" x2="6" y2="3"></line><line x1="15" y1="3" x2="18" y2="3"></line><path d="M10.5 14v4a3 3 0 0 0 6 0v-2"></path><circle cx="16.5" cy="16" r="2.5"></circle></svg>`,
+        flower: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2a4 4 0 0 0-4 4 4 4 0 0 0 8 0 4 4 0 0 0-4-4z"></path><path d="M22 12a4 4 0 0 0-4-4 4 4 0 0 0 0 8 4 4 0 0 0 4-4z"></path><path d="M12 22a4 4 0 0 0 4-4 4 4 0 0 0-8 0 4 4 0 0 0 4 4z"></path><path d="M2 12a4 4 0 0 0 4 4 4 4 0 0 0 0-8 4 4 0 0 0-4 4z"></path></svg>`,
+        lotus: `<svg viewBox="0 0 24 24"><path d="M12 3c-2 4-5 8-10 11 4 1 8 0 10-4 2 4 6 5 10 4-5-3-8-7-10-11z"></path><path d="M12 10c-1.5 3-4 6-7 7 3 1 6 .5 7-3 1 3.5 4 4 7 3-3-1-5.5-4-7-7z"></path></svg>`,
         briefcase: `<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="3"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`,
         chart: `<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
+        kettlebell: `<svg viewBox="0 0 24 24"><path d="M9 7V4a3 3 0 0 1 6 0v3"></path><circle cx="12" cy="14" r="7"></circle></svg>`,
+        dumbbell: `<svg viewBox="0 0 24 24"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>`,
+        notebook: `<svg viewBox="0 0 24 24"><rect x="5" y="3" width="15" height="18" rx="2"></rect><line x1="9" y1="7" x2="15" y2="7"></line><line x1="9" y1="11" x2="15" y2="11"></line><line x1="9" y1="15" x2="12" y2="15"></line><path d="M3 6h2M3 10h2M3 14h2M3 18h2"></path></svg>`,
+        scales: `<svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><path d="M5 21h14"></path><path d="M3 7h18"></path><path d="M3 7l3 7h-6l3-7zM21 7l3 7h-6l3-7z"></path></svg>`,
+        globeStand: `<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="7"></circle><path d="M12 17v4M8 21h8M19 10a7 7 0 0 1-14 0"></path></svg>`,
         plane: `<svg viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"></path></svg>`,
-        heart: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`
+        globe: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
+        wrench: `<svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`,
+        paw: `<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="4"></circle><circle cx="6.5" cy="9.5" r="2"></circle><circle cx="17.5" cy="9.5" r="2"></circle><circle cx="9" cy="5.5" r="1.8"></circle><circle cx="15" cy="5.5" r="1.8"></circle></svg>`,
+        flask: `<svg viewBox="0 0 24 24"><path d="M10 2v7.31L4.15 19.89A2 2 0 0 0 5.86 23h12.28a2 2 0 0 0 1.71-3.11L14 9.31V2z"></path><line x1="8.5" y1="2" x2="15.5" y2="2"></line><line x1="14" y1="14" x2="10" y2="14"></line></svg>`,
+        brain: `<svg viewBox="0 0 24 24"><path d="M9.5 4a3.5 3.5 0 0 0-3.5 3.5c0 .3.04.59.11.87A3.5 3.5 0 0 0 4 11.5c0 1.4.82 2.61 2 3.16V16a3.5 3.5 0 0 0 3.5 3.5h.5"></path><path d="M14.5 4a3.5 3.5 0 0 1 3.5 3.5c0 .3-.04.59-.11.87A3.5 3.5 0 0 1 20 11.5c0 1.4-.82 2.61-2 3.16V16a3.5 3.5 0 0 1-3.5 3.5h-.5"></path><path d="M12 4v16"></path></svg>`,
+        heart: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`,
+        plant: `<svg viewBox="0 0 24 24"><path d="M7 21h10l-1-7H8l-1 7z"></path><path d="M12 14V7"></path><path d="M12 7c-2-3-5-3-5 0s3 3 5 0z"></path><path d="M12 9c2-3 5-3 5 0s-3 3-5 0z"></path></svg>`
     };
 
     const SVG_ICONS = {
@@ -1662,6 +1696,7 @@
         return { label: "Document", icon: SVG_ICONS.doc };
     }
 
+    let folderHierarchy = [];
     let allWorkspaceDocs = [];
     let allFolderDocs = [];
     let currentRenderedItems = [];
@@ -1670,6 +1705,15 @@
     let keyboardFocusedIndex = -1;
     let unsubscribeSnapshot = null;
 
+    function getCurrentFolderId() {
+        return folderHierarchy.length > 0 ? folderHierarchy[folderHierarchy.length - 1].id : null;
+    }
+
+    function getCurrentParentFolder() {
+        const cid = getCurrentFolderId();
+        return cid ? allFolderDocs.find(f => f.id === cid) : null;
+    }
+
     function getUserRole(item) {
         if (item.Email === userEmail) return 'Owner';
         const acc = item.Access || {};
@@ -1677,7 +1721,49 @@
         if (acc.Contributor?.includes(userEmail)) return 'Contributor';
         if (acc.Commenter?.includes(userEmail) || acc.Commentator?.includes(userEmail)) return 'Commenter';
         if (acc.Viewer?.includes(userEmail)) return 'Viewer';
+
+        for (const f of folderHierarchy) {
+            const pDoc = allFolderDocs.find(x => x.id === f.id);
+            if (pDoc) {
+                if (pDoc.Email === userEmail) return 'Owner';
+                const pAcc = pDoc.Access || {};
+                if (pAcc.Editor?.includes(userEmail)) return 'Editor';
+                if (pAcc.Contributor?.includes(userEmail)) return 'Contributor';
+                if (pAcc.Commenter?.includes(userEmail) || pAcc.Commentator?.includes(userEmail)) return 'Commenter';
+                if (pAcc.Viewer?.includes(userEmail)) return 'Viewer';
+            }
+        }
         return 'Viewer';
+    }
+
+    function renderBreadcrumb() {
+        const area = document.getElementById('breadcrumbArea');
+        if (folderHierarchy.length === 0) {
+            area.innerHTML = `<span>Cloud Drive</span>`;
+        } else {
+            let html = `<span style="color: var(--text-secondary); cursor: pointer;" id="bc-root">Cloud Drive</span>`;
+            folderHierarchy.forEach((item, index) => {
+                html += ` <span style="color: var(--text-secondary); font-weight: 400;">/</span> `;
+                if (index === folderHierarchy.length - 1) {
+                    html += `<span>${item.name}</span>`;
+                } else {
+                    html += `<span style="color: var(--text-secondary); cursor: pointer;" class="bc-crumb" data-idx="${index}">${item.name}</span>`;
+                }
+            });
+            area.innerHTML = html;
+
+            document.getElementById('bc-root')?.addEventListener('click', () => {
+                folderHierarchy = [];
+                renderCurrentWorkspace();
+            });
+            document.querySelectorAll('.bc-crumb').forEach(el => {
+                el.addEventListener('click', () => {
+                    const idx = parseInt(el.getAttribute('data-idx'));
+                    folderHierarchy = folderHierarchy.slice(0, idx + 1);
+                    renderCurrentWorkspace();
+                });
+            });
+        }
     }
 
     // Realtime Database Listener
@@ -1710,32 +1796,33 @@
     }
 
     function renderCurrentWorkspace() {
-        const area = document.getElementById('breadcrumbArea');
+        renderBreadcrumb();
         const wrapper = document.getElementById('workspaceViewWrapper');
 
+        const currId = getCurrentFolderId();
         let renderItems = [];
-        if (currentNavTab === 'mydrive') {
-            area.innerHTML = `<span>My Drive</span>`;
-            renderItems = allWorkspaceDocs.filter(d => d.Email === userEmail && d.Folder === "True");
-        } else if (currentNavTab === 'label') {
-            area.innerHTML = `<span>Labeled Items</span>`;
-            renderItems = allWorkspaceDocs.filter(d => Array.isArray(d.Label) && d.Label.length > 0);
-        } else {
-            area.innerHTML = `<span>Cloud Drive</span>`;
+
+        if (!currId) {
             const assignedChildIds = new Set();
             allFolderDocs.forEach(f => {
                 if (Array.isArray(f.File)) f.File.forEach(id => assignedChildIds.add(id));
             });
             renderItems = allWorkspaceDocs.filter(i => !assignedChildIds.has(i.id));
+        } else {
+            const activeFolder = allFolderDocs.find(f => f.id === currId);
+            const assignedIds = (activeFolder && Array.isArray(activeFolder.File)) ? activeFolder.File : [];
+            renderItems = allWorkspaceDocs.filter(i => assignedIds.includes(i.id));
         }
 
         currentRenderedItems = renderItems;
 
         if (renderItems.length === 0) {
+            const folderName = folderHierarchy.length > 0 ? folderHierarchy[folderHierarchy.length - 1].name : "";
+            const emptyText = folderName ? `No Files In Your ${folderName}` : `No Files In Your Drive`;
             wrapper.innerHTML = `
                 <div class="empty-state-container">
                     <img src="https://indus.sarvam.ai/studio/assets/empty-table.webp" alt="No files" class="empty-state-img">
-                    <div class="empty-state-title">No Files In Your Drive</div>
+                    <div class="empty-state-title">${emptyText}</div>
                 </div>
             `;
             return;
@@ -1782,7 +1869,7 @@
         });
     }
 
-    function createRowElement(item, index) {
+    function createRowElement(item, index, locationHint = null) {
         const isFolder = item.Folder === "True";
         const name = item.Name || (item.File ? item.File.split('/').pop() : 'Untitled');
         const format = getFormatInfo(item.Type, isFolder);
@@ -1791,7 +1878,12 @@
         const role = getUserRole(item);
         const isViewer = (role === 'Viewer');
 
-        const labels = Array.isArray(item.Label) ? item.Label : [];
+        let labels = Array.isArray(item.Label) ? [...item.Label] : [];
+        if (!isFolder && labels.length === 0 && folderHierarchy.length > 0) {
+            const p = getCurrentParentFolder();
+            if (p && Array.isArray(p.Label)) labels = [...p.Label];
+        }
+
         const labelsHtml = labels.map(l => `<span class="label-badge">${l}</span>`).join('');
         const folderColor = item.Customize?.Colour || (isFolder ? 'var(--folder-default-color)' : '');
         const folderBadgeIconKey = item.Customize?.Icon || 'folder';
@@ -1814,6 +1906,7 @@
                 </div>
                 <div class="file-info-col">
                     <span class="file-name" title="${name}">${name}</span>
+                    ${locationHint ? `<span class="file-location-hint">in ${locationHint}</span>` : ''}
                     <div class="file-labels">${labelsHtml}</div>
                 </div>
             </div>
@@ -1911,7 +2004,7 @@
         wrapper.appendChild(grid);
     }
 
-    // 3-Dots Action Handler
+    // Unified 3-Dots Action Handler
     const desktopDropdown = document.getElementById('desktopDropdown');
     const bottomSheetBackdrop = document.getElementById('bottomSheetBackdrop');
 
@@ -2007,6 +2100,7 @@
     bottomSheetBackdrop.addEventListener('click', (e) => {
         if (e.target === bottomSheetBackdrop) closeAllActionMenus();
     });
+
     window.addEventListener('click', () => closeAllActionMenus());
 
     function attachItemEvents(el, item, isFolder, name, isViewer) {
@@ -2015,7 +2109,8 @@
             if (isSelectionMode) {
                 toggleSelectItem(item.id, !selectedItemIds.has(item.id));
             } else {
-                openItem(item, isFolder);
+                // Open folder directly to folder.html?id= without asking password here
+                openItem(item, isFolder, name);
             }
         });
 
@@ -2043,10 +2138,11 @@
         });
     }
 
-    // Direct folder opening without prompting password here
-    function openItem(item, isFolder) {
+    function openItem(item, isFolder, name) {
         if (isFolder) {
-            window.location.href = `folder.html?id=${item.id}`;
+            // Forward user query parameter if present
+            const uSuffix = userParam ? `&u=${userParam}` : '';
+            window.location.href = `folder.html?id=${item.id}${uSuffix}`;
         } else {
             updateDoc(doc(db, "Cloud Drive", item.id), {
                 LastOpened: new Date().toISOString(),
@@ -2175,7 +2271,7 @@
         openMoveModal(null, true);
     });
 
-    // Customize Modal
+    // Folder Customize Modal
     const customizeModal = document.getElementById('customizeModal');
     let targetCustomizeFolder = null;
     let selectedColor = '#4285F4';
@@ -2272,36 +2368,49 @@
                 </div>
                 <div style="display: flex; gap: 8px; justify-content: flex-end;">
                     <button class="btn-pill" id="btnDisableSecurity" style="background: var(--danger); color: #fff;">Disable Password</button>
+                    <button class="btn-pill" id="btnChangeSecurity">Change Password</button>
                 </div>
             `;
             document.getElementById('btnDisableSecurity').addEventListener('click', async () => {
                 await updateDoc(doc(db, "Cloud Drive", item.id), { Password: "", Updated: formatFirestoreDate() });
-                showToast("Password removed");
+                showToast("Password disabled");
                 securityModal.classList.remove('active');
+            });
+            document.getElementById('btnChangeSecurity').addEventListener('click', () => {
+                showSetPasswordUI(body);
             });
         } else {
-            body.innerHTML = `
-                <div class="input-group">
-                    <label>Set New Password</label>
-                    <input type="password" id="newSecPassInput" class="clean-input" placeholder="Enter password to lock folder">
-                </div>
-                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
-                    <button class="btn-pill" id="btnConfirmNewPass">Save Password</button>
-                </div>
-            `;
-            document.getElementById('btnConfirmNewPass').addEventListener('click', async () => {
-                const pass = document.getElementById('newSecPassInput').value.trim();
-                if (!pass) return showToast("Password cannot be empty");
-                await updateDoc(doc(db, "Cloud Drive", targetSecurityFolder.id), {
-                    Password: pass,
-                    Updated: formatFirestoreDate()
-                });
-                showToast("Password enabled");
-                securityModal.classList.remove('active');
-            });
+            showSetPasswordUI(body);
         }
+
         securityModal.classList.add('active');
     }
+
+    function showSetPasswordUI(container) {
+        container.innerHTML = `
+            <div class="input-group">
+                <label>Set New Password</label>
+                <input type="password" id="newSecPassInput" class="clean-input" placeholder="Enter password to lock folder">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+                <button class="btn-pill" id="btnConfirmNewPass">Save Password</button>
+            </div>
+        `;
+        document.getElementById('btnConfirmNewPass').addEventListener('click', async () => {
+            const pass = document.getElementById('newSecPassInput').value.trim();
+            if (!pass) {
+                showToast("Password cannot be empty");
+                return;
+            }
+            await updateDoc(doc(db, "Cloud Drive", targetSecurityFolder.id), {
+                Password: pass,
+                Updated: formatFirestoreDate()
+            });
+            showToast("Password protection enabled");
+            securityModal.classList.remove('active');
+        });
+    }
+
     document.getElementById('closeSecurityModal').addEventListener('click', () => securityModal.classList.remove('active'));
 
     // Details Modal
@@ -2309,11 +2418,14 @@
     function openDetailsModal(item) {
         const isFolder = item.Folder === "True";
         const format = getFormatInfo(item.Type, isFolder);
+        const locationPath = folderHierarchy.length > 0 ? folderHierarchy.map(h => h.name).join(' / ') : 'Root Directory';
+
         const content = document.getElementById('detailsContent');
         content.innerHTML = `
             <div class="details-item"><span class="details-label">Name</span><span class="details-val">${item.Name || 'Untitled'}</span></div>
             <div class="details-item"><span class="details-label">Type</span><span class="details-val">${format.label}</span></div>
             <div class="details-item"><span class="details-label">Date (Updated)</span><span class="details-val">${item.Updated || 'N/A'}</span></div>
+            <div class="details-item"><span class="details-label">Location</span><span class="details-val">${locationPath}</span></div>
             <div class="details-item"><span class="details-label">Owner</span><span class="details-val">${item.Email || userEmail}</span></div>
             <div class="details-item"><span class="details-label">Labels</span><span class="details-val">${(item.Label || []).join(', ') || 'None'}</span></div>
         `;
@@ -2332,6 +2444,7 @@
         renderLabelBadges();
         labelModal.classList.add('active');
     }
+
     document.getElementById('closeLabelModal').addEventListener('click', () => labelModal.classList.remove('active'));
 
     function renderLabelBadges() {
@@ -2373,7 +2486,7 @@
         labelModal.classList.remove('active');
     });
 
-    // Access Modal
+    // Manage Access Modal
     const accessModal = document.getElementById('accessModal');
     let targetAccessItem = null;
     let localAccessState = { Viewer: [], Contributor: [], Commenter: [], Editor: [] };
@@ -2390,6 +2503,7 @@
         renderAccessList();
         accessModal.classList.add('active');
     }
+
     document.getElementById('closeAccessModal').addEventListener('click', () => accessModal.classList.remove('active'));
 
     function renderAccessList() {
@@ -2600,7 +2714,7 @@
         const name = document.getElementById('newFolderName').value.trim();
         const pass = document.getElementById('newFolderPassword').value.trim();
         if (name) {
-            await addDoc(collection(db, "Cloud Drive"), {
+            const newDoc = await addDoc(collection(db, "Cloud Drive"), {
                 Email: userEmail,
                 Folder: "True",
                 Name: name,
@@ -2612,12 +2726,20 @@
                 Access: { Viewer: [], Contributor: [], Commenter: [], Editor: [] }
             });
 
+            const currFolderId = getCurrentFolderId();
+            if (currFolderId) {
+                await updateDoc(doc(db, "Cloud Drive", currFolderId), {
+                    File: arrayUnion(newDoc.id),
+                    Updated: formatFirestoreDate()
+                });
+            }
+
             folderModal.classList.remove('active');
             showToast("Folder created");
         }
     });
 
-    // Uploadcare & ImgBB Upload Handler
+    // Upload Files with ImgBB and Uploadcare keys
     const nativeFileInput = document.getElementById('nativeFileInput');
     document.getElementById('uploadTriggerBtn').addEventListener('click', () => nativeFileInput.click());
     nativeFileInput.addEventListener('change', (e) => {
@@ -2641,8 +2763,8 @@
     async function handleBatchUpload(files) {
         showToast(`Uploading ${files.length} file(s)...`);
         for (const file of files) {
-            if (file.size > 100 * 1024 * 1024) {
-                showToast(`Skipped ${file.name} (exceeds 100MB)`);
+            if (file.size > 50 * 1024 * 1024) {
+                showToast(`Skipped ${file.name} (exceeds 50MB)`);
                 continue;
             }
 
@@ -2651,25 +2773,18 @@
                 let fileType = "Document";
                 const isImage = file.type.startsWith('image/');
                 const isVideo = file.type.startsWith('video/');
-                const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+                const isPdf = file.type.includes('pdf') || file.name.toLowerCase().endsWith('.pdf');
 
                 if (isImage) {
+                    // Upload Images to ImgBB
                     const fd = new FormData();
                     fd.append('image', file);
                     const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: fd });
                     const j = await res.json();
                     fileUrl = j.data.url;
                     fileType = "Image";
-                } else if (isVideo || isPDF) {
-                    const fd = new FormData();
-                    fd.append('UPLOADCARE_PUB_KEY', UPLOADCARE_PUB_KEY);
-                    fd.append('UPLOADCARE_STORE', '1');
-                    fd.append('file', file);
-                    const res = await fetch('https://upload.uploadcare.com/base/', { method: 'POST', body: fd });
-                    const j = await res.json();
-                    fileUrl = `https://ucarecdn.com/${j.file}/${encodeURIComponent(file.name)}`;
-                    fileType = isVideo ? "Video" : "PDF";
                 } else {
+                    // Upload Video, PDF, & Documents to Uploadcare using configured keys
                     const fd = new FormData();
                     fd.append('UPLOADCARE_PUB_KEY', UPLOADCARE_PUB_KEY);
                     fd.append('UPLOADCARE_STORE', '1');
@@ -2677,22 +2792,39 @@
                     const res = await fetch('https://upload.uploadcare.com/base/', { method: 'POST', body: fd });
                     const j = await res.json();
                     fileUrl = `https://ucarecdn.com/${j.file}/${encodeURIComponent(file.name)}`;
-                    const ext = file.name.split('.').pop()?.toUpperCase();
-                    fileType = ext || "Document";
+                    
+                    if (isVideo) fileType = "Video";
+                    else if (isPdf) fileType = "PDF";
+                    else {
+                        const ext = file.name.split('.').pop()?.toUpperCase();
+                        fileType = ext || "Document";
+                    }
                 }
 
-                await addDoc(collection(db, "Cloud Drive"), {
+                let parentLabels = [];
+                const p = getCurrentParentFolder();
+                if (p && Array.isArray(p.Label)) parentLabels = [...p.Label];
+
+                const newDoc = await addDoc(collection(db, "Cloud Drive"), {
                     Email: userEmail,
                     File: fileUrl,
                     Type: fileType,
                     Name: file.name,
                     Password: "",
-                    Label: [],
+                    Label: parentLabels,
                     LastOpened: new Date().toISOString(),
                     LastOpenedBy: userEmail,
                     Updated: formatFirestoreDate(),
                     Access: { Viewer: [], Contributor: [], Commenter: [], Editor: [] }
                 });
+
+                const currFolderId = getCurrentFolderId();
+                if (currFolderId) {
+                    await updateDoc(doc(db, "Cloud Drive", currFolderId), {
+                        File: arrayUnion(newDoc.id),
+                        Updated: formatFirestoreDate()
+                    });
+                }
             } catch(err) {
                 console.error("Upload error:", err);
             }
@@ -2702,7 +2834,7 @@
 
     // Search
     document.getElementById('searchInput').addEventListener('input', (e) => {
-        const val = e.target.value.toLowerCase().trim();
+        let val = e.target.value.toLowerCase().trim();
         const wrapper = document.getElementById('workspaceViewWrapper');
 
         if (!val) {
@@ -2710,9 +2842,16 @@
             return;
         }
 
+        let isLabelFilter = false;
+        if (val.startsWith("label:")) {
+            isLabelFilter = true;
+            val = val.replace("label:", "").trim();
+        }
+
         const matches = allWorkspaceDocs.filter(item => {
             const name = (item.Name || (item.File ? item.File.split('/').pop() : '')).toLowerCase();
             const labels = (item.Label || []).join(' ').toLowerCase();
+            if (isLabelFilter) return labels.includes(val);
             return name.includes(val) || labels.includes(val);
         });
 
@@ -2744,7 +2883,7 @@
 
         if (e.key === 'Escape') {
             document.querySelectorAll('.modal-shade').forEach(m => m.classList.remove('active'));
-            document.getElementById('profileSheetBackdrop')?.classList.remove('active');
+            profileSheetBackdrop.classList.remove('active');
             closeAllActionMenus();
             if (isSelectionMode) exitSelectionMode();
             return;
