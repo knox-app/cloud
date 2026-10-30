@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,23 +30,24 @@
             --folder-default-color: #e57373;
         }
 
+        /* Pure AMOLED #000000 Black */
         body.dark {
-            --bg-color: #0d0d0d;
-            --surface-color: #171717;
-            --card-bg: #1e1e1e;
+            --bg-color: #000000;
+            --surface-color: #000000;
+            --card-bg: #0a0a0a;
             --text-primary: #f9fafb;
-            --text-secondary: #9ca3af;
-            --border-color: #262626;
-            --hover-bg: #262626;
+            --text-secondary: #a1a1aa;
+            --border-color: #1f1f1f;
+            --hover-bg: #121212;
             --btn-dark-bg: #ffffff;
-            --btn-dark-text: #0d0d0d;
-            --accent: #f9fafb;
-            --danger: #f87171;
-            --tag-bg: #2d2d2d;
-            --tag-text: #d1d5db;
-            --selection-bg: #1e1e1e;
-            --selection-text: #f9fafb;
-            --select-highlight: rgba(255, 255, 255, 0.06);
+            --btn-dark-text: #000000;
+            --accent: #ffffff;
+            --danger: #ef4444;
+            --tag-bg: #18181b;
+            --tag-text: #d4d4d8;
+            --selection-bg: #121212;
+            --selection-text: #ffffff;
+            --select-highlight: rgba(255, 255, 255, 0.08);
             --folder-default-color: #ef5350;
         }
 
@@ -197,7 +199,7 @@
         .view-btn.active {
             background: var(--surface-color);
             color: var(--text-primary);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
         }
         .view-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
@@ -214,7 +216,7 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             z-index: 50;
         }
         .selection-toolbar.active { display: flex; }
@@ -253,7 +255,7 @@
         }
         .btn-done-select:hover { opacity: 0.7; }
 
-        /* Custom Circular Checkbox */
+        /* Checkbox */
         .custom-checkbox {
             width: 18px;
             height: 18px;
@@ -317,14 +319,14 @@
             background: var(--surface-color);
             padding: 24px 36px;
             border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             font-weight: 500;
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
-        /* ================= LIST VIEW ================= */
+        /* LIST VIEW */
         .data-table {
             width: 100%;
             border-collapse: collapse;
@@ -355,9 +357,7 @@
         .table-row.selected { background-color: var(--select-highlight); }
         .table-row.keyboard-focused { outline: 2px solid var(--accent); outline-offset: -2px; }
 
-        .selection-active .table-head {
-            grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px;
-        }
+        .selection-active .table-head,
         .selection-active .table-row {
             grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px;
         }
@@ -395,7 +395,7 @@
         .file-location-hint { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
         .file-labels { display: flex; flex-wrap: wrap; margin-top: 3px; }
 
-        /* ================= GOOGLE DRIVE GRID VIEW ================= */
+        /* GRID VIEW */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
@@ -417,7 +417,7 @@
         }
         .grid-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.18);
             background: var(--hover-bg);
         }
         .grid-card.selected {
@@ -466,7 +466,6 @@
         }
         .selection-active .grid-card-checkbox { display: flex; }
 
-        /* Large Folder Preview Shape */
         .grid-folder-body {
             height: 86px;
             display: flex;
@@ -498,7 +497,6 @@
             fill: none;
         }
 
-        /* File Preview */
         .grid-file-preview {
             height: 100px;
             background: var(--surface-color);
@@ -524,11 +522,10 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
         .doc-line { height: 4px; background: var(--border-color); border-radius: 2px; }
 
-        /* 3-Dots Trigger */
         .actions-cell { position: relative; text-align: right; }
         .btn-dots {
             background: none;
@@ -544,11 +541,11 @@
         .btn-dots:hover { color: var(--text-primary); background: var(--border-color); }
         .btn-dots svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
 
-        /* Desktop Context Dropdown (Floating) */
+        /* Desktop Context Dropdown */
         .desktop-action-dropdown {
             position: fixed;
             background: var(--surface-color);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             border-radius: 12px;
             width: 200px;
             padding: 6px 0;
@@ -571,11 +568,11 @@
         .dropdown-item.danger { color: var(--danger); }
         .dropdown-item svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
-        /* Mobile Bottom Action Sheet (Fixes Clipping on Mobile) */
+        /* Mobile Action Sheet */
         .bottom-sheet-backdrop {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.7);
             z-index: 2000;
             display: none;
             opacity: 0;
@@ -593,9 +590,10 @@
             padding: 16px 20px 32px 20px;
             max-height: 80vh;
             overflow-y: auto;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.25);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
             transform: translateY(100%);
             transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            border-top: 1px solid var(--border-color);
         }
         .bottom-sheet-backdrop.active .bottom-sheet-card {
             transform: translateY(0);
@@ -669,7 +667,7 @@
         .modal-shade {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.45);
+            background: rgba(0, 0, 0, 0.65);
             backdrop-filter: blur(4px);
             display: flex;
             justify-content: center;
@@ -687,7 +685,7 @@
             border-radius: 24px;
             width: 100%;
             max-width: 440px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             padding: 24px;
             position: relative;
             border: 1px solid var(--border-color);
@@ -737,7 +735,6 @@
             font-size: 13px;
         }
 
-        /* Enhanced Customize Modal */
         .customize-top-preview {
             display: flex;
             justify-content: center;
@@ -811,7 +808,7 @@
         }
         .icon-swatch:hover, .icon-swatch.active {
             background: var(--hover-bg);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .icon-swatch svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.9; }
 
@@ -821,37 +818,28 @@
             bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
-            background: #111827;
+            background: #18181b;
             color: #ffffff;
+            border: 1px solid var(--border-color);
             padding: 9px 20px;
             border-radius: 9999px;
             font-size: 13px;
             display: none;
             z-index: 3000;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
 
-        /* Details */
         .details-grid { display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
         .details-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-color); }
         .details-label { color: var(--text-secondary); }
         .details-val { font-weight: 500; text-align: right; max-width: 260px; overflow-wrap: break-word; }
 
-        /* Responsive */
         @media (max-width: 768px) {
             aside.sidebar { display: none; }
             main.content-area { padding: 18px 14px; width: 100%; }
             .table-head { display: none; }
-            
-            .table-row {
-                grid-template-columns: 1fr auto 30px;
-                gap: 8px;
-                padding: 10px 0;
-            }
-            .selection-active .table-row {
-                grid-template-columns: 28px 1fr auto 30px;
-            }
-
+            .table-row { grid-template-columns: 1fr auto 30px; gap: 8px; padding: 10px 0; }
+            .selection-active .table-row { grid-template-columns: 28px 1fr auto 30px; }
             .cell-uploader, .cell-format { display: none; }
             .cell-date { font-size: 11px; color: var(--text-secondary); text-align: right; }
             .modal-box { padding: 20px; border-radius: 20px; }
@@ -867,8 +855,11 @@
     <div class="side-icon active" title="Cloud Drive">
         <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
     </div>
-    <div class="side-icon" id="themeToggleBtn" title="Toggle Theme (Shift+T then D/L)">
+    <div class="side-icon" id="themeToggleBtn" title="Toggle AMOLED Theme (Shift+T then D/L)">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+    </div>
+    <div class="side-icon" id="switchAccountSideBtn" title="Switch Account">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     </div>
     <div class="side-icon" id="logoutSideBtn" title="Sign Out">
         <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -929,7 +920,7 @@
             <input type="text" id="searchInput" class="search-input" placeholder="Search entire drive or labels (Shift+F)">
         </div>
         <div class="view-switcher-group">
-            <button class="view-btn active" id="viewListBtn" title="List View">
+            <button class="view-btn" id="viewListBtn" title="List View">
                 <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
             </button>
             <button class="view-btn" id="viewGridBtn" title="Grid View (Google Drive Style)">
@@ -954,7 +945,7 @@
                 <div></div>
             </div>
             <div id="tableContent">
-                <div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading Cloud Drive...</div>
+                <div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Connecting to Cloud Drive...</div>
             </div>
         </div>
     </div>
@@ -963,7 +954,7 @@
 <!-- Desktop Floating Dropdown Menu -->
 <div class="desktop-action-dropdown" id="desktopDropdown"></div>
 
-<!-- Mobile Bottom Action Sheet (Fixes Clipping) -->
+<!-- Mobile Bottom Action Sheet -->
 <div class="bottom-sheet-backdrop" id="bottomSheetBackdrop">
     <div class="bottom-sheet-card" id="bottomSheetCard">
         <div class="bottom-sheet-handle"></div>
@@ -975,7 +966,7 @@
     </div>
 </div>
 
-<!-- Enhanced Customize Modal -->
+<!-- Customize Modal -->
 <div class="modal-shade" id="customizeModal">
     <div class="modal-box">
         <div class="customize-top-preview">
@@ -989,7 +980,7 @@
     </div>
 </div>
 
-<!-- Modal: Manage Access -->
+<!-- Manage Access Modal -->
 <div class="modal-shade" id="accessModal">
     <div class="modal-box">
         <div class="modal-header">
@@ -1022,7 +1013,7 @@
     </div>
 </div>
 
-<!-- Modal: Security -->
+<!-- Security Modal -->
 <div class="modal-shade" id="securityModal">
     <div class="modal-box" style="max-width: 380px;">
         <div class="modal-header">
@@ -1035,7 +1026,7 @@
     </div>
 </div>
 
-<!-- Modal: Labels -->
+<!-- Labels Modal -->
 <div class="modal-shade" id="labelModal">
     <div class="modal-box" style="max-width: 400px;">
         <div class="modal-header">
@@ -1061,7 +1052,7 @@
     </div>
 </div>
 
-<!-- Modal: Share -->
+<!-- Share Modal -->
 <div class="modal-shade" id="shareModal">
     <div class="modal-box">
         <div class="modal-header">
@@ -1085,7 +1076,7 @@
     </div>
 </div>
 
-<!-- Modal: Details -->
+<!-- Details Modal -->
 <div class="modal-shade" id="detailsModal">
     <div class="modal-box" style="max-width: 420px;">
         <div class="modal-header">
@@ -1098,7 +1089,7 @@
     </div>
 </div>
 
-<!-- Modal: Move -->
+<!-- Move Modal -->
 <div class="modal-shade" id="moveModal">
     <div class="modal-box" style="max-width: 420px;">
         <div class="modal-header">
@@ -1117,7 +1108,7 @@
     </div>
 </div>
 
-<!-- Modal: Rename -->
+<!-- Rename Modal -->
 <div class="modal-shade" id="renameModal">
     <div class="modal-box" style="max-width: 400px;">
         <div class="modal-header">
@@ -1136,7 +1127,7 @@
     </div>
 </div>
 
-<!-- Modal: Create Folder -->
+<!-- Create Folder Modal -->
 <div class="modal-shade" id="folderModal">
     <div class="modal-box" style="max-width: 400px;">
         <div class="modal-header">
@@ -1147,7 +1138,7 @@
         </div>
         <div class="input-group">
             <label>Folder Name</label>
-            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. My Folder">
+            <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. My Documents">
         </div>
         <div class="input-group">
             <label>Folder Password (Optional)</label>
@@ -1159,7 +1150,7 @@
     </div>
 </div>
 
-<!-- Modal: Password Auth -->
+<!-- Password Challenge Modal (For Settings/Rename in Root, Not Folder View) -->
 <div class="modal-shade" id="passwordAuthModal">
     <div class="modal-box" style="max-width: 360px;">
         <div class="modal-header">
@@ -1186,6 +1177,9 @@
         doc, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove 
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+    // Icons & Colors from External System Module (fallback defaults included if offline)
+    import { FOLDER_COLORS, BADGE_ICONS, SVG_ICONS } from "https://knox-app.github.io/cloud/drive/system/icon-sys.js";
+
     const firebaseConfig = {
         apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
         authDomain: "cloud-computer-4891a.firebaseapp.com",
@@ -1195,19 +1189,103 @@
         appId: "1:744203234287:web:81d943ae9b75fd77dce41a"
     };
 
+    // APIs
     const IMGBB_API_KEY = "80c452b9a4b80f240ada316f23078d2c";
-    const UPLOADCARE_PUB_KEY = "demopublickey";
+    const UPLOADCARE_PUB_KEY = "06c8658b8fb100087dfc"; // Uploadcare Direct Upload Public Key
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let currentUser = null;
-    try { currentUser = JSON.parse(localStorage.getItem('active_user')); } catch(e){}
-    if (!currentUser || !currentUser.Email) {
-        window.location.href = "1.html";
-    }
-    const userEmail = currentUser.Email;
+    // ==========================================
+    // 1. Theme (AMOLED Black) & Multi-Account Parsing
+    // ==========================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const uParam = urlParams.has('u') ? urlParams.get('u') : urlParams.get('user');
+    const themeParam = urlParams.get("theme") ? urlParams.get("theme").toLowerCase() : null;
 
+    function applyTheme(isDark) {
+        if (isDark) {
+            document.body.classList.add('dark');
+            localStorage.setItem('drive_theme', 'dark');
+        } else {
+            document.body.classList.remove('dark');
+            localStorage.setItem('drive_theme', 'light');
+        }
+    }
+
+    if (themeParam === "dark" || themeParam === "d") {
+        applyTheme(true);
+    } else if (themeParam === "light" || themeParam === "l") {
+        applyTheme(false);
+    } else {
+        const storedTheme = localStorage.getItem('drive_theme');
+        if (storedTheme === 'dark' || (!storedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+            applyTheme(true);
+        } else {
+            applyTheme(false);
+        }
+    }
+
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        applyTheme(!document.body.classList.contains('dark'));
+    });
+
+    // Multi-Account Resolution from saved_accounts & active_user
+    let savedAccounts = [];
+    try { savedAccounts = JSON.parse(localStorage.getItem('saved_accounts') || '[]'); } catch (e) { savedAccounts = []; }
+
+    let targetEmail = null;
+    let targetLotus = null;
+
+    if (uParam !== null) {
+        const uIndex = parseInt(uParam, 10);
+        if (!isNaN(uIndex) && uIndex >= 0 && uIndex < savedAccounts.length) {
+            targetEmail = savedAccounts[uIndex].email || savedAccounts[uIndex].Email;
+            targetLotus = savedAccounts[uIndex].lotus || savedAccounts[uIndex].Lotus;
+        } else {
+            const dest = themeParam ? `3.html?theme=${encodeURIComponent(themeParam)}` : '3.html';
+            window.location.href = dest;
+        }
+    } else {
+        let activeUser = null;
+        try { activeUser = JSON.parse(localStorage.getItem('active_user') || 'null'); } catch (e) {}
+
+        if (activeUser && (activeUser.Email || activeUser.email)) {
+            targetEmail = activeUser.Email || activeUser.email;
+            targetLotus = activeUser.Lotus || activeUser.lotus;
+        } else if (savedAccounts.length > 0) {
+            targetEmail = savedAccounts[0].email || savedAccounts[0].Email;
+            targetLotus = savedAccounts[0].lotus || savedAccounts[0].Lotus;
+        } else {
+            const dest = themeParam ? `1.html?theme=${encodeURIComponent(themeParam)}` : '1.html';
+            window.location.href = dest;
+        }
+    }
+
+    const userEmail = targetEmail;
+
+    function buildPreservedQuery() {
+        const p = new URLSearchParams();
+        if (uParam !== null) p.set('u', uParam);
+        if (themeParam) p.set('theme', themeParam);
+        const str = p.toString();
+        return str ? `&${str}` : '';
+    }
+
+    document.getElementById('switchAccountSideBtn').addEventListener('click', () => {
+        const dest = themeParam ? `3.html?theme=${encodeURIComponent(themeParam)}` : '3.html';
+        window.location.href = dest;
+    });
+
+    document.getElementById('logoutSideBtn').addEventListener('click', () => {
+        localStorage.removeItem('active_user');
+        const dest = themeParam ? `3.html?theme=${encodeURIComponent(themeParam)}` : '3.html';
+        window.location.href = dest;
+    });
+
+    // ==========================================
+    // 2. Persistent View Switcher Sync
+    // ==========================================
     let currentViewMode = localStorage.getItem('drive_view_mode') || 'list';
 
     function setViewMode(mode) {
@@ -1218,28 +1296,12 @@
         renderCurrentWorkspace();
     }
 
+    // Set initial button active state immediately on load
+    document.getElementById('viewListBtn').classList.toggle('active', currentViewMode === 'list');
+    document.getElementById('viewGridBtn').classList.toggle('active', currentViewMode === 'grid');
+
     document.getElementById('viewListBtn').addEventListener('click', () => setViewMode('list'));
     document.getElementById('viewGridBtn').addEventListener('click', () => setViewMode('grid'));
-
-    function setTheme(dark) {
-        if (dark) {
-            document.body.classList.add('dark');
-            localStorage.setItem('drive_theme', 'dark');
-        } else {
-            document.body.classList.remove('dark');
-            localStorage.setItem('drive_theme', 'light');
-        }
-    }
-    if (localStorage.getItem('drive_theme') === 'dark') setTheme(true);
-
-    document.getElementById('themeToggleBtn').addEventListener('click', () => {
-        setTheme(!document.body.classList.contains('dark'));
-    });
-
-    document.getElementById('logoutSideBtn').addEventListener('click', () => {
-        localStorage.removeItem('active_user');
-        window.location.href = "1.html";
-    });
 
     function showToast(msg) {
         const t = document.getElementById('toastPopup');
@@ -1303,73 +1365,6 @@
         return (yiq >= 170) ? '#111827' : '#FFFFFF';
     }
 
-    const FOLDER_COLORS = [
-        { name: "Gray", hex: "#8A8D93" },
-        { name: "Crimson Red", hex: "#E94335" },
-        { name: "Coral Orange", hex: "#FB765B" },
-        { name: "Bright Yellow", hex: "#FBBC04" },
-        { name: "Emerald Green", hex: "#0F9D58" },
-        { name: "Royal Blue", hex: "#4285F4" },
-        { name: "Lavender Purple", hex: "#9B72CF" },
-        { name: "Candy Pink", hex: "#F06292" },
-        { name: "Cyan Teal", hex: "#26A69A" },
-        { name: "Sky Blue", hex: "#29B6F6" },
-        { name: "Deep Amber", hex: "#FFA000" },
-        { name: "Indigo", hex: "#5C6BC0" },
-        { name: "Warm Brown", hex: "#8D6E63" }
-    ];
-
-    const BADGE_ICONS = {
-        folder: `<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
-        dollar: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"></circle><line x1="12" y1="6" x2="12" y2="18"></line><path d="M15 9.5a2.5 2.5 0 0 0-5 0c0 1.5 1 2 2.5 2.5s2.5 1 2.5 2.5a2.5 2.5 0 0 1-5 0"></path></svg>`,
-        book: `<svg viewBox="0 0 24 24"><rect x="4.5" y="3" width="15" height="18" rx="2.5"></rect><line x1="8.5" y1="3" x2="8.5" y2="21"></line></svg>`,
-        cap: `<svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c0 3 6 3 6 3s6 0 6-3v-5"></path></svg>`,
-        pencil: `<svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`,
-        nib: `<svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><circle cx="11" cy="11" r="1.5"></circle></svg>`,
-        code: `<svg viewBox="0 0 24 24"><path d="M8 3H6a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2"></path><path d="M16 3h2a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2"></path></svg>`,
-        terminal: `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"></rect><polyline points="7 9 10.5 12 7 15"></polyline><line x1="13" y1="15" x2="17" y2="15"></line></svg>`,
-        music: `<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`,
-        cupcake: `<svg viewBox="0 0 24 24"><path d="M4.5 11h15l-2 10h-11l-2-10z"></path><path d="M4.5 11c0-2.2 1.8-4 4-4 .6 0 1.2.1 1.7.4C11 5.5 12.5 4 14.5 4c2.2 0 4 1.8 4 4 0 .3 0 .7-.1 1"></path></svg>`,
-        brush: `<svg viewBox="0 0 24 24"><path d="M18 2l4 4-10 10H8v-4L18 2z"></path><path d="M4 22c0-3 2-5 4-5"></path></svg>`,
-        palette: `<svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".8"></circle><circle cx="17.5" cy="10.5" r=".8"></circle><circle cx="8.5" cy="7.5" r=".8"></circle><circle cx="6.5" cy="12.5" r=".8"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>`,
-        stethoscope: `<svg viewBox="0 0 24 24"><path d="M4.5 3v5a6 6 0 0 0 12 0V3"></path><line x1="3" y1="3" x2="6" y2="3"></line><line x1="15" y1="3" x2="18" y2="3"></line><path d="M10.5 14v4a3 3 0 0 0 6 0v-2"></path><circle cx="16.5" cy="16" r="2.5"></circle></svg>`,
-        flower: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2a4 4 0 0 0-4 4 4 4 0 0 0 8 0 4 4 0 0 0-4-4z"></path><path d="M22 12a4 4 0 0 0-4-4 4 4 0 0 0 0 8 4 4 0 0 0 4-4z"></path><path d="M12 22a4 4 0 0 0 4-4 4 4 0 0 0-8 0 4 4 0 0 0 4 4z"></path><path d="M2 12a4 4 0 0 0 4 4 4 4 0 0 0 0-8 4 4 0 0 0-4 4z"></path></svg>`,
-        lotus: `<svg viewBox="0 0 24 24"><path d="M12 3c-2 4-5 8-10 11 4 1 8 0 10-4 2 4 6 5 10 4-5-3-8-7-10-11z"></path><path d="M12 10c-1.5 3-4 6-7 7 3 1 6 .5 7-3 1 3.5 4 4 7 3-3-1-5.5-4-7-7z"></path></svg>`,
-        briefcase: `<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="3"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`,
-        chart: `<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
-        kettlebell: `<svg viewBox="0 0 24 24"><path d="M9 7V4a3 3 0 0 1 6 0v3"></path><circle cx="12" cy="14" r="7"></circle></svg>`,
-        dumbbell: `<svg viewBox="0 0 24 24"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>`,
-        notebook: `<svg viewBox="0 0 24 24"><rect x="5" y="3" width="15" height="18" rx="2"></rect><line x1="9" y1="7" x2="15" y2="7"></line><line x1="9" y1="11" x2="15" y2="11"></line><line x1="9" y1="15" x2="12" y2="15"></line><path d="M3 6h2M3 10h2M3 14h2M3 18h2"></path></svg>`,
-        scales: `<svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><path d="M5 21h14"></path><path d="M3 7h18"></path><path d="M3 7l3 7h-6l3-7zM21 7l3 7h-6l3-7z"></path></svg>`,
-        globeStand: `<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="7"></circle><path d="M12 17v4M8 21h8M19 10a7 7 0 0 1-14 0"></path></svg>`,
-        plane: `<svg viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"></path></svg>`,
-        globe: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
-        wrench: `<svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`,
-        paw: `<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="4"></circle><circle cx="6.5" cy="9.5" r="2"></circle><circle cx="17.5" cy="9.5" r="2"></circle><circle cx="9" cy="5.5" r="1.8"></circle><circle cx="15" cy="5.5" r="1.8"></circle></svg>`,
-        flask: `<svg viewBox="0 0 24 24"><path d="M10 2v7.31L4.15 19.89A2 2 0 0 0 5.86 23h12.28a2 2 0 0 0 1.71-3.11L14 9.31V2z"></path><line x1="8.5" y1="2" x2="15.5" y2="2"></line><line x1="14" y1="14" x2="10" y2="14"></line></svg>`,
-        brain: `<svg viewBox="0 0 24 24"><path d="M9.5 4a3.5 3.5 0 0 0-3.5 3.5c0 .3.04.59.11.87A3.5 3.5 0 0 0 4 11.5c0 1.4.82 2.61 2 3.16V16a3.5 3.5 0 0 0 3.5 3.5h.5"></path><path d="M14.5 4a3.5 3.5 0 0 1 3.5 3.5c0 .3-.04.59-.11.87A3.5 3.5 0 0 1 20 11.5c0 1.4-.82 2.61-2 3.16V16a3.5 3.5 0 0 1-3.5 3.5h-.5"></path><path d="M12 4v16"></path></svg>`,
-        heart: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`,
-        plant: `<svg viewBox="0 0 24 24"><path d="M7 21h10l-1-7H8l-1 7z"></path><path d="M12 14V7"></path><path d="M12 7c-2-3-5-3-5 0s3 3 5 0z"></path><path d="M12 9c2-3 5-3 5 0s-3 3-5 0z"></path></svg>`
-    };
-
-    const SVG_ICONS = {
-        image: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
-        pdf: `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`,
-        doc: `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`,
-        video: `<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>`,
-        dots: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>`,
-        trash: `<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
-        share: `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>`,
-        download: `<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`,
-        edit: `<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
-        users: `<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
-        move: `<svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg>`,
-        info: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
-        tag: `<svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`,
-        lock: `<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`,
-        customize: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`
-    };
-
     function getFormatInfo(typeStr, isFolder) {
         if (isFolder) return { label: "Folder", icon: BADGE_ICONS.folder };
         const t = (typeStr || "").toLowerCase();
@@ -1379,7 +1374,6 @@
         return { label: "Document", icon: SVG_ICONS.doc };
     }
 
-    let folderHierarchy = [];
     let allWorkspaceDocs = [];
     let allFolderDocs = [];
     let currentRenderedItems = [];
@@ -1388,15 +1382,6 @@
     let keyboardFocusedIndex = -1;
     let unsubscribeSnapshot = null;
 
-    function getCurrentFolderId() {
-        return folderHierarchy.length > 0 ? folderHierarchy[folderHierarchy.length - 1].id : null;
-    }
-
-    function getCurrentParentFolder() {
-        const cid = getCurrentFolderId();
-        return cid ? allFolderDocs.find(f => f.id === cid) : null;
-    }
-
     function getUserRole(item) {
         if (item.Email === userEmail) return 'Owner';
         const acc = item.Access || {};
@@ -1404,53 +1389,11 @@
         if (acc.Contributor?.includes(userEmail)) return 'Contributor';
         if (acc.Commenter?.includes(userEmail) || acc.Commentator?.includes(userEmail)) return 'Commenter';
         if (acc.Viewer?.includes(userEmail)) return 'Viewer';
-
-        for (const f of folderHierarchy) {
-            const pDoc = allFolderDocs.find(x => x.id === f.id);
-            if (pDoc) {
-                if (pDoc.Email === userEmail) return 'Owner';
-                const pAcc = pDoc.Access || {};
-                if (pAcc.Editor?.includes(userEmail)) return 'Editor';
-                if (pAcc.Contributor?.includes(userEmail)) return 'Contributor';
-                if (pAcc.Commenter?.includes(userEmail) || pAcc.Commentator?.includes(userEmail)) return 'Commenter';
-                if (pAcc.Viewer?.includes(userEmail)) return 'Viewer';
-            }
-        }
         return 'Viewer';
     }
 
-    function renderBreadcrumb() {
-        const area = document.getElementById('breadcrumbArea');
-        if (folderHierarchy.length === 0) {
-            area.innerHTML = `<span>Cloud Drive</span>`;
-        } else {
-            let html = `<span style="color: var(--text-secondary); cursor: pointer;" id="bc-root">Cloud Drive</span>`;
-            folderHierarchy.forEach((item, index) => {
-                html += ` <span style="color: var(--text-secondary); font-weight: 400;">/</span> `;
-                if (index === folderHierarchy.length - 1) {
-                    html += `<span>${item.name}</span>`;
-                } else {
-                    html += `<span style="color: var(--text-secondary); cursor: pointer;" class="bc-crumb" data-idx="${index}">${item.name}</span>`;
-                }
-            });
-            area.innerHTML = html;
-
-            document.getElementById('bc-root')?.addEventListener('click', () => {
-                folderHierarchy = [];
-                renderCurrentWorkspace();
-            });
-            document.querySelectorAll('.bc-crumb').forEach(el => {
-                el.addEventListener('click', () => {
-                    const idx = parseInt(el.getAttribute('data-idx'));
-                    folderHierarchy = folderHierarchy.slice(0, idx + 1);
-                    renderCurrentWorkspace();
-                });
-            });
-        }
-    }
-
     // ==========================================
-    // Realtime Database Listener (Instant Updates)
+    // 3. Realtime Firestore Sync
     // ==========================================
     function setupRealtimeListener() {
         if (unsubscribeSnapshot) unsubscribeSnapshot();
@@ -1476,38 +1419,32 @@
             allFolderDocs = items.filter(d => d.Folder === "True");
             renderCurrentWorkspace();
         }, (err) => {
-            console.error("Live sync error:", err);
+            console.error("Firestore sync error:", err);
+            document.getElementById('workspaceViewWrapper').innerHTML = `
+                <div class="empty-state-container">
+                    <div class="empty-state-title" style="color:var(--danger)">Failed to load Cloud Drive. Please check your network connection.</div>
+                </div>
+            `;
         });
     }
 
     function renderCurrentWorkspace() {
-        renderBreadcrumb();
         const wrapper = document.getElementById('workspaceViewWrapper');
 
-        const currId = getCurrentFolderId();
-        let renderItems = [];
+        // Root workspace shows items not nested inside any folder
+        const assignedChildIds = new Set();
+        allFolderDocs.forEach(f => {
+            if (Array.isArray(f.File)) f.File.forEach(id => assignedChildIds.add(id));
+        });
 
-        if (!currId) {
-            const assignedChildIds = new Set();
-            allFolderDocs.forEach(f => {
-                if (Array.isArray(f.File)) f.File.forEach(id => assignedChildIds.add(id));
-            });
-            renderItems = allWorkspaceDocs.filter(i => !assignedChildIds.has(i.id));
-        } else {
-            const activeFolder = allFolderDocs.find(f => f.id === currId);
-            const assignedIds = (activeFolder && Array.isArray(activeFolder.File)) ? activeFolder.File : [];
-            renderItems = allWorkspaceDocs.filter(i => assignedIds.includes(i.id));
-        }
-
+        const renderItems = allWorkspaceDocs.filter(i => !assignedChildIds.has(i.id));
         currentRenderedItems = renderItems;
 
         if (renderItems.length === 0) {
-            const folderName = folderHierarchy.length > 0 ? folderHierarchy[folderHierarchy.length - 1].name : "";
-            const emptyText = folderName ? `No Files In Your ${folderName}` : `No Files In Your Drive`;
             wrapper.innerHTML = `
                 <div class="empty-state-container">
                     <img src="https://indus.sarvam.ai/studio/assets/empty-table.webp" alt="No files" class="empty-state-img">
-                    <div class="empty-state-title">${emptyText}</div>
+                    <div class="empty-state-title">No Files In Your Drive</div>
                 </div>
             `;
             return;
@@ -1554,7 +1491,7 @@
         });
     }
 
-    function createRowElement(item, index, locationHint = null) {
+    function createRowElement(item, index) {
         const isFolder = item.Folder === "True";
         const name = item.Name || (item.File ? item.File.split('/').pop() : 'Untitled');
         const format = getFormatInfo(item.Type, isFolder);
@@ -1563,12 +1500,7 @@
         const role = getUserRole(item);
         const isViewer = (role === 'Viewer');
 
-        let labels = Array.isArray(item.Label) ? [...item.Label] : [];
-        if (!isFolder && labels.length === 0 && folderHierarchy.length > 0) {
-            const p = getCurrentParentFolder();
-            if (p && Array.isArray(p.Label)) labels = [...p.Label];
-        }
-
+        const labels = Array.isArray(item.Label) ? item.Label : [];
         const labelsHtml = labels.map(l => `<span class="label-badge">${l}</span>`).join('');
         const folderColor = item.Customize?.Colour || (isFolder ? 'var(--folder-default-color)' : '');
         const folderBadgeIconKey = item.Customize?.Icon || 'folder';
@@ -1591,7 +1523,6 @@
                 </div>
                 <div class="file-info-col">
                     <span class="file-name" title="${name}">${name}</span>
-                    ${locationHint ? `<span class="file-location-hint">in ${locationHint}</span>` : ''}
                     <div class="file-labels">${labelsHtml}</div>
                 </div>
             </div>
@@ -1690,11 +1621,10 @@
     }
 
     // ==========================================
-    // Unified 3-Dots Action Handler (Mobile Bottom Sheet + Desktop Dropdown)
+    // 4. Action Handlers & Item Click Handling
     // ==========================================
     const desktopDropdown = document.getElementById('desktopDropdown');
     const bottomSheetBackdrop = document.getElementById('bottomSheetBackdrop');
-    const bottomSheetCard = document.getElementById('bottomSheetCard');
 
     function showItemActions(item, isFolder, name, isViewer, event) {
         const isMobile = window.innerWidth <= 768;
@@ -1724,28 +1654,18 @@
         const handleActionClick = (actionId) => {
             closeAllActionMenus();
             if (actionId === 'download') directDownloadFile(item.File, item.Name);
-            if (actionId === 'rename') {
-                if (isFolder && item.Password) promptPasswordAuth(item.Password, () => openRenameModal(item));
-                else openRenameModal(item);
-            }
+            if (actionId === 'rename') openRenameModal(item);
             if (actionId === 'customize') openCustomizeModal(item);
             if (actionId === 'security') openSecurityModal(item);
             if (actionId === 'share') openShareModal(item);
-            if (actionId === 'access') {
-                if (isFolder && item.Password) promptPasswordAuth(item.Password, () => openAccessModal(item));
-                else openAccessModal(item);
-            }
+            if (actionId === 'access') openAccessModal(item);
             if (actionId === 'label') openLabelModal(item);
             if (actionId === 'move') openMoveModal(item);
             if (actionId === 'details') openDetailsModal(item);
-            if (actionId === 'delete') {
-                if (isFolder && item.Password && !isViewer) promptPasswordAuth(item.Password, () => handleDelete(item, isViewer));
-                else handleDelete(item, isViewer);
-            }
+            if (actionId === 'delete') handleDelete(item, isViewer);
         };
 
         if (isMobile) {
-            // Mobile: Bottom Action Sheet
             const headerIcon = document.getElementById('bottomSheetHeaderIcon');
             const format = getFormatInfo(item.Type, isFolder);
             const folderColor = item.Customize?.Colour || 'var(--folder-default-color)';
@@ -1766,7 +1686,6 @@
 
             bottomSheetBackdrop.classList.add('active');
         } else {
-            // Desktop: Floating Context Dropdown
             desktopDropdown.innerHTML = '';
             actionItems.forEach(act => {
                 const div = document.createElement('div');
@@ -1808,11 +1727,8 @@
             if (isSelectionMode) {
                 toggleSelectItem(item.id, !selectedItemIds.has(item.id));
             } else {
-                if (item.Password) {
-                    promptPasswordAuth(item.Password, () => openItem(item, isFolder, name));
-                } else {
-                    openItem(item, isFolder, name);
-                }
+                // Update 1: No password requested here for locked folder, deferred to folder.html
+                openItem(item, isFolder);
             }
         });
 
@@ -1840,10 +1756,10 @@
         });
     }
 
-    function openItem(item, isFolder, name) {
+    function openItem(item, isFolder) {
         if (isFolder) {
-            // Redirect to folder.html passing the folder's Firestore ID
-            window.location.href = `folder.html?id=${item.id}`;
+            // Directly forward to folder.html, preserving query params (?u=..., ?theme=...)
+            window.location.href = `folder.html?id=${item.id}${buildPreservedQuery()}`;
         } else {
             updateDoc(doc(db, "Cloud Drive", item.id), {
                 LastOpened: new Date().toISOString(),
@@ -1876,28 +1792,6 @@
             document.body.removeChild(a);
         }
     }
-
-    // Password Challenge Modal
-    const passModal = document.getElementById('passwordAuthModal');
-    let passSuccessCallback = null;
-    let expectedPass = "";
-
-    function promptPasswordAuth(password, onSuccess) {
-        expectedPass = password;
-        passSuccessCallback = onSuccess;
-        document.getElementById('authPasswordInput').value = "";
-        passModal.classList.add('active');
-    }
-    document.getElementById('closePassModal').addEventListener('click', () => passModal.classList.remove('active'));
-    document.getElementById('btnSubmitAuth').addEventListener('click', () => {
-        const val = document.getElementById('authPasswordInput').value;
-        if (val === expectedPass) {
-            passModal.classList.remove('active');
-            if (passSuccessCallback) passSuccessCallback();
-        } else {
-            showToast("Incorrect password!");
-        }
-    });
 
     // Selection Controller
     function enterSelectionMode() {
@@ -1973,7 +1867,7 @@
                     }
                 }
             }
-            showToast("Selected items updated");
+            showToast("Selected items deleted");
         }
     });
 
@@ -2094,17 +1988,13 @@
                     <button class="btn-pill" id="btnChangeSecurity">Change Password</button>
                 </div>
             `;
-            document.getElementById('btnDisableSecurity').addEventListener('click', () => {
-                promptPasswordAuth(item.Password, async () => {
-                    await updateDoc(doc(db, "Cloud Drive", item.id), { Password: "", Updated: formatFirestoreDate() });
-                    showToast("Password disabled");
-                    securityModal.classList.remove('active');
-                });
+            document.getElementById('btnDisableSecurity').addEventListener('click', async () => {
+                await updateDoc(doc(db, "Cloud Drive", item.id), { Password: "", Updated: formatFirestoreDate() });
+                showToast("Password disabled");
+                securityModal.classList.remove('active');
             });
             document.getElementById('btnChangeSecurity').addEventListener('click', () => {
-                promptPasswordAuth(item.Password, () => {
-                    showSetPasswordUI(body);
-                });
+                showSetPasswordUI(body);
             });
         } else {
             showSetPasswordUI(body);
@@ -2145,14 +2035,13 @@
     function openDetailsModal(item) {
         const isFolder = item.Folder === "True";
         const format = getFormatInfo(item.Type, isFolder);
-        const locationPath = folderHierarchy.length > 0 ? folderHierarchy.map(h => h.name).join(' / ') : 'Root Directory';
 
         const content = document.getElementById('detailsContent');
         content.innerHTML = `
             <div class="details-item"><span class="details-label">Name</span><span class="details-val">${item.Name || 'Untitled'}</span></div>
             <div class="details-item"><span class="details-label">Type</span><span class="details-val">${format.label}</span></div>
             <div class="details-item"><span class="details-label">Date (Updated)</span><span class="details-val">${item.Updated || 'N/A'}</span></div>
-            <div class="details-item"><span class="details-label">Location</span><span class="details-val">${locationPath}</span></div>
+            <div class="details-item"><span class="details-label">Location</span><span class="details-val">Root Directory</span></div>
             <div class="details-item"><span class="details-label">Owner</span><span class="details-val">${item.Email || userEmail}</span></div>
             <div class="details-item"><span class="details-label">Labels</span><span class="details-val">${(item.Label || []).join(', ') || 'None'}</span></div>
         `;
@@ -2331,7 +2220,7 @@
                     }
                 };
             } catch(e) {
-                navigator.share ? navigator.share({ title: targetShareItem.Name, url: targetShareItem.File }) : null;
+                if (navigator.share) navigator.share({ title: targetShareItem.Name, url: targetShareItem.File });
             }
         } else if (choice === 'image' && navigator.canShare) {
             try {
@@ -2441,7 +2330,7 @@
         const name = document.getElementById('newFolderName').value.trim();
         const pass = document.getElementById('newFolderPassword').value.trim();
         if (name) {
-            const newDoc = await addDoc(collection(db, "Cloud Drive"), {
+            await addDoc(collection(db, "Cloud Drive"), {
                 Email: userEmail,
                 Folder: "True",
                 Name: name,
@@ -2453,20 +2342,14 @@
                 Access: { Viewer: [], Contributor: [], Commenter: [], Editor: [] }
             });
 
-            const currFolderId = getCurrentFolderId();
-            if (currFolderId) {
-                await updateDoc(doc(db, "Cloud Drive", currFolderId), {
-                    File: arrayUnion(newDoc.id),
-                    Updated: formatFirestoreDate()
-                });
-            }
-
             folderModal.classList.remove('active');
             showToast("Folder created");
         }
     });
 
-    // Upload
+    // ==========================================
+    // 5. Upload Engine (ImgBB for Images, Uploadcare for PDFs & Docs)
+    // ==========================================
     const nativeFileInput = document.getElementById('nativeFileInput');
     document.getElementById('uploadTriggerBtn').addEventListener('click', () => nativeFileInput.click());
     nativeFileInput.addEventListener('change', (e) => {
@@ -2498,8 +2381,9 @@
             try {
                 let fileUrl = "";
                 let fileType = "Document";
+                const isImage = file.type.startsWith('image/');
 
-                if (file.type.startsWith('image/')) {
+                if (isImage) {
                     const fd = new FormData();
                     fd.append('image', file);
                     const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: fd });
@@ -2507,6 +2391,7 @@
                     fileUrl = j.data.url;
                     fileType = "Image";
                 } else {
+                    // Update 7: Uploadcare store with provided public key
                     const fd = new FormData();
                     fd.append('UPLOADCARE_PUB_KEY', UPLOADCARE_PUB_KEY);
                     fd.append('UPLOADCARE_STORE', '1');
@@ -2515,35 +2400,24 @@
                     const j = await res.json();
                     fileUrl = `https://ucarecdn.com/${j.file}/${encodeURIComponent(file.name)}`;
                     const ext = file.name.split('.').pop()?.toUpperCase();
-                    fileType = ext || "Document";
+                    fileType = (ext === 'PDF') ? 'PDF' : (ext || "Document");
                 }
 
-                let parentLabels = [];
-                const p = getCurrentParentFolder();
-                if (p && Array.isArray(p.Label)) parentLabels = [...p.Label];
-
-                const newDoc = await addDoc(collection(db, "Cloud Drive"), {
+                await addDoc(collection(db, "Cloud Drive"), {
                     Email: userEmail,
                     File: fileUrl,
                     Type: fileType,
                     Name: file.name,
                     Password: "",
-                    Label: parentLabels,
+                    Label: [],
                     LastOpened: new Date().toISOString(),
                     LastOpenedBy: userEmail,
                     Updated: formatFirestoreDate(),
                     Access: { Viewer: [], Contributor: [], Commenter: [], Editor: [] }
                 });
-
-                const currFolderId = getCurrentFolderId();
-                if (currFolderId) {
-                    await updateDoc(doc(db, "Cloud Drive", currFolderId), {
-                        File: arrayUnion(newDoc.id),
-                        Updated: formatFirestoreDate()
-                    });
-                }
             } catch(err) {
                 console.error("Upload error:", err);
+                showToast(`Upload failed for ${file.name}`);
             }
         }
         showToast("Upload completed!");
@@ -2648,12 +2522,12 @@
         }
         if (themeKeySequence[0] === 'T') {
             if (e.key === 'd' || e.key === 'D') {
-                setTheme(true);
-                showToast("Dark theme enabled");
+                applyTheme(true);
+                showToast("AMOLED Black theme enabled");
                 themeKeySequence = [];
                 return;
             } else if (e.key === 'l' || e.key === 'L') {
-                setTheme(false);
+                applyTheme(false);
                 showToast("Light theme enabled");
                 themeKeySequence = [];
                 return;
@@ -2691,7 +2565,7 @@
         }
     }
 
-    // Initialize Realtime Sync
+    // Connect Real-Time Stream
     setupRealtimeListener();
 </script>
 </body>
