@@ -1,78 +1,72 @@
 /**
  * auth.js
- * Multi-account resolver & session manager
+ * Multi-account Session & Authentication Controller
  */
+const STORAGE_KEY = 'active_user';
+const SAVED_ACCOUNTS_KEY = 'saved_accounts';
 
-const STORAGE_SAVED_ACCOUNTS = 'saved_accounts';
-const STORAGE_ACTIVE_USER = 'active_user';
-
-/**
- * Resolves active user based on URL parameter ?u= or ?user=
- * Falls back to active_user in localStorage, then index 0 of saved_accounts
- */
-export function resolveActiveUser() {
+export function getActiveUser(redirectIfMissing = true) {
     const urlParams = new URLSearchParams(window.location.search);
     const uParam = urlParams.has('u') ? urlParams.get('u') : urlParams.get('user');
 
     let savedAccounts = [];
     try {
-        savedAccounts = JSON.parse(localStorage.getItem(STORAGE_SAVED_ACCOUNTS) || '[]');
-    } catch (e) {
+        savedAccounts = JSON.parse(localStorage.getItem(SAVED_ACCOUNTS_KEY) || '[]');
+    } catch(e) {
         savedAccounts = [];
     }
 
-    let activeUser = null;
-
+    // 1. If ?u=index is present in URL
     if (uParam !== null) {
-        const uIndex = parseInt(uParam, 10);
-        if (!isNaN(uIndex) && uIndex >= 0 && uIndex < savedAccounts.length) {
-            activeUser = savedAccounts[uIndex];
-        } else {
-            // Invalid index -> redirect to account selector
+        const uIdx = parseInt(uParam, 10);
+        if (!isNaN(uIdx) && uIdx >= 0 && uIdx < savedAccounts.length) {
+            const user = savedAccounts[uIdx];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+            return user;
+        } else if (redirectIfMissing) {
             window.location.href = "https://knox-app.github.io/netflix/lgn/3?app=drive";
             return null;
         }
-    } else {
-        try {
-            activeUser = JSON.parse(localStorage.getItem(STORAGE_ACTIVE_USER) || 'null');
-        } catch (e) {}
-
-        if (!activeUser && savedAccounts.length > 0) {
-            activeUser = savedAccounts[0];
-        }
     }
 
-    if (!activeUser || (!activeUser.Email && !activeUser.email)) {
+    // 2. Fallback to active_user in localStorage
+    let activeUser = null;
+    try {
+        activeUser = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    } catch(e) {}
+
+    if (activeUser && activeUser.Email) {
+        return activeUser;
+    }
+
+    // 3. Fallback to first saved account
+    if (savedAccounts.length > 0) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedAccounts[0]));
+        return savedAccounts[0];
+    }
+
+    if (redirectIfMissing) {
         window.location.href = "https://knox-app.github.io/netflix/lgn/3?app=drive";
-        return null;
     }
-
-    // Keep active_user synchronized
-    localStorage.setItem(STORAGE_ACTIVE_USER, JSON.stringify(activeUser));
-    return activeUser;
+    return null;
 }
 
 export function getCurrentUserIndex() {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('u')) return urlParams.get('u');
-    return '0';
-}
+    const uParam = urlParams.has('u') ? urlParams.get('u') : urlParams.get('user');
+    if (uParam !== null) return parseInt(uParam, 10);
 
-export function getAccountRedirectUrl(action) {
-    const uIndex = getCurrentUserIndex();
-    if (action === 'switch') {
-        return "https://knox-app.github.io/netflix/lgn/3?app=drive";
-    }
-    if (action === 'manage') {
-        return `https://knox-app.github.io/netflix/lgn/4?u=${uIndex}`;
-    }
-    if (action === 'settings') {
-        return `settings.html?u=${uIndex}`;
-    }
-    return "#";
+    let activeUser = null;
+    try { activeUser = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e){}
+    let saved = [];
+    try { saved = JSON.parse(localStorage.getItem(SAVED_ACCOUNTS_KEY) || '[]'); } catch(e){}
+
+    if (!activeUser || !activeUser.Email) return 0;
+    const idx = saved.findIndex(a => (a.Email || a.email) === (activeUser.Email || activeUser.email));
+    return idx >= 0 ? idx : 0;
 }
 
 export function signOut() {
-    localStorage.removeItem(STORAGE_ACTIVE_USER);
+    localStorage.removeItem(STORAGE_KEY);
     window.location.href = "https://knox-app.github.io/netflix/lgn/3?app=drive";
 }
