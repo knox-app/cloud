@@ -1,16 +1,14 @@
 /**
  * datasets.js
- * Centralized Firestore Database Operations & Data Helpers
- * Firebase App: cloud-computer-4891a
+ * Real-Time Firestore Data Layer for Cloud Drive & Profiles
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { 
-    getFirestore, collection, query, where, getDocs, or, onSnapshot,
-    doc, getDoc, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove 
+    getFirestore, collection, query, where, onSnapshot,
+    doc, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove 
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-// 1. Firebase Configuration
 export const firebaseConfig = {
     apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
     authDomain: "cloud-computer-4891a.firebaseapp.com",
@@ -23,20 +21,45 @@ export const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-// 2. Active User Resolution
-export function getActiveUser(redirectIfMissing = true) {
-    let currentUser = null;
-    try { 
-        currentUser = JSON.parse(localStorage.getItem('active_user')); 
-    } catch(e) {}
-
-    if ((!currentUser || !currentUser.Email) && redirectIfMissing) {
-        window.location.href = "1.html";
+/**
+ * Listens to real-time updates for user profile info from UARM
+ */
+export function subscribeToUserProfile(targetLotus, targetEmail, onUpdate) {
+    let userQuery;
+    if (targetLotus) {
+        userQuery = query(collection(db, "UARM"), where("Lotus", "==", targetLotus));
+    } else {
+        userQuery = query(collection(db, "UARM"), where("Email", "==", targetEmail));
     }
-    return currentUser;
+
+    return onSnapshot(userQuery, (snapshot) => {
+        if (!snapshot.empty) {
+            const data = snapshot.docs[0].data();
+            localStorage.setItem("active_user", JSON.stringify(data));
+            onUpdate(data);
+        }
+    }, (err) => console.error("Profile sync error:", err));
 }
 
-// 3. Date & Color Helpers
+/**
+ * Listens in real-time to Cloud Drive documents for the given email
+ */
+export function subscribeToDrive(userEmail, onUpdate) {
+    const q = query(
+        collection(db, "Cloud Drive"),
+        where("Email", "==", userEmail)
+    );
+
+    return onSnapshot(q, (snapshot) => {
+        const items = [];
+        snapshot.forEach(docSnap => {
+            items.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        const folders = items.filter(d => d.Folder === "True");
+        onUpdate({ all: items, folders: folders });
+    }, (err) => console.error("Drive sync error:", err));
+}
+
 export function formatFirestoreDate() {
     const d = new Date();
     const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
@@ -75,73 +98,9 @@ export function formatDisplayDate(dateStr) {
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const month = monthNames[dateObj.getMonth()];
     const day = dateObj.getDate();
-    if (dateObj.getFullYear() === now.getFullYear()) {
-        return `${month} ${day}`;
-    }
-    return `${month} ${day}, ${dateObj.getFullYear()}`;
+    return dateObj.getFullYear() === now.getFullYear() ? `${month} ${day}` : `${month} ${day}, ${dateObj.getFullYear()}`;
 }
 
-export function getContrastColor(hexColor) {
-    if (!hexColor || hexColor === '#FFFFFF' || hexColor.toLowerCase() === '#ffffff') return '#111827';
-    let hex = hexColor.replace('#', '');
-    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
-    const r = parseInt(hex.substring(0, 2), 16) || 0;
-    const g = parseInt(hex.substring(2, 4), 16) || 0;
-    const b = parseInt(hex.substring(4, 6), 16) || 0;
-    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-    return (yiq >= 170) ? '#111827' : '#FFFFFF';
-}
-
-// 4. Role Resolver
-export function getUserRole(item, userEmail, parentDocs = []) {
-    if (item.Email === userEmail) return 'Owner';
-    const acc = item.Access || {};
-    if (acc.Editor?.includes(userEmail)) return 'Editor';
-    if (acc.Contributor?.includes(userEmail)) return 'Contributor';
-    if (acc.Commenter?.includes(userEmail) || acc.Commentator?.includes(userEmail)) return 'Commenter';
-    if (acc.Viewer?.includes(userEmail)) return 'Viewer';
-
-    for (const pDoc of parentDocs) {
-        if (pDoc) {
-            if (pDoc.Email === userEmail) return 'Owner';
-            const pAcc = pDoc.Access || {};
-            if (pAcc.Editor?.includes(userEmail)) return 'Editor';
-            if (pAcc.Contributor?.includes(userEmail)) return 'Contributor';
-            if (pAcc.Commenter?.includes(userEmail) || pAcc.Commentator?.includes(userEmail)) return 'Commenter';
-            if (pAcc.Viewer?.includes(userEmail)) return 'Viewer';
-        }
-    }
-    return 'Viewer';
-}
-
-// 5. Realtime Workspace Listener
-export function subscribeToWorkspace(userEmail, callback, errorCallback) {
-    const q = query(
-        collection(db, "Cloud Drive"),
-        or(
-            where("Email", "==", userEmail),
-            where("Access.Viewer", "array-contains", userEmail),
-            where("Access.Contributor", "array-contains", userEmail),
-            where("Access.Commenter", "array-contains", userEmail),
-            where("Access.Commentator", "array-contains", userEmail),
-            where("Access.Editor", "array-contains", userEmail)
-        )
-    );
-
-    return onSnapshot(q, (snap) => {
-        const items = [];
-        snap.forEach(docSnap => {
-            items.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        const folders = items.filter(d => d.Folder === "True");
-        callback({ allItems: items, folderItems: folders });
-    }, (err) => {
-        if (errorCallback) errorCallback(err);
-        else console.error("Realtime sync error:", err);
-    });
-}
-
-// 6. Firestore Write/Mutation Helpers
 export async function createFolderRecord({ userEmail, name, password = "", parentFolderId = null, labels = [] }) {
     const newDoc = await addDoc(collection(db, "Cloud Drive"), {
         Email: userEmail,
@@ -161,7 +120,6 @@ export async function createFolderRecord({ userEmail, name, password = "", paren
             Updated: formatFirestoreDate()
         });
     }
-
     return newDoc;
 }
 
@@ -185,7 +143,6 @@ export async function createFileRecord({ userEmail, fileUrl, fileName, fileType,
             Updated: formatFirestoreDate()
         });
     }
-
     return newDoc;
 }
 
@@ -268,5 +225,4 @@ export async function deleteRecord(id, userEmail, isViewer, allFolders = []) {
     return await deleteDoc(doc(db, "Cloud Drive", id));
 }
 
-// Export raw Firestore functions if direct custom query is needed
 export { doc, updateDoc, arrayUnion, arrayRemove, deleteDoc };
