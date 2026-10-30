@@ -1,1318 +1,446 @@
 /**
- * index.css
- * Cloud Drive - Global Stylesheet & Design System
+ * Cloud Drive - Modals, Action Sheet & UI System Module
+ * Hosted at: https://knox-app.github.io/cloud/drive/system/model.js
  */
 
-/* ==========================================================================
-   Design Tokens & CSS Variables
-   ========================================================================== */
-:root {
-    --bg-color: #ffffff;
-    --surface-color: #ffffff;
-    --card-bg: #f9fafb;
-    --text-primary: #111827;
-    --text-secondary: #6b7280;
-    --border-color: #e5e7eb;
-    --hover-bg: #f3f4f6;
-    --btn-dark-bg: #0d0d0d;
-    --btn-dark-text: #ffffff;
-    --accent: #111827;
-    --danger: #ef4444;
-    --tag-bg: #e5e7eb;
-    --tag-text: #374151;
-    --selection-bg: #111827;
-    --selection-text: #ffffff;
-    --select-highlight: rgba(0, 0, 0, 0.05);
-    --sidebar-width: 64px;
-    --folder-default-color: #e57373;
-}
-
-/* AMOLED Pure Black Dark Mode */
-body.dark {
-    --bg-color: #000000 !important;
-    --surface-color: #000000 !important;
-    --card-bg: #0a0a0a !important;
-    --text-primary: #f9fafb !important;
-    --text-secondary: #9ca3af !important;
-    --border-color: #1a1a1a !important;
-    --hover-bg: #141414 !important;
-    --btn-dark-bg: #ffffff !important;
-    --btn-dark-text: #000000 !important;
-    --accent: #ffffff !important;
-    --danger: #ff453a !important;
-    --tag-bg: #1f1f1f !important;
-    --tag-text: #d1d5db !important;
-    --selection-bg: #1a1a1a !important;
-    --selection-text: #ffffff !important;
-    --select-highlight: rgba(255, 255, 255, 0.06) !important;
-    --folder-default-color: #ef5350 !important;
-}
-
-/* ==========================================================================
-   Base & Reset
-   ========================================================================== */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-primary);
-    display: flex;
-    min-height: 100vh;
-    overflow-x: hidden;
-    transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-/* ==========================================================================
-   Sidebar
-   ========================================================================== */
-aside.sidebar {
-    width: var(--sidebar-width);
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px 0;
-    gap: 16px;
-    flex-shrink: 0;
-    background: var(--surface-color);
-}
-
-.side-icon {
-    width: 38px;
-    height: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-
-.side-icon:hover,
-.side-icon.active {
-    background-color: var(--hover-bg);
-    color: var(--text-primary);
-}
-
-.side-icon svg {
-    width: 20px;
-    height: 20px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-}
-
-/* ==========================================================================
-   Main Content Layout
-   ========================================================================== */
-main.content-area {
-    flex-grow: 1;
-    padding: 32px 40px;
-    max-width: 1240px;
-    position: relative;
-}
-
-.top-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.page-title {
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.btn-pill {
-    background-color: var(--btn-dark-bg);
-    color: var(--btn-dark-text);
-    border: none;
-    padding: 9px 16px;
-    border-radius: 9999px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: opacity 0.2s ease;
-    user-select: none;
-}
-
-.btn-pill:hover {
-    opacity: 0.9;
-}
-
-/* Top-Right User Profile Trigger & Avatar */
-.user-profile-btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    cursor: pointer;
-    overflow: hidden;
-    border: 2px solid var(--border-color);
-    background: var(--hover-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--text-primary);
-    flex-shrink: 0;
-    transition: transform 0.15s ease, border-color 0.15s ease;
-}
-
-.user-profile-btn:hover {
-    transform: scale(1.05);
-    border-color: var(--accent);
-}
-
-.user-profile-btn img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* Profile Popover (Desktop / Tablet) */
-.profile-popover-card {
-    position: fixed;
-    top: 70px;
-    right: 28px;
-    width: 310px;
-    background: var(--surface-color);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.3);
-    z-index: 2000;
-    display: none;
-    flex-direction: column;
-    padding: 20px;
-    transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.profile-popover-card.active {
-    display: flex;
-}
-
-.profile-card-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.profile-card-avatar {
-    width: 68px;
-    height: 68px;
-    border-radius: 50%;
-    overflow: hidden;
-    background: var(--hover-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 10px;
-    border: 2px solid var(--border-color);
-}
-
-.profile-card-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.profile-card-name {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 2px;
-}
-
-.profile-card-email {
-    font-size: 13px;
-    color: var(--text-secondary);
-    word-break: break-all;
-}
-
-.profile-menu-items {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 12px;
-}
-
-.profile-menu-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    color: var(--text-primary);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    background: transparent;
-    border: none;
-    width: 100%;
-    text-align: left;
-    transition: background 0.15s ease;
-}
-
-.profile-menu-item:hover {
-    background: var(--hover-bg);
-}
-
-.profile-menu-item svg {
-    width: 18px;
-    height: 18px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-}
-
-/* ==========================================================================
-   Controls & Search
-   ========================================================================== */
-.controls-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.search-container {
-    position: relative;
-    flex: 1;
-    max-width: 380px;
-}
-
-.search-container svg {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 16px;
-    height: 16px;
-    stroke: var(--text-secondary);
-    stroke-width: 2;
-    fill: none;
-}
-
-.search-input {
-    width: 100%;
-    padding: 9px 14px 9px 38px;
-    border-radius: 9999px;
-    border: 1px solid var(--border-color);
-    background: var(--surface-color);
-    font-size: 13px;
-    color: var(--text-primary);
-    outline: none;
-}
-
-.search-input:focus {
-    border-color: var(--text-secondary);
-}
-
-.view-switcher-group {
-    display: inline-flex;
-    background: var(--hover-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 3px;
-    gap: 2px;
-}
-
-.view-btn {
-    background: none;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 8px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s ease, color 0.15s ease;
-}
-
-.view-btn.active {
-    background: var(--surface-color);
-    color: var(--text-primary);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.view-btn svg {
-    width: 17px;
-    height: 17px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.8;
-}
-
-/* ==========================================================================
-   Selection Toolbar
-   ========================================================================== */
-.selection-toolbar {
-    position: sticky;
-    top: 10px;
-    background: var(--surface-color);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 9999px;
-    padding: 8px 24px;
-    display: none;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-    z-index: 50;
-}
-
-.selection-toolbar.active {
-    display: flex;
-}
-
-.selection-actions {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.selection-icon-btn {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: 4px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.15s ease, transform 0.15s ease;
-}
-
-.selection-icon-btn:hover {
-    color: var(--text-primary);
-    transform: translateY(-1px);
-}
-
-.selection-icon-btn.danger {
-    color: #f87171;
-}
-
-.selection-icon-btn.danger:hover {
-    color: #ef4444;
-}
-
-.selection-icon-btn svg {
-    width: 19px;
-    height: 19px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-}
-
-.btn-done-select {
-    background: none;
-    border: none;
-    color: var(--text-primary);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-left: 8px;
-    padding: 4px 8px;
-}
-
-.btn-done-select:hover {
-    opacity: 0.7;
-}
-
-/* Custom Checkbox */
-.custom-checkbox {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 1.8px solid var(--text-secondary);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    background: transparent;
-    flex-shrink: 0;
-}
-
-.custom-checkbox.checked {
-    background: #000000;
-    border-color: #000000;
-}
-
-body.dark .custom-checkbox.checked {
-    background: #ffffff;
-    border-color: #ffffff;
-}
-
-.custom-checkbox svg {
-    width: 11px;
-    height: 11px;
-    stroke: #ffffff;
-    stroke-width: 2.8;
-    fill: none;
-    display: none;
-}
-
-body.dark .custom-checkbox svg {
-    stroke: #000000;
-}
-
-.custom-checkbox.checked svg {
-    display: block;
-}
-
-/* Labels */
-.label-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 7px;
-    background: var(--tag-bg);
-    color: var(--tag-text);
-    border-radius: 6px;
-    font-size: 11px;
-    margin-right: 4px;
-    margin-top: 2px;
-    font-weight: 500;
-}
-
-/* Drag Overlay */
-.drag-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(16, 163, 127, 0.08);
-    border: 2px dashed var(--accent);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    pointer-events: none;
-}
-
-.drag-overlay.active {
-    display: flex;
-}
-
-.drag-overlay-card {
-    background: var(--surface-color);
-    padding: 24px 36px;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-/* ==========================================================================
-   List View
-   ========================================================================== */
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.table-head {
-    display: grid;
-    grid-template-columns: 3.2fr 1.8fr 1.5fr 1.8fr 40px;
-    padding: 10px 16px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.table-row {
-    display: grid;
-    grid-template-columns: 3.2fr 1.8fr 1.5fr 1.8fr 40px;
-    align-items: center;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 14px;
-    transition: background-color 0.15s ease;
-    user-select: none;
-    cursor: pointer;
-}
-
-.table-row:hover {
-    background-color: var(--hover-bg);
-}
-
-.table-row.selected {
-    background-color: var(--select-highlight);
-}
-
-.table-row.keyboard-focused {
-    outline: 2px solid var(--accent);
-    outline-offset: -2px;
-}
-
-.selection-active .table-head,
-.selection-active .table-row {
-    grid-template-columns: 36px 3.2fr 1.8fr 1.5fr 1.8fr 40px;
-}
-
-.cell-checkbox {
-    display: none;
-    align-items: center;
-    justify-content: center;
-}
-
-.selection-active .cell-checkbox {
-    display: flex;
-}
-
-.file-title-cell {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.file-icon-box {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: var(--hover-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    color: var(--text-secondary);
-}
-
-.file-icon-box svg {
-    width: 19px;
-    height: 19px;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: none;
-}
-
-.file-info-col {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.file-name {
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.file-location-hint {
-    font-size: 11px;
-    color: var(--text-secondary);
-    margin-top: 2px;
-}
-
-.file-labels {
-    display: flex;
-    flex-wrap: wrap;
-    margin-top: 3px;
-}
-
-/* ==========================================================================
-   Grid View
-   ========================================================================== */
-.grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-    gap: 16px;
-    padding-top: 8px;
-}
-
-.grid-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 14px;
-    padding: 12px 14px;
-    display: flex;
-    flex-direction: column;
-    cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-    position: relative;
-    user-select: none;
-}
-
-.grid-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-    background: var(--hover-bg);
-}
-
-.grid-card.selected {
-    background-color: var(--select-highlight);
-    border-color: var(--accent);
-}
-
-.grid-card.keyboard-focused {
-    outline: 2px solid var(--accent);
-}
-
-.grid-card-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 10px;
-}
-
-.grid-header-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    overflow: hidden;
-    flex: 1;
-}
-
-.grid-card-icon {
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.grid-card-icon svg {
-    width: 18px;
-    height: 18px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.8;
-}
-
-.grid-card-title {
-    font-size: 13px;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.grid-card-checkbox {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 5;
-    display: none;
-}
-
-.selection-active .grid-card-checkbox {
-    display: flex;
-}
-
-.grid-folder-body {
-    height: 86px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-
-.big-folder-svg {
-    width: 96px;
-    height: 74px;
-    border-radius: 4px;
-}
-
-.big-folder-badge-icon {
-    position: absolute;
-    top: 54%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-}
-
-.big-folder-badge-icon svg {
-    width: 22px;
-    height: 22px;
-    stroke-width: 2.2;
-    fill: none;
-}
-
-.grid-file-preview {
-    height: 100px;
-    background: var(--surface-color);
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-
-.grid-file-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.doc-mockup-page {
-    width: 70%;
-    height: 80%;
-    background: var(--hover-bg);
-    border-radius: 4px;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-}
-
-.doc-line {
-    height: 4px;
-    background: var(--border-color);
-    border-radius: 2px;
-}
-
-.actions-cell {
-    position: relative;
-    text-align: right;
-}
-
-.btn-dots {
-    background: none;
-    border: none;
-    padding: 5px;
-    border-radius: 6px;
-    cursor: pointer;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-dots:hover {
-    color: var(--text-primary);
-    background: var(--border-color);
-}
-
-.btn-dots svg {
-    width: 18px;
-    height: 18px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-}
-
-/* ==========================================================================
-   Desktop Action Dropdown
-   ========================================================================== */
-.desktop-action-dropdown {
-    position: fixed;
-    background: var(--surface-color);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
-    border-radius: 12px;
-    width: 200px;
-    padding: 6px 0;
-    z-index: 1000;
-    display: none;
-    border: 1px solid var(--border-color);
-    text-align: left;
-}
-
-.desktop-action-dropdown.active {
-    display: block;
-}
-
-.dropdown-item {
-    padding: 8px 16px;
-    font-size: 13px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--text-primary);
-}
-
-.dropdown-item:hover {
-    background: var(--hover-bg);
-}
-
-.dropdown-item.danger {
-    color: var(--danger);
-}
-
-.dropdown-item svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.8;
-}
-
-/* ==========================================================================
-   Mobile Bottom Action Sheet
-   ========================================================================== */
-.bottom-sheet-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 2000;
-    display: none;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    align-items: flex-end;
-    justify-content: center;
-}
-
-.bottom-sheet-backdrop.active {
-    display: flex;
-    opacity: 1;
-}
-
-.bottom-sheet-card {
-    background: var(--surface-color);
-    width: 100%;
-    max-width: 500px;
-    border-radius: 20px 20px 0 0;
-    padding: 16px 20px 32px 20px;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.25);
-    transform: translateY(100%);
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.bottom-sheet-backdrop.active .bottom-sheet-card {
-    transform: translateY(0);
-}
-
-.bottom-sheet-handle {
-    width: 36px;
-    height: 4px;
-    background: var(--text-secondary);
-    border-radius: 2px;
-    margin: 0 auto 14px auto;
-    opacity: 0.4;
-}
-
-.bottom-sheet-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 8px;
-}
-
-.bottom-sheet-title {
-    font-size: 15px;
-    font-weight: 600;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.bottom-sheet-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px 6px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-primary);
-    cursor: pointer;
-    border-radius: 10px;
-    transition: background-color 0.1s ease;
-}
-
-.bottom-sheet-item:active {
-    background: var(--hover-bg);
-}
-
-.bottom-sheet-item.danger {
-    color: var(--danger);
-}
-
-.bottom-sheet-item svg {
-    width: 19px;
-    height: 19px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.8;
-}
-
-/* ==========================================================================
-   Empty States
-   ========================================================================== */
-.empty-state-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 64px 20px;
-    text-align: center;
-    width: 100%;
-}
-
-.empty-state-img {
-    width: 190px;
-    height: auto;
-    margin-bottom: 18px;
-    opacity: 0.95;
-    pointer-events: none;
-}
-
-.empty-state-title {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-
-/* ==========================================================================
-   Modals
-   ========================================================================== */
-.modal-shade {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2500;
-    visibility: hidden;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    padding: 16px;
-}
-
-.modal-shade.active {
-    visibility: visible;
-    opacity: 1;
-}
-
-.modal-box {
-    background: var(--surface-color);
-    border-radius: 24px;
-    width: 100%;
-    max-width: 440px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    padding: 24px;
-    position: relative;
-    border: 1px solid var(--border-color);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 18px;
-}
-
-.modal-title {
-    font-size: 17px;
-    font-weight: 600;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-secondary);
-}
-
-.modal-close svg {
-    width: 20px;
-    height: 20px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-}
-
-.input-group {
-    margin-bottom: 15px;
-}
-
-.input-group label {
-    display: block;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-}
-
-.clean-input {
-    width: 100%;
-    padding: 10px 14px;
-    background: var(--hover-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    color: var(--text-primary);
-    font-size: 13px;
-    outline: none;
-}
-
-.clean-input:focus {
-    border-color: var(--text-secondary);
-}
-
-.user-access-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 13px;
-}
-
-/* Customize Pickers */
-.customize-top-preview {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.customize-top-preview-icon {
-    width: 58px;
-    height: 58px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.customize-top-preview-icon svg {
-    width: 52px;
-    height: 52px;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: none;
-}
-
-.color-carousel-wrap {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    overflow-x: auto;
-    padding: 6px 2px 14px 2px;
-    margin-bottom: 16px;
-    scrollbar-width: none;
-}
-
-.color-carousel-wrap::-webkit-scrollbar {
-    display: none;
-}
-
-.color-swatch-circle {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    cursor: pointer;
-    border: 3px solid transparent;
-    transition: transform 0.15s ease, border-color 0.15s ease;
-}
-
-.color-swatch-circle:hover {
-    transform: scale(1.08);
-}
-
-.color-swatch-circle.active {
-    border-color: var(--text-primary);
-    box-shadow: 0 0 0 2px var(--surface-color);
-}
-
-.icon-palette-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 12px 8px;
-    max-height: 220px;
-    overflow-y: auto;
-    padding: 10px 4px;
-    border-radius: 12px;
-}
-
-.icon-palette-grid::-webkit-scrollbar {
-    width: 4px;
-}
-
-.icon-palette-grid::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 4px;
-}
-
-.icon-swatch {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--text-primary);
-    transition: all 0.15s ease;
-}
-
-.icon-swatch:hover,
-.icon-swatch.active {
-    background: var(--hover-bg);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.icon-swatch svg {
-    width: 24px;
-    height: 24px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.9;
-}
-
-/* ==========================================================================
-   Details Grid & Toast
-   ========================================================================== */
-.details-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    font-size: 13px;
-}
-
-.details-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.details-label {
-    color: var(--text-secondary);
-}
-
-.details-val {
-    font-weight: 500;
-    text-align: right;
-    max-width: 260px;
-    overflow-wrap: break-word;
-}
-
-.toast-popup {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #111827;
-    color: #ffffff;
-    padding: 9px 20px;
-    border-radius: 9999px;
-    font-size: 13px;
-    display: none;
-    z-index: 3000;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-}
-
-/* ==========================================================================
-   Responsive Adaptations
-   ========================================================================== */
-@media (max-width: 768px) {
-    aside.sidebar {
-        display: none;
+import { BADGE_ICONS, SVG_ICONS, FOLDER_COLORS } from "https://knox-app.github.io/cloud/drive/system/icon-sys.js";
+
+// Helper for contrast colors
+export function getContrastColor(hexColor) {
+    if (!hexColor || hexColor === '#FFFFFF' || hexColor.toLowerCase() === '#ffffff') return '#111827';
+    let hex = hexColor.replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 170) ? '#111827' : '#FFFFFF';
+}
+
+export function showToast(msg) {
+    let t = document.getElementById('toastPopup');
+    if (!t) {
+        t = document.createElement('div');
+        t.className = 'toast-popup';
+        t.id = 'toastPopup';
+        document.body.appendChild(t);
+    }
+    t.innerText = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 2600);
+}
+
+/**
+ * Injects all modals, menus, and bottom sheets directly into the DOM
+ */
+export function injectDriveModalsDOM() {
+    if (document.getElementById('driveModalsContainer')) return;
+
+    const container = document.createElement('div');
+    container.id = 'driveModalsContainer';
+
+    container.innerHTML = `
+        <!-- Desktop Floating Dropdown Menu -->
+        <div class="desktop-action-dropdown" id="desktopDropdown"></div>
+
+        <!-- Mobile Bottom Action Sheet -->
+        <div class="bottom-sheet-backdrop" id="bottomSheetBackdrop">
+            <div class="bottom-sheet-card" id="bottomSheetCard">
+                <div class="bottom-sheet-handle"></div>
+                <div class="bottom-sheet-header">
+                    <div id="bottomSheetHeaderIcon" style="width: 24px; height: 24px; display: flex; align-items: center;"></div>
+                    <div class="bottom-sheet-title" id="bottomSheetHeaderTitle"></div>
+                </div>
+                <div id="bottomSheetActionsList"></div>
+            </div>
+        </div>
+
+        <!-- Customize Modal -->
+        <div class="modal-shade" id="customizeModal">
+            <div class="modal-box">
+                <div class="customize-top-preview">
+                    <div class="customize-top-preview-icon" id="customizePreviewIcon"></div>
+                </div>
+                <div class="color-carousel-wrap" id="colorCarouselWrap"></div>
+                <div class="icon-palette-grid" id="iconPaletteGrid"></div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 24px;">
+                    <button class="btn-pill" id="btnSaveCustomize" style="padding: 10px 28px; font-weight: 600;">OK</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Access Modal -->
+        <div class="modal-shade" id="accessModal">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <div class="modal-title">Manage Access</div>
+                    <button class="modal-close" id="closeAccessModal">${SVG_ICONS.trash ? '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>' : '&times;'}</button>
+                </div>
+                <div class="input-group" id="inviteSection">
+                    <label>Invite User</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="email" id="inviteEmailInput" class="clean-input" placeholder="user@example.com">
+                        <select id="inviteRoleSelect" class="clean-input" style="width: 170px;">
+                            <option value="Editor">Editor</option>
+                            <option value="Contributor">Contributor</option>
+                            <option value="Viewer">Viewer</option>
+                            <option value="Commenter">Commenter</option>
+                            <option value="Transfer">Transfer Ownership</option>
+                        </select>
+                        <button class="btn-pill" id="btnAddAccess" style="padding: 0 16px;">Add</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Collaborators with Access</label>
+                    <div id="accessListContainer" style="max-height: 180px; overflow-y: auto;"></div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
+                    <button class="btn-pill" id="btnSaveAccess">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Modal -->
+        <div class="modal-shade" id="securityModal">
+            <div class="modal-box" style="max-width: 380px;">
+                <div class="modal-header">
+                    <div class="modal-title">Folder Security</div>
+                    <button class="modal-close" id="closeSecurityModal"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
+                <div id="securityModalBody"></div>
+            </div>
+        </div>
+
+        <!-- Labels Modal -->
+        <div class="modal-shade" id="labelModal">
+            <div class="modal-box" style="max-width: 400px;">
+                <div class="modal-header">
+                    <div class="modal-title">Manage Labels</div>
+                    <button class="modal-close" id="closeLabelModal"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
+                <div class="input-group">
+                    <label>Add New Label</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="newLabelInput" class="clean-input" placeholder="e.g. MN Admin, Finance">
+                        <button class="btn-pill" id="btnAddLabel">Add</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Current Labels</label>
+                    <div id="currentLabelsList" style="display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px;"></div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
+                    <button class="btn-pill" id="btnSaveLabels">Done</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Share Modal -->
+        <div class="modal-shade" id="shareModal">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <div class="modal-title">Share Item</div>
+                    <button class="modal-close" id="closeShareModal"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
+                <div class="input-group">
+                    <label>Choose Share Format</label>
+                    <select id="shareFormatChoice" class="clean-input">
+                        <option value="url">Share as Web Link (URL)</option>
+                        <option value="image">Share as Image File</option>
+                        <option value="pdf">Convert Image to PDF & Share (.pdf)</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn-pill" id="btnExecuteShare" style="flex: 1; justify-content: center;">Share via Device</button>
+                    <button class="btn-pill" id="btnCopyShareLink" style="background: var(--hover-bg); color: var(--text-primary); border: 1px solid var(--border-color);">Copy Link</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details Modal -->
+        <div class="modal-shade" id="detailsModal">
+            <div class="modal-box" style="max-width: 420px;">
+                <div class="modal-header">
+                    <div class="modal-title">Item Details</div>
+                    <button class="modal-close" id="closeDetailsModal"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
+                <div class="details-grid" id="detailsContent"></div>
+            </div>
+        </div>
+
+        <!-- Move Modal -->
+        <div class="modal-shade" id="moveModal">
+            <div class="modal-box" style="max-width: 420px;">
+                <div class="modal-header">
+                    <div class="modal-title" id="moveModalTitle">Move Item</div>
+                    <button class="modal-close" id="closeMoveModal"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
+                <div class="input-group">
+                    <label>Select Destination Folder</label>
+                    <select id="moveDestinationSelect" class="clean-input"></select>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+                    <button class="btn-pill" id="btnConfirmMove">Move Here</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rename Modal -->
+        <div class="modal-shade" id="renameModal">
+            <div class="modal-box" style="max-width: 400px;">
+                <div class="modal-header">
+                    <div class="modal-title">Rename</div>
+                    <button class="modal-close" id="closeRenameModal"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
+                <div class="input-group">
+                    <label>New Name</label>
+                    <input type="text" id="renameInput" class="clean-input">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button class="btn-pill" id="btnSubmitRename">Rename</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Folder Modal -->
+        <div class="modal-shade" id="folderModal">
+            <div class="modal-box" style="max-width: 400px;">
+                <div class="modal-header">
+                    <div class="modal-title">New Folder</div>
+                    <button class="modal-close" id="closeFolderModal"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
+                <div class="input-group">
+                    <label>Folder Name</label>
+                    <input type="text" id="newFolderName" class="clean-input" placeholder="e.g. Work Files">
+                </div>
+                <div class="input-group">
+                    <label>Folder Password (Optional)</label>
+                    <input type="text" id="newFolderPassword" class="clean-input" placeholder="Optional password lock">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button class="btn-pill" id="btnCreateFolder">Create</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Password Auth Modal -->
+        <div class="modal-shade" id="passwordAuthModal">
+            <div class="modal-box" style="max-width: 360px;">
+                <div class="modal-header">
+                    <div class="modal-title">Password Required</div>
+                    <button class="modal-close" id="closePassModal"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="authPasswordInput" class="clean-input" placeholder="Enter password to continue">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button class="btn-pill" id="btnSubmitAuth">Unlock</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="toast-popup" id="toastPopup"></div>
+    `;
+
+    document.body.appendChild(container);
+    setupStaticModalListeners();
+}
+
+/**
+ * Universal Action Menu Manager (Mobile Bottom Sheet & Desktop Dropdown)
+ */
+export function setupMenuManager(callbacks) {
+    const desktopDropdown = document.getElementById('desktopDropdown');
+    const bottomSheetBackdrop = document.getElementById('bottomSheetBackdrop');
+
+    function closeAllActionMenus() {
+        desktopDropdown?.classList.remove('active');
+        bottomSheetBackdrop?.classList.remove('active');
     }
 
-    main.content-area {
-        padding: 18px 14px;
-        width: 100%;
+    bottomSheetBackdrop?.addEventListener('click', (e) => {
+        if (e.target === bottomSheetBackdrop) closeAllActionMenus();
+    });
+
+    window.addEventListener('click', () => closeAllActionMenus());
+
+    function showItemActions(item, isFolder, name, isViewer, event) {
+        const isMobile = window.innerWidth <= 768;
+
+        const actionItems = [];
+        if (!isViewer && !isFolder) actionItems.push({ id: 'download', icon: SVG_ICONS.download, label: 'Download' });
+        if (!isViewer) actionItems.push({ id: 'rename', icon: SVG_ICONS.edit, label: 'Rename' });
+        if (!isViewer && isFolder) {
+            actionItems.push({ id: 'customize', icon: SVG_ICONS.customize, label: 'Customize' });
+            actionItems.push({ id: 'security', icon: SVG_ICONS.lock, label: 'Security' });
+        }
+        if (!isViewer && !isFolder) actionItems.push({ id: 'share', icon: SVG_ICONS.share, label: 'Share' });
+        if (!isViewer) {
+            actionItems.push({ id: 'access', icon: SVG_ICONS.users, label: 'Manage Access' });
+            actionItems.push({ id: 'label', icon: SVG_ICONS.tag, label: 'Label' });
+            actionItems.push({ id: 'move', icon: SVG_ICONS.move, label: isFolder ? 'Organise' : 'Move' });
+        }
+        actionItems.push({ id: 'details', icon: SVG_ICONS.info, label: 'Details' });
+        actionItems.push({ id: 'delete', icon: SVG_ICONS.trash, label: isViewer ? 'Remove Access' : 'Delete', danger: true });
+
+        const handleActionClick = (actionId) => {
+            closeAllActionMenus();
+            if (callbacks && typeof callbacks[actionId] === 'function') {
+                callbacks[actionId](item, isFolder, name, isViewer);
+            }
+        };
+
+        if (isMobile) {
+            const headerIcon = document.getElementById('bottomSheetHeaderIcon');
+            const folderColor = item.Customize?.Colour || 'var(--folder-default-color)';
+            if (headerIcon) {
+                headerIcon.style.color = isFolder ? folderColor : 'var(--text-secondary)';
+                headerIcon.innerHTML = isFolder ? (BADGE_ICONS[item.Customize?.Icon] || BADGE_ICONS.folder) : SVG_ICONS.doc;
+            }
+            const titleEl = document.getElementById('bottomSheetHeaderTitle');
+            if (titleEl) titleEl.innerText = name;
+
+            const list = document.getElementById('bottomSheetActionsList');
+            if (list) {
+                list.innerHTML = '';
+                actionItems.forEach(act => {
+                    const div = document.createElement('div');
+                    div.className = `bottom-sheet-item ${act.danger ? 'danger' : ''}`;
+                    div.innerHTML = `${act.icon} <span>${act.label}</span>`;
+                    div.addEventListener('click', () => handleActionClick(act.id));
+                    list.appendChild(div);
+                });
+            }
+            bottomSheetBackdrop?.classList.add('active');
+        } else {
+            if (desktopDropdown) {
+                desktopDropdown.innerHTML = '';
+                actionItems.forEach(act => {
+                    const div = document.createElement('div');
+                    div.className = `dropdown-item ${act.danger ? 'danger' : ''}`;
+                    div.innerHTML = `${act.icon} <span>${act.label}</span>`;
+                    div.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handleActionClick(act.id);
+                    });
+                    desktopDropdown.appendChild(div);
+                });
+
+                const rect = event.currentTarget.getBoundingClientRect();
+                let top = rect.bottom + 6;
+                let left = rect.right - 200;
+                if (left < 10) left = 10;
+                if (top + 320 > window.innerHeight) top = rect.top - 320;
+
+                desktopDropdown.style.top = `${top}px`;
+                desktopDropdown.style.left = `${left}px`;
+                desktopDropdown.classList.add('active');
+            }
+        }
     }
 
-    .table-head {
-        display: none;
+    return { showItemActions, closeAllActionMenus };
+}
+
+// Password Challenge Controller
+let passSuccessCallback = null;
+let expectedPass = "";
+
+export function promptPasswordAuth(password, onSuccess) {
+    expectedPass = password;
+    passSuccessCallback = onSuccess;
+    const input = document.getElementById('authPasswordInput');
+    if (input) input.value = "";
+    document.getElementById('passwordAuthModal')?.classList.add('active');
+}
+
+function setupStaticModalListeners() {
+    // Password auth close / submit
+    document.getElementById('closePassModal')?.addEventListener('click', () => {
+        document.getElementById('passwordAuthModal')?.classList.remove('active');
+    });
+    document.getElementById('btnSubmitAuth')?.addEventListener('click', () => {
+        const val = document.getElementById('authPasswordInput')?.value;
+        if (val === expectedPass) {
+            document.getElementById('passwordAuthModal')?.classList.remove('active');
+            if (passSuccessCallback) passSuccessCallback();
+        } else {
+            showToast("Incorrect password!");
+        }
+    });
+
+    // Close buttons for common modals
+    ['closeAccessModal', 'closeSecurityModal', 'closeLabelModal', 'closeShareModal', 'closeDetailsModal', 'closeMoveModal', 'closeRenameModal', 'closeFolderModal'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('click', () => {
+                btn.closest('.modal-shade')?.classList.remove('active');
+            });
+        }
+    });
+}
+
+/**
+ * Customize Folder Modal Controller
+ */
+export function initCustomizeModal(onSaveCallback) {
+    const modal = document.getElementById('customizeModal');
+    let targetFolder = null;
+    let selectedColor = '#4285F4';
+    let selectedIcon = 'folder';
+
+    function render() {
+        const preview = document.getElementById('customizePreviewIcon');
+        if (preview) {
+            preview.style.color = selectedColor;
+            preview.innerHTML = BADGE_ICONS[selectedIcon] || BADGE_ICONS.folder;
+        }
+
+        const carousel = document.getElementById('colorCarouselWrap');
+        if (carousel) {
+            carousel.innerHTML = '';
+            FOLDER_COLORS.forEach(c => {
+                const circle = document.createElement('div');
+                circle.className = `color-swatch-circle ${c.hex.toLowerCase() === selectedColor.toLowerCase() ? 'active' : ''}`;
+                circle.style.backgroundColor = c.hex;
+                circle.title = c.name;
+                circle.addEventListener('click', () => {
+                    selectedColor = c.hex;
+                    render();
+                });
+                carousel.appendChild(circle);
+            });
+        }
+
+        const iconGrid = document.getElementById('iconPaletteGrid');
+        if (iconGrid) {
+            iconGrid.innerHTML = '';
+            Object.keys(BADGE_ICONS).forEach(key => {
+                const swatch = document.createElement('div');
+                swatch.className = `icon-swatch ${key === selectedIcon ? 'active' : ''}`;
+                swatch.innerHTML = BADGE_ICONS[key];
+                swatch.title = key;
+                swatch.addEventListener('click', () => {
+                    selectedIcon = key;
+                    render();
+                });
+                iconGrid.appendChild(swatch);
+            });
+        }
     }
 
-    .table-row {
-        grid-template-columns: 1fr auto 30px;
-        gap: 8px;
-        padding: 10px 0;
-    }
+    document.getElementById('btnSaveCustomize')?.addEventListener('click', async () => {
+        if (targetFolder && onSaveCallback) {
+            await onSaveCallback(targetFolder, { Colour: selectedColor, Icon: selectedIcon });
+            modal.classList.remove('active');
+        }
+    });
 
-    .selection-active .table-row {
-        grid-template-columns: 28px 1fr auto 30px;
-    }
-
-    .cell-uploader,
-    .cell-format {
-        display: none;
-    }
-
-    .cell-date {
-        font-size: 11px;
-        color: var(--text-secondary);
-        text-align: right;
-    }
-
-    .modal-box {
-        padding: 20px;
-        border-radius: 20px;
-    }
-
-    .selection-toolbar {
-        padding: 6px 16px;
-    }
-
-    .grid-container {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 10px;
-    }
-
-    /* Mobile Bottom Sheet conversion for profile card */
-    .profile-popover-card {
-        top: auto;
-        bottom: 0;
-        right: 0;
-        left: 0;
-        width: 100%;
-        max-width: 100%;
-        border-radius: 24px 24px 0 0;
-        box-shadow: 0 -10px 30px rgba(0,0,0,0.4);
-        padding: 20px 24px 34px;
-        transform: translateY(100%);
-        display: flex;
-        visibility: hidden;
-    }
-
-    .profile-popover-card.active {
-        visibility: visible;
-        transform: translateY(0);
-    }
+    return function openCustomizeModal(item) {
+        targetFolder = item;
+        selectedColor = item.Customize?.Colour || '#4285F4';
+        selectedIcon = item.Customize?.Icon || 'folder';
+        render();
+        modal.classList.add('active');
+    };
 }
