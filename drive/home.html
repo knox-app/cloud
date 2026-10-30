@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cloud Drive</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/knox-app/cloud/d235b91b67a58037117f8f0c2d1391ffd209a463/logo/ca81fecf-2d54-4aea-8de0-f189a43e1002.png">
+    <!-- Global Design System -->
+    <link rel="stylesheet" href="index.css">
     <!-- jsPDF for Image-to-PDF conversion -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link rel="stylesheet" href="https://knox-app.github.io/cloud/drive/system/index.css">
 </head>
 <body>
 
@@ -16,7 +19,7 @@
         <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
     </div>
     <div class="side-icon" id="themeToggleBtn" title="Toggle Theme (Shift+T then D/L)">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="6" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
     </div>
     <div class="side-icon" id="logoutSideBtn" title="Sign Out">
         <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -37,8 +40,7 @@
         <div class="page-title" id="breadcrumbArea">
             <span>Cloud Drive</span>
         </div>
-        
-        <div style="display: flex; gap: 8px; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 10px;">
             <button class="btn-pill" id="btnSelectModeToggle" style="background: var(--hover-bg); color: var(--text-primary); border: 1px solid var(--border-color);" title="Select Multiple (Shift+S)">
                 Select
             </button>
@@ -51,9 +53,9 @@
             </button>
 
             <!-- Top-Right User Profile Button -->
-            <div class="user-profile-btn" id="topProfileBtn" title="Account Details">
-                <span id="topProfileInitial">U</span>
-                <img id="topProfileImg" style="display: none;" alt="User">
+            <div class="user-profile-btn" id="userProfileBtn" title="Account Menu">
+                <span id="userAvatarInitial">U</span>
+                <img id="userAvatarImg" alt="Profile" style="display: none;" referrerpolicy="no-referrer">
             </div>
         </div>
     </div>
@@ -93,29 +95,13 @@
         </div>
     </div>
 
-    <!-- Workspace View -->
+    <!-- Workspace View Container -->
     <div id="workspaceViewWrapper">
-        <div class="data-table" id="dataTable">
-            <div class="table-head">
-                <div class="cell-checkbox">
-                    <div class="custom-checkbox" id="selectAllCheckbox">
-                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    </div>
-                </div>
-                <div>Name</div>
-                <div class="cell-uploader">Owner</div>
-                <div class="cell-format">Format</div>
-                <div class="cell-date">Updated</div>
-                <div></div>
-            </div>
-            <div id="tableContent">
-                <div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading Cloud Drive...</div>
-            </div>
-        </div>
+        <div style="padding: 24px 0; color: var(--text-secondary); font-size: 14px;">Loading Cloud Drive...</div>
     </div>
 </main>
 
-<!-- Desktop Context Dropdown -->
+<!-- Desktop Floating Context Dropdown -->
 <div class="desktop-action-dropdown" id="desktopDropdown"></div>
 
 <!-- Mobile Bottom Action Sheet -->
@@ -134,24 +120,28 @@
 <div class="profile-popover-card" id="profilePopover">
     <div class="profile-card-header">
         <div class="profile-card-avatar" id="popoverAvatar">
-            <span id="popoverInitial">U</span>
-            <img id="popoverImg" style="display:none;" alt="User">
+            <span id="popoverAvatarInitial">U</span>
+            <img id="popoverAvatarImg" alt="Profile" style="display: none;" referrerpolicy="no-referrer">
         </div>
-        <div class="profile-card-name" id="popoverName">Loading...</div>
-        <div class="profile-card-email" id="popoverEmail">loading@drive.com</div>
+        <div class="profile-card-name" id="popoverName">User Name</div>
+        <div class="profile-card-email" id="popoverEmail">user@example.com</div>
     </div>
     <div class="profile-menu-items">
         <button class="profile-menu-item" id="btnManageAccount">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             <span>Manage Account</span>
         </button>
         <button class="profile-menu-item" id="btnSwitchAccount">
-            <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+            <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <span>Switch Account</span>
         </button>
-        <button class="profile-menu-item" id="btnOpenSettings">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <button class="profile-menu-item" id="btnSettingsPage">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
             <span>Settings</span>
+        </button>
+        <button class="profile-menu-item" id="btnLogoutMenu" style="color: var(--danger);">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <span>Sign Out</span>
         </button>
     </div>
 </div>
@@ -159,111 +149,48 @@
 <div class="toast-popup" id="toastPopup"></div>
 
 <script type="module">
-    import { FOLDER_COLORS, FOLDER_BADGE_ICONS } from "https://knox-app.github.io/cloud/drive/folder/icon-sys.js";
     import { initModals, renderCustomizePicker } from "https://knox-app.github.io/cloud/drive/system/model.js";
+    import { FOLDER_COLORS, FOLDER_BADGE_ICONS } from "https://knox-app.github.io/cloud/drive/folder/icon-sys.js";
     import { 
-        db, getActiveUser, getCurrentUserIndex, signOut, 
-        subscribeToWorkspace, createFolderRecord, createFileRecord,
-        renameRecord, updateRecordLabels, updateRecordAccess, transferRecordOwnership,
-        updateFolderCustomize, updateFolderPassword, moveRecords, deleteRecord,
-        formatDisplayDate, formatFirestoreDate, getContrastColor, getUserRole,
-        doc, onSnapshot, collection, query, where
+        resolveCurrentUser, goToSwitchAccount, goToManageAccount, goToSettings, signOut 
+    } from "./auth.js";
+    import { 
+        subscribeToDrive, subscribeToUserProfile, formatDisplayDate, getContrastColor,
+        createFolderRecord, createFileRecord, renameRecord, updateRecordLabels,
+        updateRecordAccess, transferRecordOwnership, updateFolderCustomize,
+        updateFolderPassword, moveRecords, deleteRecord 
     } from "./datasets.js";
-    import { uploadSingleFile } from "./upload.js";
+    import { uploadFile } from "./upload.js";
 
-    // 1. Multi-User Authentication Check
-    const currentUser = getActiveUser(true);
-    const userEmail = currentUser.Email || currentUser.email;
-    const currentUserIdx = getCurrentUserIndex();
+    // 1. Resolve Active Session & User Info
+    const currentUser = resolveCurrentUser();
+    if (!currentUser) throw new Error("No active account resolved");
 
-    // 2. Real-time User Profile Sync from Firestore UARM
-    let uarmQuery = currentUser.Lotus 
-        ? query(collection(db, "UARM"), where("Lotus", "==", currentUser.Lotus))
-        : query(collection(db, "UARM"), where("Email", "==", userEmail));
+    const userEmail = currentUser.email;
+    const userIndex = currentUser.index;
 
-    onSnapshot(uarmQuery, (snap) => {
-        if (!snap.empty) {
-            const uData = snap.docs[0].data();
-            updateUserProfileUI(uData);
-        } else {
-            updateUserProfileUI(currentUser);
-        }
-    });
-
-    function updateUserProfileUI(user) {
-        const first = user["First Name"] || user.firstName || "";
-        const last = user["Last Name"] || user.lastName || "";
-        const fullName = `${first} ${last}`.trim() || userEmail;
-        const pic = user["Profile_Picture"] || user["Profile Picture"] || "";
-        const initial = first ? first[0].toUpperCase() : userEmail[0].toUpperCase();
-
-        document.getElementById('topProfileInitial').innerText = initial;
-        document.getElementById('popoverInitial').innerText = initial;
-        document.getElementById('popoverName').innerText = fullName;
-        document.getElementById('popoverEmail').innerText = userEmail;
-
-        const topImg = document.getElementById('topProfileImg');
-        const popImg = document.getElementById('popoverImg');
-
-        if (pic) {
-            topImg.src = pic;
-            topImg.style.display = 'block';
-            document.getElementById('topProfileInitial').style.display = 'none';
-
-            popImg.src = pic;
-            popImg.style.display = 'block';
-            document.getElementById('popoverInitial').style.display = 'none';
-        }
-    }
-
-    // 3. Profile Popover Actions
-    const topProfileBtn = document.getElementById('topProfileBtn');
-    const profilePopover = document.getElementById('profilePopover');
-
-    topProfileBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        profilePopover.classList.toggle('active');
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!profilePopover.contains(e.target) && e.target !== topProfileBtn) {
-            profilePopover.classList.remove('active');
-        }
-    });
-
-    document.getElementById('btnSwitchAccount').onclick = () => {
-        window.location.href = "https://knox-app.github.io/netflix/lgn/3?app=drive";
-    };
-
-    document.getElementById('btnManageAccount').onclick = () => {
-        window.location.href = `https://knox-app.github.io/netflix/lgn/4?u=${currentUserIdx}`;
-    };
-
-    document.getElementById('btnOpenSettings').onclick = () => {
-        window.location.href = `settings.html?u=${currentUserIdx}`;
-    };
-
-    document.getElementById('logoutSideBtn').onclick = () => signOut();
-
-    // 4. View Mode (Grid vs List) - Persistent across reloads
+    // 2. View Switcher Handling (Persist State Reliably)
     let currentViewMode = localStorage.getItem('drive_view_mode') || 'list';
-
+    
     function setViewMode(mode) {
         currentViewMode = mode;
         localStorage.setItem('drive_view_mode', mode);
-        document.getElementById('viewListBtn').classList.toggle('active', mode === 'list');
-        document.getElementById('viewGridBtn').classList.toggle('active', mode === 'grid');
+        updateViewSwitcherUI();
         renderCurrentWorkspace();
     }
 
-    // Initialize switcher state immediately to prevent flicker
-    document.getElementById('viewListBtn').classList.toggle('active', currentViewMode === 'list');
-    document.getElementById('viewGridBtn').classList.toggle('active', currentViewMode === 'grid');
+    function updateViewSwitcherUI() {
+        document.getElementById('viewListBtn').classList.toggle('active', currentViewMode === 'list');
+        document.getElementById('viewGridBtn').classList.toggle('active', currentViewMode === 'grid');
+    }
+
+    // Apply saved view state immediately on load
+    updateViewSwitcherUI();
 
     document.getElementById('viewListBtn').addEventListener('click', () => setViewMode('list'));
     document.getElementById('viewGridBtn').addEventListener('click', () => setViewMode('grid'));
 
-    // 5. AMOLED Theme
+    // 3. Theme Toggle (Pure AMOLED Dark Mode)
     function setTheme(dark) {
         if (dark) {
             document.body.classList.add('dark');
@@ -279,6 +206,8 @@
         setTheme(!document.body.classList.contains('dark'));
     });
 
+    document.getElementById('logoutSideBtn').addEventListener('click', () => signOut());
+
     function showToast(msg) {
         const t = document.getElementById('toastPopup');
         t.innerText = msg;
@@ -286,7 +215,69 @@
         setTimeout(() => { t.style.display = 'none'; }, 2600);
     }
 
-    // 6. SVG UI System
+    // 4. Render User Profile & Menu
+    function renderProfileHeader(data) {
+        const firstName = data["First Name"] || "";
+        const lastName = data["Last Name"] || "";
+        const fullName = `${firstName} ${lastName}`.trim() || data.Email || "User";
+        const email = data.Email || data.email;
+        const pic = data["Profile_Picture"] || data["Profile Picture"] || "";
+
+        const avatarInitial = firstName ? firstName.charAt(0).toUpperCase() : email.charAt(0).toUpperCase();
+
+        // Top button
+        const btnImg = document.getElementById('userAvatarImg');
+        const btnInit = document.getElementById('userAvatarInitial');
+        if (pic) {
+            btnImg.src = pic;
+            btnImg.style.display = 'block';
+            btnInit.style.display = 'none';
+        } else {
+            btnInit.innerText = avatarInitial;
+            btnImg.style.display = 'none';
+            btnInit.style.display = 'block';
+        }
+
+        // Popover
+        const popImg = document.getElementById('popoverAvatarImg');
+        const popInit = document.getElementById('popoverAvatarInitial');
+        document.getElementById('popoverName').innerText = fullName;
+        document.getElementById('popoverEmail').innerText = email;
+
+        if (pic) {
+            popImg.src = pic;
+            popImg.style.display = 'block';
+            popInit.style.display = 'none';
+        } else {
+            popInit.innerText = avatarInitial;
+            popImg.style.display = 'none';
+            popInit.style.display = 'block';
+        }
+    }
+
+    renderProfileHeader(currentUser.account);
+    subscribeToUserProfile(currentUser.lotus, userEmail, renderProfileHeader);
+
+    const profilePopover = document.getElementById('profilePopover');
+    const userProfileBtn = document.getElementById('userProfileBtn');
+
+    userProfileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profilePopover.classList.toggle('active');
+    });
+
+    window.addEventListener('click', (e) => {
+        if (!e.target.closest('#profilePopover') && !e.target.closest('#userProfileBtn')) {
+            profilePopover.classList.remove('active');
+        }
+    });
+
+    document.getElementById('btnSwitchAccount').addEventListener('click', () => goToSwitchAccount());
+    document.getElementById('btnManageAccount').addEventListener('click', () => goToManageAccount(userIndex));
+    document.getElementById('btnSettingsPage').addEventListener('click', () => goToSettings(userIndex));
+    document.getElementById('btnLogoutMenu').addEventListener('click', () => signOut());
+
+    // 5. SVG File Types
     const SVG_ICONS = {
         image: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
         pdf: `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`,
@@ -314,32 +305,32 @@
         return { label: "Document", icon: SVG_ICONS.doc };
     }
 
-    // 7. Data State
     let allWorkspaceDocs = [];
     let allFolderDocs = [];
     let currentRenderedItems = [];
     let selectedItemIds = new Set();
     let isSelectionMode = false;
 
-    // 8. Real-time Cloud Drive Sync
-    subscribeToWorkspace(userEmail, ({ allItems, folderItems }) => {
-        allWorkspaceDocs = allItems;
-        allFolderDocs = folderItems;
+    // 6. Real-time Subscription to Drive Documents
+    subscribeToDrive(userEmail, (data) => {
+        allWorkspaceDocs = data.all;
+        allFolderDocs = data.folders;
         renderCurrentWorkspace();
     });
 
     function renderCurrentWorkspace() {
         const wrapper = document.getElementById('workspaceViewWrapper');
 
-        // Root items only: files not assigned as children in any folder
+        // Root View: Show items not assigned inside any folder
         const assignedChildIds = new Set();
         allFolderDocs.forEach(f => {
             if (Array.isArray(f.File)) f.File.forEach(id => assignedChildIds.add(id));
         });
-        const renderItems = allWorkspaceDocs.filter(i => !assignedChildIds.has(i.id));
-        currentRenderedItems = renderItems;
 
-        if (renderItems.length === 0) {
+        const rootItems = allWorkspaceDocs.filter(i => !assignedChildIds.has(i.id));
+        currentRenderedItems = rootItems;
+
+        if (rootItems.length === 0) {
             wrapper.innerHTML = `
                 <div class="empty-state-container">
                     <img src="https://indus.sarvam.ai/studio/assets/empty-table.webp" alt="No files" class="empty-state-img">
@@ -349,13 +340,15 @@
             return;
         }
 
-        renderItems.sort((a, b) => (b.Folder === "True" ? 1 : 0) - (a.Folder === "True" ? 1 : 0));
+        rootItems.sort((a, b) => (b.Folder === "True" ? 1 : 0) - (a.Folder === "True" ? 1 : 0));
 
-        if (currentViewMode === 'list') renderListView(renderItems, wrapper);
-        else renderGridView(renderItems, wrapper);
+        if (currentViewMode === 'list') {
+            renderListView(rootItems, wrapper);
+        } else {
+            renderGridView(rootItems, wrapper);
+        }
     }
 
-    // 9. List View Rendering
     function renderListView(items, wrapper) {
         wrapper.innerHTML = `
             <div class="data-table" id="dataTable">
@@ -381,17 +374,17 @@
             const name = item.Name || (item.File ? item.File.split('/').pop() : 'Untitled');
             const format = getFormatInfo(item.Type, isFolder);
             const displayDate = formatDisplayDate(item.Updated);
-            const role = getUserRole(item, userEmail);
-            const isViewer = (role === 'Viewer');
-            const labels = Array.isArray(item.Label) ? item.Label : [];
-            const labelsHtml = labels.map(l => `<span class="label-badge">${l}</span>`).join('');
+            const ownerEmail = item.Email || userEmail;
+            const isViewer = (ownerEmail !== userEmail);
+
             const folderColor = item.Customize?.Colour || (isFolder ? 'var(--folder-default-color)' : '');
-            const folderBadgeIconKey = item.Customize?.Icon || 'folder';
-            const badgeIconSvg = isFolder ? (FOLDER_BADGE_ICONS[folderBadgeIconKey] || FOLDER_BADGE_ICONS.folder) : format.icon;
+            const folderIconKey = item.Customize?.Icon || 'folder';
+            const badgeSvg = isFolder ? (FOLDER_BADGE_ICONS[folderIconKey] || FOLDER_BADGE_ICONS.folder) : format.icon;
 
             const row = document.createElement('div');
             row.className = 'table-row';
             row.setAttribute('data-id', item.id);
+            row.setAttribute('data-index', idx);
 
             row.innerHTML = `
                 <div class="cell-checkbox">
@@ -401,14 +394,14 @@
                 </div>
                 <div class="file-title-cell">
                     <div class="file-icon-box" style="${isFolder ? `color: ${folderColor};` : ''}">
-                        ${badgeIconSvg}
+                        ${badgeSvg}
                     </div>
                     <div class="file-info-col">
                         <span class="file-name" title="${name}">${name}</span>
-                        <div class="file-labels">${labelsHtml}</div>
+                        <div class="file-labels">${(item.Label || []).map(l => `<span class="label-badge">${l}</span>`).join('')}</div>
                     </div>
                 </div>
-                <div class="cell-uploader" style="font-size: 13px; color: var(--text-secondary);">${item.Email || userEmail}</div>
+                <div class="cell-uploader" style="font-size: 13px; color: var(--text-secondary);">${ownerEmail}</div>
                 <div class="cell-format" style="font-size: 13px; color: var(--text-secondary);">${format.label}</div>
                 <div class="cell-date" style="font-size: 13px; color: var(--text-secondary);">${displayDate}</div>
                 <div class="actions-cell">
@@ -427,7 +420,6 @@
         });
     }
 
-    // 10. Grid View Rendering
     function renderGridView(items, wrapper) {
         const grid = document.createElement('div');
         grid.className = 'grid-container';
@@ -437,8 +429,8 @@
             const isFolder = item.Folder === "True";
             const name = item.Name || (item.File ? item.File.split('/').pop() : 'Untitled');
             const format = getFormatInfo(item.Type, isFolder);
-            const role = getUserRole(item, userEmail);
-            const isViewer = (role === 'Viewer');
+            const ownerEmail = item.Email || userEmail;
+            const isViewer = (ownerEmail !== userEmail);
             const folderColor = item.Customize?.Colour || 'var(--folder-default-color)';
             const folderIconKey = item.Customize?.Icon || 'folder';
             const customIconSvg = FOLDER_BADGE_ICONS[folderIconKey] || FOLDER_BADGE_ICONS.folder;
@@ -447,6 +439,7 @@
             const card = document.createElement('div');
             card.className = 'grid-card';
             card.setAttribute('data-id', item.id);
+            card.setAttribute('data-index', idx);
 
             let previewHtml = '';
             if (isFolder) {
@@ -460,18 +453,25 @@
                         </div>
                     </div>
                 `;
-            } else if (format.label === 'Image') {
-                previewHtml = `<div class="grid-file-preview"><img src="${item.File}" alt="${name}" loading="lazy"></div>`;
             } else {
-                previewHtml = `
-                    <div class="grid-file-preview">
-                        <div class="doc-mockup-page">
-                            <div class="doc-line" style="width: 50%;"></div>
-                            <div class="doc-line" style="width: 85%;"></div>
-                            <div class="doc-line" style="width: 70%;"></div>
+                if (format.label === 'Image') {
+                    previewHtml = `
+                        <div class="grid-file-preview">
+                            <img src="${item.File}" alt="${name}" loading="lazy">
                         </div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    previewHtml = `
+                        <div class="grid-file-preview">
+                            <div class="doc-mockup-page">
+                                <div class="doc-line" style="width: 50%;"></div>
+                                <div class="doc-line" style="width: 85%;"></div>
+                                <div class="doc-line" style="width: 70%;"></div>
+                                <div class="doc-line" style="width: 60%;"></div>
+                            </div>
+                        </div>
+                    `;
+                }
             }
 
             card.innerHTML = `
@@ -502,16 +502,16 @@
         wrapper.appendChild(grid);
     }
 
-    // 11. Event Attachment: Direct Navigation without Asking Password on Root
+    // 7. Navigation & Item Events (No Password prompt on click for folders!)
     function attachItemEvents(el, item, isFolder, name, isViewer) {
         el.addEventListener('click', (e) => {
-            if (e.target.closest('.actions-cell') || e.target.closest('.custom-checkbox')) return;
+            if (e.target.closest('.actions-cell')) return;
             if (isSelectionMode) {
                 toggleSelectItem(item.id, !selectedItemIds.has(item.id));
             } else {
                 if (isFolder) {
-                    // Direct redirect to folder.html; password challenge is handled inside folder.html
-                    window.location.href = `folder.html?id=${item.id}&u=${currentUserIdx}`;
+                    // Redirect to folder.html immediately. If locked, folder.html handles security
+                    window.location.href = `folder.html?id=${item.id}`;
                 } else {
                     window.open(item.File, '_blank');
                 }
@@ -525,14 +525,14 @@
         });
     }
 
-    // 12. Actions Menu Handlers
+    // 8. Actions Menu (Mobile Sheet + Desktop Dropdown)
     const desktopDropdown = document.getElementById('desktopDropdown');
     const bottomSheetBackdrop = document.getElementById('bottomSheetBackdrop');
 
     function showItemActions(item, isFolder, name, isViewer, event) {
         const isMobile = window.innerWidth <= 768;
-        const actionItems = [];
 
+        const actionItems = [];
         if (!isViewer && !isFolder) actionItems.push({ id: 'download', icon: SVG_ICONS.download, label: 'Download' });
         if (!isViewer) actionItems.push({ id: 'rename', icon: SVG_ICONS.edit, label: 'Rename' });
         if (!isViewer && isFolder) {
@@ -548,36 +548,39 @@
         actionItems.push({ id: 'details', icon: SVG_ICONS.info, label: 'Details' });
         actionItems.push({ id: 'delete', icon: SVG_ICONS.trash, label: isViewer ? 'Remove Access' : 'Delete', danger: true });
 
-        const handleAction = async (actionId) => {
+        const handleActionClick = (actionId) => {
             closeAllActionMenus();
             if (actionId === 'download') directDownload(item.File, item.Name);
-            if (actionId === 'rename') openRenameModal(item);
-            if (actionId === 'customize') openCustomizeModal(item);
-            if (actionId === 'security') openSecurityModal(item);
-            if (actionId === 'share') openShareModal(item);
-            if (actionId === 'access') openAccessModal(item);
-            if (actionId === 'label') openLabelModal(item);
-            if (actionId === 'move') openMoveModal(item);
-            if (actionId === 'details') openDetailsModal(item);
-            if (actionId === 'delete') {
-                if (confirm(`Delete "${name}"?`)) {
-                    await deleteRecord(item.id, userEmail, isViewer, allFolderDocs);
-                    showToast("Item deleted");
-                }
-            }
+            if (actionId === 'rename') openRename(item);
+            if (actionId === 'customize') openCustomize(item);
+            if (actionId === 'security') openSecurity(item);
+            if (actionId === 'share') openShare(item);
+            if (actionId === 'access') openAccess(item);
+            if (actionId === 'label') openLabel(item);
+            if (actionId === 'move') openMove(item);
+            if (actionId === 'details') openDetails(item);
+            if (actionId === 'delete') openDelete(item, isViewer);
         };
 
         if (isMobile) {
+            const headerIcon = document.getElementById('bottomSheetHeaderIcon');
+            const format = getFormatInfo(item.Type, isFolder);
+            const folderColor = item.Customize?.Colour || 'var(--folder-default-color)';
+            headerIcon.style.color = isFolder ? folderColor : 'var(--text-secondary)';
+            headerIcon.innerHTML = isFolder ? (FOLDER_BADGE_ICONS[item.Customize?.Icon] || FOLDER_BADGE_ICONS.folder) : format.icon;
+
             document.getElementById('bottomSheetHeaderTitle').innerText = name;
+
             const list = document.getElementById('bottomSheetActionsList');
             list.innerHTML = '';
             actionItems.forEach(act => {
                 const div = document.createElement('div');
                 div.className = `bottom-sheet-item ${act.danger ? 'danger' : ''}`;
                 div.innerHTML = `${act.icon} <span>${act.label}</span>`;
-                div.onclick = () => handleAction(act.id);
+                div.addEventListener('click', () => handleActionClick(act.id));
                 list.appendChild(div);
             });
+
             bottomSheetBackdrop.classList.add('active');
         } else {
             desktopDropdown.innerHTML = '';
@@ -585,12 +588,21 @@
                 const div = document.createElement('div');
                 div.className = `dropdown-item ${act.danger ? 'danger' : ''}`;
                 div.innerHTML = `${act.icon} <span>${act.label}</span>`;
-                div.onclick = (e) => { e.stopPropagation(); handleAction(act.id); };
+                div.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleActionClick(act.id);
+                });
                 desktopDropdown.appendChild(div);
             });
+
             const rect = event.currentTarget.getBoundingClientRect();
-            desktopDropdown.style.top = `${rect.bottom + 6}px`;
-            desktopDropdown.style.left = `${Math.max(10, rect.right - 200)}px`;
+            let top = rect.bottom + 6;
+            let left = rect.right - 200;
+            if (left < 10) left = 10;
+            if (top + 320 > window.innerHeight) top = rect.top - 320;
+
+            desktopDropdown.style.top = `${top}px`;
+            desktopDropdown.style.left = `${left}px`;
             desktopDropdown.classList.add('active');
         }
     }
@@ -599,22 +611,224 @@
         desktopDropdown.classList.remove('active');
         bottomSheetBackdrop.classList.remove('active');
     }
-    window.onclick = () => closeAllActionMenus();
-    bottomSheetBackdrop.onclick = (e) => { if (e.target === bottomSheetBackdrop) closeAllActionMenus(); };
 
-    // 13. File & Multi-File Operations
+    bottomSheetBackdrop.addEventListener('click', (e) => {
+        if (e.target === bottomSheetBackdrop) closeAllActionMenus();
+    });
+    window.addEventListener('click', () => closeAllActionMenus());
+
     async function directDownload(url, fileName) {
         showToast("Starting download...");
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName || 'download';
-        a.target = '_blank';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        try {
+            const res = await fetch(url);
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = fileName || 'download';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+            showToast("Download finished");
+        } catch(e) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName || 'download';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
     }
 
-    // Selection Toolbar
+    // 9. Modal Interactions
+    function openRename(item) {
+        const modal = document.getElementById('renameModal');
+        const input = document.getElementById('renameInput');
+        input.value = item.Name || '';
+        modal.classList.add('active');
+
+        document.getElementById('closeRenameModal').onclick = () => modal.classList.remove('active');
+        document.getElementById('btnSubmitRename').onclick = async () => {
+            const newName = input.value.trim();
+            if (newName) {
+                await renameRecord(item.id, newName);
+                showToast("Renamed successfully");
+                modal.classList.remove('active');
+            }
+        };
+    }
+
+    function openCustomize(item) {
+        const modal = document.getElementById('customizeModal');
+        let selectedColor = item.Customize?.Colour || '#4285F4';
+        let selectedIcon = item.Customize?.Icon || 'folder';
+
+        renderCustomizePicker(
+            selectedColor, selectedIcon,
+            (c) => { selectedColor = c; renderCustomizePicker(selectedColor, selectedIcon, () => {}, () => {}); },
+            (i) => { selectedIcon = i; renderCustomizePicker(selectedColor, selectedIcon, () => {}, () => {}); }
+        );
+
+        modal.classList.add('active');
+        document.getElementById('closeCustomizeModal').onclick = () => modal.classList.remove('active');
+        document.getElementById('btnSaveCustomize').onclick = async () => {
+            await updateFolderCustomize(item.id, selectedColor, selectedIcon);
+            showToast("Folder customized");
+            modal.classList.remove('active');
+        };
+    }
+
+    function openSecurity(item) {
+        const modal = document.getElementById('securityModal');
+        const body = document.getElementById('securityModalBody');
+        const hasPass = Boolean(item.Password);
+
+        if (hasPass) {
+            body.innerHTML = `
+                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+                    🔒 This folder is locked by password.
+                </div>
+                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                    <button class="btn-pill" id="btnDisablePass" style="background: var(--danger); color: #fff;">Disable</button>
+                </div>
+            `;
+            document.getElementById('btnDisablePass').onclick = async () => {
+                await updateFolderPassword(item.id, "");
+                showToast("Password disabled");
+                modal.classList.remove('active');
+            };
+        } else {
+            body.innerHTML = `
+                <div class="input-group">
+                    <label>Set Password</label>
+                    <input type="password" id="newPassInput" class="clean-input" placeholder="Password to lock folder">
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 14px;">
+                    <button class="btn-pill" id="btnSavePass">Save Password</button>
+                </div>
+            `;
+            document.getElementById('btnSavePass').onclick = async () => {
+                const pass = document.getElementById('newPassInput').value.trim();
+                if (pass) {
+                    await updateFolderPassword(item.id, pass);
+                    showToast("Password enabled");
+                    modal.classList.remove('active');
+                }
+            };
+        }
+
+        modal.classList.add('active');
+        document.getElementById('closeSecurityModal').onclick = () => modal.classList.remove('active');
+    }
+
+    function openShare(item) {
+        const modal = document.getElementById('shareModal');
+        modal.classList.add('active');
+        document.getElementById('closeShareModal').onclick = () => modal.classList.remove('active');
+
+        document.getElementById('btnCopyShareLink').onclick = () => {
+            navigator.clipboard.writeText(item.File);
+            showToast("Link copied to clipboard");
+        };
+
+        document.getElementById('btnExecuteShare').onclick = async () => {
+            const format = document.getElementById('shareFormatChoice').value;
+            if (navigator.share) {
+                await navigator.share({ title: item.Name, url: item.File });
+            } else {
+                navigator.clipboard.writeText(item.File);
+                showToast("Link copied");
+            }
+        };
+    }
+
+    function openAccess(item) {
+        const modal = document.getElementById('accessModal');
+        modal.classList.add('active');
+        document.getElementById('closeAccessModal').onclick = () => modal.classList.remove('active');
+    }
+
+    function openLabel(item) {
+        const modal = document.getElementById('labelModal');
+        const list = document.getElementById('currentLabelsList');
+        let currentLabels = [...(item.Label || [])];
+
+        const renderBadges = () => {
+            list.innerHTML = currentLabels.map((l, i) => `
+                <span class="label-badge" style="padding: 4px 8px;">
+                    ${l} <span style="cursor: pointer; margin-left: 4px; color: var(--danger);" data-idx="${i}">&times;</span>
+                </span>
+            `).join('') || `<span style="font-size: 12px; color: var(--text-secondary);">No labels</span>`;
+
+            list.querySelectorAll('span[data-idx]').forEach(btn => {
+                btn.onclick = () => {
+                    currentLabels.splice(parseInt(btn.getAttribute('data-idx')), 1);
+                    renderBadges();
+                };
+            });
+        };
+
+        renderBadges();
+        modal.classList.add('active');
+        document.getElementById('closeLabelModal').onclick = () => modal.classList.remove('active');
+
+        document.getElementById('btnAddLabel').onclick = () => {
+            const val = document.getElementById('newLabelInput').value.trim();
+            if (val && !currentLabels.includes(val)) {
+                currentLabels.push(val);
+                document.getElementById('newLabelInput').value = "";
+                renderBadges();
+            }
+        };
+
+        document.getElementById('btnSaveLabels').onclick = async () => {
+            await updateRecordLabels(item.id, currentLabels);
+            showToast("Labels updated");
+            modal.classList.remove('active');
+        };
+    }
+
+    function openMove(item) {
+        const modal = document.getElementById('moveModal');
+        const sel = document.getElementById('moveDestinationSelect');
+        sel.innerHTML = `<option value="root">Root Directory</option>`;
+        allFolderDocs.forEach(f => {
+            if (f.id !== item?.id) sel.innerHTML += `<option value="${f.id}">${f.Name}</option>`;
+        });
+        modal.classList.add('active');
+        document.getElementById('closeMoveModal').onclick = () => modal.classList.remove('active');
+
+        document.getElementById('btnConfirmMove').onclick = async () => {
+            const dest = sel.value;
+            await moveRecords([item.id], dest, allFolderDocs);
+            showToast("Moved successfully");
+            modal.classList.remove('active');
+        };
+    }
+
+    function openDetails(item) {
+        const modal = document.getElementById('detailsModal');
+        const c = document.getElementById('detailsContent');
+        const isFolder = item.Folder === "True";
+        c.innerHTML = `
+            <div class="details-item"><span class="details-label">Name</span><span class="details-val">${item.Name}</span></div>
+            <div class="details-item"><span class="details-label">Type</span><span class="details-val">${isFolder ? 'Folder' : item.Type}</span></div>
+            <div class="details-item"><span class="details-label">Date</span><span class="details-val">${item.Updated || 'N/A'}</span></div>
+            <div class="details-item"><span class="details-label">Owner</span><span class="details-val">${item.Email}</span></div>
+        `;
+        modal.classList.add('active');
+        document.getElementById('closeDetailsModal').onclick = () => modal.classList.remove('active');
+    }
+
+    async function openDelete(item, isViewer) {
+        if (confirm(`Delete "${item.Name || 'item'}"?`)) {
+            await deleteRecord(item.id, userEmail, isViewer, allFolderDocs);
+            showToast("Item deleted");
+        }
+    }
+
+    // 10. Selection Toolbar
     function enterSelectionMode() {
         isSelectionMode = true;
         document.getElementById('dataTable')?.classList.add('selection-active');
@@ -629,215 +843,110 @@
         document.getElementById('selectionToolbar').classList.remove('active');
         document.getElementById('btnSelectModeToggle').innerText = "Select";
         document.querySelectorAll('.row-checkbox-btn').forEach(c => c.classList.remove('checked'));
+        document.querySelectorAll('.table-row, .grid-card').forEach(r => r.classList.remove('selected'));
     }
 
-    document.getElementById('btnSelectModeToggle').onclick = () => {
-        if (isSelectionMode) exitSelectionMode();
-        else enterSelectionMode();
-    };
+    document.getElementById('btnSelectModeToggle').addEventListener('click', () => {
+        isSelectionMode ? exitSelectionMode() : enterSelectionMode();
+    });
 
     function toggleSelectItem(id, isSelected) {
         if (!isSelectionMode) enterSelectionMode();
-        if (isSelected) selectedItemIds.add(id);
-        else selectedItemIds.delete(id);
+        isSelected ? selectedItemIds.add(id) : selectedItemIds.delete(id);
 
-        const row = document.querySelector(`[data-id="${id}"]`);
-        if (row) {
-            row.classList.toggle('selected', isSelected);
-            row.querySelector('.row-checkbox-btn')?.classList.toggle('checked', isSelected);
+        const el = document.querySelector(`[data-id="${id}"]`);
+        if (el) {
+            el.classList.toggle('selected', isSelected);
+            el.querySelector('.row-checkbox-btn')?.classList.toggle('checked', isSelected);
         }
         document.getElementById('selectedCountText').innerText = `${selectedItemIds.size} Selected`;
     }
 
-    document.getElementById('btnCancelSelect').onclick = exitSelectionMode;
+    document.getElementById('btnCancelSelect').addEventListener('click', exitSelectionMode);
 
-    document.getElementById('btnMultiDelete').onclick = async () => {
-        if (confirm(`Delete ${selectedItemIds.size} item(s)?`)) {
+    document.getElementById('btnMultiDelete').addEventListener('click', async () => {
+        if (selectedItemIds.size === 0) return;
+        if (confirm(`Delete ${selectedItemIds.size} selected items?`)) {
             for (const id of selectedItemIds) {
-                const item = allWorkspaceDocs.find(d => d.id === id);
-                if (item) await deleteRecord(id, userEmail, getUserRole(item, userEmail) === 'Viewer', allFolderDocs);
+                await deleteRecord(id, userEmail, false, allFolderDocs);
             }
+            showToast("Items deleted");
             exitSelectionMode();
-            showToast("Selected items deleted");
         }
-    };
+    });
 
-    document.getElementById('btnMultiDownload').onclick = () => {
-        currentRenderedItems.filter(i => selectedItemIds.has(i.id) && i.Folder !== "True")
-            .forEach(f => directDownload(f.File, f.Name));
-    };
-
-    // 14. Modals Management (Injected via model.js)
-    function openRenameModal(item) {
-        const modal = document.getElementById('renameModal');
-        const inp = document.getElementById('renameInput');
-        inp.value = item.Name || '';
-        modal.classList.add('active');
-        document.getElementById('closeRenameModal').onclick = () => modal.classList.remove('active');
-        document.getElementById('btnSubmitRename').onclick = async () => {
-            if (inp.value.trim()) {
-                await renameRecord(item.id, inp.value.trim());
-                modal.classList.remove('active');
-                showToast("Renamed");
-            }
-        };
-    }
-
-    function openCustomizeModal(item) {
-        const modal = document.getElementById('customizeModal');
-        let selColor = item.Customize?.Colour || '#4285F4';
-        let selIcon = item.Customize?.Icon || 'folder';
-
-        renderCustomizePicker(selColor, selIcon, 
-            (c) => { selColor = c; renderCustomizePicker(selColor, selIcon, arguments[2], arguments[3]); },
-            (i) => { selIcon = i; renderCustomizePicker(selColor, selIcon, arguments[2], arguments[3]); }
-        );
-
-        modal.classList.add('active');
-        document.getElementById('closeCustomizeModal').onclick = () => modal.classList.remove('active');
-        document.getElementById('btnSaveCustomize').onclick = async () => {
-            await updateFolderCustomize(item.id, selColor, selIcon);
-            modal.classList.remove('active');
-            showToast("Folder customized");
-        };
-    }
-
-    function openSecurityModal(item) {
-        const modal = document.getElementById('securityModal');
-        const body = document.getElementById('securityModalBody');
-        body.innerHTML = `
-            <div class="input-group">
-                <label>Folder Password</label>
-                <input type="password" id="folderPassInput" class="clean-input" value="${item.Password || ''}" placeholder="Leave empty to remove">
-            </div>
-            <div style="display:flex; justify-content:flex-end; gap:8px;">
-                <button class="btn-pill" id="btnSaveSecurity">Save</button>
-            </div>
-        `;
-        modal.classList.add('active');
-        document.getElementById('closeSecurityModal').onclick = () => modal.classList.remove('active');
-        document.getElementById('btnSaveSecurity').onclick = async () => {
-            const pass = document.getElementById('folderPassInput').value.trim();
-            await updateFolderPassword(item.id, pass);
-            modal.classList.remove('active');
-            showToast(pass ? "Password enabled" : "Password removed");
-        };
-    }
-
-    function openLabelModal(item) {
-        const modal = document.getElementById('labelModal');
-        let labels = Array.isArray(item.Label) ? [...item.Label] : [];
-        const renderBadges = () => {
-            const c = document.getElementById('currentLabelsList');
-            c.innerHTML = labels.map((l, idx) => `<span class="label-badge">${l} <b style="cursor:pointer;" data-idx="${idx}">&times;</b></span>`).join('');
-            c.querySelectorAll('b').forEach(b => b.onclick = () => { labels.splice(b.dataset.idx, 1); renderBadges(); });
-        };
-        renderBadges();
-        modal.classList.add('active');
-        document.getElementById('closeLabelModal').onclick = () => modal.classList.remove('active');
-        document.getElementById('btnAddLabel').onclick = () => {
-            const val = document.getElementById('newLabelInput').value.trim();
-            if (val && !labels.includes(val)) { labels.push(val); renderBadges(); document.getElementById('newLabelInput').value = ''; }
-        };
-        document.getElementById('btnSaveLabels').onclick = async () => {
-            await updateRecordLabels(item.id, labels);
-            modal.classList.remove('active');
-            showToast("Labels saved");
-        };
-    }
-
-    function openShareModal(item) {
-        const modal = document.getElementById('shareModal');
-        modal.classList.add('active');
-        document.getElementById('closeShareModal').onclick = () => modal.classList.remove('active');
-        document.getElementById('btnCopyShareLink').onclick = () => {
-            navigator.clipboard.writeText(item.File);
-            showToast("Link copied");
-        };
-        document.getElementById('btnExecuteShare').onclick = () => {
-            if (navigator.share) navigator.share({ title: item.Name, url: item.File });
-        };
-    }
-
-    function openDetailsModal(item) {
-        const modal = document.getElementById('detailsModal');
-        document.getElementById('detailsContent').innerHTML = `
-            <div class="details-item"><span class="details-label">Name</span><span>${item.Name || 'Untitled'}</span></div>
-            <div class="details-item"><span class="details-label">Owner</span><span>${item.Email || userEmail}</span></div>
-            <div class="details-item"><span class="details-label">Updated</span><span>${item.Updated || 'Recently'}</span></div>
-            <div class="details-item"><span class="details-label">Type</span><span>${item.Folder === 'True' ? 'Folder' : (item.Type || 'File')}</span></div>
-        `;
-        modal.classList.add('active');
-        document.getElementById('closeDetailsModal').onclick = () => modal.classList.remove('active');
-    }
-
-    function openMoveModal(item) {
-        const modal = document.getElementById('moveModal');
-        const sel = document.getElementById('moveDestinationSelect');
-        sel.innerHTML = `<option value="root">Root Directory</option>` + 
-            allFolderDocs.filter(f => f.id !== item?.id).map(f => `<option value="${f.id}">${f.Name}</option>`).join('');
-        modal.classList.add('active');
-        document.getElementById('closeMoveModal').onclick = () => modal.classList.remove('active');
-        document.getElementById('btnConfirmMove').onclick = async () => {
-            const ids = item ? [item.id] : Array.from(selectedItemIds);
-            await moveRecords(ids, sel.value, allFolderDocs);
-            modal.classList.remove('active');
-            showToast("Moved successfully");
-        };
-    }
-
-    // 15. Create Folder & Upload Files
-    document.getElementById('newFolderTriggerBtn').onclick = () => {
+    // 11. Folder Creation
+    document.getElementById('newFolderTriggerBtn').addEventListener('click', () => {
         const modal = document.getElementById('folderModal');
-        document.getElementById('newFolderName').value = '';
-        document.getElementById('newFolderPassword').value = '';
+        document.getElementById('newFolderName').value = "";
+        document.getElementById('newFolderPassword').value = "";
         modal.classList.add('active');
         document.getElementById('closeFolderModal').onclick = () => modal.classList.remove('active');
+
         document.getElementById('btnCreateFolder').onclick = async () => {
             const name = document.getElementById('newFolderName').value.trim();
             const pass = document.getElementById('newFolderPassword').value.trim();
             if (name) {
                 await createFolderRecord({ userEmail, name, password: pass });
-                modal.classList.remove('active');
                 showToast("Folder created");
+                modal.classList.remove('active');
             }
         };
-    };
+    });
 
-    const nativeFileInput = document.getElementById('nativeFileInput');
-    document.getElementById('uploadTriggerBtn').onclick = () => nativeFileInput.click();
-    nativeFileInput.onchange = (e) => handleUpload(e.target.files);
+    // 12. Upload Engine (Uploadcare for PDFs, ImgBB for Images)
+    const fileInput = document.getElementById('nativeFileInput');
+    document.getElementById('uploadTriggerBtn').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) handleBatchUpload(e.target.files);
+    });
 
     const dragOverlay = document.getElementById('dragOverlay');
-    window.ondragover = (e) => { e.preventDefault(); dragOverlay.classList.add('active'); };
-    window.ondragleave = (e) => { if (e.clientX === 0 && e.clientY === 0) dragOverlay.classList.remove('active'); };
-    window.ondrop = (e) => {
+    window.addEventListener('dragover', (e) => { e.preventDefault(); dragOverlay.classList.add('active'); });
+    window.addEventListener('dragleave', (e) => { if (e.clientX === 0 && e.clientY === 0) dragOverlay.classList.remove('active'); });
+    window.addEventListener('drop', (e) => {
         e.preventDefault();
         dragOverlay.classList.remove('active');
-        if (e.dataTransfer.files.length) handleUpload(e.dataTransfer.files);
-    };
+        if (e.dataTransfer.files.length) handleBatchUpload(e.dataTransfer.files);
+    });
 
-    async function handleUpload(files) {
+    async function handleBatchUpload(files) {
         showToast(`Uploading ${files.length} file(s)...`);
         for (const file of files) {
             try {
-                const { url, type } = await uploadSingleFile(file);
-                await createFileRecord({ userEmail, fileUrl: url, fileName: file.name, fileType: type });
+                const uploaded = await uploadFile(file);
+                await createFileRecord({
+                    userEmail,
+                    fileUrl: uploaded.url,
+                    fileName: uploaded.name,
+                    fileType: uploaded.type
+                });
             } catch(err) {
                 console.error("Upload error:", err);
             }
         }
-        showToast("Upload completed");
+        showToast("Upload completed!");
     }
 
-    // 16. Search Filter
-    document.getElementById('searchInput').oninput = (e) => {
+    // 13. Search
+    document.getElementById('searchInput').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase().trim();
-        if (!val) return renderCurrentWorkspace();
-        const matches = allWorkspaceDocs.filter(i => (i.Name || '').toLowerCase().includes(val));
-        if (currentViewMode === 'list') renderListView(matches, document.getElementById('workspaceViewWrapper'));
-        else renderGridView(matches, document.getElementById('workspaceViewWrapper'));
-    };
+        const wrapper = document.getElementById('workspaceViewWrapper');
+
+        if (!val) {
+            renderCurrentWorkspace();
+            return;
+        }
+
+        const matches = allWorkspaceDocs.filter(item => {
+            const name = (item.Name || '').toLowerCase();
+            const labels = (item.Label || []).join(' ').toLowerCase();
+            return name.includes(val) || labels.includes(val);
+        });
+
+        currentRenderedItems = matches;
+        currentViewMode === 'list' ? renderListView(matches, wrapper) : renderGridView(matches, wrapper);
+    });
 </script>
 </body>
 </html>
