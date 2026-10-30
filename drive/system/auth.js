@@ -1,72 +1,106 @@
 /**
  * auth.js
- * Multi-account Session & Authentication Controller
+ * Multi-Account & Session Management Module
  */
-const STORAGE_KEY = 'active_user';
-const SAVED_ACCOUNTS_KEY = 'saved_accounts';
 
-export function getActiveUser(redirectIfMissing = true) {
+const STORAGE_SAVED = "saved_accounts";
+const STORAGE_ACTIVE = "active_user";
+
+/**
+ * Resolves the active account from URL parameter (?u= or ?user=),
+ * fallback to active_user, or fallback to saved_accounts[0].
+ */
+export function resolveCurrentUser() {
     const urlParams = new URLSearchParams(window.location.search);
-    const uParam = urlParams.has('u') ? urlParams.get('u') : urlParams.get('user');
+    const uParam = urlParams.has("u") ? urlParams.get("u") : urlParams.get("user");
+    const theme = urlParams.get("theme") ? urlParams.get("theme").toLowerCase() : null;
 
     let savedAccounts = [];
     try {
-        savedAccounts = JSON.parse(localStorage.getItem(SAVED_ACCOUNTS_KEY) || '[]');
-    } catch(e) {
+        savedAccounts = JSON.parse(localStorage.getItem(STORAGE_SAVED) || "[]");
+    } catch (e) {
         savedAccounts = [];
     }
 
-    // 1. If ?u=index is present in URL
-    if (uParam !== null) {
-        const uIdx = parseInt(uParam, 10);
-        if (!isNaN(uIdx) && uIdx >= 0 && uIdx < savedAccounts.length) {
-            const user = savedAccounts[uIdx];
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-            return user;
-        } else if (redirectIfMissing) {
-            window.location.href = "https://knox-app.github.io/netflix/lgn/3?app=drive";
-            return null;
-        }
-    }
-
-    // 2. Fallback to active_user in localStorage
     let activeUser = null;
     try {
-        activeUser = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    } catch(e) {}
+        activeUser = JSON.parse(localStorage.getItem(STORAGE_ACTIVE) || "null");
+    } catch (e) {}
 
-    if (activeUser && activeUser.Email) {
-        return activeUser;
+    let userAccount = null;
+    let userIndex = 0;
+
+    if (uParam !== null) {
+        const uIndex = parseInt(uParam, 10);
+        if (!isNaN(uIndex) && uIndex >= 0 && uIndex < savedAccounts.length) {
+            userAccount = savedAccounts[uIndex];
+            userIndex = uIndex;
+        } else {
+            // Invalid index -> Switch account screen
+            goToSwitchAccount(theme);
+            return null;
+        }
+    } else if (activeUser) {
+        userAccount = activeUser;
+        const foundIdx = savedAccounts.findIndex(acc => 
+            (acc.Email || acc.email) === (activeUser.Email || activeUser.email)
+        );
+        userIndex = foundIdx >= 0 ? foundIdx : 0;
+    } else if (savedAccounts.length > 0) {
+        userAccount = savedAccounts[0];
+        userIndex = 0;
+    } else {
+        // No user found -> Redirect to login
+        const dest = theme ? `1.html?theme=${encodeURIComponent(theme)}` : "1.html";
+        window.location.href = dest;
+        return null;
     }
 
-    // 3. Fallback to first saved account
-    if (savedAccounts.length > 0) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedAccounts[0]));
-        return savedAccounts[0];
-    }
-
-    if (redirectIfMissing) {
-        window.location.href = "https://knox-app.github.io/netflix/lgn/3?app=drive";
-    }
-    return null;
+    return {
+        account: userAccount,
+        index: userIndex,
+        email: userAccount.Email || userAccount.email,
+        lotus: userAccount.Lotus || userAccount.lotus || null,
+        firstName: userAccount["First Name"] || "",
+        lastName: userAccount["Last Name"] || "",
+        fullName: `${userAccount["First Name"] || ""} ${userAccount["Last Name"] || ""}`.trim() || userAccount.Email || "User",
+        profilePicture: userAccount["Profile_Picture"] || userAccount["Profile Picture"] || ""
+    };
 }
 
-export function getCurrentUserIndex() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const uParam = urlParams.has('u') ? urlParams.get('u') : urlParams.get('user');
-    if (uParam !== null) return parseInt(uParam, 10);
-
-    let activeUser = null;
-    try { activeUser = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e){}
-    let saved = [];
-    try { saved = JSON.parse(localStorage.getItem(SAVED_ACCOUNTS_KEY) || '[]'); } catch(e){}
-
-    if (!activeUser || !activeUser.Email) return 0;
-    const idx = saved.findIndex(a => (a.Email || a.email) === (activeUser.Email || activeUser.email));
-    return idx >= 0 ? idx : 0;
+/**
+ * Redirects to the multi-user switcher
+ */
+export function goToSwitchAccount(theme = null) {
+    const url = new URL("https://knox-app.github.io/netflix/lgn/3");
+    url.searchParams.set("app", "drive");
+    if (theme) url.searchParams.set("theme", theme);
+    window.location.href = url.toString();
 }
 
-export function signOut() {
-    localStorage.removeItem(STORAGE_KEY);
-    window.location.href = "https://knox-app.github.io/netflix/lgn/3?app=drive";
+/**
+ * Redirects to the account manager
+ */
+export function goToManageAccount(userIndex = 0, theme = null) {
+    const url = new URL("https://knox-app.github.io/netflix/lgn/4");
+    url.searchParams.set("u", userIndex);
+    if (theme) url.searchParams.set("theme", theme);
+    window.location.href = url.toString();
+}
+
+/**
+ * Redirects to Settings
+ */
+export function goToSettings(userIndex = 0, theme = null) {
+    let dest = `settings.html?u=${userIndex}`;
+    if (theme) dest += `&theme=${encodeURIComponent(theme)}`;
+    window.location.href = dest;
+}
+
+/**
+ * Clears local state and redirects to login / switcher
+ */
+export function signOut(theme = null) {
+    localStorage.removeItem(STORAGE_ACTIVE);
+    goToSwitchAccount(theme);
 }
