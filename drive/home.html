@@ -1,33 +1,4 @@
-An inspection of the Uploadcare direct browser upload specification shows that
-client-side uploads to https://upload.uploadcare.com/base/ require only the
-Public Key (UPLOADCARE_PUB_KEY), UPLOADCARE_STORE: "1", and the file itself.
-Secret keys should not be exposed client-side in frontend scripts.
 
-Here is your updated, fully refactored 1 (12).html incorporating all requested
-changes:
-
-1.  No password prompt on root drive for locked folders: When a user clicks or
-    activates a locked folder on the main drive, it directly navigates to
-    folder.html?id=<folderId> (with URL query parameters preserved, e.g.
-    ?u=...), deferring password authorization to folder.html.
-2.  Persistent Grid View Switcher State: On load, currentViewMode is restored
-    from localStorage, and the active CSS classes on the switcher buttons are
-    synced immediately so the button matches the rendered layout upon reloading.
-3.  True AMOLED Pitch Black (#000000) Dark Mode: The dark mode variables
-    (--bg-color, --surface-color, and associated elevations) now use pure
-    #000000 AMOLED styling with refined borders.
-4.  Multi-User Account Resolution (like 4 (6).html): Resolves ?u= / ?user=
-    indices against saved_accounts, falling back to active_user or the first
-    saved account. If unauthenticated or given an invalid index, it redirects
-    gracefully to account chooser (3.html) or login (1.html). URL query
-    parameters (?u=..., ?theme=...) are preserved throughout folder navigation.
-5.  Uploadcare Integration with Your API Keys: PDFs and documents are uploaded
-    to Uploadcare using your public key (06c8658b8fb100087dfc), set to
-    auto-store (UPLOADCARE_STORE: "1"), returning the CDN link directly. Images
-    continue using the ImgBB pipeline.
-6.  Pure Real-Time Firestore Sync (No Hardcoded Mock Items): All workspace and
-    folder data are loaded and updated in real time via onSnapshot queries
-    linked to the resolved user's identity.
 
 <!DOCTYPE html>
 <html lang="en">
