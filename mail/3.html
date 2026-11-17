@@ -48,6 +48,35 @@
             margin-bottom: 24px;
         }
 
+        .top-right-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .top-user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .top-user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
         .back-link {
             text-decoration: none;
             color: var(--text-secondary);
@@ -84,6 +113,16 @@
             justify-content: center;
             font-weight: 700;
             font-size: 16px;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .avatar-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .meta-info { flex: 1; }
@@ -181,7 +220,10 @@
 <div class="reader-shell">
     <div class="top-action-bar">
         <a href="1.html" class="back-link">&larr; Back</a>
-        <button id="deleteBtn" style="background: none; border: none; color: #ef4444; font-weight: 600; cursor: pointer;">Delete</button>
+        <div class="top-right-actions">
+            <div id="currentUserAvatar" class="top-user-avatar" style="display: none;"></div>
+            <button id="deleteBtn" style="background: none; border: none; color: #ef4444; font-weight: 600; cursor: pointer;">Delete</button>
+        </div>
     </div>
 
     <div id="translateNotice" class="translate-pill" style="display: none;">
@@ -194,7 +236,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, deleteDoc, collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
@@ -213,6 +255,93 @@
     const targetLang = (activeUser["Email-Lang-Target"] || activeUser["Email_Lang_Target"] || "").toLowerCase().trim();
 
     let origSubject = "", origBody = "", transSubject = "", transBody = "", showingTranslated = false;
+    let senderProfilePic = "";
+
+    function formatProfilePicSrc(val) {
+        if (!val || typeof val !== 'string') return "";
+        const trimmed = val.trim();
+        if (trimmed.startsWith("data:image/") || trimmed.startsWith("https://") || trimmed.startsWith("http://")) {
+            return trimmed;
+        }
+        // Fallback if raw base64 was stored without the data URI prefix
+        if (/^[A-Za-z0-9+/=]+$/.test(trimmed.slice(0, 50))) {
+            return `data:image/jpeg;base64,${trimmed}`;
+        }
+        return "";
+    }
+
+    function renderAvatarContent(name, picSrc) {
+        const initial = escapeHtml((name && name[0] ? name[0] : 'U').toUpperCase());
+        const safeSrc = formatProfilePicSrc(picSrc);
+        if (safeSrc) {
+            return `<img src="${escapeHtml(safeSrc)}" alt="${initial}" onerror="this.remove(); this.parentElement.textContent='${initial}';">`;
+        }
+        return initial;
+    }
+
+    async function fetchUserProfilePic(identifier) {
+        if (!identifier) return "";
+
+        const activeIdentifiers = [
+            activeUser.email, activeUser.Email,
+            activeUser.username, activeUser.Username,
+            activeUser.user, activeUser.User,
+            activeUser.id
+        ].filter(Boolean).map(v => String(v).toLowerCase().trim());
+
+        if (activeIdentifiers.includes(String(identifier).toLowerCase().trim()) && activeUser.Profile_Picture) {
+            return activeUser.Profile_Picture;
+        }
+
+        const collectionsToTry = ["Users", "User", "users"];
+        const fieldsToTry = ["email", "Email", "username", "Username", "user"];
+
+        const checks = [];
+        for (const colName of collectionsToTry) {
+            // Direct doc ID lookup
+            checks.push(
+                getDoc(doc(db, colName, identifier)).then(snap => {
+                    if (snap.exists()) {
+                        const d = snap.data();
+                        return d.Profile_Picture || d.profile_picture || d.profilePicture || "";
+                    }
+                    return "";
+                }).catch(() => "")
+            );
+
+            // Field query lookup
+            for (const field of fieldsToTry) {
+                checks.push(
+                    getDocs(query(collection(db, colName), where(field, "==", identifier), limit(1))).then(qSnap => {
+                        if (!qSnap.empty) {
+                            const d = qSnap.docs[0].data();
+                            return d.Profile_Picture || d.profile_picture || d.profilePicture || "";
+                        }
+                        return "";
+                    }).catch(() => "")
+                );
+            }
+        }
+
+        const results = await Promise.all(checks);
+        return results.find(Boolean) || "";
+    }
+
+    async function loadActiveUserAvatar() {
+        const activeId = activeUser.email || activeUser.Email || activeUser.username || activeUser.Username || activeUser.name || activeUser.Name || activeUser.id;
+        let pic = activeUser.Profile_Picture || activeUser.profile_picture || "";
+
+        if (!pic && activeId) {
+            pic = await fetchUserProfilePic(activeId);
+        }
+
+        if (activeId || pic) {
+            const avatarEl = document.getElementById('currentUserAvatar');
+            avatarEl.innerHTML = renderAvatarContent(activeId || 'U', pic);
+            avatarEl.title = activeId || 'User';
+            avatarEl.style.display = 'flex';
+        }
+    }
 
     // Translation function
     async function translateString(text, lang) {
@@ -229,6 +358,8 @@
     }
 
     async function loadEmail() {
+        loadActiveUserAvatar();
+
         if (!docId) return;
         const ref = doc(db, "Email", docId);
         const snap = await getDoc(ref);
@@ -243,6 +374,8 @@
         origBody = data.body || '';
         const from = data.from || 'Unknown';
         const to = data.to || 'Unknown';
+
+        senderProfilePic = data.Profile_Picture || await fetchUserProfilePic(from);
 
         // Auto Translation if target language exists
         if (targetLang && targetLang !== "english") {
@@ -314,7 +447,7 @@
         document.getElementById('contentPane').innerHTML = `
             <div class="email-title">${escapeHtml(activeSub)}</div>
             <div class="meta-strip">
-                <div class="avatar-circle">${(from[0] || 'U').toUpperCase()}</div>
+                <div class="avatar-circle">${renderAvatarContent(from, senderProfilePic)}</div>
                 <div class="meta-info">
                     <div class="meta-sender">${escapeHtml(from)}</div>
                     <div class="meta-recipient">to ${escapeHtml(to)}</div>
