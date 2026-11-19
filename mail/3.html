@@ -269,26 +269,144 @@
         return "";
     }
 
-    function getAvatarHtml(from, picUrl) {
-        const fallbackLetter = escapeHtml((from.trim()[0] || 'U').toUpperCase());
-        if (!picUrl || typeof picUrl !== 'string') {
-            return fallbackLetter;
+    function detectMimeFromBase64(b64) {
+        if (b64.startsWith("iVBORw0KGgo")) return { mime: "image/png", isVideo: false };
+        if (b64.startsWith("/9j/")) return { mime: "image/jpeg", isVideo: false };
+        if (b64.startsWith("R0lGOD")) return { mime: "image/gif", isVideo: false };
+        if (b64.startsWith("UklGR")) return { mime: "image/webp", isVideo: false };
+        if (b64.startsWith("PHN2Zy") || b64.startsWith("PD94bW")) return { mime: "image/svg+xml", isVideo: false };
+        if (b64.startsWith("Qk")) return { mime: "image/bmp", isVideo: false };
+        if (b64.startsWith("AAABAA")) return { mime: "image/x-icon", isVideo: false };
+        if (b64.startsWith("GkXfo")) return { mime: "video/webm", isVideo: true };
+
+        try {
+            const head = atob(b64.slice(0, 24));
+            if (head.includes("ftypavif")) return { mime: "image/avif", isVideo: false };
+            if (head.includes("ftyp")) return { mime: "video/mp4", isVideo: true };
+        } catch (_) {}
+
+        return null;
+    }
+
+    function resolveProfileMedia(rawData) {
+        if (!rawData || typeof rawData !== "string") return null;
+        const trimmed = rawData.trim();
+        if (!trimmed) return null;
+
+        // 1. Standard HTTP(S) URL
+        if (/^https?:\/\//i.test(trimmed)) {
+            const cleanPath = trimmed.split(/[?#]/)[0].toLowerCase();
+            const isVideo = /\.(webm|mp4|mov|m4v|ogv|ogg)$/i.test(cleanPath);
+            return {
+                src: trimmed,
+                isVideo,
+                fallbackVideoSrc: isVideo ? null : trimmed
+            };
         }
 
-        const trimmedUrl = picUrl.trim();
-        if (!/^(https?:\/\/|data:(image|video)\/)/i.test(trimmedUrl)) {
-            return fallbackLetter;
+        // 2. Data URI (data:image/..., data:video/..., data:application/octet-stream;base64,...)
+        if (/^data:/i.test(trimmed)) {
+            const b64Match = trimmed.match(/^data:([^;]*);base64,(.+)$/i);
+            if (b64Match) {
+                const declaredMime = b64Match[1].toLowerCase();
+                const cleanB64 = b64Match[2].replace(/\s+/g, "");
+                const detected = detectMimeFromBase64(cleanB64);
+
+                if (declaredMime.startsWith("video/")) {
+                    return { src: `data:${declaredMime};base64,${cleanB64}`, isVideo: true, fallbackVideoSrc: null };
+                }
+                if (declaredMime.startsWith("image/") && declaredMime !== "image/jpmg") {
+                    return {
+                        src: `data:${declaredMime};base64,${cleanB64}`,
+                        isVideo: false,
+                        fallbackVideoSrc: detected?.isVideo ? `data:${detected.mime};base64,${cleanB64}` : null
+                    };
+                }
+                if (detected) {
+                    return {
+                        src: `data:${detected.mime};base64,${cleanB64}`,
+                        isVideo: detected.isVideo,
+                        fallbackVideoSrc: null
+                    };
+                }
+                return {
+                    src: `data:image/png;base64,${cleanB64}`,
+                    isVideo: false,
+                    fallbackVideoSrc: `data:video/webm;base64,${cleanB64}`
+                };
+            }
+
+            if (/^data:video\//i.test(trimmed)) {
+                return { src: trimmed, isVideo: true, fallbackVideoSrc: null };
+            }
+            if (/^data:image\//i.test(trimmed)) {
+                return { src: trimmed, isVideo: false, fallbackVideoSrc: null };
+            }
+            return null;
         }
 
-        const cleanPath = trimmedUrl.split(/[?#]/)[0].toLowerCase();
-        const isVideo = /\.(webm|mp4|mov|m4v|ogv|ogg)$/i.test(cleanPath) || /^data:video\//i.test(trimmedUrl);
-        const safeUrl = escapeHtml(trimmedUrl);
-
-        if (isVideo) {
-            return `<video src="${safeUrl}" autoplay loop muted playsinline data-fallback="${fallbackLetter}" onerror="this.parentElement.textContent=this.dataset.fallback"></video>`;
+        // 3. Raw Base64 string (without data: prefix)
+        const normalizedB64 = trimmed.replace(/\s+/g, "").replace(/-/g, "+").replace(/_/g, "/");
+        if (normalizedB64.length >= 16 && /^[A-Za-z0-9+/=]+$/.test(normalizedB64)) {
+            const detected = detectMimeFromBase64(normalizedB64);
+            if (detected) {
+                return {
+                    src: `data:${detected.mime};base64,${normalizedB64}`,
+                    isVideo: detected.isVideo,
+                    fallbackVideoSrc: null
+                };
+            }
+            return {
+                src: `data:image/png;base64,${normalizedB64}`,
+                isVideo: false,
+                fallbackVideoSrc: `data:video/webm;base64,${normalizedB64}`
+            };
         }
 
-        return `<img src="${safeUrl}" alt="${escapeHtml(from)}" data-fallback="${fallbackLetter}" onerror="this.parentElement.textContent=this.dataset.fallback" />`;
+        return null;
+    }
+
+    function createVideoElement(src, onFail) {
+        const video = document.createElement("video");
+        video.src = src;
+        video.autoplay = true;
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.onerror = onFail;
+        return video;
+    }
+
+    function renderAvatar(container, from, picData) {
+        if (!container) return;
+        const fallbackLetter = (from.trim()[0] || "U").toUpperCase();
+        const media = resolveProfileMedia(picData);
+
+        if (!media) {
+            container.textContent = fallbackLetter;
+            return;
+        }
+
+        const showFallbackLetter = () => {
+            container.textContent = fallbackLetter;
+        };
+
+        if (media.isVideo) {
+            container.replaceChildren(createVideoElement(media.src, showFallbackLetter));
+            return;
+        }
+
+        const img = document.createElement("img");
+        img.src = media.src;
+        img.alt = from;
+        img.onerror = () => {
+            if (media.fallbackVideoSrc) {
+                container.replaceChildren(createVideoElement(media.fallbackVideoSrc, showFallbackLetter));
+            } else {
+                showFallbackLetter();
+            }
+        };
+        container.replaceChildren(img);
     }
 
     // Translation function
@@ -322,12 +440,9 @@
         const to = data.to || 'Unknown';
 
         // Fetch sender profile picture in parallel from UARM Firestore
-        fetchSenderProfilePicture(from).then(url => {
-            senderProfilePic = url;
-            const avatarEl = document.getElementById('senderAvatar');
-            if (avatarEl) {
-                avatarEl.innerHTML = getAvatarHtml(from, senderProfilePic);
-            }
+        fetchSenderProfilePicture(from).then(picData => {
+            senderProfilePic = picData;
+            renderAvatar(document.getElementById('senderAvatar'), from, senderProfilePic);
         });
 
         // Auto Translation if target language exists
@@ -400,7 +515,7 @@
         document.getElementById('contentPane').innerHTML = `
             <div class="email-title">${escapeHtml(activeSub)}</div>
             <div class="meta-strip">
-                <div class="avatar-circle" id="senderAvatar">${getAvatarHtml(from, senderProfilePic)}</div>
+                <div class="avatar-circle" id="senderAvatar"></div>
                 <div class="meta-info">
                     <div class="meta-sender">${escapeHtml(from)}</div>
                     <div class="meta-recipient">to ${escapeHtml(to)}</div>
@@ -409,6 +524,8 @@
             <div class="email-body-text">${cleanBody}</div>
             ${cubesHtml}
         `;
+
+        renderAvatar(document.getElementById('senderAvatar'), from, senderProfilePic);
     }
 
     function escapeHtml(str) {
