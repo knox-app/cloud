@@ -204,17 +204,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import {
-        getFirestore,
-        doc,
-        getDoc,
-        deleteDoc,
-        collection,
-        query,
-        where,
-        getDocs,
-        limit
-    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, deleteDoc, collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAo8Uzs4XZHDHTSTfgx59w5h5NlYuGC8s0",
@@ -225,8 +215,22 @@
         appId: "1:744203234287:web:81d943ae9b75fd77dce41a"
     };
 
+    const uarmFirebaseConfig = {
+        apiKey: "AIzaSyDPm2za3Ho0Hd8Henuhq0KxAHyUQh-Hi-U",
+        authDomain: "question-metabase.firebaseapp.com",
+        databaseURL: "https://question-metabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "question-metabase",
+        storageBucket: "question-metabase.firebasestorage.app",
+        messagingSenderId: "770698198753",
+        appId: "1:770698198753:web:59ae49d78b6013bab5c1a0",
+        measurementId: "G-6ZP1FPMKSJ"
+    };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    const uarmApp = initializeApp(uarmFirebaseConfig, "uarmApp");
+    const uarmDb = getFirestore(uarmApp);
 
     const docId = new URLSearchParams(window.location.search).get('id');
     const activeUser = JSON.parse(localStorage.getItem('active_user') || '{}');
@@ -235,147 +239,56 @@
     let origSubject = "", origBody = "", transSubject = "", transBody = "", showingTranslated = false;
     let senderProfilePic = "";
 
-    // Extract email address if formatted as "Name <email@domain.com>"
-    function extractEmailAddress(str) {
+    function extractEmail(str) {
         if (!str) return "";
         const match = str.match(/<([^>]+)>/);
         return (match ? match[1] : str).trim();
     }
 
-    // Pick profile picture field regardless of casing/naming
-    function pickProfilePictureField(obj) {
-        if (!obj || typeof obj !== "object") return "";
-        return (
-            obj.Profile_Picture ||
-            obj.profile_picture ||
-            obj.profilePicture ||
-            obj.ProfilePicture ||
-            obj.senderProfilePicture ||
-            obj.avatar ||
-            ""
-        );
-    }
+    async function fetchSenderProfilePicture(fromStr) {
+        const email = extractEmail(fromStr);
+        if (!email) return "";
 
-    // Fetch sender's Profile_Picture from email doc, localStorage, or Firestore user collections
-    async function fetchSenderProfilePicture(from, emailData) {
-        const directPic = pickProfilePictureField(emailData);
-        if (directPic) return directPic;
+        try {
+            const uarmRef = collection(uarmDb, "UARM");
+            let q = query(uarmRef, where("Email", "==", email), limit(1));
+            let snap = await getDocs(q);
 
-        const cleanFrom = extractEmailAddress(from);
-        if (!cleanFrom) return "";
-
-        const activeEmail = extractEmailAddress(
-            activeUser.email || activeUser.Email || activeUser.userEmail || ""
-        );
-        if (activeEmail && activeEmail.toLowerCase() === cleanFrom.toLowerCase()) {
-            const activePic = pickProfilePictureField(activeUser);
-            if (activePic) return activePic;
-        }
-
-        const userCollections = ["Users", "users", "User", "Accounts"];
-        const emailFields = ["Email", "email", "userEmail", "mail"];
-        const idCandidates = [...new Set([cleanFrom, cleanFrom.toLowerCase()])];
-
-        for (const colName of userCollections) {
-            // 1. Try direct document lookup by email ID
-            for (const candidateId of idCandidates) {
-                try {
-                    const userSnap = await getDoc(doc(db, colName, candidateId));
-                    if (userSnap.exists()) {
-                        const pic = pickProfilePictureField(userSnap.data());
-                        if (pic) return pic;
-                    }
-                } catch (e) {}
+            if (snap.empty && email !== email.toLowerCase()) {
+                q = query(uarmRef, where("Email", "==", email.toLowerCase()), limit(1));
+                snap = await getDocs(q);
             }
 
-            // 2. Try querying by common email fields
-            for (const field of emailFields) {
-                for (const candidateEmail of idCandidates) {
-                    try {
-                        const q = query(
-                            collection(db, colName),
-                            where(field, "==", candidateEmail),
-                            limit(1)
-                        );
-                        const snap = await getDocs(q);
-                        if (!snap.empty) {
-                            const pic = pickProfilePictureField(snap.docs[0].data());
-                            if (pic) return pic;
-                        }
-                    } catch (e) {}
-                }
+            if (!snap.empty) {
+                const userData = snap.docs[0].data();
+                return userData["Profile Picture"] || "";
             }
+        } catch (err) {
+            console.error("Error fetching sender profile picture:", err);
         }
-
         return "";
     }
 
-    // Normalize data URLs / raw base64 / file extensions and detect image vs video (.webm, etc.)
-    function normalizeProfileMedia(raw) {
-        if (!raw || typeof raw !== "string") return null;
-        let src = raw.trim();
-        if (!src) return null;
-
-        // Handle raw base64 without data: prefix
-        if (!/^(data:|https?:\/\/|\/|\.\/)/i.test(src)) {
-            if (src.startsWith("/9j/")) src = "data:image/jpeg;base64," + src;
-            else if (src.startsWith("iVBOR")) src = "data:image/png;base64," + src;
-            else if (src.startsWith("UklGR")) src = "data:image/webp;base64," + src;
-            else if (src.startsWith("R0lGO")) src = "data:image/gif;base64," + src;
-            else if (src.startsWith("GkXfo")) src = "data:video/webm;base64," + src;
-            else src = "data:image/jpeg;base64," + src;
+    function getAvatarHtml(from, picUrl) {
+        const fallbackLetter = escapeHtml((from.trim()[0] || 'U').toUpperCase());
+        if (!picUrl || typeof picUrl !== 'string') {
+            return fallbackLetter;
         }
 
-        // Normalize .jpmg MIME typo to image/jpeg
-        src = src.replace(/^data:image\/jpmg\b/i, "data:image/jpeg");
-
-        // Validate allowed URL protocols
-        if (!/^(data:(image|video)\/[a-zA-Z0-9+.-]+;|https?:\/\/|\/|\.\/)/i.test(src)) {
-            return null;
+        const trimmedUrl = picUrl.trim();
+        if (!/^(https?:\/\/|data:(image|video)\/)/i.test(trimmedUrl)) {
+            return fallbackLetter;
         }
 
-        const isVideo =
-            /^data:video\//i.test(src) ||
-            /^data:image\/webm\b/i.test(src) ||
-            /\.(webm|mp4|mov|ogg)(\?.*)?$/i.test(src);
+        const cleanPath = trimmedUrl.split(/[?#]/)[0].toLowerCase();
+        const isVideo = /\.(webm|mp4|mov|m4v|ogv|ogg)$/i.test(cleanPath) || /^data:video\//i.test(trimmedUrl);
+        const safeUrl = escapeHtml(trimmedUrl);
 
         if (isVideo) {
-            src = src.replace(/^data:image\/webm\b/i, "data:video/webm");
+            return `<video src="${safeUrl}" autoplay loop muted playsinline data-fallback="${fallbackLetter}" onerror="this.parentElement.textContent=this.dataset.fallback"></video>`;
         }
 
-        return { src, isVideo };
-    }
-
-    // Populate the avatar container with <img>, <video> (for .webm), or fallback initial
-    function updateAvatarElement(from, profilePic) {
-        const avatarEl = document.getElementById('senderAvatar');
-        if (!avatarEl) return;
-
-        const fallbackInitial = (extractEmailAddress(from)[0] || from[0] || 'U').toUpperCase();
-        const media = normalizeProfileMedia(profilePic);
-
-        if (!media) {
-            avatarEl.textContent = fallbackInitial;
-            return;
-        }
-
-        avatarEl.innerHTML = "";
-        const el = document.createElement(media.isVideo ? "video" : "img");
-        el.src = media.src;
-        el.alt = `${from} profile picture`;
-
-        if (media.isVideo) {
-            el.autoplay = true;
-            el.loop = true;
-            el.muted = true;
-            el.playsInline = true;
-        }
-
-        el.onerror = () => {
-            avatarEl.textContent = fallbackInitial;
-        };
-
-        avatarEl.appendChild(el);
+        return `<img src="${safeUrl}" alt="${escapeHtml(from)}" data-fallback="${fallbackLetter}" onerror="this.parentElement.textContent=this.dataset.fallback" />`;
     }
 
     // Translation function
@@ -408,10 +321,13 @@
         const from = data.from || 'Unknown';
         const to = data.to || 'Unknown';
 
-        // Start fetching sender's Profile_Picture in parallel
-        const profilePicPromise = fetchSenderProfilePicture(from, data).then(pic => {
-            senderProfilePic = pic;
-            updateAvatarElement(from, senderProfilePic);
+        // Fetch sender profile picture in parallel from UARM Firestore
+        fetchSenderProfilePicture(from).then(url => {
+            senderProfilePic = url;
+            const avatarEl = document.getElementById('senderAvatar');
+            if (avatarEl) {
+                avatarEl.innerHTML = getAvatarHtml(from, senderProfilePic);
+            }
         });
 
         // Auto Translation if target language exists
@@ -426,7 +342,6 @@
         }
 
         renderReader(from, to);
-        await profilePicPromise;
 
         document.getElementById('deleteBtn').onclick = async () => {
             if (confirm("Delete this email permanently?")) {
@@ -485,7 +400,7 @@
         document.getElementById('contentPane').innerHTML = `
             <div class="email-title">${escapeHtml(activeSub)}</div>
             <div class="meta-strip">
-                <div class="avatar-circle" id="senderAvatar">${(from[0] || 'U').toUpperCase()}</div>
+                <div class="avatar-circle" id="senderAvatar">${getAvatarHtml(from, senderProfilePic)}</div>
                 <div class="meta-info">
                     <div class="meta-sender">${escapeHtml(from)}</div>
                     <div class="meta-recipient">to ${escapeHtml(to)}</div>
@@ -494,8 +409,6 @@
             <div class="email-body-text">${cleanBody}</div>
             ${cubesHtml}
         `;
-
-        updateAvatarElement(from, senderProfilePic);
     }
 
     function escapeHtml(str) {
