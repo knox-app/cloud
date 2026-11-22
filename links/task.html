@@ -208,13 +208,35 @@
     const statusBadge = document.getElementById('status-badge');
     const badgeText = document.getElementById('badge-text');
     const statusMsg = document.getElementById('status-msg');
+    let redirectTimer = null;
 
     async function executeRedirect() {
-      // 1. Get slug from Hash (#slug) or fallback to search (?slug=...)
-      let slug = window.location.hash.substring(1).trim().toLowerCase();
+      if (redirectTimer) {
+        clearTimeout(redirectTimer);
+      }
+
+      // 1. Get slug and optional remaining part after '&=' from Hash (#slug&=extra)
+      const rawHash = window.location.hash.substring(1).trim();
+      let slug = '';
+      let extraPart = '';
+
+      if (rawHash) {
+        const separatorIndex = rawHash.indexOf('&=');
+        if (separatorIndex !== -1) {
+          slug = rawHash.substring(0, separatorIndex).trim().toLowerCase();
+          extraPart = rawHash.substring(separatorIndex + 2);
+        } else {
+          slug = rawHash.toLowerCase();
+        }
+      }
+
+      // Fallback to search (?slug=... or ?slug=...&=extra)
       if (!slug) {
         const params = new URLSearchParams(window.location.search);
         slug = params.get('slug') ? params.get('slug').trim().toLowerCase() : '';
+        if (!extraPart && params.has('')) {
+          extraPart = params.get('');
+        }
       }
 
       if (!slug) {
@@ -232,12 +254,17 @@
         }
 
         const data = docSnap.data();
-        const targetUrl = data.target;
+        let targetUrl = data.target;
+
+        // Append the remaining part after '&=' if present
+        if (extraPart) {
+          targetUrl += extraPart;
+        }
 
         // Clean direct redirection without countdown timer
         statusMsg.textContent = `Redirecting to ${data.name || 'destination'}...`;
 
-        setTimeout(() => {
+        redirectTimer = setTimeout(() => {
           window.location.href = targetUrl;
         }, 800); // 800ms natural delay to view the card before redirect
 
@@ -255,6 +282,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', executeRedirect);
+    window.addEventListener('hashchange', executeRedirect);
   </script>
 </body>
 </html>
