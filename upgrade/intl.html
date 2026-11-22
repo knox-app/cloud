@@ -41,9 +41,10 @@
             display: inline-block;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .error { color: #ff5252; margin-top: 15px; font-size: 0.95rem; line-height: 1.4; }
+        .error { color: #ff5252; margin-top: 15px; font-size: 0.95rem; line-height: 1.4; display: block; }
         .success-icon { color: #4caf50; font-size: 4rem; margin-bottom: 10px; }
-        .user-details { color: #aaa; font-size: 0.9rem; margin-top: 8px; }
+        .user-details { color: #aaa; font-size: 0.95rem; margin-top: 12px; line-height: 1.6; }
+        .plan-highlight { color: #ffffff; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -51,7 +52,7 @@
     <div class="container">
         <div id="ui-box">
             <div class="loader"></div>
-            <div class="status" id="status-text">Locating Account...</div>
+            <div class="status" id="status-text">Verifying Session...</div>
         </div>
     </div>
 
@@ -59,7 +60,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
-    <!-- Your Configuration Script -->
+    <!-- External Configuration Script -->
     <script src="https://knox-app.github.io/cloud/keys/xprtfb.js"></script>
 
     <script>
@@ -68,66 +69,121 @@
 
         const sleep = ms => new Promise(res => setTimeout(res, ms));
 
-        async function processTransfer() {
+        async function processActivation() {
             const urlParams = new URLSearchParams(window.location.search);
-            const lotusId = urlParams.get('lotus');
-            const planId = urlParams.get('plan');
+            const sessionId = urlParams.get('session');
+            let planId = urlParams.get('plan') || urlParams.get('type');
 
-            if (!lotusId || !planId) {
-                uiBox.innerHTML = '<span class="error">❌ Missing Parameters: Please provide <b>lotus</b> and <b>plan</b> in the URL.</span>';
+            if (!sessionId) {
+                uiBox.innerHTML = '<span class="error">❌ Missing Session: No <b>session</b> ID found in URL.</span>';
                 return;
             }
 
             try {
-                // Initialize Firebase if not already initialized
+                // Initialize Firebase
                 if (!firebase.apps.length) {
                     if (typeof firebaseConfig !== 'undefined') {
                         firebase.initializeApp(firebaseConfig);
                     } else {
-                        throw new Error("firebaseConfig not found in external script.");
+                        throw new Error("firebaseConfig is not defined.");
                     }
                 }
 
                 const db = firebase.firestore();
 
-                // STAGE 1: Finding user document by Lotus ID
-                statusText.innerText = "Finding Account...";
-                await sleep(800);
+                // STAGE 1: Fetch Session details from ASPX Keys
+                statusText.innerText = "Retrieving Session Data...";
+                await sleep(600);
 
-                const uarmQuery = await db.collection("UARM")
-                    .where("Lotus", "==", lotusId)
+                const sessionDoc = await db.collection("ASPX Keys").doc(sessionId).get();
+
+                if (!sessionDoc.exists) {
+                    uiBox.innerHTML = `<span class="error">❌ Session expired or not found.</span>`;
+                    return;
+                }
+
+                const sessionData = sessionDoc.data();
+                const userEmail = sessionData["Team Email"] || sessionData["Email"] || (sessionData.userData && sessionData.userData.Email);
+                
+                // If plan is not in the URL, retrieve it from session document
+                if (!planId) {
+                    planId = sessionData["Plans"] || sessionData["plan"] || sessionData["type"];
+                }
+
+                if (!userEmail) {
+                    uiBox.innerHTML = `<span class="error">❌ No account email associated with this session.</span>`;
+                    return;
+                }
+
+                // STAGE 2: Retrieve the Plan Name from Plans & Subscriptions
+                let planName = planId || "Subscription";
+                if (planId) {
+                    statusText.innerText = "Fetching Plan Details...";
+                    try {
+                        const planDoc = await db.collection("Plans & Subscriptions").doc(planId).get();
+                        if (planDoc.exists && planDoc.data().Name) {
+                            planName = planDoc.data().Name;
+                        }
+                    } catch (err) {
+                        console.warn("Could not retrieve plan name, using ID:", err);
+                    }
+                }
+
+                // STAGE 3: Locate User by Email in UARM
+                statusText.innerText = "Locating Account...";
+                await sleep(600);
+
+                let uarmQuery = await db.collection("UARM")
+                    .where("Email", "==", userEmail)
                     .limit(1)
                     .get();
 
                 if (uarmQuery.empty) {
-                    uiBox.innerHTML = `<span class="error">❌ User not found with Lotus ID: <b>${lotusId}</b></span>`;
+                    // Fallback to lowercase email check
+                    uarmQuery = await db.collection("UARM")
+                        .where("email", "==", userEmail)
+                        .limit(1)
+                        .get();
+                }
+
+                if (uarmQuery.empty) {
+                    uiBox.innerHTML = `<span class="error">❌ No active account found for <b>${userEmail}</b>.</span>`;
                     return;
                 }
 
                 const userDoc = uarmQuery.docs[0];
                 const userDocRef = userDoc.ref;
                 const userData = userDoc.data();
-                const userName = userData["First Name"] ? `${userData["First Name"]} ${userData["Last Name"] || ''}`.trim() : "User";
+                const userName = userData["First Name"] 
+                    ? `${userData["First Name"]} ${userData["Last Name"] || ''}`.trim() 
+                    : userEmail.split('@')[0];
 
-                // STAGE 2: Activating & Assigning Plan
-                statusText.innerText = "Activating Plan...";
-                await sleep(1000);
+                // STAGE 4: Activate & Assign Plan
+                statusText.innerText = `Activating ${planName}...`;
+                await sleep(800);
 
-                // Add planId to the Plans array without duplicates
-                await userDocRef.update({
-                    "Plans": firebase.firestore.FieldValue.arrayUnion(planId),
+                const updatePayload = {
                     "lastUpdated": new Date().toISOString()
-                });
+                };
 
-                // STAGE 3: Finalizing Setup
+                if (planId) {
+                    updatePayload["Plans"] = firebase.firestore.FieldValue.arrayUnion(planId);
+                }
+
+                await userDocRef.update(updatePayload);
+
+                // STAGE 5: Finalizing Setup
                 statusText.innerText = "Finalizing Account...";
-                await sleep(1000);
+                await sleep(600);
 
-                // STAGE 4: Completion Screen
+                // STAGE 6: Success Screen (Shows Plan Name instead of Plan ID)
                 uiBox.innerHTML = `
                     <div class="success-icon">✓</div>
                     <div class="status" style="color: #4caf50;">Plan Activated!</div>
-                    <p class="user-details">Hello <b>${userName}</b>, plan <b>${planId}</b> has been successfully added to your account.</p>
+                    <p class="user-details">
+                        Hello <b>${userName}</b>,<br>
+                        the <span class="plan-highlight">${planName}</span> plan has been successfully activated for <b>${userEmail}</b>.
+                    </p>
                 `;
 
             } catch (error) {
@@ -136,9 +192,8 @@
             }
         }
 
-        // Run process on page load
         window.onload = () => {
-            setTimeout(processTransfer, 500);
+            setTimeout(processActivation, 300);
         };
     </script>
 </body>
